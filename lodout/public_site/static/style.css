@@ -1168,6 +1168,19 @@ footer.rodape .rodape-base a:hover {
   box-shadow: 0 0 0 3px rgba(242, 187, 37, 0.2);
 }
 
+/* Link dentro da frase (ex.: "risco alto"): sublinhado, não só cor. */
+.status-coleta a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+}
+
+.status-coleta a:hover {
+  color: var(--text-bright);
+  text-decoration-color: currentColor;
+}
+
 .status-coleta .status-scan-alerta { color: var(--warn); font-weight: 600; }
 
 /* Dentro da linha, as partes são texto corrido: sem o fio laranja do
