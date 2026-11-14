@@ -154,9 +154,11 @@ def test_index_exibe_total_de_visitas_no_rodape(client, monkeypatch, tmp_path):
     resp = client.get("/")
     assert resp.status_code == 200
     body = resp.data.decode("utf-8")
-    assert "Hoje:" in body
-    assert "acessos" in body
-    assert "Total:" in body
+    # Frase de gente no rodapé (2026-11-14), sem "Hoje:/Total:" nem o
+    # código de build à vista (fica no title).
+    # 2 registradas acima + a própria visita à home.
+    assert "3 acessos hoje · 3 no total" in body
+    assert 'title="Lodout ' in body
 
 
 def test_index_tem_popover_legenda_raridade(client, monkeypatch, tmp_path):

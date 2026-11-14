@@ -793,73 +793,86 @@ main {
 
 /* ── Rodapé ──────────────────────────────────────────── */
 
-/* Rodapé no formato da Apple: bloco cinza (#f5f5f7) de ponta a ponta,
-   texto de 12px em #6e6e73 e títulos de 12px em negrito. O conteúdo
-   interno continua na mesma grade do resto do site. */
+/* ── Rodapé (redesenho 2026-11-14) ───────────────────────
+   Antes: aviso numa linha de ~150 caracteres, três colunas espalhadas
+   pela largura toda, e build + contador de visitas centralizados embaixo;
+   no celular, 13 links empilhados (1.000px de altura).
+   Agora: marca + aviso à esquerda (linha curta), links juntos à direita,
+   base com autor e versão; no celular, os grupos lado a lado. */
 footer.rodape {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) 1fr;
+  grid-template-areas:
+    "marca nav"
+    "nota  nav"
+    "base  base";
+  column-gap: var(--sp-10);
+  align-items: start;
   max-width: none;
-  margin: 56px 0 0;
-  padding: var(--sp-9) 22px var(--sp-8);
-  border-top: 0;
-  /* Rodapé no tom do rodapé da Apple (#f5f5f7): faixa própria, sem
-     virar mais um bloco branco na página cinza. */
+  margin: var(--sp-9) 0 0;
+  padding: var(--sp-9) max(22px, calc((100% - var(--largura-conteudo)) / 2)) var(--sp-7);
+  border-top: 1px solid var(--border);
   background: var(--surface-sunken);
   color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  line-height: 1.4;
-}
-
-footer.rodape > * {
-  max-width: var(--largura-conteudo);
-  margin-left: auto;
-  margin-right: auto;
-}
-
-footer.rodape p { margin: 0 auto var(--sp-2); }
-
-/* Aviso do rodapé (o parágrafo antes da grade de links): respiro antes
-   dos títulos "Explorar/Entenda/Mais", que antes colavam nele. */
-footer.rodape > p {
-  margin-bottom: var(--sp-7);
-  line-height: 1.6;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
 }
 
 footer.rodape a { color: var(--text-muted); }
-
-/* Rodapé é cromo neutro (ref. apple.com): o link escurece e sublinha
-   no hover, sem cor de ação -- o azul fica pros links de texto do
-   conteúdo. */
 footer.rodape a:hover { color: var(--text); text-decoration: underline; }
 
-/* Grade de links por categoria (veio da main, PR #110): aria-current
-   fica só semântico pra leitor de tela, sem caixa de destaque própria
-   (o box-shadow só nele lia como bug, achado 2026-11-03), e abaixo de
-   640px o grid força 1 coluna em vez de quebrar em 2 desalinhadas. */
+.rodape-marca { grid-area: marca; }
+
+.rodape-marca p { margin: 0; max-width: 46ch; }
+
+footer.rodape .rodape-marca-nome {
+  display: inline-block;
+  margin-bottom: var(--sp-2);
+  color: var(--text-bright);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+/* Nota própria da página (ex.: "O Top 20 é salvo a cada coleta..."),
+   embaixo do aviso da marca. */
+footer.rodape > p {
+  grid-area: nota;
+  max-width: 46ch;
+  margin: var(--sp-3) 0 0;
+}
+
+/* Links: três grupos juntos, alinhados à direita da marca, sem as
+   lacunas de quando cada coluna ocupava 1/3 da largura. */
 .rodape-nav {
+  grid-area: nav;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--sp-6);
-  margin: 0 0 var(--sp-7);
+  grid-template-columns: repeat(3, max-content);
+  justify-content: end;
+  column-gap: var(--sp-9);
+  margin: 0;
 }
 
 .rodape-nav-grupo {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .rodape-nav-grupo h2 {
-  margin: 0 0 var(--sp-3);
+  margin: 0 0 var(--sp-2);
   color: var(--text);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.5;
   text-transform: none;
 }
 
 .rodape-nav-grupo a {
   display: flex;
-  min-height: 32px;
+  min-height: 30px;
   align-items: center;
   color: var(--text-muted);
   text-decoration: none;
@@ -872,23 +885,22 @@ footer.rodape a:hover { color: var(--text); text-decoration: underline; }
 
 .rodape-nav-grupo a:focus-visible { outline-offset: 2px; }
 
-@media (max-width: 640px) {
-  .rodape-nav { grid-template-columns: 1fr; gap: var(--sp-5); }
-  .rodape-nav-grupo a { min-height: 44px; }
-}
-
-/* Barra fina de versão, visitas e autor, separada da grade por um fio
-   -- só texto aqui, os links já estão na grade acima. */
+/* Base: autor à esquerda, versão discreta à direita (o build fica no
+   title, pra conferir deploy passando o mouse). */
 .rodape-base {
-  padding-top: var(--sp-6);
+  grid-area: base;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-5);
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-5);
   border-top: 1px solid var(--border);
-  font-size: var(--fs-xs);
 }
 
-.rodape-base .versao {
-  margin: 0 0 var(--sp-2);
-  text-align: center;
-}
+.rodape-base .versao { margin: 0; }
+
+.rodape-versao { cursor: help; }
 
 /* Assinatura do autor na cor da casa. */
 footer.rodape .rodape-base a {
@@ -903,7 +915,36 @@ footer.rodape .rodape-base a:hover {
   text-underline-offset: 3px;
 }
 
-.rodape-base .versao:last-child { margin-bottom: 0; }
+/* Tablet: marca em cima, links embaixo. */
+@media (max-width: 900px) {
+  footer.rodape {
+    grid-template-columns: 1fr;
+    grid-template-areas: "marca" "nota" "nav" "base";
+  }
+
+  .rodape-nav {
+    justify-content: start;
+    margin-top: var(--sp-7);
+  }
+}
+
+/* Celular: os três grupos lado a lado (eram 13 links um embaixo do
+   outro), cada link ainda com ~40px de toque. */
+@media (max-width: 640px) {
+  footer.rodape { padding-top: var(--sp-8); }
+
+  .rodape-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--sp-4);
+  }
+
+  .rodape-nav-grupo a {
+    min-height: 40px;
+    line-height: 1.3;
+  }
+
+  .rodape-base { margin-top: var(--sp-6); }
+}
 
 /* ── Navegação inferior (celular) ────────────────────── */
 

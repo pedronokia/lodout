@@ -1,3 +1,9 @@
+<div class="rodape-marca">
+  <a class="rodape-marca-nome" href="{{ url_for('index') }}">Lodout</a>
+  <p>Notas de 0 a 100 e preços de skins de CS2, com dados públicos da
+  Steam Community Market. Não é afiliado à Valve nem recomendação de
+  investimento — a decisão é sempre sua.</p>
+</div>
 <nav class="rodape-nav" aria-label="Navegação do site">
   <div class="rodape-nav-grupo">
     <h2>Explorar</h2>
@@ -22,7 +28,10 @@
     <a href="https://github.com/pedronokia/lodout/issues/new" target="_blank" rel="noopener">Sugerir melhoria</a>
   </div>
 </nav>
+{# Visitas em frase de gente ("357 acessos hoje · 8.465 no total") em
+   vez de "Lodout v1.0.0 (20261114-...) · Hoje: · Total:"; a versão e o
+   build ficam no title, pra conferir deploy passando o mouse. #}
 <div class="rodape-base">
-  <p class="versao">Lodout v{{ versao }} · Hoje: {{ visitas_hoje }} acessos · Total: {{ visitas_total }} acessos</p>
   <p class="versao">Criado por <a href="https://steamcommunity.com/profiles/76561199685192075" target="_blank" rel="noopener">nokia</a></p>
+  <p class="versao rodape-versao" title="Lodout {{ versao }}">{{ "{:,}".format(visitas_hoje or 0)|replace(",", ".") }} {{ "acesso" if visitas_hoje == 1 else "acessos" }} hoje · {{ "{:,}".format(visitas_total or 0)|replace(",", ".") }} no total</p>
 </div>

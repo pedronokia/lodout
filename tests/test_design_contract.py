@@ -128,11 +128,12 @@ def test_titulos_600_e_escala_32_48_64():
 def test_rodape_cinza_claro_12px():
     css = _css()
     rodape = _bloco(css, "footer.rodape")
-    # Rodapé no tom #f5f5f7 (--surface-sunken): na página branca ainda
-    # se destaca como faixa própria.
+    # Faixa própria em --surface-sunken. Texto em --fs-xs desde o
+    # redesenho de 2026-11-14 (12px ficava pequeno demais pro aviso).
     assert "background: var(--surface-sunken);" in rodape
-    assert "font-size: var(--fs-2xs);" in rodape        # 12px
-    assert "--fs-2xs: 0.75rem" in css
+    assert "font-size: var(--fs-xs);" in rodape
+    # Marca e aviso à esquerda, links à direita, base embaixo.
+    assert '"marca nav"' in rodape and '"base  base"' in rodape
 
 
 def test_cards_sem_fio_com_elevacao_hover():
@@ -213,8 +214,8 @@ def test_polimento_da_maquete_v4():
     # Linha de coleta fechando a ficha do item (régua de baixo).
     coleta = _bloco(css, ".resumo-cards-item .card-coleta")
     assert "border-top: 1px solid var(--border);" in coleta
-    # Aviso do rodapé alinhado com a grade das colunas (margens auto).
-    assert "footer.rodape p { margin: 0 auto var(--sp-2); }" in css
+    # Aviso do rodapé em linha curta (não atravessa a largura toda).
+    assert "max-width: 46ch;" in _bloco(css, ".rodape-marca p")
 
 
 def test_respeita_reduced_motion():
