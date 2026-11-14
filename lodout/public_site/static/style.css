@@ -1758,22 +1758,83 @@ footer.rodape .rodape-base a:hover {
 /* Link dentro de frase explicativa: sublinhado, não só cor. */
 .ajuda-nota a { text-decoration: underline; text-underline-offset: 2px; }
 
+/* Guia da nota + "Cores da borda" numa linha só (2026-11-14). Antes o
+   botão de pílula ficava sozinho numa linha embaixo da frase; agora é
+   um link discreto no fim, no mesmo tom da frase. */
+.guia-nota {
+  position: relative;
+  margin: 0 0 var(--sp-3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+/* Frase e link correm no mesmo parágrafo visual: o "Cores da borda"
+   entra logo depois de "Glossário", separado pelo mesmo "·". */
+.guia-nota .ajuda-nota { display: inline; margin: 0; }
+
+/* position: static faz o quadro da legenda se ancorar no parágrafo
+   (abre embaixo dele, alinhado à esquerda), não no link do fim da linha
+   -- senão ele vazava pela direita da tela no celular. */
+.guia-nota .popover-legenda {
+  position: static;
+  display: inline-block;
+  margin: 0;
+}
+
+.guia-nota .popover-legenda::before {
+  content: "·";
+  margin: 0 0.4em 0 0.3em;
+  color: var(--text-muted);
+}
+
+.guia-nota .popover-legenda-toggle {
+  display: inline-flex;
+  gap: 4px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+}
+
+.guia-nota .popover-legenda-toggle:hover,
+.guia-nota .popover-legenda[open] .popover-legenda-toggle {
+  background: transparent;
+  color: var(--text-bright);
+  text-decoration-color: currentColor;
+}
+
 /* ── Abas de categoria ───────────────────────────────── */
 
+/* Uma linha só (2026-11-14): com 9 categorias a barra quebrava e
+   deixava "SMGs" sozinho embaixo. O que não cabe rola de lado; o
+   padding de 4px dá espaço pro anel de foco não ser cortado pela
+   rolagem, e a margem negativa devolve o alinhamento. */
 .abas-categoria {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 0 var(--sp-3);
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: -4px -4px var(--sp-2);
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
 }
+
+.abas-categoria::-webkit-scrollbar { display: none; }
 
 /* Chips de categoria: pílula fantasma (fundo transparente + fio), como
    os filtros da loja da Apple. A aba escolhida vira pílula laranja. */
 .aba-categoria {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 6px;
-  padding: 5px 13px;
+  padding: 5px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   background: transparent;
@@ -1853,10 +1914,14 @@ footer.rodape .rodape-base a:hover {
   text-decoration: none;
 }
 
+/* Neutro (2026-11-14): o laranja fica só na aba de categoria. Dois
+   controles laranja lado a lado disputavam atenção, e o "Ordenar por"
+   ao lado já usava este mesmo cinza. */
 .seletor-visao a[aria-current="page"] {
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--surface-hover);
+  color: var(--text-bright);
   font-weight: 500;
+  box-shadow: var(--shadow-sm);
 }
 
 .ordenar-vitrine {
@@ -1870,7 +1935,10 @@ footer.rodape .rodape-base a:hover {
 .ordenar-vitrine-rotulo { color: var(--text-muted); }
 
 .ordenar-vitrine a {
-  padding: 4px 10px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   color: var(--text-muted);
   text-decoration: none;
@@ -2706,12 +2774,53 @@ table.tabela-candidatos td.celula-preco {
   margin-top: var(--sp-5);
 }
 
-.paginacao-principal {
+/* Uma linha: Anterior · números · Próxima (2026-11-14). */
+.paginacao {
+  gap: var(--sp-2);
+}
+
+.paginacao-resumo {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.paginacao-linha {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2);
+}
+
+.paginacao-passo {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+
+a.paginacao-passo:hover {
+  border-color: var(--border-strong);
+  color: var(--text-bright);
+  text-decoration: none;
+}
+
+.paginacao-passo[aria-disabled="true"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  opacity: 0.55;
 }
 
 .paginacao-numeros {
@@ -2724,13 +2833,13 @@ table.tabela-candidatos td.celula-preco {
 
 .paginacao-numero {
   display: inline-flex;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
   padding: 2px 8px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--text-muted);
   font-size: var(--fs-sm);
@@ -4487,10 +4596,19 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   .pagina-inicial table.tabela-itens .detalhe-motivo,
   .pagina-inicial table.tabela-itens .texto-motivo { max-width: 100%; }
 
-  .paginacao-principal {
-    flex-direction: column;
-    gap: var(--sp-2);
+  /* No celular os números ficam numa linha própria e Anterior/Próxima
+     dividem a de baixo, cada um com metade da largura. */
+  .paginacao-linha { width: 100%; }
+
+  /* Abas: o esmaecido na borda direita avisa que há mais categorias
+     rolando de lado; o padding extra deixa a última sair do esmaecido. */
+  .abas-categoria {
+    padding-right: 32px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
   }
+  .paginacao-numeros { order: -1; flex-basis: 100%; }
+  .paginacao-passo { flex: 1 1 0; justify-content: center; }
 
   /* Tabelas de conta/admin também viram cartões. */
   .tabela-wrap-cards { overflow: visible; }
@@ -5076,7 +5194,8 @@ p { text-wrap: pretty; }
 .aba-categoria:active,
 .seletor-visao a:active,
 .seletor-periodo a:active,
-.paginacao-numero:active {
+.paginacao-numero:active,
+a.paginacao-passo:active {
   transform: scale(0.97);
 }
 

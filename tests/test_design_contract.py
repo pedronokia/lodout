@@ -186,10 +186,11 @@ def test_polimento_da_maquete_v4():
     na maquete v4 (pílulas, abas, faixa de informação, CTA do item e
     rodapé alinhado)."""
     css = _css()
-    # Pílulas ativas em laranja (antes brancas com sombra).
+    # Vitrine/Lista ativo ficou neutro em 2026-11-14 (o laranja fica só
+    # na aba de categoria; dois controles laranja lado a lado disputavam).
     visao = _bloco(css, '.seletor-visao a[aria-current="page"]')
-    assert "background: rgba(249, 115, 22, 0.7);" in visao
-    assert "box-shadow" not in visao
+    assert "background: var(--surface-hover);" in visao
+    assert "rgba(249, 115, 22" not in visao
     # Abas de categoria: fantasma (transparente + fio) quando inativas,
     # laranja na ativa.
     aba = _bloco(css, ".aba-categoria")

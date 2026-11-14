@@ -656,10 +656,22 @@ def test_index_explicita_escala_da_nota_e_rotulo_textual_de_risco(
 
     assert "Nota (0\u2013100)" in body
     assert "não é promessa nem previsão de lucro" in body
-    assert "selo de risco, quando aparece, indica a possibilidade" in body
     # Risco baixo é o caso comum: sem coluna nem selo (era uma coluna
-    # inteira repetindo "Baixo" em toda linha).
+    # inteira repetindo "Baixo" em toda linha) -- e sem a frase que
+    # explica um selo que não aparece (2026-11-14).
     assert 'class="selo-risco' not in body
+    assert "O selo de risco aponta" not in body
+
+
+def test_index_explica_selo_de_risco_quando_ele_aparece(
+        client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "medium"}, "breakdown": []},
+    ])
+    body = client.get("/").data.decode("utf-8")
+    assert 'class="selo-risco' in body
+    assert "O selo de risco aponta chance de alta artificial no preço" in body
 
 
 def test_index_nota_no_teto_mostra_margem_alem_de_100(client, monkeypatch, tmp_path):
@@ -5840,7 +5852,8 @@ def test_pagina_alem_do_fim_mostra_a_ultima(client, monkeypatch, tmp_path):
         {"name": f"Item {i}", "score": 100 - i, "price": 1.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []} for i in range(25)])
     body = client.get("/?pagina=999").data.decode("utf-8")
-    assert "Mostrando 25–25 de 25 itens · página 3" in body
+    assert "Mostrando 25–25 de 25 itens<" in body
+    assert "aria-current=\"page\">3<" in body
     assert "Item 24" in body
     assert "Mostrando 1–12" in client.get("/?pagina=0").data.decode("utf-8")
 

@@ -327,7 +327,7 @@ document.addEventListener("keydown", function (e) {
       document.querySelectorAll("table.tabela-candidatos, .grade-cards").forEach(function (t) {
         t.style.display = semNenhum ? "none" : "";
       });
-      // A paginação ("Mostrando 1–12 de 38 itens", "Ver mais") fala da
+      // A paginação ("Mostrando 1–12 de 38 itens", "Anterior", "Próxima") fala da
       // lista completa; no modo só favoritos ela contradizia a tela.
       document.querySelectorAll(".paginacao").forEach(function (nav) {
         nav.hidden = ativo;

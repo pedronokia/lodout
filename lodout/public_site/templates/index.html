@@ -393,14 +393,22 @@
 
     {% if candidatos %}
     <h2 class="visualmente-oculto">Todos os itens</h2>
-    <p class="ajuda-nota">A nota resume fatores observados, não é promessa nem previsão de lucro. O selo de risco, quando aparece, indica a possibilidade de uma alta rápida e artificial no preço. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
+    {# Frase-guia mais curta e "Cores da borda" na mesma linha (2026-11-14):
+       a explicação do selo de risco só entra quando há selo na página. #}
+    <div class="guia-nota">
+      {# A explicação do selo de risco só aparece quando algum item desta
+         página tem o selo (risco baixo não mostra selo nenhum). #}
+      {% set ns_risco = namespace(tem=false) %}
+      {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
+      <p class="ajuda-nota">A nota de 0 a 100 resume fatores observados — não é promessa nem previsão de lucro.{% if ns_risco.tem %} O selo de risco aponta chance de alta artificial no preço.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
+      {% include "partials/_legenda_raridade.html" %}
+    </div>
     {% endif %}
 
     {% if candidatos %}
     {% if ver_sel == 'lista' %}
     <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
     {% endif %}
-    {% include "partials/_legenda_raridade.html" %}
     {% endif %}
 
     {% if scan %}
@@ -466,26 +474,32 @@
     {% endif %}
     {% if candidatos %}
     <nav class="paginacao" aria-label="Paginação">
-      <div class="paginacao-principal">
+      {# Uma linha só: Anterior · números · Próxima (2026-11-14). "Ver mais"
+         era ambíguo, e "· página N" repetia o número destacado. #}
+      <p class="paginacao-resumo">Mostrando {{ primeiro_item }}–{{ ultimo_item }} de {{ total_candidatos }} itens</p>
+      <div class="paginacao-linha">
       {% if tem_pagina_anterior %}
-        <a id="link-pagina-anterior" class="botao-link link-com-seta" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina-1) }}" title="Atalho: seta esquerda">{{ icone("seta-esquerda") }} Página anterior</a>
+        <a id="link-pagina-anterior" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina-1) }}" title="Atalho: seta esquerda">{{ icone("seta-esquerda") }} Anterior</a>
+      {% else %}
+        <span class="paginacao-passo" aria-disabled="true">{{ icone("seta-esquerda") }} Anterior</span>
       {% endif %}
-      <span class="status-muted">Mostrando {{ primeiro_item }}–{{ ultimo_item }} de {{ total_candidatos }} itens · página {{ pagina }}</span>
-      {% if tem_proxima_pagina %}
-        <a id="link-pagina-seguinte" class="botao-link link-com-seta" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina+1) }}">Ver mais {{ icone("seta-direita") }}</a>
-      {% endif %}
-      </div>
       {% if total_paginas > 1 %}
-      <div class="paginacao-numeros" aria-label="Páginas">
-        {% for p in paginas_visiveis %}
-          {% if p is none %}
-            <span class="paginacao-reticencias" aria-hidden="true">…</span>
-          {% else %}
-            <a class="paginacao-numero" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=p) }}"{% if p == pagina %} aria-current="page"{% endif %}>{{ p }}</a>
-          {% endif %}
-        {% endfor %}
-      </div>
+        <div class="paginacao-numeros" aria-label="Páginas">
+          {% for p in paginas_visiveis %}
+            {% if p is none %}
+              <span class="paginacao-reticencias" aria-hidden="true">…</span>
+            {% else %}
+              <a class="paginacao-numero" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=p) }}"{% if p == pagina %} aria-current="page"{% endif %}>{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% if tem_proxima_pagina %}
+        <a id="link-pagina-seguinte" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina+1) }}" title="Atalho: seta direita">Próxima {{ icone("seta-direita") }}</a>
+      {% else %}
+        <span class="paginacao-passo" aria-disabled="true">Próxima {{ icone("seta-direita") }}</span>
       {% endif %}
+      </div>
     </nav>
     {% elif scan and categoria_sel and not contagem_categorias.get(categoria_sel) %}
       <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>A categoria {{ categoria_sel }} ainda não tem itens coletados. A coleta atual cobre só as categorias com número ao lado do nome no filtro. <a href="{{ url_for('index') }}">Ver todas as categorias</a></p>
