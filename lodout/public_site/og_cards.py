@@ -30,7 +30,7 @@ _SUPERFICIE = (30, 30, 30)     # --surface #1e1e1e
 _TEXTO = (255, 255, 255)
 _TEXTO_FRACO = (179, 179, 179)  # --text-muted
 _LARANJA = (249, 115, 22)      # --accent
-_CORES_NOTA = {"alta": (34, 160, 74), "media": (217, 119, 6),
+_CORES_NOTA = {"alta": (57, 194, 102), "media": (242, 187, 37),
                "baixa": (179, 179, 179)}
 _CORES_RARIDADE = {
     "consumer": (176, 195, 217), "industrial": (94, 152, 217),
@@ -200,7 +200,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v2"]).encode("utf-8")).hexdigest()
+        "v3"]).encode("utf-8")).hexdigest()
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:

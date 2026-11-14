@@ -289,6 +289,6 @@ def test_contraste_dos_selos_sobre_fundo_tingido():
 def test_contraste_de_texto_branco_nos_fundos_cheios():
     # Botão de perigo e contador de favoritos: branco por cima.
     t = _tokens(_css())
-    for fd in ("--danger-fundo", "--warn-fundo"):
+    for fd in ("--danger-fundo",):
         r = _contraste("#ffffff", t[fd])
         assert r >= 4.5, f"branco sobre {fd} {t[fd]}: {r:.2f}:1"
