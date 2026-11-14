@@ -1537,3 +1537,50 @@ def test_load_item_history_le_o_arquivo_uma_vez_e_relê_quando_muda(tmp_path, mo
     assert len(signals.load_item_history("A", p)) == 2
     assert len(leituras) == 2
     assert signals.load_item_history("A", tmp_path / "nao-existe.json") == []
+
+
+def _hist_horario_subindo_com_ultima_venda_barata():
+    """100 dias de vendas horárias com preço subindo devagar (média do dia
+    sobe), mas a última venda é uma avulsa 20% mais barata -- o caso da
+    Flip Knife Doppler FN em 14/11."""
+    t0 = 1_790_000_000 - (1_790_000_000 % 86400)
+    hist = [{"time": t0 + h * 3600, "price_median": 100 + h * 0.01, "purchases": 1}
+            for h in range(100 * 24)]
+    # A última venda do dia (que ainda tem as outras 23) sai 20% abaixo.
+    hist[-1] = dict(hist[-1], price_median=hist[-2]["price_median"] * 0.8)
+    return hist
+
+
+def test_multi_trend_diario_nao_cai_por_uma_venda_avulsa():
+    from lodout import signals
+    hist = _hist_horario_subindo_com_ultima_venda_barata()
+    # Ponto isolado (o que vale hoje na nota): a venda avulsa vira queda.
+    assert signals.veredito_multiperiodo(signals.multi_trend(hist)) == "caindo"
+    # Média do dia: 7, 30 e 90 dias subindo; o dia de hoje ainda sente a
+    # venda avulsa, então não há concordância (sem os ±10) -- nunca "caindo".
+    mt = signals.multi_trend_diario(hist)
+    assert all(mt[p]["change_pct"] > 0 for p in ("7d", "30d", "90d"))
+    assert signals.veredito_multiperiodo(mt) is None
+
+
+def test_veredito_multiperiodo_igual_ao_fator_da_nota():
+    from lodout import signals
+    for mt, rotulo in [
+        ({"24h": {"change_pct": 1}, "7d": {"change_pct": 2}, "30d": {"change_pct": 3}}, "Subindo em todos"),
+        ({"24h": {"change_pct": -1}, "7d": {"change_pct": -2}, "30d": {"change_pct": -3}}, "Caindo em todos"),
+        ({"24h": {"change_pct": 1}, "7d": {"change_pct": -2}, "30d": {"change_pct": 3}}, None),
+    ]:
+        _, br = signals.enhanced_score({}, multi_trend=mt)
+        tem = [b["label"] for b in br if "em todos os períodos" in b["label"]]
+        v = signals.veredito_multiperiodo(mt)
+        if rotulo is None:
+            assert v is None and not tem
+        else:
+            assert tem and tem[0].startswith(rotulo)
+            assert v == ("subindo" if rotulo.startswith("Subindo") else "caindo")
+
+
+def test_multi_trend_diario_sem_dado_suficiente():
+    from lodout import signals
+    assert signals.multi_trend_diario(None) == {}
+    assert signals.multi_trend_diario([{"time": 1_790_000_000, "price_median": 1.0}]) == {}

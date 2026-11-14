@@ -538,6 +538,59 @@ def multi_trend(price_history: list[dict], periods: list[int] | None = None) -> 
     return result
 
 
+def multi_trend_diario(price_history: "list[dict] | None") -> dict:
+    """Como `multi_trend`, mas compara MÉDIAS DO DIA (`daily_series`) em vez
+    de um ponto isolado contra outro. Medida em modo sombra (2026-11-14):
+    `multi_trend` usa a última venda horária contra a de N dias atrás, e
+    num item caro com poucas vendas uma venda avulsa mais barata vira
+    "caindo em todos os períodos" ao lado de "subindo nos últimos 7 dias"
+    (Flip Knife Doppler FN, coleta de 14/11 15:19)."""
+    diario = daily_series(price_history or [])
+    if len(diario) < 2:
+        return {}
+    ultimo = diario[-1]
+    por_dia = {int(d["time"] // 86400): d for d in diario}
+    hoje = int(ultimo["time"] // 86400)
+    out: dict = {}
+    for dias, rotulo in ((1, "24h"), (7, "7d"), (30, "30d"), (90, "90d")):
+        tolerancia = int(dias * 0.2)
+        ref = None
+        for desvio in range(0, tolerancia + 1):
+            for alvo in (hoje - dias - desvio, hoje - dias + desvio):
+                if alvo in por_dia and alvo < hoje:
+                    ref = por_dia[alvo]
+                    break
+            if ref:
+                break
+        if not ref or not ref["price_median"]:
+            continue
+        cp = (ultimo["price_median"] - ref["price_median"]) / ref["price_median"] * 100
+        out[rotulo] = {"change_pct": round(cp, 2)}
+    return out
+
+
+def veredito_multiperiodo(mt: "dict | None") -> "str | None":
+    """'subindo' / 'caindo' / None -- a mesma regra que `enhanced_score`
+    usa pro fator de concordância multi-período (>= 3 dos períodos 24h,
+    7d, 30d, 90d, todos no mesmo sentido)."""
+    if not mt or len(mt) < 3:
+        return None
+    dirs = [mt[l]["change_pct"] > 0 for l in ("24h", "7d", "30d", "90d") if l in mt]
+    if len(dirs) < 3:
+        return None
+    if all(dirs):
+        return "subindo"
+    if not any(dirs):
+        return "caindo"
+    return None
+
+
+def sinal_multiperiodo(is_container: bool) -> int:
+    """Sinal do fator multi-período: reversão à média fora de container."""
+    reverte = (not is_container) or _REVERSAL_IN_CONTAINERS
+    return _MULTI_PERIOD_SIGN if reverte else 1
+
+
 def daily_series(price_history: list[dict], days: int | None = None,
                  now: float | None = None) -> list[dict]:
     """Agrega o price_history em UM ponto por dia (UTC).

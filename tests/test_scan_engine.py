@@ -701,3 +701,20 @@ def test_comparar_fontes_separa_mediana_por_liquidez():
     assert faixas["baixa"] == {"itens": 2, "concorda_pct": 50.0}
     assert r["mediana_divergentes"] == [
         {"name": "Parado", "vendas_24h": 2, "razao": 1.386}]
+
+
+def test_comparar_multiperiodo_conta_mudancas_e_efeito_na_nota():
+    from lodout import scan_engine
+    sombras = [
+        # skin (sinal -1): caindo valia +10; com a média do dia, subindo vale -10
+        {"name": "Faca", "mp_antigo": "caindo", "mp_diario": "subindo", "mp_sinal": -1},
+        {"name": "Igual", "mp_antigo": "subindo", "mp_diario": "subindo", "mp_sinal": 1},
+        {"name": "Caixa", "mp_antigo": None, "mp_diario": "subindo", "mp_sinal": 1},
+        {"name": "Sem sombra"},
+    ]
+    r = scan_engine.comparar_multiperiodo(sombras)
+    assert r["itens"] == 3 and r["mudariam"] == 2
+    assert r["transicoes"] == {"caindo->subindo": 1, "nenhum->subindo": 1}
+    assert r["maiores"][0] == {"name": "Faca", "de": "caindo", "para": "subindo", "nota_delta": -20}
+    assert r["maiores"][1]["nota_delta"] == 10
+    assert scan_engine.comparar_multiperiodo([]) is None
