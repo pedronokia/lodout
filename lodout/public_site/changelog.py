@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-14",
         "titulo": "Mais fácil de ler, de achar e de usar",
         "itens": [
+            "A tendência de preço (subindo/caindo) agora compara 7 dias de verdade. Antes, por uma mudança no formato dos dados da Steam, olhava só as últimas horas — e a nota de um item podia subir ou cair até 25 pontos de uma coleta pra outra por uma oscilação pequena.",
             "Verde, vermelho e laranja do site ficaram mais claros: no fundo escuro, os tons antigos eram difíceis de ler em letra pequena.",
             "Na página do item, o painel de preço, nota e caixa cabe numa linha (o nome da caixa aparecia enorme e o preço quebrava em duas linhas) e o “Por quê” mostra os pontos de cada fator numa etiqueta ao lado do texto.",
             "Busca sem resultado diz o que foi buscado e como acertar; as abas de categoria passam a contar só o que a busca encontra.",

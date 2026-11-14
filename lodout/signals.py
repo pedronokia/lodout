@@ -1152,14 +1152,14 @@ def enhanced_score(verdict: dict, volume: int | None = None,
 
     tv = verdict.get("trend_verdict", "")
     if tv == "rising":
-        _add("trend", 15, "Preço subindo nos últimos dias (+15)")
+        _add("trend", 15, "Preço subindo nos últimos 7 dias (+15)")
     elif tv == "falling":
         # EXPERIMENT 2026-06-07: fair_penalty_halving — REVERTIDO
         # Hipótese: trend falling quando preco esta "fair" (±5%) e' ruido.
         # Resultado: +0.0016 agg corr (56 itens, n=22014), abaixo do criterio
         # de +0.002. Keep: 85-100 intacto, 112 falsos negativos removidos.
         # Negative finding: efeito real mas marginal; nao justifica mudanca.
-        _add("trend", -10, "Preço caindo nos últimos dias (-10)")
+        _add("trend", -10, "Preço caindo nos últimos 7 dias (-10)")
 
     # Oferta / Demanda
     if volume is not None and supply is not None and supply > 0:

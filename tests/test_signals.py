@@ -1481,10 +1481,30 @@ def test_tendencia_7d_usa_dias_e_nao_os_ultimos_pontos_horarios():
     for i, h in enumerate(range(8 * 24, 8 * 24 + 7)):
         hist.append({"time": t0 + h * 3600, "price_median": 80 + 2 * i,
                      "purchases": 3})
-    antigo = steam_api.fair_value_verdict(80.0, 80.0, price_history=hist)
-    assert antigo["trend_verdict"] == "rising"  # o bug: 7 pontos = 7 horas
     t7 = signals.tendencia_7d(hist)
     assert t7["verdict"] == "falling" and t7["pct"] < -3
+    # Desde 2026-11-14 o veredito da nota usa os 7 dias (antes dava
+    # "rising": 7 pontos = 7 horas de alta no fim de uma queda de 8 dias).
+    v = steam_api.fair_value_verdict(80.0, 80.0, price_history=hist)
+    assert v["trend_verdict"] == "falling"
+    assert v["trend_pct"] == t7["pct"]
+
+
+def test_veredito_sem_dias_suficientes_nao_inventa_tendencia():
+    from lodout import steam_api
+    # 30 pontos horários (~1 dia): com o cálculo antigo virava tendência
+    # das últimas 7 horas; agora não há tendência.
+    hist = [{"time": 1_800_000_000 + h * 3600, "price_median": 10.0 + h,
+             "purchases": 1} for h in range(30)]
+    assert "trend_verdict" not in steam_api.fair_value_verdict(
+        40.0, 40.0, price_history=hist)
+
+
+def test_veredito_sem_data_mantem_calculo_por_pontos():
+    from lodout import steam_api
+    hist = [{"price_median": 10.0 + i} for i in range(7)]
+    assert steam_api.fair_value_verdict(
+        16.0, 16.0, price_history=hist)["trend_verdict"] == "rising"
 
 
 def test_tendencia_7d_sem_dias_suficientes_e_none():

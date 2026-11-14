@@ -1181,9 +1181,9 @@ def fair_value_verdict(
         elif extra.get("book_verdict") == "buyer_dominant":
             msg_parts.append("Muita gente querendo comprar.")
         if extra.get("trend_verdict") == "falling":
-            msg_parts.append("Preço caindo nos últimos dias.")
+            msg_parts.append("Preço caindo nos últimos 7 dias.")
         elif extra.get("trend_verdict") == "rising":
-            msg_parts.append("Preço subindo nos últimos dias.")
+            msg_parts.append("Preço subindo nos últimos 7 dias.")
         result["message"] = " ".join(msg_parts)
 
     # Bloqueio pos-compra: fato, nao ajuste de score.
@@ -1237,7 +1237,21 @@ def _extra_verdict(
         else:
             extra["book_verdict"] = "balanced"
 
-    if price_history and len(price_history) >= 7:
+    # Tendência = últimos 7 DIAS de verdade (signals.tendencia_7d), desde
+    # 2026-11-14. Antes eram os 7 últimos PONTOS, e desde 28/06/2026 a
+    # Steam manda pontos horários na parte recente: "7 pontos" virou ~7
+    # horas, e a nota oscilava até 25 pontos entre coletas por ruído
+    # (medido em modo sombra: 60% dos itens com veredito diferente, 15 em
+    # direção oposta). Com datas e menos de 5 dias de dado: sem tendência,
+    # em vez de ruído. Histórico sem data (não dá pra agrupar por dia)
+    # mantém o cálculo por pontos.
+    if price_history and any(e.get("time") is not None for e in price_history[-3:]):
+        from lodout import signals as _sinais  # import tardio: sem ciclo
+        t7 = _sinais.tendencia_7d(price_history)
+        if t7:
+            extra["trend_pct"] = t7["pct"]
+            extra["trend_verdict"] = t7["verdict"]
+    elif price_history and len(price_history) >= 7:
         recent = price_history[-7:]
         first = recent[0].get("price_median", 0)
         last = recent[-1].get("price_median", 0)
