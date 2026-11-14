@@ -302,7 +302,7 @@
 
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
       <label class="campo-busca-rotulo">Buscar
-        <input type="text" name="q" id="campo-busca" placeholder="Nome como na Steam: redline, snakebite case… (atalho: /)" value="{{ busca_sel or '' }}">
+        <input type="text" name="q" id="campo-busca" placeholder="Ex.: redline, snakebite case (atalho: /)" value="{{ busca_sel or '' }}">
       </label>
       {# Categoria sai do formulário (2026-11-14): as abas logo abaixo já
          escolhem a categoria; o menu repetia isso e espremia a busca.
