@@ -200,7 +200,7 @@ def test_polimento_da_maquete_v4():
     # Estado da coleta na home: linha leve com bolinha de status (era a
     # caixa .painel-info com fios laranja, até 2026-11-14).
     linha = _bloco(css, ".status-coleta")
-    assert "display: flex;" in linha and "font-size: var(--fs-sm);" in linha
+    assert "padding-left: 18px;" in linha and "font-size: var(--fs-sm);" in linha
     assert "background: var(--positive);" in _bloco(css, ".status-coleta-ponto")
     # CTA laranja da página do item, em pílula com texto branco (70% opacidade).
     acao = _bloco(css, ".botao-acao")
