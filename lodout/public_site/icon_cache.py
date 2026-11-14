@@ -30,7 +30,9 @@ _CACHE_DIR = DATA_DIR / "icon_cache"
 # então todo cache miss virava None em silêncio.
 _CDN_URL_TPL = (
     "https://community.steamstatic.com/economy/image/{hash}/{tamanho}fx{tamanho}f")
-_TIMEOUT = 5.0
+# 3 s (era 5): sem resposta, o v4 sai do v3 guardado -- não vale segurar
+# uma linha do servidor esperando o CDN.
+_TIMEOUT = 3.0
 # 192 é o tamanho original (único até 2026-11-08); 384 (exatamente 2x)
 # alimenta o `srcset` "2x" que todo template já declara -- até aqui
 # `icon_url_2x` era uma cópia do `icon_url` de 192px (achado da revisão
@@ -108,7 +110,9 @@ def _processar(fonte: bytes, tamanho: int) -> "bytes | None":
         if im.size != (tamanho, tamanho):
             im = im.resize((tamanho, tamanho), Image.LANCZOS)
         buf = BytesIO()
-        im.save(buf, format="WEBP", quality=_WEBP_QUALIDADE_V4, method=6)
+        # method=4 (padrão): o 6 custava bem mais CPU por quase nada de
+        # tamanho a menos, e gerar ícone não pode segurar o servidor.
+        im.save(buf, format="WEBP", quality=_WEBP_QUALIDADE_V4, method=4)
         return buf.getvalue()
     except Exception:
         return None

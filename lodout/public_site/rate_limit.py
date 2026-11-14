@@ -12,12 +12,16 @@ backend compartilhado (Redis, por exemplo).
 from __future__ import annotations
 
 import time
+import threading
 from collections import defaultdict, deque
 from functools import wraps
 
 from flask import abort, request
 
 _hits: "dict[str, deque]" = defaultdict(deque)
+# O gunicorn roda com várias linhas por processo (--threads): sem trava,
+# duas requisições ao mesmo tempo podiam passar do limite juntas.
+_trava = threading.Lock()
 
 # Presets usados pelas rotas de /login e /conta/* -- um lugar só pra
 # ajustar o número sem procurar em cada arquivo de rota.
@@ -50,14 +54,15 @@ def allow(key: str, max_hits: int, window_seconds: float,
     antes de contar.
     """
     ts = now if now is not None else time.time()
-    hits = _hits[key]
-    corte = ts - window_seconds
-    while hits and hits[0] < corte:
-        hits.popleft()
-    if len(hits) >= max_hits:
-        return False
-    hits.append(ts)
-    return True
+    with _trava:
+        hits = _hits[key]
+        corte = ts - window_seconds
+        while hits and hits[0] < corte:
+            hits.popleft()
+        if len(hits) >= max_hits:
+            return False
+        hits.append(ts)
+        return True
 
 
 def reset() -> None:
