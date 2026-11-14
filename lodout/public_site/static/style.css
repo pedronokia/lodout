@@ -2993,10 +2993,8 @@ table.tabela-candidatos td.celula-preco {
   min-height: 26px;
   padding: 3px 8px 3px 5px;
   border-radius: var(--radius-xs);
-  background: rgba(14, 14, 14, 0.42);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
   color: var(--text-muted);
   font-size: var(--fs-2xs);
   font-weight: 600;
@@ -3389,25 +3387,17 @@ table.tabela-candidatos td.celula-preco {
   width: 24px;
   height: 24px;
   margin: -4px;
-  /* 4px de borda transparente = alvo de 24px; o quadrado visível de 16px
-     é o interior (sombra interna + fundo recortados no padding). Funciona
-     sobre o fundo translúcido da etiqueta. */
-  border: 4px solid transparent;
+  border: 0;
   border-radius: 8px;
-  background: transparent;
-  background-clip: padding-box;
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--border-strong);
 }
 
 .cartao-item-comparar-alvo .checkbox-comparar:hover {
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.75);
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--text-muted);
 }
 
 .cartao-item-comparar-alvo .checkbox-comparar:checked {
-  border-color: transparent;
-  background: rgba(249, 115, 22, 0.85);
-  background-clip: padding-box;
-  box-shadow: inset 0 0 0 1.5px var(--accent);
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--accent);
 }
 
 .checkbox-comparar:checked {
