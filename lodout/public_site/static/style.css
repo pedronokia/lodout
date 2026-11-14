@@ -363,6 +363,7 @@ summary:focus-visible,
 .ajuda-nota .link-com-seta {
   display: inline;
   min-height: 0;
+  white-space: nowrap;
 }
 
 .link-com-seta {
