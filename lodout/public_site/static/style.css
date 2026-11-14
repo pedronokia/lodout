@@ -1639,12 +1639,24 @@ footer.rodape .rodape-base a:hover {
 
 .filtros-mais[open] .filtros-mais-toggle .icone-ui { transform: rotate(180deg); }
 
+/* Grade de colunas iguais (2026-11-14): com Exterior, Raridade e Versão
+   (os filtros do Mercado da Steam) cada campo saía com uma largura, e a
+   Raridade esticava pela opção mais longa. Agora são 3 colunas no
+   computador e 2 no celular, todos os campos com a largura da coluna. */
 .filtros-mais-corpo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  align-items: end;
   gap: var(--sp-3);
   margin-top: var(--sp-3);
+}
+
+.filtros-mais-corpo .filtros-numericos { display: contents; }
+
+.filtros-mais-corpo input[type="number"],
+.filtros-mais-corpo select {
+  width: 100%;
+  min-width: 0;
 }
 
 /* Busca, Só favoritos e Mais filtros numa linha (2026-11-14): sem o
@@ -4678,11 +4690,9 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   /* Em coluna, o flex-basis de 320px da busca virava ALTURA. */
   .form-filtros .campo-busca-rotulo { flex: 0 0 auto; }
 
-  .filtros-numericos {
-    display: grid;
+  .filtros-mais-corpo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--sp-2);
-    width: 100%;
   }
 
   .form-adicionar input,

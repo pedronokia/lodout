@@ -226,9 +226,9 @@
   {% macro cabecalho_tabela() %}
   <tr>
     <th title="Nome do item, com link pra página dele no Steam Market">Item</th>
-    <th class="cabecalho-preco" title="Menor preço anunciado agora no Steam Market" aria-sort="{{ 'ascending' if ordenar_sel == 'preco' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar='preco', ver='lista') }}">Preço{% if ordenar_sel == "preco" %} {{ icone("seta-cima") }}{% endif %}</a></th>
+    <th class="cabecalho-preco" title="Menor preço anunciado agora no Steam Market" aria-sort="{{ 'ascending' if ordenar_sel == 'preco' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='lista') }}">Preço{% if ordenar_sel == "preco" %} {{ icone("seta-cima") }}{% endif %}</a></th>
     <th class="celula-sparkline" title="Preço nas últimas 20 coletas — o mesmo histórico da página do item">Histórico <span class="cabecalho-sub">(20)</span></th>
-    <th class="cabecalho-nota" title="De 0 a 100: quanto mais alta, mais fatores positivos o item reúne agora (preço, oferta, caixa descontinuada, etc.). Um selo de risco aparece quando a alta recente pode ser artificial." aria-sort="{{ 'descending' if ordenar_sel == 'nota' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar='nota', ver='lista') }}">Nota (0–100){% if ordenar_sel == "nota" %} {{ icone("seta-baixo") }}{% endif %}</a></th>
+    <th class="cabecalho-nota" title="De 0 a 100: quanto mais alta, mais fatores positivos o item reúne agora (preço, oferta, caixa descontinuada, etc.). Um selo de risco aparece quando a alta recente pode ser artificial." aria-sort="{{ 'descending' if ordenar_sel == 'nota' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='lista') }}">Nota (0–100){% if ordenar_sel == "nota" %} {{ icone("seta-baixo") }}{% endif %}</a></th>
     <th title="Caixa ou cápsula de onde o item vem, e se ela ainda é sorteada no jogo">Caixa/Cápsula</th>
     <th title="Os fatores factuais que mais somaram pontos na nota deste item">Por quê</th>
   </tr>
@@ -296,6 +296,9 @@
           nota_min=(None if remover == 'nota_min' else nota_min_sel),
           preco_max=(None if remover == 'preco_max' else preco_max_sel),
           liquidez_min=(None if remover == 'liquidez_min' else liquidez_min_sel),
+          exterior=(None if remover == 'exterior' else exterior_sel),
+          raridade=(None if remover == 'raridade' else raridade_filtro_sel),
+          versao=(None if remover == 'versao' else versao_sel),
           q=(None if remover == 'q' else busca_sel),
           ordenar=ordenar_sel, ver=ver_sel) }}
     {%- endmacro %}
@@ -314,7 +317,7 @@
          verdade pra baixo. Abre sozinho quando um deles já está ativo,
          pra quem chegou com link de filtro não perder de vista o que
          está aplicado. #}
-      <details class="filtros-mais"{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel %} open{% endif %}>
+      <details class="filtros-mais"{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %} open{% endif %}>
         <summary class="filtros-mais-toggle">Mais filtros {{ icone("chevron-baixo") }}</summary>
         <div class="filtros-mais-corpo">
           <div class="filtros-numericos">
@@ -333,6 +336,31 @@
               {% endfor %}
             </select>
           </label>
+          {# Os mesmos filtros do Mercado da Steam (2026-11-14). #}
+          <label>Exterior
+            <select name="exterior" data-enviar-ao-mudar title="Desgaste da skin, como no Mercado da Steam">
+              <option value="">Qualquer</option>
+              {% for k, rotulo in exterior_opcoes.items() %}
+              <option value="{{ k }}" {{ "selected" if k == exterior_sel else "" }}>{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Raridade
+            <select name="raridade" data-enviar-ao-mudar title="A cor da borda da imagem do item">
+              <option value="">Qualquer</option>
+              {% for k, rotulo in raridade_opcoes.items() %}
+              <option value="{{ k }}" {{ "selected" if k == raridade_filtro_sel else "" }}>{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Versão
+            <select name="versao" data-enviar-ao-mudar title="StatTrak™ conta abates; Souvenir vem de pacotes de campeonato">
+              <option value="">Qualquer</option>
+              {% for k, rotulo in versao_opcoes.items() %}
+              <option value="{{ k }}" {{ "selected" if k == versao_sel else "" }}>{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+          </label>
         </div>
       </details>
       <input type="hidden" name="ordenar" value="{{ ordenar_sel }}">
@@ -343,7 +371,7 @@
       </button>
     </form>
 
-    {% if categoria_sel or nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or busca_sel %}
+    {% if categoria_sel or nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or busca_sel or exterior_sel or raridade_filtro_sel or versao_sel %}
     <nav class="filtros-ativos" aria-label="Filtros aplicados">
       <span class="filtros-ativos-titulo">Filtrando por:</span>
       {% if busca_sel %}
@@ -369,6 +397,21 @@
       {% if liquidez_min_sel %}
       <a class="chip-filtro" data-filtro="liquidez_min" href="{{ url_sem_filtro('liquidez_min') }}" aria-label="Remover filtro de liquidez mínima: {{ liquidez_min_sel|liquidez_label }}">
         Liquidez: {{ liquidez_min_sel|liquidez_label }} ou melhor <span aria-hidden="true">×</span>
+      </a>
+      {% endif %}
+      {% if exterior_sel %}
+      <a class="chip-filtro" data-filtro="exterior" href="{{ url_sem_filtro('exterior') }}" aria-label="Remover filtro de exterior: {{ exterior_opcoes[exterior_sel] }}">
+        Exterior: {{ exterior_opcoes[exterior_sel] }} <span aria-hidden="true">×</span>
+      </a>
+      {% endif %}
+      {% if raridade_filtro_sel %}
+      <a class="chip-filtro" data-filtro="raridade" href="{{ url_sem_filtro('raridade') }}" aria-label="Remover filtro de raridade: {{ raridade_opcoes[raridade_filtro_sel] }}">
+        Raridade: {{ raridade_opcoes[raridade_filtro_sel] }} <span aria-hidden="true">×</span>
+      </a>
+      {% endif %}
+      {% if versao_sel %}
+      <a class="chip-filtro" data-filtro="versao" href="{{ url_sem_filtro('versao') }}" aria-label="Remover filtro de versão: {{ versao_opcoes[versao_sel] }}">
+        Versão: {{ versao_opcoes[versao_sel] }} <span aria-hidden="true">×</span>
       </a>
       {% endif %}
       <a id="limpar-filtros-ativos" class="botao-link" href="{{ url_for('index', ordenar=ordenar_sel, ver=ver_sel) }}">Limpar todos</a>
@@ -420,7 +463,7 @@
 
     {% if scan %}
     {% macro url_categoria(cat) -%}
-      {{ url_for('index', categoria=cat, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel) }}
+      {{ url_for('index', categoria=cat, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel) }}
     {%- endmacro %}
     {# Abas de categoria só com o nome e a contagem. Os pictogramas na
        frente do texto saíram a pedido (2026-11-11): a barra ficou mais
@@ -439,14 +482,14 @@
        escolha fica num cookie (pref_ver) e o link abaixo a redefine. #}
     <nav class="barra-visao" aria-label="Como mostrar os itens">
       <div class="seletor-visao" role="group" aria-label="Modo de exibição">
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver='vitrine') }}"{% if ver_sel == 'vitrine' %} aria-current="page"{% endif %}>Vitrine</a>
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver='lista') }}"{% if ver_sel == 'lista' %} aria-current="page"{% endif %}>Lista</a>
+        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver='vitrine') }}"{% if ver_sel == 'vitrine' %} aria-current="page"{% endif %}>Vitrine</a>
+        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver='lista') }}"{% if ver_sel == 'lista' %} aria-current="page"{% endif %}>Lista</a>
       </div>
       {% if ver_sel == 'vitrine' %}
       <div class="ordenar-vitrine" role="group" aria-label="Ordenar itens">
         <span class="ordenar-vitrine-rotulo">Ordenar por:</span>
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar='nota', ver='vitrine') }}"{% if ordenar_sel == 'nota' %} aria-current="page"{% endif %}>Nota (0–100)</a>
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar='preco', ver='vitrine') }}"{% if ordenar_sel == 'preco' %} aria-current="page"{% endif %}>Preço</a>
+        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='vitrine') }}"{% if ordenar_sel == 'nota' %} aria-current="page"{% endif %}>Nota (0–100)</a>
+        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='vitrine') }}"{% if ordenar_sel == 'preco' %} aria-current="page"{% endif %}>Preço</a>
       </div>
       {% endif %}
     </nav>
@@ -486,7 +529,7 @@
       <p class="paginacao-resumo">Mostrando {{ primeiro_item }}–{{ ultimo_item }} de {{ total_candidatos }} {{ "item" if total_candidatos == 1 else "itens" }}</p>
       <div class="paginacao-linha">
       {% if tem_pagina_anterior %}
-        <a id="link-pagina-anterior" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina-1) }}" title="Atalho: seta esquerda">{{ icone("seta-esquerda") }} Anterior</a>
+        <a id="link-pagina-anterior" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina-1) }}" title="Atalho: seta esquerda">{{ icone("seta-esquerda") }} Anterior</a>
       {% else %}
         <span class="paginacao-passo" aria-disabled="true">{{ icone("seta-esquerda") }} Anterior</span>
       {% endif %}
@@ -496,13 +539,13 @@
             {% if p is none %}
               <span class="paginacao-reticencias" aria-hidden="true">…</span>
             {% else %}
-              <a class="paginacao-numero" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=p) }}"{% if p == pagina %} aria-current="page"{% endif %}>{{ p }}</a>
+              <a class="paginacao-numero" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=p) }}"{% if p == pagina %} aria-current="page"{% endif %}>{{ p }}</a>
             {% endif %}
           {% endfor %}
         </div>
         {% endif %}
       {% if tem_proxima_pagina %}
-        <a id="link-pagina-seguinte" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina+1) }}" title="Atalho: seta direita">Próxima {{ icone("seta-direita") }}</a>
+        <a id="link-pagina-seguinte" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina+1) }}" title="Atalho: seta direita">Próxima {{ icone("seta-direita") }}</a>
       {% else %}
         <span class="paginacao-passo" aria-disabled="true">Próxima {{ icone("seta-direita") }}</span>
       {% endif %}

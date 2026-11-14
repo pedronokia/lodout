@@ -390,6 +390,17 @@ def create_app() -> Flask:
         liquidez_min = request.args.get("liquidez_min") or None
         if liquidez_min not in (None, *_LIQUIDEZ_ORDEM):
             liquidez_min = None
+        exterior = request.args.get("exterior") or None
+        if exterior not in _EXTERIORES:
+            exterior = None
+        raridade_sel = request.args.get("raridade") or None
+        if raridade_sel not in raridade._RARIDADE_LABELS:
+            raridade_sel = None
+        versao = request.args.get("versao") or None
+        if versao not in _VERSOES:
+            versao = None
+        filtros_steam = {"exterior": exterior, "raridade_sel": raridade_sel,
+                         "versao": versao}
         # "ordenar" usa cookie de preferência: query param manda quando
         # presente, senão cai pro último escolhido (sem isso, re-ordenar
         # por preço não sobrevivia a uma nova visita).
@@ -412,7 +423,8 @@ def create_app() -> Flask:
 
         todos = _candidatos_filtrados(
             scan, categoria, nota_min, preco_max, busca, ordenar,
-            liquidez_min, com_historico=False, com_icone=False)
+            liquidez_min, com_historico=False, com_icone=False,
+            **filtros_steam)
         # Total real da aba "Todas" -- achado 2026-10-30: `scan["results"]`
         # inclui item com risco alto de pump, que `buy_candidates` descarta
         # antes de qualquer filtro do visitante. Sem isto a aba dizia um
@@ -425,7 +437,7 @@ def create_app() -> Flask:
         # resultado, a tela dizia "Nenhum item" e as abas "Facas 7".
         sem_categoria = (todos if not categoria else _candidatos_filtrados(
             scan, None, nota_min, preco_max, busca, ordenar, liquidez_min,
-            com_historico=False, com_icone=False))
+            com_historico=False, com_icone=False, **filtros_steam))
         total_geral = len(sem_categoria)
         # Itens coletados que a lista nunca mostra (risco alto de alta
         # artificial, descartados em `buy_candidates`). A linha de status
@@ -465,7 +477,9 @@ def create_app() -> Flask:
         # abaixo, confuso. Reaproveita o MESMO snapshot do Top 20 que o
         # Ranking já usa (_resumo_do_dia) -- sem inventar uma segunda
         # fonte de comparação histórica.
-        sem_filtro_ativo = not (categoria or nota_min or preco_max or busca or liquidez_min)
+        sem_filtro_ativo = not (categoria or nota_min or preco_max or busca
+                                or liquidez_min or exterior or raridade_sel
+                                or versao)
         resumo_do_dia = None
         if pagina == 1 and sem_filtro_ativo:
             snaps = ranking.load_snapshots()
@@ -507,7 +521,14 @@ def create_app() -> Flask:
             contagem_categorias=_contagem_por_categoria(scan),
             contagem_abas=contagem_abas,
             filtro_alem_da_categoria=bool(
-                nota_min or preco_max or busca or liquidez_min),
+                nota_min or preco_max or busca or liquidez_min or exterior
+                or raridade_sel or versao),
+            exterior_sel=exterior,
+            raridade_filtro_sel=raridade_sel,
+            versao_sel=versao,
+            exterior_opcoes={k: v[1] for k, v in _EXTERIORES.items()},
+            raridade_opcoes=raridade._RARIDADE_LABELS,
+            versao_opcoes=_VERSOES,
             total_acompanhados=len(scan["results"]) if scan else 0,
             total_geral=total_geral,
             categoria_sel=categoria,
@@ -2030,6 +2051,42 @@ def _enriquecer_com_historico(candidatos: list[dict]) -> None:
 
 _LIQUIDEZ_ORDEM = ["iliquido", "fino", "moderado", "liquido", "muito_liquido"]
 
+# Filtros como os do Mercado da Steam (2026-11-14): Exterior, Raridade e
+# Versão. Valor curto na URL -> (texto no nome de mercado, rótulo).
+_EXTERIORES = {
+    "fn": ("(Factory New)", "Nova de Fábrica"),
+    "mw": ("(Minimal Wear)", "Pouco Usada"),
+    "ft": ("(Field-Tested)", "Testada em Campo"),
+    "ww": ("(Well-Worn)", "Bastante Usada"),
+    "bs": ("(Battle-Scarred)", "Veterana de Guerra"),
+}
+_VERSOES = {
+    "normal": "Normal",
+    "stattrak": "StatTrak™",
+    "souvenir": "Souvenir",
+}
+
+
+def _versao_do_item(nome: str) -> str:
+    if "StatTrak" in nome:
+        return "stattrak"
+    if nome.startswith("Souvenir "):
+        return "souvenir"
+    return "normal"
+
+
+def _passa_filtros_steam(c: dict, exterior: "str | None",
+                         raridade_sel: "str | None",
+                         versao: "str | None") -> bool:
+    nome = c.get("name") or ""
+    if exterior and not nome.endswith(_EXTERIORES[exterior][0]):
+        return False
+    if raridade_sel and raridade.raridade_suffix(c) != raridade_sel:
+        return False
+    if versao and _versao_do_item(nome) != versao:
+        return False
+    return True
+
 
 def _candidatos_filtrados(
         scan: "dict | None", categoria: "str | None" = None,
@@ -2039,7 +2096,10 @@ def _candidatos_filtrados(
         ordenar: str = "nota",
         liquidez_min: "str | None" = None,
         com_historico: bool = True,
-        com_icone: bool = True) -> list[dict]:
+        com_icone: bool = True,
+        exterior: "str | None" = None,
+        raridade_sel: "str | None" = None,
+        versao: "str | None" = None) -> list[dict]:
     """Candidatos públicos: sem dono (sem login ainda), já filtrados.
 
     Sem limite aqui de propósito -- a paginação é responsabilidade de quem
@@ -2084,6 +2144,8 @@ def _candidatos_filtrados(
                 continue
             if _LIQUIDEZ_ORDEM.index(band) < _LIQUIDEZ_ORDEM.index(liquidez_min):
                 continue
+        if not _passa_filtros_steam(c, exterior, raridade_sel, versao):
+            continue
         name_fmt = localize_name(c.get("name") or "")
         if not _busca_bate(_nome_para_busca(c.get("name") or "", name_fmt),
                            busca):

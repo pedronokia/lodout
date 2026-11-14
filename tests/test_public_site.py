@@ -6022,3 +6022,36 @@ def test_busca_em_portugues_acha_nome_que_ficou_em_ingles():
     assert server._busca_bate(nome, "capsula copenhagen")
     assert server._busca_bate(nome, "adesivo legends")
     assert not server._busca_bate(nome, "faca")
+
+
+def test_filtros_como_os_do_mercado_da_steam(client, monkeypatch, tmp_path):
+    # 2026-11-14: Exterior, Raridade e Versão no "Mais filtros".
+    base = {"score": 70, "price": 10.0, "case_label": "",
+            "pump_risk": {"level": "low"}, "breakdown": []}
+    _salva_scan(tmp_path, monkeypatch, [
+        {**base, "name": "AK-47 | Redline (Field-Tested)", "name_color": "8847ff"},
+        {**base, "name": "StatTrak™ AK-47 | Redline (Minimal Wear)", "name_color": "8847ff"},
+        {**base, "name": "Souvenir AWP | Dragon Lore (Factory New)", "name_color": "eb4b4b"},
+        {**base, "name": "Snakebite Case"},
+    ])
+
+    def nomes(**params):
+        body = client.get("/", query_string=params).data.decode("utf-8")
+        return {n for n in ("Redline (Testada em Campo)", "Redline (Pouco Usada)",
+                            "Dragon Lore", "Picada de Cobra") if n in body}
+
+    assert nomes(exterior="ft") == {"Redline (Testada em Campo)"}
+    assert nomes(versao="stattrak") == {"Redline (Pouco Usada)"}
+    assert nomes(versao="souvenir") == {"Dragon Lore"}
+    assert nomes(raridade="covert") == {"Dragon Lore"}
+    assert nomes(raridade="restricted", versao="normal") == {"Redline (Testada em Campo)"}
+    # Valor inválido na URL é ignorado (mostra tudo).
+    assert len(nomes(exterior="xyz")) == 4
+
+    body = client.get("/?exterior=ft&pagina=1").data.decode("utf-8")
+    # Filtro aplicado aparece em "Filtrando por" e abre o "Mais filtros".
+    assert 'data-filtro="exterior"' in body
+    assert "Exterior: Testada em Campo" in body
+    assert '<details class="filtros-mais" open>' in body
+    # Os links da página (paginação, ordem, abas) mantêm o filtro.
+    assert "exterior=ft" in body.split('class="abas-categoria"', 1)[1]
