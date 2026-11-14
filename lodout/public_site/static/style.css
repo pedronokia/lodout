@@ -3390,6 +3390,16 @@ a.paginacao-passo:hover {
 
   .cartao-item-preco { font-size: var(--fs-base); }
 
+  /* No cartão estreito, preço + variação ("R$ 34,42 ↑ 1,9%") quebra em
+     duas linhas e o preço sem variação ocupa uma. Centralizado com a
+     estrela, isso descia a primeira linha 10px só naquele cartão
+     (2026-11-14). Agora o preço reserva duas linhas e começa sempre no
+     topo; a estrela sobe pra ficar na altura da primeira linha (o alvo
+     de toque continua com 44px). */
+  .cartao-item-rodape { align-items: flex-start; }
+  .cartao-item-preco { min-height: 45px; align-content: flex-start; }
+  .cartao-item-rodape .botao-favorito { margin-top: -10px; }
+
   .cartao-item-comparar-alvo { opacity: 1; transform: none; }
 }
 
