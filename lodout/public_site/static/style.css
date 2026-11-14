@@ -1125,46 +1125,84 @@ footer.rodape .rodape-base a:hover {
    dia anterior numa única tile -- cada linha com o acento da casa à
    esquerda. Fundo surface-sunken (#131313) para separar visualmente
    do hero (surface-strong #0a0a0a) e dos cards (#1e1e1e). */
-.painel-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  margin: 0 0 var(--sp-7);
-  padding: var(--sp-4) var(--sp-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-}
-
-.painel-info .status-scan,
-.painel-info .resumo-do-dia {
-  margin: 0;
-  padding: 0 0 0 var(--sp-3);
-  border-left: 2px solid var(--accent);
+/* Estado da coleta: uma linha leve com bolinha de status (2026-11-14;
+   era a caixa .painel-info com duas barras laranja). Partes separadas
+   por "·". Atrasada: bolinha âmbar e "atualização atrasada" no texto. */
+.status-coleta {
+  position: relative;
+  margin: 0 0 var(--sp-6);
+  padding-left: 18px;
   color: var(--text-muted);
   font-size: var(--fs-sm);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.painel-info .status-scan strong,
-.painel-info .resumo-do-dia strong {
-  color: var(--text);
+/* Texto corrido; "·" entre as partes. A bolinha fica fora do fluxo, à
+   esquerda da primeira linha. */
+.status-coleta > span:not(.status-coleta-ponto) + span::before {
+  content: "·";
+  margin: 0 var(--sp-2);
+  color: var(--border-strong);
 }
 
-.painel-info .badge-cooldown {
-  display: inline-block;
-  margin-left: var(--sp-2);
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 500;
+.status-coleta-ponto {
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--positive);
+  box-shadow: 0 0 0 3px rgba(57, 194, 102, 0.18);
 }
 
-.painel-info .status-scan-alerta {
-  color: var(--warn);
-  font-weight: 600;
+/* Celular: uma informação por linha, sem os "·". */
+@media (max-width: 640px) {
+  .status-coleta > span:not(.status-coleta-ponto) { display: block; }
+  .status-coleta > span:not(.status-coleta-ponto) + span::before { content: none; }
+}
+
+.status-coleta.status-scan-desatualizado .status-coleta-ponto {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px rgba(242, 187, 37, 0.2);
+}
+
+.status-coleta .status-scan-alerta { color: var(--warn); font-weight: 600; }
+
+/* Dentro da linha, as partes são texto corrido: sem o fio laranja do
+   .resumo-do-dia (usado no Ranking) nem a margem do .badge-cooldown. */
+.status-coleta .resumo-do-dia {
+  padding: 0;
+  border: 0;
+  font-size: inherit;
+}
+
+/* Dentro da linha, "Próxima atualização" é texto, não pílula. */
+.status-coleta .badge-cooldown {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* Com imagem: miniatura à esquerda, mesmas três linhas à direita. */
+.movimento-do-dia.movimento-com-imagem {
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: var(--sp-3);
+}
+
+.movimento-com-imagem > :not(.movimento-icone) { grid-column: 2; }
+
+.movimento-icone {
+  grid-row: 1 / span 3;
+  width: 56px;
+  height: 56px;
+  align-self: center;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
 }
 
 .movimentos-do-dia-titulo {
@@ -1186,9 +1224,10 @@ footer.rodape .rodape-base a:hover {
 
 .movimento-do-dia {
   position: relative;
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
   gap: var(--sp-1);
   padding: var(--sp-3) var(--sp-4);
   border: 1px solid var(--border);
@@ -1594,8 +1633,15 @@ footer.rodape .rodape-base a:hover {
   margin-top: var(--sp-3);
 }
 
-/* O placeholder completo é longo -- o campo precisa de largura. */
-.form-filtros input[type="text"]#campo-busca { min-width: 230px; }
+/* Busca, Só favoritos e Mais filtros numa linha (2026-11-14): sem o
+   menu de categoria (as abas já fazem isso), a busca ocupa o espaço e o
+   exemplo do campo aparece inteiro. "Mais filtros" aberto desce pra
+   linha de baixo, inteiro. */
+.form-filtros .campo-busca-rotulo { flex: 1 1 320px; }
+.form-filtros input[type="text"]#campo-busca { width: 100%; min-width: 0; }
+.form-filtros button#botao-favoritos { order: 2; }
+.form-filtros .filtros-mais { order: 3; }
+.form-filtros .filtros-mais[open] { flex-basis: 100%; order: 4; }
 
 /* Botão principal: pílula laranja da casa, 17px/400, sem borda.
    Altura mínima 44px para touch targets (WCAG). */
@@ -4351,6 +4397,9 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
     flex-direction: column;
     align-items: stretch;
   }
+
+  /* Em coluna, o flex-basis de 320px da busca virava ALTURA. */
+  .form-filtros .campo-busca-rotulo { flex: 0 0 auto; }
 
   .filtros-numericos {
     display: grid;

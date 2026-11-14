@@ -1177,8 +1177,10 @@ def test_index_mostra_contagem_por_categoria(client, monkeypatch, tmp_path):
     ]
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/").data.decode("utf-8")
-    assert "Facas (2)" in body
-    assert "Luvas (1)" in body
+    # Contagem nas abas (o menu de categoria saiu do formulário em
+    # 2026-11-14: repetia as abas).
+    assert 'Facas <span class="aba-contagem">2</span>' in body
+    assert 'Luvas <span class="aba-contagem">1</span>' in body
 
 
 def test_index_mostra_badge_proximo_scan(client, monkeypatch, tmp_path):
@@ -3284,7 +3286,8 @@ def test_index_banner_scan_desatualizado(client, monkeypatch, tmp_path):
     body = resp.data.decode("utf-8")
     assert "Os preços estão mais antigos que o normal" in body
     assert "status-scan-desatualizado" in body
-    assert "Dados coletados:" in body
+    assert "Preços de 1 item, coletados" in body
+    assert "atualização atrasada" in body
 
 
 def test_index_sem_banner_quando_scan_recente(client, monkeypatch, tmp_path):
@@ -5004,7 +5007,8 @@ def test_index_explica_categoria_sem_coleta(client, monkeypatch, tmp_path):
 
     assert "A categoria Facas ainda não tem itens coletados" in body
     assert "Nenhum candidato com esses filtros" not in body
-    assert "Facas (sem dados ainda)" in body
+    # A busca dentro da categoria aberta mantém a categoria (campo oculto).
+    assert '<input type="hidden" name="categoria" value="Facas">' in body
 
 
 def test_item_detail_nao_repete_motivos(client, monkeypatch, tmp_path):

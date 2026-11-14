@@ -269,30 +269,13 @@
     {% endif %}
 
     {% if scan or resumo_do_dia %}
-    {# Faixa de informação (polimento 2026-11-12): coleta + comparação
-       do dia numa única tile, cada linha com o acento da casa. #}
-    <div class="painel-info" role="group" aria-label="Estado da coleta e comparação com o dia anterior">
-      {% if scan %}
-      <p class="status-scan {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
-        <strong>Dados coletados:</strong> {{ scan.category or "categoria" }}, {{ idade }} ({{ scan.results|length }} itens avaliados).
-        {% if scan_desatualizado %}<strong class="status-scan-alerta">Atualização atrasada</strong>{% endif %}
-        {% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}.</span>{% endif %}
-      </p>
-      {% endif %}
-      {% if resumo_do_dia %}
-      {# Pedido de polimento (2026-11-13): esta frase citava os mesmos
-         "maior alta"/"maior queda" que os cards de movimentos-do-dia
-         logo abaixo já mostram com mais detalhe visual -- a mesma
-         informação duas vezes em sequência. Aqui fica só a contagem;
-         quem quer o "quem subiu/caiu" olha os cards. ranking.html tem
-         sua própria frase (sem os cards abaixo) e continua citando
-         maior_alta normalmente. #}
-      <p class="resumo-do-dia">
-        Comparado com o Top 20 salvo {{ resumo_do_dia.quando }}:
-        {{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }}.
-      </p>
-      {% endif %}
-    </div>
+    {# Estado da coleta numa linha leve (2026-11-14) -- era uma caixa com
+       duas barras laranja pra duas frases curtas. #}
+    <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
+      <span class="status-coleta-ponto" aria-hidden="true"></span>
+      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
+      {% if resumo_do_dia %}<span class="resumo-do-dia">{{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }} no Top 20 desde o ranking salvo {{ resumo_do_dia.quando }}</span>{% endif %}
+    </p>
     {% endif %}
     {% if scan and scan_desatualizado %}
     <p class="banner-aviso">{{ icone("aviso") }} Os preços estão mais antigos que o normal — provavelmente a Steam bloqueou
@@ -311,17 +294,13 @@
     {%- endmacro %}
 
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
-      <label>Buscar
+      <label class="campo-busca-rotulo">Buscar
         <input type="text" name="q" id="campo-busca" placeholder="Ex.: AK-47 | Redline (atalho: /)" value="{{ busca_sel or '' }}">
       </label>
-      <label>Categoria
-        <select name="categoria" data-enviar-ao-mudar>
-          <option value="">Todas</option>
-          {% for cat in categorias %}
-          <option value="{{ cat }}" {{ "selected" if cat == categoria_sel else "" }}>{{ cat }}{{ " (" ~ contagem_categorias.get(cat, 0) ~ ")" if contagem_categorias.get(cat) else " (sem dados ainda)" }}</option>
-          {% endfor %}
-        </select>
-      </label>
+      {# Categoria sai do formulário (2026-11-14): as abas logo abaixo já
+         escolhem a categoria; o menu repetia isso e espremia a busca.
+         Buscar dentro da categoria aberta continua: vai oculta. #}
+      {% if categoria_sel %}<input type="hidden" name="categoria" value="{{ categoria_sel }}">{% endif %}
       {# Polimento (2026-11-13): nota mínima/preço máximo/liquidez ficam
          atrás de "Mais filtros" -- a maioria das visitas não mexe
          nesses três, e deixá-los sempre abertos empurra o conteúdo de
@@ -400,7 +379,8 @@
     <h2 class="movimentos-do-dia-titulo">Maiores mudanças de nota hoje</h2>
     <ul class="movimentos-do-dia" aria-label="Maiores mudanças de nota desde a coleta {{ resumo_do_dia.quando }}">
       {% for m in resumo_do_dia.movimentos %}
-      <li class="movimento-do-dia">
+      <li class="movimento-do-dia{{ ' movimento-com-imagem' if m.icon_url else '' }}">
+        {% if m.icon_url %}<img class="movimento-icone" src="{{ m.icon_url }}" srcset="{{ m.icon_url }} 1x, {{ m.icon_url_2x }} 2x" alt="" aria-hidden="true" loading="lazy" width="56" height="56">{% endif %}
         <a class="movimento-nome" href="{{ url_for('item_detail', name=m.name) }}" translate="no">{{ m.name_fmt }}</a>
         <span class="movimento-variacao" title="Nota na coleta anterior e nota agora">{{ m.de }} {{ icone("seta-direita") }} <strong>{{ m.para }}</strong></span>
         <span class="movimento-delta {{ 'movimento-alta' if m.diff > 0 else 'movimento-baixa' }}">

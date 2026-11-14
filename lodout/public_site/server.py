@@ -461,6 +461,15 @@ def create_app() -> Flask:
         if pagina == 1 and sem_filtro_ativo:
             snaps = ranking.load_snapshots()
             resumo_do_dia = _resumo_do_dia(snaps[-1] if snaps else None)
+            # Imagem do item nos cartões de "Maiores mudanças" (eram só
+            # texto, destoando do resto da home). Hash do ícone vem do scan.
+            if resumo_do_dia and resumo_do_dia.get("movimentos") and scan:
+                icones = {r.get("name"): r.get("icon") for r in scan.get("results") or []}
+                for m in resumo_do_dia["movimentos"]:
+                    h = icones.get(m["name"])
+                    m["icon_url"] = url_for("icone_cache", hash_icone=h, v=3) if h else None
+                    m["icon_url_2x"] = (url_for("icone_cache", hash_icone=h, v=3, tam=384)
+                                        if h else None)
         _marca("ranking")
         # Hero "nota mais alta hoje" (revisão de direção visual
         # 2026-11-08) -- a home abria direto no formulário de filtro, sem
