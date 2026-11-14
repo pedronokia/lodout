@@ -2848,12 +2848,15 @@ table.tabela-candidatos td.celula-preco {
   transition: box-shadow var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
 }
 
+/* Faixa no alto reservada pro anel da nota (e a etiqueta Comparar):
+   a arte, que agora ocupa o quadro (icon_cache v4), não fica por baixo
+   deles. */
 .cartao-item-imagem {
   position: relative;
   display: grid;
   aspect-ratio: 1 / 1;
   place-items: center;
-  padding: var(--sp-4);
+  padding: 38px 20px 6px;
   background: var(--surface-sunken);
 }
 
@@ -2895,13 +2898,22 @@ table.tabela-candidatos td.celula-preco {
 
 .cartao-item-nota-area {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 8px;
+  right: 8px;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Celular: "+8" embaixo do anel -- ao lado, batia na etiqueta Comparar. */
+@media (max-width: 640px) {
+  .cartao-item-nota-area {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
 }
 
 /* Selo da nota no cartão (2026-11-14): o mesmo anel da página do item,
@@ -2940,8 +2952,12 @@ table.tabela-candidatos td.celula-preco {
 }
 
 @media (max-width: 640px) {
-  .cartao-item-nota { width: 44px; height: 44px; }
-  .cartao-item-nota-numero { font-size: 0.78rem; }
+  .cartao-item-nota { width: 40px; height: 40px; }
+  .cartao-item-nota-numero { font-size: 0.74rem; }
+
+  /* "+8" (nota acima do limite) fica só na página do item: no cartão
+     estreito ele cairia em cima da arte. */
+  .cartao-item-margem { display: none; }
 }
 
 .cartao-item-margem {
@@ -3024,10 +3040,12 @@ table.tabela-candidatos td.celula-preco {
   border-top: 1px solid var(--rar-cor, var(--border));
 }
 
+/* Sem altura mínima de 2 linhas: com nome curto ficava um vão embaixo
+   dele. Os preços continuam alinhados entre cartões vizinhos -- a linha
+   de preço é empurrada pro fim do cartão (margin-top: auto). */
 .cartao-item-nome {
   display: -webkit-box;
   overflow: hidden;
-  min-height: 2.7em;
   color: var(--text-bright);
   font-size: var(--fs-base);
   font-weight: 600;
@@ -3105,13 +3123,10 @@ table.tabela-candidatos td.celula-preco {
     gap: var(--sp-2);
   }
 
-  .cartao-item-imagem { padding: 10px; }
+  .cartao-item-imagem { padding: 46px 8px 4px; }
   .cartao-item-corpo { padding: 10px 11px 12px; }
 
-  .cartao-item-nome {
-    font-size: var(--fs-sm);
-    min-height: 2.8em;
-  }
+  .cartao-item-nome { font-size: var(--fs-sm); }
 
   .cartao-item-preco { font-size: var(--fs-base); }
 
