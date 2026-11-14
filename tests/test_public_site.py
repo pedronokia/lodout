@@ -1506,7 +1506,7 @@ def test_index_aba_todas_bate_com_total_mostrado(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
     abas = body.split('class="abas-categoria"', 1)[1].split("</nav>", 1)[0]
     assert ">Todas <span class=\"aba-contagem\">1</span>" in abas
-    assert "Mostrando 1–1 de 1 itens" in body
+    assert "Mostrando 1–1 de 1 item<" in body
 
 
 def test_index_logo_no_topo(client, monkeypatch, tmp_path):
@@ -5980,3 +5980,35 @@ def test_completar_metadados_do_anterior_preenche_so_o_que_falta():
     assert novos[1]["icon"] == "hashB-novo"
     assert "icon" not in novos[2]
     assert worker._completar_metadados_do_anterior(novos, None) == 0
+
+
+def test_busca_como_no_mercado_da_steam(client, monkeypatch, tmp_path):
+    # 2026-11-14: quem usa o site vem do Mercado da Steam e busca pelo nome
+    # em inglês, sem acento e com as palavras em qualquer ordem.
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+        {"name": "Snakebite Case", "score": 70, "price": 1.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+
+    def acha(q):
+        body = client.get("/", query_string={"q": q}).data.decode("utf-8")
+        return ("Redline (Testada em Campo)" in body, "Picada de Cobra" in body)
+
+    assert acha("Field-Tested") == (True, False)      # nome em inglês
+    assert acha("testada em campo") == (True, False)  # nome em português
+    assert acha("redline ak") == (True, False)        # qualquer ordem
+    assert acha("ak47") == (True, False)              # sem hífen
+    assert acha("AK-47 | Redline") == (True, False)   # copiado da Steam
+    assert acha("snakebite case") == (False, True)    # caixa pelo nome da Steam
+    assert acha("picada") == (False, True)
+    assert acha("redline OR snakebite") == (True, True)
+    assert acha("redline snakebite") == (False, False)
+
+
+def test_busca_ignora_acento():
+    from lodout.public_site import server
+    assert server._busca_bate("Cápsula de Autógrafo", "capsula autografo")
+    assert server._busca_bate("Caixa Revolução", "revolucao")
+    assert not server._busca_bate("Caixa Revolução", "fratura")

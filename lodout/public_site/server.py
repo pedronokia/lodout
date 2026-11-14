@@ -22,6 +22,7 @@ import time
 # visuais troca o módulo `time` deste arquivo por um relógio congelado
 # (só com time()), e a home quebrava com 500 lá.
 from time import perf_counter as _relogio
+import unicodedata
 import urllib.parse
 from datetime import date, datetime
 from functools import wraps
@@ -1339,22 +1340,46 @@ def _buscas_com_resultado(termos: "list[tuple[str, int]]",
     scan = scan_store.load_last_scan()
     if not scan:
         return []
-    nomes = [localize_name(r.get("name") or "")
+    nomes = [_nome_para_busca(r.get("name") or "",
+                              localize_name(r.get("name") or ""))
              for r in scan.get("results") or []]
     return [(t, n) for t, n in termos
             if any(_busca_bate(nome, t) for nome in nomes)][:limite]
 
 
-def _busca_bate(name_fmt: str, busca: "str | None") -> bool:
-    """Suporta "termo1 OR termo2" (qualquer um presente já basta). Sem
-    "OR", é substring simples -- comportamento de antes, preservado."""
+def _texto_busca(texto: str) -> str:
+    """Minúsculo, sem acento e sem hífen: "Cápsula" casa com "capsula" e
+    "AK-47" com "ak47"."""
+    sem_acento = "".join(
+        ch for ch in unicodedata.normalize("NFKD", texto)
+        if not unicodedata.combining(ch))
+    return sem_acento.lower().replace("-", "")
+
+
+def _busca_bate(nome: str, busca: "str | None") -> bool:
+    """A busca funciona como a do Mercado da Steam, que é de onde vem quem
+    usa o site (2026-11-14): `nome` traz o nome em português E o original
+    em inglês ("Testada em Campo" e "Field-Tested"), sem diferença de
+    acento ou hífen, e cada palavra digitada pode estar em qualquer
+    ordem ("redline ak" acha "AK-47 | Redline").
+
+    "termo1 OR termo2" continua valendo (qualquer um dos dois basta)."""
     if not busca:
         return True
-    alvo = name_fmt.lower()
-    termos = [t.strip() for t in busca.lower().split(" or ") if t.strip()]
-    if not termos:
+    alvo = _texto_busca(nome)
+    grupos = [g for g in _texto_busca(busca).split(" or ") if g.strip()]
+    if not grupos:
         return True
-    return any(t in alvo for t in termos)
+    for grupo in grupos:
+        palavras = [p for p in grupo.split() if any(ch.isalnum() for ch in p)]
+        if palavras and all(p in alvo for p in palavras):
+            return True
+    return False
+
+
+def _nome_para_busca(nome_original: str, nome_pt: str) -> str:
+    """Nome em português e original (inglês, como na Steam) juntos."""
+    return f"{nome_pt} {nome_original}"
 
 
 def _tendencia_do_historico(hist: list) -> "str | None":
@@ -2044,7 +2069,8 @@ def _candidatos_filtrados(
             if _LIQUIDEZ_ORDEM.index(band) < _LIQUIDEZ_ORDEM.index(liquidez_min):
                 continue
         name_fmt = localize_name(c.get("name") or "")
-        if not _busca_bate(name_fmt, busca):
+        if not _busca_bate(_nome_para_busca(c.get("name") or "", name_fmt),
+                           busca):
             continue
         c["price_fmt"] = fmt.brl(c.get("price"))
         c["name_fmt"] = name_fmt

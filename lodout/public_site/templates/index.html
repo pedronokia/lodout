@@ -302,7 +302,7 @@
 
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
       <label class="campo-busca-rotulo">Buscar
-        <input type="text" name="q" id="campo-busca" placeholder="Ex.: AK-47 | Redline (atalho: /)" value="{{ busca_sel or '' }}">
+        <input type="text" name="q" id="campo-busca" placeholder="Nome como na Steam: redline, snakebite case… (atalho: /)" value="{{ busca_sel or '' }}">
       </label>
       {# Categoria sai do formulário (2026-11-14): as abas logo abaixo já
          escolhem a categoria; o menu repetia isso e espremia a busca.
@@ -483,7 +483,7 @@
     <nav class="paginacao" aria-label="Paginação">
       {# Uma linha só: Anterior · números · Próxima (2026-11-14). "Ver mais"
          era ambíguo, e "· página N" repetia o número destacado. #}
-      <p class="paginacao-resumo">Mostrando {{ primeiro_item }}–{{ ultimo_item }} de {{ total_candidatos }} itens</p>
+      <p class="paginacao-resumo">Mostrando {{ primeiro_item }}–{{ ultimo_item }} de {{ total_candidatos }} {{ "item" if total_candidatos == 1 else "itens" }}</p>
       <div class="paginacao-linha">
       {% if tem_pagina_anterior %}
         <a id="link-pagina-anterior" class="paginacao-passo" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel, pagina=pagina-1) }}" title="Atalho: seta esquerda">{{ icone("seta-esquerda") }} Anterior</a>
