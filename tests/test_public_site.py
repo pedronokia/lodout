@@ -867,7 +867,12 @@ def test_index_filtros_ativos_removem_um_filtro_preservando_os_demais(
 
     assert set(hrefs) == {"categoria", "nota_min", "preco_max", "q"}
     for filtro, query in hrefs.items():
-        assert filtro not in query
+        if filtro == "categoria":
+            # Sem categoria na URL a home abre em "Skins" (2026-11-14):
+            # tirar o filtro de categoria leva à lista completa, explícita.
+            assert query["categoria"] == ["todas"]
+        else:
+            assert filtro not in query
         assert query["ordenar"] == ["preco"]
         assert query["ver"] == ["lista"]
         assert "pagina" not in query
@@ -5980,3 +5985,43 @@ def test_completar_metadados_do_anterior_preenche_so_o_que_falta():
     assert novos[1]["icon"] == "hashB-novo"
     assert "icon" not in novos[2]
     assert worker._completar_metadados_do_anterior(novos, None) == 0
+
+
+def _scan_skin_e_capsula(tmp_path, monkeypatch):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "Cápsula Teste Capsule", "score": 95, "price": 2.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "category": "Cápsulas"},
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "category": "Rifles"},
+    ])
+
+
+def test_home_abre_em_skins(client, monkeypatch, tmp_path):
+    # 2026-11-14: o topo da lista completa ficava tomado por cápsulas e
+    # caixas; a home abre na aba "Skins", com o resto a um clique.
+    _scan_skin_e_capsula(tmp_path, monkeypatch)
+    body = client.get("/").data.decode("utf-8")
+    assert "AK-47 | Redline" in body
+    assert "Cápsula Teste Capsule" not in body
+    assert 'aria-current="page">Skins <span class="aba-contagem">1<' in body
+    # "Todas" leva à lista completa de propósito (sem categoria na URL a
+    # home voltaria pra Skins).
+    assert re.search(r'href="/\?categoria=todas[^"]*">Todas', body)
+    # Padrão não aparece como filtro ativo removível.
+    assert 'data-filtro="categoria"' not in body
+
+
+def test_home_aba_todas_mostra_tudo(client, monkeypatch, tmp_path):
+    _scan_skin_e_capsula(tmp_path, monkeypatch)
+    body = client.get("/?categoria=todas").data.decode("utf-8")
+    assert "AK-47 | Redline" in body
+    assert "Cápsula Teste Capsule" in body
+    assert 'aria-current="page">Todas' in body
+
+
+def test_home_busca_procura_em_tudo(client, monkeypatch, tmp_path):
+    _scan_skin_e_capsula(tmp_path, monkeypatch)
+    body = client.get("/?q=Teste").data.decode("utf-8")
+    assert "Cápsula Teste Capsule" in body

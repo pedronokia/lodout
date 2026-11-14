@@ -1881,7 +1881,7 @@ footer.rodape .rodape-base a:hover {
 .abas-categoria {
   display: flex;
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 4px;
   margin: -4px -4px var(--sp-2);
   padding: 4px;
   overflow-x: auto;

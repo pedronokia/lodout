@@ -386,6 +386,18 @@ def create_app() -> Flask:
         nota_min = _parse_float_arg("nota_min")
         preco_max = _parse_float_arg("preco_max")
         busca = (request.args.get("q") or "").strip() or None
+        # Sem categoria na URL, a home abre em "Skins" -- desde que a coleta
+        # tenha alguma skin. Busca procura em tudo (quem busca "Caixa
+        # Revolução" tem que achar). `categoria_padrao` marca que ninguém
+        # escolheu: pra destaque/resumo continua sendo a visão principal.
+        categoria_padrao = False
+        if categoria == CATEGORIA_TODAS:
+            categoria = None
+        elif categoria is None and not busca and scan and any(
+                r.get("category") in CATEGORIAS_DE_SKIN
+                for r in scan.get("results") or []):
+            categoria = CATEGORIA_SKINS
+            categoria_padrao = True
         liquidez_min = request.args.get("liquidez_min") or None
         if liquidez_min not in (None, *_LIQUIDEZ_ORDEM):
             liquidez_min = None
@@ -438,6 +450,8 @@ def create_app() -> Flask:
         for c in sem_categoria:
             if c.get("category"):
                 contagem_abas[c["category"]] = contagem_abas.get(c["category"], 0) + 1
+            if c.get("category") in CATEGORIAS_DE_SKIN:
+                contagem_abas[CATEGORIA_SKINS] = contagem_abas.get(CATEGORIA_SKINS, 0) + 1
         total_paginas = max(1, -(-len(todos) // _PAGINA_TAMANHO))
         # Link antigo (?pagina=15 depois que a lista encolheu) ou digitado
         # à mão: mostra a última página que existe em vez de uma lista
@@ -464,7 +478,8 @@ def create_app() -> Flask:
         # abaixo, confuso. Reaproveita o MESMO snapshot do Top 20 que o
         # Ranking já usa (_resumo_do_dia) -- sem inventar uma segunda
         # fonte de comparação histórica.
-        sem_filtro_ativo = not (categoria or nota_min or preco_max or busca or liquidez_min)
+        sem_filtro_ativo = not ((categoria and not categoria_padrao)
+                                or nota_min or preco_max or busca or liquidez_min)
         resumo_do_dia = None
         if pagina == 1 and sem_filtro_ativo:
             snaps = ranking.load_snapshots()
@@ -502,9 +517,26 @@ def create_app() -> Flask:
                          if scan else None),
             scan_desatualizado=scan_desatualizado,
             ocultos_risco=ocultos_risco,
-            categorias=sorted(scan_targets.SCAN_BY_CATEGORY.keys()),
-            contagem_categorias=_contagem_por_categoria(scan),
+            # Abas agrupadas: as de skin logo depois de "Skins", depois o
+            # resto -- e "Cápsulas de autógrafo" com rótulo curto na aba,
+            # senão as 10 abas não cabiam numa linha no computador.
+            categorias=sorted(scan_targets.SCAN_BY_CATEGORY.keys(),
+                              key=lambda c: (c not in CATEGORIAS_DE_SKIN, c)),
+            rotulo_aba=_ROTULO_ABA,
+            contagem_categorias={
+                **_contagem_por_categoria(scan),
+                CATEGORIA_SKINS: sum(
+                    1 for r in (scan or {}).get("results") or []
+                    if r.get("category") in CATEGORIAS_DE_SKIN)},
             contagem_abas=contagem_abas,
+            categoria_skins=CATEGORIA_SKINS,
+            categoria_todas=CATEGORIA_TODAS,
+            categoria_padrao=categoria_padrao,
+            # Valor de categoria pros links da página (paginação, ordem,
+            # Vitrine/Lista, busca): None mantém o padrão (Skins), "todas"
+            # mantém a lista completa escolhida de propósito.
+            categoria_url=(None if categoria_padrao
+                           else (categoria or CATEGORIA_TODAS)),
             filtro_alem_da_categoria=bool(
                 nota_min or preco_max or busca or liquidez_min),
             total_acompanhados=len(scan["results"]) if scan else 0,
@@ -1314,6 +1346,19 @@ def create_app() -> Flask:
     return app
 
 
+# Aba "Skins" (2026-11-14): junta as categorias de arma/faca/luva. A home
+# abre nela -- o site é sobre notas de skins, e o topo da lista completa
+# ficava tomado por cápsulas e caixas. Caixas e cápsulas continuam a um
+# clique (aba "Todas" ou as próprias), na mesma ordem por nota.
+CATEGORIA_SKINS = "Skins"
+CATEGORIAS_DE_SKIN = ("Facas", "Luvas", "Pistolas", "Rifles", "SMGs")
+# Rótulo curto só na aba (o nome completo vai no `title`).
+_ROTULO_ABA = {"Cápsulas de autógrafo": "Autógrafos"}
+# Valor explícito de "Todas" na URL: sem categoria na URL a home abre em
+# Skins, então "Todas" precisa de um valor próprio.
+CATEGORIA_TODAS = "todas"
+
+
 def _contagem_por_categoria(scan: "dict | None") -> dict:
     """{categoria: quantidade} a partir do scan cru -- alimenta os rótulos
     do dropdown de filtro ("Facas (12)"). Conta `scan["results"]` direto
@@ -2031,7 +2076,10 @@ def _candidatos_filtrados(
         scan["results"], owned_names=set(), limit=len(scan["results"]) or 1)
     out = []
     for c in candidatos:
-        if categoria and c.get("category") != categoria:
+        if categoria == CATEGORIA_SKINS:
+            if c.get("category") not in CATEGORIAS_DE_SKIN:
+                continue
+        elif categoria and c.get("category") != categoria:
             continue
         if nota_min is not None and (c.get("score") or 0) < nota_min:
             continue
