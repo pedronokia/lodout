@@ -18,6 +18,10 @@ import secrets
 import shutil
 import sqlite3
 import time
+# Relógio da medição Server-Timing importado à parte: o roteiro dos testes
+# visuais troca o módulo `time` deste arquivo por um relógio congelado
+# (só com time()), e a home quebrava com 500 lá.
+from time import perf_counter as _relogio
 import urllib.parse
 from datetime import date, datetime
 from functools import wraps
@@ -354,10 +358,10 @@ def create_app() -> Flask:
         # outras páginas em produção e 6 ms localmente -- o custo está em
         # disco/IO do servidor. Cada etapa sai no cabeçalho (só durações,
         # nenhum dado) pra medir em vez de adivinhar.
-        _t = [("", time.perf_counter())]
+        _t = [("", _relogio())]
 
         def _marca(nome: str) -> None:
-            _t.append((nome, time.perf_counter()))
+            _t.append((nome, _relogio()))
 
         visits.registrar()
         _marca("visitas")

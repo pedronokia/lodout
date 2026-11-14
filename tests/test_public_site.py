@@ -5789,3 +5789,22 @@ def test_preload_da_fonte_tem_o_mesmo_endereco_do_css(client):
     body = client.get("/").data.decode("utf-8")
     preload = re.search(r'rel="preload" as="font"[^>]*href="([^"]+)"', body).group(1)
     assert preload == "/static/" + no_css
+
+
+def test_home_funciona_com_relogio_congelado_e_mede_etapas(client, monkeypatch):
+    """O roteiro de testes visuais troca `server.time` por um relógio só
+    com time(); a medição Server-Timing não pode depender dele (a home
+    deu 500 lá em 2026-11-14)."""
+    import lodout.public_site.server as server
+
+    class _TempoFixo:
+        @staticmethod
+        def time():
+            return 1_794_600_000.0
+
+    monkeypatch.setattr(server, "time", _TempoFixo)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    etapas = [e.split(";")[0] for e in resp.headers["Server-Timing"].split(", ")]
+    assert etapas == ["visitas", "coleta", "filtro", "historico", "icones",
+                      "ranking", "pagina"]
