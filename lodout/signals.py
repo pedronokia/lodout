@@ -540,11 +540,13 @@ def multi_trend(price_history: list[dict], periods: list[int] | None = None) -> 
 
 def multi_trend_diario(price_history: "list[dict] | None") -> dict:
     """Como `multi_trend`, mas compara MÉDIAS DO DIA (`daily_series`) em vez
-    de um ponto isolado contra outro. Medida em modo sombra (2026-11-14):
-    `multi_trend` usa a última venda horária contra a de N dias atrás, e
-    num item caro com poucas vendas uma venda avulsa mais barata vira
-    "caindo em todos os períodos" ao lado de "subindo nos últimos 7 dias"
-    (Flip Knife Doppler FN, coleta de 14/11 15:19)."""
+    de um ponto isolado contra outro. É o que alimenta o fator "em todos
+    os períodos" da nota desde 2026-11-14: `multi_trend` usa a última
+    venda horária contra a de N dias atrás, e num item caro com poucas
+    vendas uma venda avulsa mais barata virava "caindo em todos os
+    períodos" ao lado de "subindo nos últimos 7 dias" (Flip Knife Doppler
+    FN, coleta de 14/11 15:19). Medido em modo sombra antes de trocar:
+    27 de 172 itens mudavam, nos dois sentidos."""
     diario = daily_series(price_history or [])
     if len(diario) < 2:
         return {}
@@ -583,12 +585,6 @@ def veredito_multiperiodo(mt: "dict | None") -> "str | None":
     if not any(dirs):
         return "caindo"
     return None
-
-
-def sinal_multiperiodo(is_container: bool) -> int:
-    """Sinal do fator multi-período: reversão à média fora de container."""
-    reverte = (not is_container) or _REVERSAL_IN_CONTAINERS
-    return _MULTI_PERIOD_SIGN if reverte else 1
 
 
 def daily_series(price_history: list[dict], days: int | None = None,

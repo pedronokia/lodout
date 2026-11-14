@@ -703,18 +703,18 @@ def test_comparar_fontes_separa_mediana_por_liquidez():
         {"name": "Parado", "vendas_24h": 2, "razao": 1.386}]
 
 
-def test_comparar_multiperiodo_conta_mudancas_e_efeito_na_nota():
-    from lodout import scan_engine
-    sombras = [
-        # skin (sinal -1): caindo valia +10; com a média do dia, subindo vale -10
-        {"name": "Faca", "mp_antigo": "caindo", "mp_diario": "subindo", "mp_sinal": -1},
-        {"name": "Igual", "mp_antigo": "subindo", "mp_diario": "subindo", "mp_sinal": 1},
-        {"name": "Caixa", "mp_antigo": None, "mp_diario": "subindo", "mp_sinal": 1},
-        {"name": "Sem sombra"},
-    ]
-    r = scan_engine.comparar_multiperiodo(sombras)
-    assert r["itens"] == 3 and r["mudariam"] == 2
-    assert r["transicoes"] == {"caindo->subindo": 1, "nenhum->subindo": 1}
-    assert r["maiores"][0] == {"name": "Faca", "de": "caindo", "para": "subindo", "nota_delta": -20}
-    assert r["maiores"][1]["nota_delta"] == 10
-    assert scan_engine.comparar_multiperiodo([]) is None
+
+
+def test_scan_item_fator_todos_os_periodos_usa_media_do_dia(monkeypatch):
+    # 2026-11-14: o fator "Caindo/Subindo em todos os períodos" da nota
+    # passou a comparar médias do dia. Preço subindo há 100 dias com uma
+    # única venda avulsa 20% mais barata no fim não pode virar "Caindo em
+    # todos os períodos" (era o que acontecia com o ponto horário isolado).
+    t0 = 1_790_000_000 - (1_790_000_000 % 86400)
+    hist = [{"time": t0 + h * 3600, "price_median": 100 + h * 0.01, "purchases": 1}
+            for h in range(100 * 24)]
+    hist[-1] = dict(hist[-1], price_median=hist[-2]["price_median"] * 0.8)
+    _mock_steam_ok(monkeypatch, price_history=hist)
+    r = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
+    rotulos = [b["label"] for b in r["breakdown"]]
+    assert not any("Caindo em todos os períodos" in l for l in rotulos)

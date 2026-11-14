@@ -126,7 +126,12 @@ def scan_item(name: str, category: str | None = None,
     if supply is not None:
         signals.record_item_supply(name, supply)
 
-    multi = signals.multi_trend(
+    # Fator "Subindo/Caindo em todos os períodos" com MÉDIAS DO DIA
+    # (2026-11-14), não com um ponto horário isolado: no modo sombra da
+    # coleta das 22:02, 27 de 172 itens (16%) mudavam -- 15 só estavam
+    # "caindo" por uma venda avulsa e 11 tinham a queda real escondida por
+    # uma venda avulsa mais alta. Mesma correção da tendência de 7 dias.
+    multi = signals.multi_trend_diario(
         page.get("price_history", [])
     ) if page and page.get("price_history") else None
     # A colecao vem da tag ItemSet da Steam: resolve item que o mapa
@@ -220,13 +225,6 @@ def scan_item(name: str, category: str | None = None,
             "volume_overview": volume,
             "median_overview": (overview or {}).get("median"),
             "name": name,
-            # Modo sombra do fator "em todos os períodos" (2026-11-14):
-            # ponto horário isolado (o que vale na nota) x média do dia.
-            "mp_antigo": signals.veredito_multiperiodo(multi),
-            "mp_diario": signals.veredito_multiperiodo(
-                signals.multi_trend_diario(page.get("price_history")
-                                           if page else None)),
-            "mp_sinal": signals.sinal_multiperiodo(is_cont),
         },
     }
 
@@ -297,36 +295,6 @@ def _resumo_variantes(nome: str, page: "dict | None") -> "list[dict]":
 
     out.sort(key=_ordem)
     return out[:_VARIANTES_MAX]
-
-
-def comparar_multiperiodo(sombras: "list[dict]") -> "dict | None":
-    """Quantos itens mudariam no fator "Subindo/Caindo em todos os
-    períodos" (±10) se ele comparasse médias do dia em vez de pontos
-    horários isolados, e quanto a nota de cada um mudaria. Só medida."""
-    def pontos(v, sinal):
-        return 10 * sinal if v == "subindo" else (-10 * sinal if v == "caindo" else 0)
-    itens = [f for f in sombras if "mp_antigo" in f]
-    if not itens:
-        return None
-    transicoes: "dict[str, int]" = {}
-    mudancas = []
-    for f in itens:
-        antigo, novo = f.get("mp_antigo"), f.get("mp_diario")
-        if antigo == novo:
-            continue
-        chave = f"{antigo or 'nenhum'}->{novo or 'nenhum'}"
-        transicoes[chave] = transicoes.get(chave, 0) + 1
-        sinal = f.get("mp_sinal", 1)
-        mudancas.append({"name": f.get("name"), "de": antigo, "para": novo,
-                         "nota_delta": pontos(novo, sinal) - pontos(antigo, sinal)})
-    mudancas.sort(key=lambda m: -abs(m["nota_delta"]))
-    return {
-        "itens": len(itens),
-        "mudariam": len(mudancas),
-        "mudariam_pct": round(100 * len(mudancas) / len(itens), 1),
-        "transicoes": transicoes,
-        "maiores": mudancas[:15],
-    }
 
 
 def comparar_fontes(sombras: "list[dict]") -> "dict | None":
@@ -644,7 +612,6 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
         relatorio["pausas_429"] = pausas
         relatorio["sem_preco"] = sem_preco
         relatorio["comparacao_fontes"] = comparar_fontes(sombras)
-        relatorio["comparacao_multiperiodo"] = comparar_multiperiodo(sombras)
         relatorio["throttle_silencioso"] = throttle
         relatorio["abortado"] = abortado
     return results

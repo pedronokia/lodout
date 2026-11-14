@@ -100,7 +100,8 @@ def score_at(name: str, price_history: list[dict], as_of_ts: float,
     # Sem order book histórico -- verdict sai sem spread_verdict/
     # book_verdict (ver limite documentado no topo do arquivo).
     verdict = steam_api.fair_value_verdict(lowest, median)
-    multi = signals.multi_trend(prefixo)
+    # Mesmo cálculo da produção (média do dia; ver scan_engine).
+    multi = signals.multi_trend_diario(prefixo)
     cs = cases.case_status(name, as_of=as_of_ts)
 
     return signals.enhanced_score(
