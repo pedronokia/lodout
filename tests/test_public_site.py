@@ -5810,3 +5810,31 @@ def test_home_funciona_com_relogio_congelado_e_mede_etapas(client, monkeypatch):
     etapas = [e.split(";")[0] for e in resp.headers["Server-Timing"].split(", ")]
     assert etapas == ["visitas", "coleta", "filtro", "historico", "icones",
                       "ranking", "pagina"]
+
+
+def test_rodape_mostra_frescor_dos_precos(client, monkeypatch, tmp_path):
+    """Toda página diz quando os preços foram atualizados (era só na
+    home); atrasada muda a frase, não só a cor."""
+    import os
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": []}])
+    arq = scan_store._DEFAULT_PATH
+    monkeypatch.setattr(scan_store, "ts_ultima_gravacao",
+                        lambda path=None: time.time() - 2 * 3600)
+    body = client.get("/faq").data.decode("utf-8")
+    assert "Preços atualizados há 2 h" in body
+    assert "rodape-frescor-atrasada" not in body
+
+    monkeypatch.setattr(scan_store, "ts_ultima_gravacao",
+                        lambda path=None: time.time() - 20 * 3600)
+    body = client.get("/faq").data.decode("utf-8")
+    assert "Preços atrasados: última atualização há 20 h" in body
+    assert "rodape-frescor-atrasada" in body
+
+
+def test_ts_ultima_gravacao_e_so_um_stat(tmp_path):
+    p = tmp_path / "scanner_last.json"
+    assert scan_store.ts_ultima_gravacao(p) is None
+    p.write_text("{}")
+    assert abs(scan_store.ts_ultima_gravacao(p) - p.stat().st_mtime) < 1e-6

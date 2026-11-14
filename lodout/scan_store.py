@@ -127,6 +127,17 @@ def idade_txt(ts: float, now: float | None = None) -> str:
     return f"há {dias} dia{'s' if dias != 1 else ''}"
 
 
+def ts_ultima_gravacao(path: "Path | str | None" = None) -> "float | None":
+    """Quando o arquivo da coleta foi gravado pela última vez (coleta
+    completa ou rodada rápida do Top 20), SEM decodificar o arquivo:
+    é só um stat. Usado no rodapé de todas as páginas."""
+    p = Path(path) if path is not None else _DEFAULT_PATH
+    try:
+        return p.stat().st_mtime
+    except OSError:
+        return None
+
+
 def proxima_txt(ts: float, intervalo_horas: float,
                 now: float | None = None) -> str:
     """"em ~5 h", "em ~20 min", "a qualquer momento" (atrasado).

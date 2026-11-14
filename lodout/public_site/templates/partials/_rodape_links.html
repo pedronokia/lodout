@@ -1,8 +1,17 @@
 <div class="rodape-marca">
-  <a class="rodape-marca-nome" href="{{ url_for('index') }}">Lodout</a>
+  <a class="rodape-marca-nome" href="{{ url_for('index') }}">{% with logo_classe = "rodape-marca-icone" %}{% include "partials/_logo_aspas.html" %}{% endwith %}Lodout</a>
   <p>Notas de 0 a 100 e preços de skins de CS2, com dados públicos da
   Steam Community Market. Não é afiliado à Valve nem recomendação de
   investimento — a decisão é sempre sua.</p>
+  {% if coleta_quando %}
+  {# Frescor dos dados em toda página (era só na home). Cor + texto: o
+     atraso também muda a frase, não só a bolinha. #}
+  <p class="rodape-frescor{{ ' rodape-frescor-atrasada' if coleta_atrasada else '' }}">
+    <span class="rodape-frescor-ponto" aria-hidden="true"></span>
+    {% if coleta_atrasada %}Preços atrasados: última atualização {{ coleta_quando }}{% else %}Preços atualizados {{ coleta_quando }}{% endif %}
+    · <a href="{{ url_for('status') }}">Status</a>
+  </p>
+  {% endif %}
 </div>
 <nav class="rodape-nav" aria-label="Navegação do site">
   <div class="rodape-nav-grupo">
@@ -26,6 +35,7 @@
     <a href="{{ url_for('feed') }}">RSS</a>
     <a href="{{ url_for('privacidade') }}"{% if request.endpoint == 'privacidade' %} aria-current="page"{% endif %}>Privacidade</a>
     <a href="https://github.com/pedronokia/lodout/issues/new" target="_blank" rel="noopener">Sugerir melhoria</a>
+    <a href="https://github.com/pedronokia/lodout" target="_blank" rel="noopener">Código aberto</a>
   </div>
 </nav>
 {# Visitas em frase de gente ("357 acessos hoje · 8.465 no total") em

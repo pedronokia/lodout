@@ -316,6 +316,21 @@ def create_app() -> Flask:
         }
 
     @app.context_processor
+    def _inject_frescor_no_rodape():
+        """"Preços atualizados há 2 h" no rodapé de toda página. Só um
+        stat do arquivo da coleta (nada de decodificar o JSON por
+        página). Atrasada = mesmo critério do banner da home (2x o
+        intervalo configurado)."""
+        ts = scan_store.ts_ultima_gravacao()
+        if ts is None:
+            return {}
+        intervalo_horas = float(ambiente("WORKER_INTERVAL_HORAS", _INTERVALO_HORAS_DEFAULT))
+        return {
+            "coleta_quando": scan_store.idade_txt(ts),
+            "coleta_atrasada": (time.time() - ts) > intervalo_horas * 3600 * 2,
+        }
+
+    @app.context_processor
     def _inject_legenda_raridade():
         """Lista fixa (7 raridades) disponível em todo template -- só a
         home e o Ranking usam hoje (popover perto da tabela), mas é

@@ -826,7 +826,9 @@ footer.rodape a:hover { color: var(--text); text-decoration: underline; }
 .rodape-marca p { margin: 0; max-width: 46ch; }
 
 footer.rodape .rodape-marca-nome {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   margin-bottom: var(--sp-2);
   color: var(--text-bright);
   font-size: var(--fs-base);
@@ -834,6 +836,42 @@ footer.rodape .rodape-marca-nome {
   letter-spacing: -0.01em;
   text-decoration: none;
 }
+
+/* As aspas da marca em laranja, como no topo. */
+.rodape-marca-icone {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.rodape-marca-icone .logo-aspas { fill: var(--accent); }
+
+/* "● Preços atualizados há 2 h · Status": bolinha verde; atrasada vira
+   âmbar e a frase muda (não depende só da cor). */
+footer.rodape .rodape-frescor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-2);
+  margin-top: var(--sp-3);
+  color: var(--text);
+}
+
+.rodape-frescor-ponto {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--positive);
+  box-shadow: 0 0 0 3px rgba(34, 160, 74, 0.18);
+}
+
+.rodape-frescor-atrasada .rodape-frescor-ponto {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+}
+
+footer.rodape .rodape-frescor a { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Nota própria da página (ex.: "O Top 20 é salvo a cada coleta..."),
    embaixo do aviso da marca. */
@@ -943,7 +981,12 @@ footer.rodape .rodape-base a:hover {
     line-height: 1.3;
   }
 
-  .rodape-base { margin-top: var(--sp-6); }
+  /* Autor e visitas um embaixo do outro, à esquerda: na mesma linha, o
+     botão "voltar ao topo" (fixo no canto direito) cobria as visitas. */
+  .rodape-base {
+    flex-direction: column;
+    margin-top: var(--sp-6);
+  }
 }
 
 /* ── Navegação inferior (celular) ────────────────────── */
