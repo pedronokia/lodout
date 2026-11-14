@@ -80,9 +80,9 @@ ENTRADAS = [
     },
     {
         "data": "2026-11-12",
-        "titulo": "Cores do site alinhadas ao OpenCode",
+        "titulo": "Cores do site com o laranja da marca",
         "itens": [
-            "Cores do site alinhadas com a identidade do OpenCode (opencode.ai/brand):",
+            "Cores do site ajustadas à nova identidade, com o laranja como cor principal:",
             "Fundo branco puro #ffffff, texto #1F1F1F (Ink), texto secundário #626262 (Ink 70%), bordas #D2D2D2 (Ink 20%).",
             "Rodapé, cartas e caixas de destaque no mesmo esquema monocromático.",
         ],
@@ -93,7 +93,7 @@ ENTRADAS = [
         "itens": [
             "Páginas 404, 429 e 500 ganharam cabeçalho de página (título + descrição), card com CTA e o rodapé padrão com grupos de links.",
             "Painel admin e login de admin ganharam descrição no cabeçalho, card ao redor do formulário e rodapé padrão.",
-            "Botões de ação nessas páginas usam o mesmo estilo pílula laranja do resto do site (classe .botao-acao).",
+            "Os botões de ação dessas páginas ganharam o mesmo formato arredondado e laranja do resto do site.",
             "Minha watchlist envolve os formulários 'Adicionar item' e 'Alerta no Discord' em cards, igual às demais páginas de conta.",
             "Minha histórico envolve gráfico e tabela em card dentro de .resumo-cards, igual ao resto das páginas de conta.",
             "Excluir conta ganha descrição no cabeçalho e envolve o aviso em .resumo-cards.",
@@ -107,16 +107,16 @@ ENTRADAS = [
         "itens": [
             "Removido tabindex='-1' dos termos do glossário: todos agora são alcançáveis com a tecla Tab (violação de WCAG 2.1.1 corrigida).",
             "Páginas 404, 429 e 500 passam a ter um único <h1> (o título da página); o logo deixa de ser h1 nessas páginas.",
-            "Nav de conta (Trades/Watchlist/Histórico) ganha aria-label='Minhas páginas'.",
-            "Erros de validação do login de admin e do webhook da watchlist ganham role='alert' e aria-invalid='true' no campo.",
+            "O menu das páginas da sua conta (Trades, Watchlist, Histórico) passa a ser anunciado pelo leitor de tela como “Minhas páginas”.",
+            "Quando um campo do login de admin ou do alerta da watchlist tem erro, o leitor de tela avisa na hora e indica qual campo precisa de correção.",
         ],
     },
     {
         "data": "2026-11-12",
-        "titulo": "Otimização de desempenho / LCP",
+        "titulo": "Páginas abrem mais rápido",
         "itens": [
-            "Preload da fonte Inter (woff2) no <head>: começa a baixar em paralelo com o HTML, em vez de só depois que o CSS é parseado (o @font-face dispara o fetch da fonte).",
-            "Preconnect para community.steamstatic.com: abre conexão TCP/TLS antecipadamente pra ícones de item que caem no CDN da Steam quando o cache local não tem o hash.",
+            "A letra do site começa a carregar junto com a página, em vez de esperar o resto: o texto aparece mais cedo.",
+            "As imagens das skins que vêm direto da Steam começam a carregar mais cedo.",
         ],
     },
     {
@@ -125,25 +125,20 @@ ENTRADAS = [
         "itens": [
             "Páginas 404, 429 e 500 ganharam cabeçalho de página (título + descrição), card com CTA e o rodapé padrão com grupos de links.",
             "Painel admin e login de admin ganharam descrição no cabeçalho, card ao redor do formulário e rodapé padrão.",
-            "Botões de ação nessas páginas usam o mesmo estilo pílula laranja do resto do site (classe .botao-acao).",
+            "Os botões de ação dessas páginas ganharam o mesmo formato arredondado e laranja do resto do site.",
             "Minha watchlist envolve os formulários 'Adicionar item' e 'Alerta no Discord' em cards, igual às demais páginas de conta.",
         ],
     },
     {
         "data": "2026-11-11",
-        "titulo": "O site inteiro no estilo da Apple",
+        "titulo": "Texto, botões e rodapé redesenhados",
         "itens": [
-            "O texto do site passou a usar os mesmos tamanhos, pesos e "
-            "espaçamentos do apple.com: corpo de 17px, títulos de 32px a "
-            "64px e o mesmo desenho de letra",
-            "Os botões viraram pílula azul (clicar e comprar, como na "
-            "loja da Apple) e os links de texto ficaram azuis sem caixa "
-            "em volta",
+            "O texto ficou maior e mais espaçado, com títulos bem maiores que o corpo do texto",
+            "Os botões viraram pílulas coloridas e os links de texto perderam a caixa em volta",
             "Os cards e as caixas de destaque ganharam o raio de 18px, fio "
             "de 1px e nenhuma sombra -- o bloco do topo da home virou um "
             "painel quase preto com o número da nota em branco",
-            "O rodapé virou um bloco cinza de ponta a ponta, com texto de "
-            "12px, como o rodapé da Apple",
+            "O rodapé virou um bloco cinza de ponta a ponta, com letra menor",
             "As abas de categoria, o seletor Vitrine/Lista, os campos de "
             "filtro e a barra do celular foram todos refeitos no mesmo "
             "vocabulário visual",
@@ -153,9 +148,7 @@ ENTRADAS = [
         "data": "2026-11-11",
         "titulo": "A marca virou aspas e o nome ganhou forma de nome",
         "itens": [
-            "O cabeçalho agora mostra só as aspas, sem o disco atrás: é o "
-            "desenho que acende ao passar o mouse, como o símbolo da barra "
-            "da Apple",
+            "O cabeçalho agora mostra só as aspas da marca, que acendem ao passar o mouse",
             "O nome do site nos títulos das páginas passou a ser "
             "“Galaseca”, com G maiúsculo -- o resto do texto continua "
             "“galaseca”",
@@ -178,14 +171,10 @@ ENTRADAS = [
     },
     {
         "data": "2026-11-11",
-        "titulo": "Cabeçalho no ritmo da barra da Apple",
+        "titulo": "Cabeçalho mais fino",
         "itens": [
-            "A barra do topo ficou mais fina: agora tem a altura da "
-            "barra de navegação do site da Apple e deixa o conteúdo "
-            "começar mais cedo",
-            "A barra ganhou fundo escuro, como a barra da Apple no modo "
-            "escuro: o menu fica em texto claro e o conteúdo branco "
-            "começa logo abaixo dela",
+            "A barra do topo ficou mais fina e o conteúdo começa mais cedo na tela",
+            "A barra ganhou fundo escuro, com o menu em texto claro",
             "Os links do menu ficam juntos, com o mesmo respiro entre "
             "eles, em vez de se espalharem até as pontas da barra",
             "A marca virou um símbolo redondo com aspas, no lugar do "
@@ -245,7 +234,7 @@ ENTRADAS = [
             "O site agora se chama GalaSeca e fica em galaseca.com",
             "Facas e luvas entraram na coleta (o nome usado na Steam não "
             "batia e esses itens voltavam vazios)",
-            "O Ranking passou a mostrar as 20 maiores notas do scan inteiro",
+            "O Ranking passou a mostrar as 20 maiores notas de toda a coleta",
             "No celular, cada item vira um cartão com os rótulos de cada dado",
             "\"Só favoritos\" avisa quando o favorito está em outra página "
             "da lista, com link pra ele",
@@ -269,8 +258,7 @@ ENTRADAS = [
         "data": "2026-10-29",
         "titulo": "Miniaturas das skins e nomes mais fáceis de ler",
         "itens": [
-            "A tabela recupera as imagens das skins quando o scan as recebe "
-            "da página pública da Steam",
+            "A tabela volta a mostrar as imagens das skins assim que a coleta as recebe da página pública da Steam",
             "O nome do item não fica mais espremido entre os controles; "
             "ações e links ganharam uma linha própria",
         ],
@@ -316,7 +304,7 @@ ENTRADAS = [
     },
     {
         "data": "2026-10-27",
-        "titulo": "Tabela mais leve e CTA de login explicado",
+        "titulo": "Tabela mais leve e o login explicado",
         "itens": [
             "Página principal mostra 10 itens por vez em vez de 20 -- "
             "rola menos pra achar o botão \"Ver mais\"",
@@ -332,34 +320,30 @@ ENTRADAS = [
     },
     {
         "data": "2026-10-26",
-        "titulo": "Página de item, login, PWA, e uma correção de verdade no scan",
+        "titulo": "Página de cada item, login, app no celular e uma correção na coleta",
         "itens": [
             "Página de detalhe por item, comparador lado a lado, "
             "favoritos, buscas salvas, exportar CSV",
-            "Site instalável (PWA) e login do painel interno trocado "
-            "por senha de verdade, sem token na URL",
-            "Corrigido um bug real que travava o scan inteiro num item "
-            "sem preço médio disponível",
-            "FAQ, exportar seus próprios dados em JSON, e mais de 50 "
-            "ajustes de acessibilidade, SEO e segurança",
+            "Dá pra instalar o site como app no celular, e o painel interno passou a pedir senha de verdade",
+            "Corrigido um erro que travava a coleta inteira quando um item não tinha preço médio",
+            "Perguntas frequentes, exportar os seus próprios dados, e mais de 50 ajustes de acessibilidade, busca no Google e segurança",
         ],
     },
     {
         "data": "2026-10-25",
-        "titulo": "Polimentos e infraestrutura técnica",
+        "titulo": "Ajustes de bastidores",
         "itens": [
             "Copiar nome do item com um clique, agrupar por categoria, "
             "atalho de teclado \"/\" pra buscar",
             "Expandir qualquer linha pra ver o cálculo completo da nota, "
             "não só os 3 motivos principais",
-            "Compressão gzip, cache nos arquivos estáticos, "
-            "robots.txt/sitemap.xml, página 404 própria",
-            "Esta página de changelog e a documentação da API pública",
+            "Páginas mais leves e rápidas de carregar, mapa do site pro Google e uma página própria pra link quebrado",
+            "Esta página de mudanças e a documentação da API pública (pra quem quer usar os dados em outro programa)",
         ],
     },
     {
         "data": "2026-10-24",
-        "titulo": "Redesign visual e correção de um bug real de rate limit",
+        "titulo": "Visual novo e correção no limite de consultas à Steam",
         "itens": [
             "Visual novo (paleta azul escuro, inspirada na Steam)",
             "Busca por nome, ordenar clicando na coluna, filtros "
@@ -368,16 +352,14 @@ ENTRADAS = [
             "selo pra caixa descontinuada",
             "Página /status com histórico de scans (inclusive os que "
             "falharam) e contador de visitas",
-            "Corrigido bug onde o scan martelava a Steam por ~26min "
-            "mesmo já bloqueado, sem desistir cedo",
+            "Corrigido um erro em que a coleta seguia consultando a Steam por ~26 min mesmo depois de bloqueada, em vez de parar cedo",
         ],
     },
     {
         "data": "2026-10-23",
         "titulo": "Site público no ar",
         "itens": [
-            "Deploy na Oracle Cloud (Always Free), com Docker e HTTPS "
-            "automático via Caddy",
+            "O site foi ao ar num servidor gratuito da Oracle, com conexão segura (HTTPS) automática",
             "Login com Steam, portfólio/trades/watchlist/histórico "
             "pessoais, proteção contra abuso",
             "Página de privacidade e exclusão de conta",
