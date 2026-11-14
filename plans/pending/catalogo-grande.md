@@ -45,11 +45,12 @@ Arquivos: `lodout/steam_api.py`, `lodout/public_site/catalogo.py` (novo),
 
 #### Passo 1.3: varredura no tempo livre do worker (M)
 - Fatiada por tipo (rifles, pistolas, SMGs, escopetas, metralhadoras,
-  facas, luvas, caixas/cápsulas; adesivos ficam de fora — ver decisões), paginando de 100 em 100 com
+  facas, luvas, caixas/cápsulas e adesivos — o mercado de CS2 inteiro), paginando de 100 em 100 com
   `RATE_LIMIT_DELAY_S` lido na hora e o disjuntor `search`.
 - Roda só entre as rodadas do Top 20, nunca junto da coleta com nota;
   para no primeiro 429 e continua de onde parou na próxima janela
-  (posição salva com `atomic_write_text`). Catálogo completo 1x por dia.
+  (posição salva com `atomic_write_text`). Catálogo completo a cada 6 h
+  (~300 consultas por rodada, dentro das ~5 h livres do worker).
 - Liga/desliga por variável de ambiente `LODOUT_CATALOGO` (padrão
   desligado; ligado no deploy desta fase). Resumo no `/api/health`
   (itens, páginas, 429, duração).
@@ -95,15 +96,20 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 | Onde guardar | SQLite separado em `data/` | 20 mil itens num JSON lido a cada visita deixaria a home lenta |
 | Quando roda | Tempo livre do worker, 1x por dia, fatiado | Não disputa com a coleta da nota; o worker é o único que fala com a Steam |
 | Nota | Inalterada nesta etapa | A nota foi calibrada nos itens atuais; expandir é outro plano |
-| Adesivos | Fora do catálogo (pendente de confirmação) | ~9 mil itens, triplicam a varredura; público é de skins |
-| Itens sem nota na home | Só aparecem com busca ou filtro (pendente de confirmação) | A home continua sendo "as notas de hoje" |
+| Adesivos | Dentro do catálogo (usuário, 2026-11-14) | Pela busca da Steam custam ~90 consultas (+50%), não o triplo; são itens que somem do mercado ao serem colados/raspados |
+| Itens sem nota na home | Só aparecem com busca ou filtro (usuário) | A home continua sendo "as notas de hoje" |
+| Frequência do catálogo | A cada 6 h (usuário) | Preço mais fresco; cabe nas janelas livres e para no primeiro 429 |
 
 ## Ainda não especificado
 - Fase 1: tamanho real da página da Steam sem login (o código já registra
   que ela pode devolver menos que 100) — medido na primeira varredura.
 - Fase 2: se a busca no SQLite precisar de índice de texto (FTS5) para
   ficar abaixo de 400 ms — decidido medindo com o catálogo real.
-- Expansão da nota (histórico para mais itens): fora deste plano.
+- Expansão da nota (histórico para mais itens): fora deste plano. Ideia
+  do usuário para quando vier: começar pelos itens que somem do mercado
+  (caixas que saem do drop pool, cápsulas, adesivos de campeonato); skin
+  comum por último — a evidência do modelo já mostra reversão à média em
+  skins e comportamento diferente em caixas.
 
 ## Sempre / Nunca
 - Sempre: o worker é o único que consulta a Steam; respeitar
