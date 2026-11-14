@@ -350,8 +350,19 @@ def create_app() -> Flask:
 
     @app.route("/")
     def index():
+        # Server-Timing (2026-11-14): a home levava ~0,6 s a mais que as
+        # outras páginas em produção e 6 ms localmente -- o custo está em
+        # disco/IO do servidor. Cada etapa sai no cabeçalho (só durações,
+        # nenhum dado) pra medir em vez de adivinhar.
+        _t = [("", time.perf_counter())]
+
+        def _marca(nome: str) -> None:
+            _t.append((nome, time.perf_counter()))
+
         visits.registrar()
+        _marca("visitas")
         scan = scan_store.load_last_scan()
+        _marca("coleta")
         categoria = request.args.get("categoria") or None
         nota_min = _parse_float_arg("nota_min")
         preco_max = _parse_float_arg("preco_max")
@@ -407,8 +418,11 @@ def create_app() -> Flask:
         pagina = min(max(1, pagina), total_paginas)
         inicio = (pagina - 1) * _PAGINA_TAMANHO
         candidatos_pagina = todos[inicio:inicio + _PAGINA_TAMANHO]
+        _marca("filtro")
         _enriquecer_com_historico(candidatos_pagina)
+        _marca("historico")
         _enriquecer_com_icone(candidatos_pagina)
+        _marca("icones")
         intervalo_horas = float(ambiente("WORKER_INTERVAL_HORAS", _INTERVALO_HORAS_DEFAULT))
         # Banner de "dado pode estar desatualizado" -- pedido depois do
         # bloqueio real de 429 que durou horas (2026-10-25): sem isto, a
@@ -428,6 +442,7 @@ def create_app() -> Flask:
         if pagina == 1 and sem_filtro_ativo:
             snaps = ranking.load_snapshots()
             resumo_do_dia = _resumo_do_dia(snaps[-1] if snaps else None)
+        _marca("ranking")
         # Hero "nota mais alta hoje" (revisão de direção visual
         # 2026-11-08) -- a home abria direto no formulário de filtro, sem
         # nenhum "rosto". Mesma condição de resumo_do_dia (só na visão
@@ -487,6 +502,10 @@ def create_app() -> Flask:
             resp.set_cookie("pref_ver", ver, max_age=_UM_ANO_S,
                             samesite="Lax",
                             secure=app.config["SESSION_COOKIE_SECURE"])
+        _marca("pagina")
+        resp.headers["Server-Timing"] = ", ".join(
+            f"{nome};dur={(fim - ini) * 1000:.1f}"
+            for (_, ini), (nome, fim) in zip(_t, _t[1:]))
         return resp
 
     @app.route("/item/<name>")

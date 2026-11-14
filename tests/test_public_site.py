@@ -5776,3 +5776,16 @@ def test_pagina_alem_do_fim_mostra_a_ultima(client, monkeypatch, tmp_path):
     assert "Mostrando 25–25 de 25 itens · página 3" in body
     assert "Item 24" in body
     assert "Mostrando 1–12" in client.get("/?pagina=0").data.decode("utf-8")
+
+
+def test_preload_da_fonte_tem_o_mesmo_endereco_do_css(client):
+    """Preload e @font-face com URLs diferentes = a fonte baixada duas
+    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita)."""
+    import re
+    from pathlib import Path
+    css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site"
+           / "static" / "style.css").read_text(encoding="utf-8")
+    no_css = re.search(r'url\("(fonts/inter-latin-opsz-normal\.woff2[^"]*)"\)', css).group(1)
+    body = client.get("/").data.decode("utf-8")
+    preload = re.search(r'rel="preload" as="font"[^>]*href="([^"]+)"', body).group(1)
+    assert preload == "/static/" + no_css

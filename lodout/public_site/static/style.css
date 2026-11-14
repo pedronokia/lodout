@@ -2897,7 +2897,10 @@ table.tabela-candidatos td.celula-preco {
 }
 
 @media (hover: none) {
-  .cartao-item-comparar-alvo { opacity: 1; }
+  /* Sem hover a etiqueta fica sempre à mostra -- e no tamanho cheio: o
+     scale(0.9) é só o ponto de partida da animação de aparecer no
+     hover, e encolhia o alvo de toque pra 90% no celular. */
+  .cartao-item-comparar-alvo { opacity: 1; transform: none; }
 }
 
 .cartao-item-comparar-alvo:has(:checked) { color: var(--text-bright); }
@@ -3021,7 +3024,7 @@ table.tabela-candidatos td.celula-preco {
 
   .cartao-item-preco { font-size: var(--fs-base); }
 
-  .cartao-item-comparar-alvo { opacity: 1; }
+  .cartao-item-comparar-alvo { opacity: 1; transform: none; }
 }
 
 /* ── Página do item ──────────────────────────────────── */
@@ -3260,11 +3263,25 @@ table.tabela-candidatos td.celula-preco {
 
 .checkbox-comparar:hover { border-color: var(--text-muted); }
 
-/* Menor dentro da etiqueta "Comparar" dos cartões. */
+/* Dentro da etiqueta "Comparar" dos cartões: alvo de 24x24 (WCAG 2.2,
+   apontado pelo Lighthouse em 2026-11-14 -- era 14px), mas o quadrado
+   visível continua com 16px: o anel de 4px da cor do chip é desenhado
+   por dentro (box-shadow) e a margem negativa não muda o layout. */
 .cartao-item-comparar-alvo .checkbox-comparar {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  margin: -4px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--border-strong);
+}
+
+.cartao-item-comparar-alvo .checkbox-comparar:hover {
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--text-muted);
+}
+
+.cartao-item-comparar-alvo .checkbox-comparar:checked {
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--accent);
 }
 
 .checkbox-comparar:checked {
