@@ -1377,9 +1377,25 @@ def _busca_bate(nome: str, busca: "str | None") -> bool:
     return False
 
 
+# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas e
+# adesivos aparecem com o nome original): quem digita em português também
+# acha ("capsula copenhagen" -> "Copenhagen 2024 Legends Sticker Capsule").
+_SINONIMOS_BUSCA = {
+    "capsule": "capsula",
+    "sticker": "adesivo",
+    "autograph": "autografo",
+    "case": "caixa",
+    "gloves": "luvas",
+    "knife": "faca",
+}
+
+
 def _nome_para_busca(nome_original: str, nome_pt: str) -> str:
-    """Nome em português e original (inglês, como na Steam) juntos."""
-    return f"{nome_pt} {nome_original}"
+    """Nome em português e original (inglês, como na Steam) juntos, mais
+    a tradução das palavras de tipo que ficam em inglês no nome."""
+    extras = [pt for en, pt in _SINONIMOS_BUSCA.items()
+              if en in nome_original.lower()]
+    return " ".join([nome_pt, nome_original, *extras])
 
 
 def _tendencia_do_historico(hist: list) -> "str | None":

@@ -6012,3 +6012,13 @@ def test_busca_ignora_acento():
     assert server._busca_bate("Cápsula de Autógrafo", "capsula autografo")
     assert server._busca_bate("Caixa Revolução", "revolucao")
     assert not server._busca_bate("Caixa Revolução", "fratura")
+
+
+def test_busca_em_portugues_acha_nome_que_ficou_em_ingles():
+    from lodout.public_site import server
+    nome = server._nome_para_busca(
+        "Copenhagen 2024 Legends Sticker Capsule",
+        "Copenhagen 2024 Legends Sticker Capsule")
+    assert server._busca_bate(nome, "capsula copenhagen")
+    assert server._busca_bate(nome, "adesivo legends")
+    assert not server._busca_bate(nome, "faca")
