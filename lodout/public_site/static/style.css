@@ -3313,7 +3313,9 @@ a.paginacao-passo:hover {
   text-decoration: none;
 }
 
-.detalhe-motivo-cartao { font-size: var(--fs-2xs); }
+/* 13px em vez de 12 (2026-11-14): motivo e rodapé dos cartões ficavam
+   difíceis de ler, principalmente no celular. */
+.detalhe-motivo-cartao { font-size: var(--fs-xs); }
 .detalhe-motivo-cartao .texto-motivo { color: var(--text-muted); }
 .detalhe-motivo-cartao[open] .texto-motivo { -webkit-line-clamp: unset; }
 
@@ -3354,13 +3356,13 @@ a.paginacao-passo:hover {
    diferença subia ou descia o preço de cada cartão da fileira. */
 .cartao-item-selos {
   display: flex;
-  min-height: 36px;
+  min-height: 42px;
   min-height: calc(2lh + 4px);
   flex-wrap: wrap;
   align-items: center;
   align-content: flex-end;
   gap: 4px 6px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-xs);
   line-height: 1.45;
 }
 
@@ -3375,7 +3377,7 @@ a.paginacao-passo:hover {
 .cartao-item-steam {
   margin-left: auto;
   color: var(--text-muted);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-xs);
   white-space: nowrap;
 }
 
@@ -3521,8 +3523,8 @@ a.paginacao-passo:hover {
   .hero-item-imagem { order: -1; min-height: 0; }
 
   .hero-item-quadro {
-    width: 140px;
-    height: 140px;
+    width: 180px;
+    height: 180px;
   }
 
   .hero-item .titulo-item { font-size: clamp(1.4rem, 7vw, 1.9rem); }
