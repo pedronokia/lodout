@@ -317,8 +317,11 @@ document.addEventListener("keydown", function (e) {
         linha.style.display = escondida ? "none" : "";
         if (!escondida) algumVisivel = true;
       });
-      var textoBotao = document.getElementById("texto-botao-favoritos");
-      if (textoBotao) textoBotao.textContent = ativo ? "Todos os itens" : "Só favoritos";
+      // O rótulo fica "Só favoritos" nos dois estados (2026-11-14): com
+      // aria-pressed, trocar o texto para a ação contrária ("Todos os
+      // itens") fazia o botão ligado anunciar o oposto do que mostrava e
+      // mudar de largura. O estado ligado aparece pelo dourado e pela
+      // estrela cheia.
       botao.setAttribute("aria-pressed", String(ativo));
       var semNenhum = ativo && !algumVisivel;
       // Sem linha/card visível, o cabeçalho da tabela ou a grade vazia

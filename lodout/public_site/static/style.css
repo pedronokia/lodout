@@ -1680,17 +1680,26 @@ footer.rodape .rodape-base a:hover {
 }
 
 /* Só deve existir um botão de destaque por tela -- "Só favoritos" é
-   uma alternância, não a ação principal. */
+   uma alternância, não a ação principal.
+   Redesenho 2026-11-14: mesma altura (40px) e mesmo canto do campo de
+   busca ao lado, letra do tamanho da barra (era 17px, maior que tudo em
+   volta), e a estrela dourada -- a mesma cor da estrela favoritada nos
+   cartões, então o botão já diz do que se trata. Ligado: fundo dourado
+   suave, estrela cheia e contador no mesmo tom. */
 .form-filtros button#botao-favoritos {
   display: inline-flex;
-  height: auto;
-  min-height: 44px;
+  height: 40px;
+  min-height: 0;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  padding: 0 14px 0 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   color: var(--text);
+  font-size: var(--fs-sm);
   font-weight: 500;
+  white-space: nowrap;
   transition: background-color var(--dur-base) var(--ease-standard),
     border-color var(--dur-base) var(--ease-standard),
     color var(--dur-base) var(--ease-standard);
@@ -1699,12 +1708,20 @@ footer.rodape .rodape-base a:hover {
 .form-filtros button#botao-favoritos:hover {
   border-color: var(--border-strong);
   background: var(--surface-hover);
+  color: var(--text-bright);
   filter: none;
+  text-decoration: none;
 }
 
 .form-filtros button#botao-favoritos.ativo {
-  border-color: rgba(242, 187, 37, 0.4);
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg));
   color: var(--warn);
+}
+
+.form-filtros button#botao-favoritos.ativo:hover {
+  border-color: color-mix(in srgb, var(--warn) 65%, transparent);
+  background: color-mix(in srgb, var(--warn) 18%, var(--bg));
 }
 
 .form-filtros button#botao-favoritos:focus-visible {
@@ -1712,8 +1729,32 @@ footer.rodape .rodape-base a:hover {
   outline-offset: 2px;
 }
 
-#botao-favoritos .icone-ui { width: 17px; height: 17px; }
+#botao-favoritos .icone-ui {
+  width: 16px;
+  height: 16px;
+  color: var(--warn);
+  transition: transform var(--dur-base) var(--ease-standard);
+}
+
+#botao-favoritos:hover .icone-ui { transform: rotate(-12deg) scale(1.08); }
 #botao-favoritos.ativo .icone-ui-favorito { fill: currentColor; }
+
+@media (prefers-reduced-motion: reduce) {
+  #botao-favoritos:hover .icone-ui { transform: none; }
+}
+
+/* Contador de favoritos dentro do botão: pílula dourada discreta. */
+#botao-favoritos .contagem-favoritos {
+  min-width: 20px;
+  margin-left: 1px;
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
 
 .filtros-ativos {
   display: flex;
@@ -4559,6 +4600,8 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   .form-filtros input,
   .form-filtros select,
   .form-filtros button { min-height: 44px; }
+  /* Mesma altura do campo de busca também no celular (44px). */
+  .form-filtros button#botao-favoritos { height: 44px; }
 
   /* A lista da home vira cartões no celular. */
   .pagina-inicial .tabela-wrap { overflow: visible; }
