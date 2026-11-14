@@ -550,7 +550,7 @@ def test_index_exibe_miniatura_e_separa_acoes_do_nome(
         celula, re.DOTALL).group(1)
 
     assert 'class="icone-item-quadro icone-item-quadro-com-imagem"' in principal
-    assert 'src="/icone/skin-icon-hash.webp?v=2"' in principal
+    assert 'src="/icone/skin-icon-hash.webp?v=3"' in principal
     assert 'class="icone-item"' in principal
     assert "link-item" in principal
     assert "menu-acoes-item" in acoes
@@ -915,11 +915,11 @@ def test_api_recommendations_com_scan(client, monkeypatch, tmp_path):
     # max_pump_risk="medium")
     assert nomes == ["Item X"]
     assert data["api_version"] == 1
-    assert data["candidatos"][0]["icon_url"] == "/icone/abc123.webp?v=2"
+    assert data["candidatos"][0]["icon_url"] == "/icone/abc123.webp?v=3"
     # icon_url_2x pede 384px (2x de 192) desde 2026-11-08 -- antes era
     # cópia do icon_url de 192px (perda de nitidez no hero/vitrine).
     assert (data["candidatos"][0]["icon_url_2x"]
-            == "/icone/abc123.webp?v=2&tam=384")
+            == "/icone/abc123.webp?v=3&tam=384")
 
 
 def test_api_recommendations_filtra_owned_vazio_sempre(client, monkeypatch,
@@ -3898,7 +3898,7 @@ def test_icon_cache_preserva_hash_real_na_url(monkeypatch, tmp_path):
 
     import httpx
     monkeypatch.setattr(httpx, "get", _get)
-    # Reencodado pra WebP (ver _reencodar_webp) -- não é mais o mesmo
+    # Reencodado pra WebP (ver _processar) -- não é mais o mesmo
     # byte-a-byte que `content`, só confere a assinatura do formato.
     assert icon_cache.obter(_HASH_REAL)[:4] == b"RIFF"
     url, kw = pedidas[0]
@@ -3911,36 +3911,95 @@ def test_icon_cache_sanitiza_hash_malicioso():
     assert icon_cache._sanitizar("../../etc/passwd") == "etcpasswd"
 
 
-def test_icon_cache_reencodar_webp_converte_jpeg_valido():
+def test_icon_cache_processar_converte_jpeg_valido():
     from PIL import Image
     from io import BytesIO
-    saida = icon_cache._reencodar_webp(_jpeg_minimo())
+    saida = icon_cache._processar(_jpeg_minimo(), 192)
     assert saida[:4] == b"RIFF"
     assert saida[8:12] == b"WEBP"
     with Image.open(BytesIO(saida)) as im:
         assert im.format == "WEBP"
-        assert im.size == (2, 2)
+        assert im.size == (192, 192)
 
 
-def test_icon_cache_reencodar_webp_preserva_transparencia():
+def test_icon_cache_processar_preserva_transparencia():
     from PIL import Image
     from io import BytesIO
 
     origem = BytesIO()
-    imagem = Image.new("RGBA", (2, 2), (220, 40, 30, 255))
-    imagem.putpixel((0, 0), (0, 0, 0, 0))
+    imagem = Image.new("RGBA", (384, 384), (0, 0, 0, 0))
+    for x in range(150, 230):
+        for y in range(170, 210):
+            imagem.putpixel((x, y), (220, 40, 30, 255))
     imagem.save(origem, format="PNG")
 
-    saida = icon_cache._reencodar_webp(origem.getvalue())
+    saida = icon_cache._processar(origem.getvalue(), 384)
 
     with Image.open(BytesIO(saida)) as resultado:
         assert resultado.mode == "RGBA"
-        assert resultado.getpixel((0, 0))[3] == 0
-        assert resultado.getpixel((1, 1))[3] == 255
+        assert resultado.getpixel((2, 2))[3] == 0          # canto continua transparente
+        assert resultado.getpixel((192, 192))[3] == 255    # arte no centro
 
 
-def test_icon_cache_reencodar_webp_bytes_invalidos_devolve_none():
-    assert icon_cache._reencodar_webp(b"isso nao e uma imagem") is None
+def test_icon_cache_enquadra_a_arte_ocupando_o_quadro():
+    """v4: arte pequena com margem transparente grande (caixas ocupavam
+    ~50% do quadro da Steam) passa a ocupar 88% do lado, centralizada."""
+    from PIL import Image
+    from io import BytesIO
+    origem = Image.new("RGBA", (384, 384), (0, 0, 0, 0))
+    for x in range(120, 312):          # arte 192x96, deslocada pra baixo
+        for y in range(200, 296):
+            origem.putpixel((x, y), (200, 160, 40, 255))
+    buf = BytesIO(); origem.save(buf, format="PNG")
+    with Image.open(BytesIO(icon_cache._processar(buf.getvalue(), 384))) as r:
+        caixa = r.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+    largura = caixa[2] - caixa[0]
+    assert abs(largura - 384 * icon_cache._OCUPACAO) <= 2     # ocupa 88%
+    centro_y = (caixa[1] + caixa[3]) / 2
+    assert abs(centro_y - 192) <= 2                           # centralizada
+
+
+def test_icon_cache_processar_bytes_invalidos_devolve_none():
+    assert icon_cache._processar(b"isso nao e uma imagem", 192) is None
+
+
+def test_icon_cache_sem_rede_gera_v4_a_partir_do_v3(monkeypatch, tmp_path):
+    """Sem CDN, o v4 sai da imagem v3 já guardada -- nunca fica sem ícone
+    por causa da troca de versão do cache."""
+    from PIL import Image
+    from io import BytesIO
+    monkeypatch.setattr(icon_cache, "_CACHE_DIR", tmp_path)
+    import httpx
+    def _sem_rede(*a, **k):
+        raise httpx.ConnectError("sem rede")
+    monkeypatch.setattr(httpx, "get", _sem_rede)
+    buf = BytesIO(); Image.new("RGBA", (384, 384), (10, 200, 10, 255)).save(buf, format="WEBP")
+    icon_cache._caminho_antigo("abc", 384).write_bytes(buf.getvalue())
+    dados = icon_cache.obter("abc", 192)
+    assert dados[:4] == b"RIFF"
+    assert icon_cache._caminho("abc", 192).exists()
+    # ler_local nunca usa rede
+    assert icon_cache.ler_local("abc", 384)[:4] == b"RIFF"
+
+
+def test_icon_cache_uma_busca_gera_os_dois_tamanhos(monkeypatch, tmp_path):
+    from PIL import Image
+    from io import BytesIO
+    monkeypatch.setattr(icon_cache, "_CACHE_DIR", tmp_path)
+    buf = BytesIO(); Image.new("RGBA", (384, 384), (10, 200, 10, 255)).save(buf, format="PNG")
+    pedidas = []
+
+    class _Resp:
+        status_code = 200
+        content = buf.getvalue()
+
+    import httpx
+    monkeypatch.setattr(httpx, "get", lambda url, **k: pedidas.append(url) or _Resp())
+    icon_cache.obter("xyz", 192)
+    assert len(pedidas) == 1 and pedidas[0].endswith("/384fx384f")
+    assert icon_cache._caminho("xyz", 384).exists()
+    icon_cache.obter("xyz", 384)
+    assert len(pedidas) == 1      # o de 384 já veio da mesma busca
 
 
 def test_icon_cache_obter_cacheia_webp_em_disco(monkeypatch, tmp_path):
@@ -4012,7 +4071,7 @@ def test_rota_icone_tam_invalido_cai_no_padrao(client, monkeypatch):
 def test_icon_cache_obter_tamanho_fora_da_lista_cai_no_padrao(
         monkeypatch, tmp_path):
     monkeypatch.setattr(icon_cache, "_CACHE_DIR", tmp_path)
-    p = tmp_path / "abc123.v3.192.webp"
+    p = tmp_path / "abc123.v4.192.webp"
     p.write_bytes(b"ja-em-cache-192")
     # tamanho=999 não existe em TAMANHOS_PERMITIDOS -- cai pro padrão
     # (192) e lê o mesmo arquivo que um `obter("abc123")` sem tamanho leria.
@@ -4813,8 +4872,8 @@ def test_enriquecer_com_icone_preenche_campos(client):
                  {"name": "Item B", "icon": None}]
     with client.application.test_request_context():
         _enriquecer_com_icone(candidatos)
-    assert candidatos[0]["icon_url"] == "/icone/hash123.webp?v=2"
-    assert candidatos[0]["icon_url_2x"] == "/icone/hash123.webp?v=2&tam=384"
+    assert candidatos[0]["icon_url"] == "/icone/hash123.webp?v=3"
+    assert candidatos[0]["icon_url_2x"] == "/icone/hash123.webp?v=3&tam=384"
     assert candidatos[1]["icon_url"] is None
     assert candidatos[1]["icon_url_2x"] is None
 
@@ -4830,7 +4889,7 @@ def test_candidatos_filtrados_com_icone_default_continua_preenchendo(
     ]}
     with client.application.test_request_context():
         out = _candidatos_filtrados(scan, com_historico=False)
-    assert out[0]["icon_url"] == "/icone/hash123.webp?v=2"
+    assert out[0]["icon_url"] == "/icone/hash123.webp?v=3"
 
 
 def test_index_so_enriquece_a_pagina_atual(client, monkeypatch, tmp_path):

@@ -108,12 +108,12 @@ def icone_raridade(raw: "dict | None") -> dict:
     """
     raw = raw or {}
     icon = raw.get("icon")
-    icon_url = url_for("icone_cache", hash_icone=icon, v=2) if icon else None
+    icon_url = url_for("icone_cache", hash_icone=icon, v=3) if icon else None
     # 384px (2x de 192) pro srcset "2x" -- mesma correção de server.py
     # _candidatos_filtrados (2026-11-08): icon_url_2x não pode ser cópia
     # do icon_url de 192px, senão o srcset nunca entrega imagem mais nítida.
     icon_url_2x = (
-        url_for("icone_cache", hash_icone=icon, v=2, tam=384)
+        url_for("icone_cache", hash_icone=icon, v=3, tam=384)
         if icon else None)
     return {
         "icon_url": icon_url,

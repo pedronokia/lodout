@@ -637,12 +637,12 @@ def create_app() -> Flask:
         icone = None
         hash_icone = item.get("icon")
         if hash_icone:
+            # Só disco (v4, ou gerado do v3 guardado): a prévia nunca
+            # depende do CDN da Steam.
             for tamanho in (384, icon_cache.TAMANHO_PADRAO):
-                try:
-                    icone = icon_cache._caminho(hash_icone, tamanho).read_bytes()
+                icone = icon_cache.ler_local(hash_icone, tamanho)
+                if icone:
                     break
-                except (OSError, ValueError):
-                    continue
         dados = og_cards.cartao_item_em_cache(
             item.get("name_fmt") or nome, item.get("score"),
             item.get("price_fmt") or "",
@@ -1939,10 +1939,10 @@ def _enriquecer_com_icone(candidatos: list[dict]) -> None:
     fatia que vai renderizar de verdade."""
     for c in candidatos:
         c["icon_url"] = (
-            url_for("icone_cache", hash_icone=c["icon"], v=2)
+            url_for("icone_cache", hash_icone=c["icon"], v=3)
             if c.get("icon") else None)
         c["icon_url_2x"] = (
-            url_for("icone_cache", hash_icone=c["icon"], v=2, tam=384)
+            url_for("icone_cache", hash_icone=c["icon"], v=3, tam=384)
             if c.get("icon") else None)
 
 
@@ -2079,10 +2079,10 @@ def _candidatos_filtrados(
         # usar pelo density do visitante, sem mudar nenhum template.
         if com_icone:
             c["icon_url"] = (
-                url_for("icone_cache", hash_icone=c["icon"], v=2)
+                url_for("icone_cache", hash_icone=c["icon"], v=3)
                 if c.get("icon") else None)
             c["icon_url_2x"] = (
-                url_for("icone_cache", hash_icone=c["icon"], v=2, tam=384)
+                url_for("icone_cache", hash_icone=c["icon"], v=3, tam=384)
                 if c.get("icon") else None)
         else:
             c["icon_url"] = None

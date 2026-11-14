@@ -75,7 +75,7 @@
         {% endif %}
       </a>
       <div class="cartao-item-nota-area">
-        <span class="cartao-item-nota nota-{{ it.score|nota_classe }}" title="Nota {{ it.score }} de 100" aria-label="Nota {{ it.score }} de 100">{{ it.score }}</span>
+        <span class="cartao-item-nota nota-{{ it.score|nota_classe }}" role="img" title="Nota {{ it.score }} de 100" aria-label="Nota {{ it.score }} de 100">{{ it.score|nota_anel|safe }}<span class="cartao-item-nota-numero" aria-hidden="true">{{ it.score }}</span></span>
       </div>
     </div>
     <div class="cartao-item-corpo">

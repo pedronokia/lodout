@@ -22,7 +22,7 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path
 
-from lodout._paths import DATA_DIR
+from lodout._paths import DATA_DIR, atomic_write_bytes
 
 _CACHE_DIR = DATA_DIR / "icon_cache"
 # `community.cloudflare.steamstatic.com` passou a responder 301 pra este
@@ -54,32 +54,127 @@ def _sanitizar(hash_icone: str) -> str:
 
 
 def _caminho(hash_icone: str, tamanho: int) -> Path:
+    return _CACHE_DIR / f"{_sanitizar(hash_icone)}.v4.{tamanho}.webp"
+
+
+def _caminho_antigo(hash_icone: str, tamanho: int) -> Path:
+    """Cache v3 (sem enquadramento, WebP q80): só fonte de reserva pra
+    gerar o v4 sem rede quando o CDN não responde."""
     return _CACHE_DIR / f"{_sanitizar(hash_icone)}.v3.{tamanho}.webp"
 
 
-_WEBP_QUALITY = 80
+# v4 (2026-11-14): a Steam entrega a arte num quadro com margem
+# transparente que varia muito -- caixas ocupavam 49-63% do lado, skins
+# ~86% -- e o cartão mostrava as caixas pequenas e "soltas", cada item de
+# um tamanho. Agora: recorta a margem e centraliza a arte ocupando a
+# mesma fração do quadro em todo item; WebP q92 (era 80, com marcas
+# visíveis em bordas e letras finas, ex. o "CS:GO" das caixas).
+_OCUPACAO = 0.88
+_AMPLIACAO_MAX = 2.0
+_WEBP_QUALIDADE_V4 = 92
 
 
-def _reencodar_webp(image_bytes: bytes) -> "bytes | None":
-    """Reencoda o PNG/JPEG do CDN da Steam para WebP, preservando alpha.
+def _enquadrar(im):
+    """Recorta a margem transparente e centraliza a arte num quadro
+    quadrado, ocupando `_OCUPACAO` do lado. Imagem sem transparência
+    (nada a recortar com segurança) volta como está."""
+    from PIL import Image
+    if im.mode != "RGBA":
+        return im
+    caixa = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+    if not caixa:
+        return im
+    lado = max(im.size)
+    arte = im.crop(caixa)
+    alvo = lado * _OCUPACAO
+    fator = min(alvo / arte.width, alvo / arte.height, _AMPLIACAO_MAX)
+    nova = (max(1, round(arte.width * fator)), max(1, round(arte.height * fator)))
+    if nova != arte.size:
+        arte = arte.resize(nova, Image.LANCZOS)
+    quadro = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    quadro.paste(arte, ((lado - arte.width) // 2, (lado - arte.height) // 2), arte)
+    return quadro
 
-    O CDN devolve PNG transparente para vários ícones. Converter tudo para
-    RGB tornava as áreas transparentes pretas. A versão v2 do cache evita
-    reutilizar os WebP opacos gerados anteriormente.
-    """
+
+def _processar(fonte: bytes, tamanho: int) -> "bytes | None":
+    """PNG/JPEG/WebP de origem -> WebP v4 do `tamanho` pedido."""
     from PIL import Image
     try:
-        with Image.open(BytesIO(image_bytes)) as source:
-            has_transparency = (
-                source.mode in ("RGBA", "LA")
-                or "transparency" in source.info
-            )
-            im = source.convert("RGBA" if has_transparency else "RGB")
-            buf = BytesIO()
-            im.save(buf, format="WEBP", quality=_WEBP_QUALITY)
-            return buf.getvalue()
+        with Image.open(BytesIO(fonte)) as origem:
+            transparente = (origem.mode in ("RGBA", "LA", "PA")
+                            or "transparency" in origem.info)
+            im = origem.convert("RGBA" if transparente else "RGB")
+        im = _enquadrar(im)
+        if im.size != (tamanho, tamanho):
+            im = im.resize((tamanho, tamanho), Image.LANCZOS)
+        buf = BytesIO()
+        im.save(buf, format="WEBP", quality=_WEBP_QUALIDADE_V4, method=6)
+        return buf.getvalue()
     except Exception:
         return None
+
+
+def _baixar_original(hash_seguro: str) -> "bytes | None":
+    """O PNG de 384px do CDN de imagem da Steam (sem perda). Uma busca
+    serve os dois tamanhos: o de 192 sai dele, reduzido aqui."""
+    try:
+        import httpx
+        resp = httpx.get(_CDN_URL_TPL.format(hash=hash_seguro, tamanho=384),
+                         timeout=_TIMEOUT, follow_redirects=True)
+        if resp.status_code == 200 and resp.content:
+            return resp.content
+    except Exception:
+        pass
+    return None
+
+
+def _gravar(p: Path, dados: bytes) -> None:
+    try:
+        _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        atomic_write_bytes(p, dados)
+    except OSError:
+        pass
+
+
+def _gerar(hash_seguro: str, tamanho: int, com_rede: bool) -> "bytes | None":
+    """Gera (e grava) o v4. Fonte: o original do CDN (melhor qualidade);
+    sem rede ou com falha, o v3 já guardado em disco."""
+    fonte = _baixar_original(hash_seguro) if com_rede else None
+    da_rede = fonte is not None
+    if fonte is None:
+        for tam in (384, tamanho):
+            antigo = _caminho_antigo(hash_seguro, tam)
+            if antigo.exists():
+                try:
+                    fonte = antigo.read_bytes()
+                    break
+                except OSError:
+                    pass
+    if fonte is None:
+        return None
+    pedido = None
+    # Do original da rede saem os dois tamanhos de uma vez (uma busca só).
+    for tam in (TAMANHOS_PERMITIDOS if da_rede else (tamanho,)):
+        dados = _processar(fonte, tam)
+        if dados is None:
+            continue
+        _gravar(_caminho(hash_seguro, tam), dados)
+        if tam == tamanho:
+            pedido = dados
+    return pedido
+
+
+def ler_local(hash_icone: str, tamanho: int = 384) -> "bytes | None":
+    """v4 do disco, ou gerado na hora a partir do v3 -- NUNCA usa rede
+    (cartão de prévia, que não pode depender do CDN)."""
+    hash_seguro = _sanitizar(hash_icone)
+    if not hash_seguro or tamanho not in TAMANHOS_PERMITIDOS:
+        return None
+    p = _caminho(hash_seguro, tamanho)
+    try:
+        return p.read_bytes()
+    except OSError:
+        return _gerar(hash_seguro, tamanho, com_rede=False)
 
 
 def obter(hash_icone: str, tamanho: int = TAMANHO_PADRAO) -> "bytes | None":
@@ -113,18 +208,4 @@ def obter(hash_icone: str, tamanho: int = TAMANHO_PADRAO) -> "bytes | None":
             return p.read_bytes()
         except OSError:
             pass
-    try:
-        import httpx
-        resp = httpx.get(
-            _CDN_URL_TPL.format(hash=hash_seguro, tamanho=tamanho),
-            timeout=_TIMEOUT, follow_redirects=True)
-        if resp.status_code != 200 or not resp.content:
-            return None
-        webp = _reencodar_webp(resp.content)
-        if webp is None:
-            return None
-        _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        p.write_bytes(webp)
-        return webp
-    except Exception:
-        return None
+    return _gerar(hash_seguro, tamanho, com_rede=True)
