@@ -1772,7 +1772,7 @@ def test_ranking_padrao_compara_com_24h_nas_setas_e_no_resumo(
     body = client.get("/ranking?ver=lista").data.decode("utf-8")
     # Contra 24h: X subiu de 3 pra 1 (+2) e ganhou 10 de nota; Y caiu 2.
     assert 'aria-current="true">24 horas<' in body
-    assert "+2" in body
+    assert "2 posições" in body
     assert "+10 na nota" in body
     assert "−2 na nota" in body
     # A frase usa a mesma base: maior alta é X (70 -> 80).
@@ -5957,3 +5957,26 @@ def test_cartao_alertas_ficam_acima_do_preco(client, monkeypatch, tmp_path):
     assert cartao.index("cartao-item-alertas") < cartao.index("cartao-item-rodape")
     selos = cartao.split('class="cartao-item-selos"', 1)[1]
     assert "selo-risco" not in selos
+
+
+def test_completar_metadados_do_anterior_preenche_so_o_que_falta():
+    # Achado 2026-11-14: item cujo preço veio do priceoverview (sem a
+    # listing page) chegava sem imagem/raridade e aparecia no site sem
+    # foto, mesmo com os dois gravados na coleta anterior.
+    anterior = {"results": [
+        {"name": "A", "icon": "hashA", "name_color": "eb4b4b", "rarity_id": "Rarity_Ancient"},
+        {"name": "B", "icon": "hashB-velho"},
+    ]}
+    novos = [
+        {"name": "A", "icon": None, "score": 80},
+        {"name": "B", "icon": "hashB-novo"},
+        {"name": "C"},
+    ]
+    assert worker._completar_metadados_do_anterior(novos, anterior) == 1
+    assert novos[0]["icon"] == "hashA"
+    assert novos[0]["name_color"] == "eb4b4b"
+    assert novos[0]["rarity_id"] == "Rarity_Ancient"
+    # O que veio novo da Steam prevalece; item sem histórico fica como está.
+    assert novos[1]["icon"] == "hashB-novo"
+    assert "icon" not in novos[2]
+    assert worker._completar_metadados_do_anterior(novos, None) == 0

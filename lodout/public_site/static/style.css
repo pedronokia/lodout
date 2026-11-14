@@ -1828,6 +1828,12 @@ footer.rodape .rodape-base a:hover {
    entra logo depois de "Glossário", separado pelo mesmo "·". */
 .guia-nota .ajuda-nota { display: inline; margin: 0; }
 
+/* No Ranking a legenda fica no fim da barra Vitrine/Lista: o quadro
+   abre alinhado à direita, pra não sair da tela. */
+.barra-visao .popover-legenda { margin: 0; }
+.barra-visao .popover-legenda .popover-legenda-toggle { min-height: 40px; font-size: var(--fs-sm); }
+.barra-visao .popover-legenda-conteudo { right: 0; left: auto; }
+
 /* position: static faz o quadro da legenda se ancorar no parágrafo
    (abre embaixo dele, alinhado à esquerda), não no link do fim da linha
    -- senão ele vazava pela direita da tela no celular. */
@@ -1843,7 +1849,8 @@ footer.rodape .rodape-base a:hover {
   color: var(--text-muted);
 }
 
-.guia-nota .popover-legenda-toggle {
+.guia-nota .popover-legenda-toggle,
+.barra-visao .popover-legenda-toggle {
   display: inline-flex;
   gap: 4px;
   min-height: 0;
@@ -1857,7 +1864,9 @@ footer.rodape .rodape-base a:hover {
 }
 
 .guia-nota .popover-legenda-toggle:hover,
-.guia-nota .popover-legenda[open] .popover-legenda-toggle {
+.guia-nota .popover-legenda[open] .popover-legenda-toggle,
+.barra-visao .popover-legenda-toggle:hover,
+.barra-visao .popover-legenda[open] .popover-legenda-toggle {
   background: transparent;
   color: var(--text-bright);
   text-decoration-color: currentColor;
@@ -3423,9 +3432,12 @@ a.paginacao-passo:hover {
 
 .hero-item-glow { display: none; }
 
+/* Título com a largura que sobrar e a imagem numa coluna fixa
+   (2026-11-14): no meio a meio, o nome quebrava em 3 linhas estreitas e
+   a imagem de 190px boiava num vazio grande à direita. */
 .hero-item-grade {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 280px;
   align-items: center;
   gap: var(--sp-6);
 }
@@ -3463,15 +3475,20 @@ a.paginacao-passo:hover {
 
 .hero-item .status { margin: 0; }
 
+/* Brilho suave na cor da raridade atrás da imagem -- o mesmo dos
+   cartões da home, pra página do item falar a mesma língua. */
 .hero-item-imagem {
   display: grid;
   place-items: center;
+  min-height: 220px;
+  border-radius: var(--radius-md);
+  background: radial-gradient(60% 60% at 50% 55%, color-mix(in srgb, var(--rar-cor, var(--accent)) 22%, transparent), transparent 100%);
 }
 
 .hero-item-quadro {
   flex: 0 0 auto;
-  width: 190px;
-  height: 190px;
+  width: 240px;
+  height: 240px;
   border: 0;
   background: transparent;
   filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.14));
@@ -3501,7 +3518,7 @@ a.paginacao-passo:hover {
     gap: var(--sp-4);
   }
 
-  .hero-item-imagem { order: -1; }
+  .hero-item-imagem { order: -1; min-height: 0; }
 
   .hero-item-quadro {
     width: 140px;
@@ -3559,6 +3576,7 @@ a.paginacao-passo:hover {
 }
 
 .lista-parecidos .item-parecido {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -3567,12 +3585,39 @@ a.paginacao-passo:hover {
   border-radius: var(--radius-sm);
   background: var(--surface);
   text-align: left;
+  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
 }
 
+/* Nome em branco, como nos cartões (2026-11-14): cinco nomes laranja
+   empilhados pesavam mais que o resto da página. A linha inteira é
+   clicável (o ::after do link cobre o cartão) e reage ao passar o mouse. */
 .item-parecido-link {
   flex: 1;
   min-width: 0;
+  color: var(--text-bright);
+  font-weight: 500;
   overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.item-parecido-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.lista-parecidos .item-parecido:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.lista-parecidos .item-parecido:hover .item-parecido-link { color: var(--accent-bright); }
+
+.item-parecido-link:focus-visible { outline: none; }
+.item-parecido-link:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .item-parecido-preco {
@@ -3806,10 +3851,16 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   text-transform: uppercase;
 }
 
+/* Todos os valores no mesmo tamanho e peso (2026-11-14): o preço vinha
+   fino, o nome da caixa em negrito pequeno e "Baixo" em cinza claro, o
+   que fazia o risco parecer desativado. */
 .resumo-cards-item .card-valor {
-  font-size: var(--fs-xl);
+  font-size: var(--fs-copy);
+  font-weight: 600;
   white-space: nowrap;
 }
+
+.resumo-cards-item .card-valor.risco-low { color: var(--text-bright); }
 
 /* Nome da caixa: texto, não número. Precisa vencer a regra acima (mesma
    especificidade, vinha depois e deixava o nome em letra de preço, 4
@@ -4365,9 +4416,42 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-2) var(--sp-3);
-  margin: 0;
+  gap: var(--sp-2) var(--sp-1);
+  margin: var(--sp-4) 0 0;
 }
+
+/* SteamDB, Copiar nome e Favoritar com o mesmo tamanho, cor e altura
+   (2026-11-14): eram 3 estilos diferentes (12px, 17px e um botão
+   quadrado de 44px com o texto vazando pra linha de baixo). */
+.hero-item-acoes .link-secundario,
+.hero-item-acoes .botao-copiar,
+.hero-item-acoes .botao-favorito {
+  display: inline-flex;
+  width: auto;
+  min-height: 44px;
+  height: auto;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.hero-item-acoes > .botao-acao:first-child { margin-right: var(--sp-2); }
+
+.hero-item-acoes .link-secundario:hover,
+.hero-item-acoes .botao-copiar:hover,
+.hero-item-acoes .botao-favorito:hover {
+  background: var(--surface-hover);
+  color: var(--text-bright);
+}
+
+.hero-item-acoes .botao-favorito.favoritado { color: var(--warn); }
+.hero-item-acoes .icone-ui { width: 16px; height: 16px; }
 
 .botao-acao {
   display: inline-flex;
@@ -5000,6 +5084,25 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 .variacao-nota {
   font-size: var(--fs-sm);
   white-space: nowrap;
+}
+
+/* Posição e nota no mesmo tamanho no rodapé do cartão do Ranking
+   (2026-11-14): "↑ 2 posições" vinha maior que "+10 na nota". */
+.cartao-item-rodape > .tendencia-alta,
+.cartao-item-rodape > .tendencia-baixa,
+.cartao-item-rodape > .status-muted {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+/* No cartão estreito (celular) posição e nota não cabem lado a lado:
+   descem uma embaixo da outra em vez de cortar o texto. */
+.cartao-item-ranking .cartao-item-rodape {
+  flex-wrap: wrap;
+  row-gap: 2px;
 }
 
 /* Texto só pra leitor de tela (ex.: "abre em nova aba"). */

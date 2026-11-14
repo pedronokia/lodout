@@ -34,12 +34,14 @@
   {% macro posicao_candidato(it) %}
     {% if it.label == "NOVO" %}
       <span class="selo-novo">NOVO</span>
+    {# "↑ +1" e "=" sozinhos não diziam do que se tratava (posição? nota?)
+       -- 2026-11-14: o número vem com a palavra. #}
     {% elif it.delta > 0 %}
-      <span class="tendencia-alta">{{ icone("seta-cima") }} {{ it.label }}</span>
+      <span class="tendencia-alta" title="Estava em #{{ it.prev_pos }}">{{ icone("seta-cima") }} {{ it.delta }} {{ "posição" if it.delta == 1 else "posições" }}</span>
     {% elif it.delta < 0 %}
-      <span class="tendencia-baixa">{{ icone("seta-baixo") }} {{ it.label }}</span>
+      <span class="tendencia-baixa" title="Estava em #{{ it.prev_pos }}">{{ icone("seta-baixo") }} {{ it.delta|abs }} {{ "posição" if it.delta == -1 else "posições" }}</span>
     {% elif it.label == "=" %}
-      <span class="status-muted">=</span>
+      <span class="status-muted">mesma posição</span>
     {% else %}
       <span class="status-muted">—</span>
     {% endif %}
@@ -111,13 +113,15 @@
         ({{ resumo_do_dia.maior_alta.de }} {{ icone("seta-direita") }} {{ resumo_do_dia.maior_alta.para }}){% endif %}.
       </p>
       {% endif %}
-      {% include "partials/_legenda_raridade.html" %}
       {# Mesmo seletor Vitrine/Lista da home, mesmo cookie pref_ver. #}
       <nav class="barra-visao" aria-label="Como mostrar os itens">
         <div class="seletor-visao" role="group" aria-label="Modo de exibição">
           <a href="{{ url_for('ranking_page', ver='vitrine', periodo=periodo_sel) }}"{% if ver_sel == 'vitrine' %} aria-current="page"{% endif %}>{{ icone("vitrine") }} Vitrine</a>
           <a href="{{ url_for('ranking_page', ver='lista', periodo=periodo_sel) }}"{% if ver_sel == 'lista' %} aria-current="page"{% endif %}>{{ icone("lista") }} Lista</a>
         </div>
+        {# "Cores da borda" no fim da barra, como link discreto (2026-11-14):
+           antes era uma pílula sozinha numa linha, igual à da home. #}
+        {% include "partials/_legenda_raridade.html" %}
       </nav>
       {% if ver_sel == 'lista' %}
       <div class="faixa faixa-lista">

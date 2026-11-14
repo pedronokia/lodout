@@ -194,6 +194,37 @@ def _manter_do_ciclo_anterior(novos: "list[dict]", anterior: "dict | None",
     return mantidos
 
 
+# Metadados fixos do item (não mudam entre coletas): imagem e raridade.
+_METADADOS_FIXOS = ("icon", "name_color", "rarity_id")
+
+
+def _completar_metadados_do_anterior(novos: "list[dict]",
+                                     anterior: "dict | None") -> int:
+    """Preenche, a partir do scan anterior, imagem e raridade que
+    faltarem num resultado novo. Devolve quantos itens foram completados.
+
+    Achado 2026-11-14: quando a listing page não vem (throttle leve), o
+    preço sai do priceoverview, que não traz `icon`/`name_color`/
+    `rarity_id` -- e o item aparecia no site sem imagem e sem a cor de
+    raridade, mesmo já tendo os dois na coleta anterior. Não faz
+    requisição nenhuma: só reaproveita o que já estava gravado."""
+    if not anterior:
+        return 0
+    por_nome = {r.get("name"): r for r in anterior.get("results") or []}
+    completados = 0
+    for r in novos:
+        velho = por_nome.get(r.get("name"))
+        if not velho:
+            continue
+        mudou = False
+        for campo in _METADADOS_FIXOS:
+            if not r.get(campo) and velho.get(campo):
+                r[campo] = velho[campo]
+                mudou = True
+        completados += mudou
+    return completados
+
+
 # Eventos do gamedata que trazem um container novo pro jogo.
 _EVENTOS_CONTAINER_NOVO = ("new_container", "xpshop_added")
 
@@ -426,6 +457,10 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
     # nada: o scan anterior continua valendo inteiro, como antes.
     mantidos = (_manter_do_ciclo_anterior(novos, anterior, alvos)
                 if novos else [])
+    completados = _completar_metadados_do_anterior(novos, anterior)
+    if completados:
+        _logger.info("Imagem/raridade herdadas do ciclo anterior: %d itens",
+                     completados)
     if falhas:
         _logger.info("Sem resultado neste ciclo (%d): %s", len(falhas),
                      ", ".join(falhas[:30]))

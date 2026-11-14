@@ -96,8 +96,8 @@
     </div>
 
     <section class="resumo-cards resumo-cards-item" aria-label="Resumo do item">
-      <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span></div>
       <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
+      <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span></div>
       <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Quantas skins desta caixa já estão mapeadas no Lodout — não é a contagem oficial do jogo">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
       <div class="card"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}">{{ item.pump_risk|risco_label }}</span></div>
       {% if item.liquidity_depth and item.liquidity_depth.band %}
@@ -115,6 +115,22 @@
       <p class="card-coleta">A Steam não devolveu preço novo no último ciclo, então os números são do ciclo anterior; o item é tentado de novo no próximo.</p>
       {% endif %}
     </section>
+
+    {# "Por quê" logo depois da nota (2026-11-14): a função da página é
+       entender a nota deste item; antes ele vinha só depois do gráfico. #}
+    <h2 class="secao-titulo">Por quê</h2>
+    {% if not item.breakdown %}
+    <p>{{ item.reasons|join("; ") if item.reasons else "Nota neutra: nenhum fator se destacou" }}</p>
+    {% endif %}
+    {% if item.breakdown %}
+    <ul class="lista-breakdown lista-motivos">
+      {% for b in item.breakdown %}
+      {% set pts = b.delta|pontos_fmt %}
+      <li class="{{ 'delta-positivo' if pts.startswith('+') else ('delta-neutro' if pts == '0' else 'delta-negativo') }}"><span class="breakdown-pontos" aria-label="{{ pts|replace('−', 'menos ') }} pontos">{{ pts }}</span><span class="breakdown-texto">{{ b.label|motivo_sem_pontos }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como cada fator da nota é calculado {{ icone("seta-direita") }}</a></p>
 
     {% if tem_historico %}
       <div class="faixa faixa-grafico">
@@ -135,20 +151,6 @@
         </div>
       </div>
     {% endif %}
-
-    <h2 class="secao-titulo">Por quê</h2>
-    {% if not item.breakdown %}
-    <p>{{ item.reasons|join("; ") if item.reasons else "Nota neutra: nenhum fator se destacou" }}</p>
-    {% endif %}
-    {% if item.breakdown %}
-    <ul class="lista-breakdown lista-motivos">
-      {% for b in item.breakdown %}
-      {% set pts = b.delta|pontos_fmt %}
-      <li class="{{ 'delta-positivo' if pts.startswith('+') else ('delta-neutro' if pts == '0' else 'delta-negativo') }}"><span class="breakdown-pontos" aria-label="{{ pts|replace('−', 'menos ') }} pontos">{{ pts }}</span><span class="breakdown-texto">{{ b.label|motivo_sem_pontos }}</span></li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como cada fator da nota é calculado {{ icone("seta-direita") }}</a></p>
 
     {% if variantes %}
     <h2 class="secao-titulo">Outras versões desta skin</h2>
