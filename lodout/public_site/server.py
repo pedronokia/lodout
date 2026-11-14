@@ -529,6 +529,11 @@ def create_app() -> Flask:
             exterior_opcoes={k: v[1] for k, v in _EXTERIORES.items()},
             raridade_opcoes=raridade._RARIDADE_LABELS,
             versao_opcoes=_VERSOES,
+            # O filtro de Versão só aparece quando a coleta tem algum item
+            # StatTrak™/Souvenir -- hoje não tem, e ele só voltava vazio.
+            mostrar_versao=bool(versao) or any(
+                _versao_do_item(r.get("name") or "") != "normal"
+                for r in (scan or {}).get("results") or []),
             total_acompanhados=len(scan["results"]) if scan else 0,
             total_geral=total_geral,
             categoria_sel=categoria,

@@ -6055,3 +6055,24 @@ def test_filtros_como_os_do_mercado_da_steam(client, monkeypatch, tmp_path):
     assert '<details class="filtros-mais" open>' in body
     # Os links da página (paginação, ordem, abas) mantêm o filtro.
     assert "exterior=ft" in body.split('class="abas-categoria"', 1)[1]
+
+
+def test_filtro_de_versao_so_aparece_com_stattrak_ou_souvenir(
+        client, monkeypatch, tmp_path):
+    base = {"score": 70, "price": 10.0, "case_label": "",
+            "pump_risk": {"level": "low"}, "breakdown": []}
+    _salva_scan(tmp_path, monkeypatch, [
+        {**base, "name": "AK-47 | Redline (Field-Tested)"}])
+    body = client.get("/").data.decode("utf-8")
+    assert 'name="versao"' not in body
+    assert 'name="exterior"' in body
+
+
+def test_filtro_de_versao_aparece_quando_ha_stattrak(
+        client, monkeypatch, tmp_path):
+    base = {"score": 70, "price": 10.0, "case_label": "",
+            "pump_risk": {"level": "low"}, "breakdown": []}
+    _salva_scan(tmp_path, monkeypatch, [
+        {**base, "name": "StatTrak™ AK-47 | Redline (Field-Tested)"}])
+    body = client.get("/").data.decode("utf-8")
+    assert 'name="versao"' in body

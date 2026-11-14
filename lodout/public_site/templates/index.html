@@ -353,6 +353,7 @@
               {% endfor %}
             </select>
           </label>
+          {% if mostrar_versao %}
           <label>Versão
             <select name="versao" data-enviar-ao-mudar title="StatTrak™ conta abates; Souvenir vem de pacotes de campeonato">
               <option value="">Qualquer</option>
@@ -361,6 +362,7 @@
               {% endfor %}
             </select>
           </label>
+          {% endif %}
         </div>
       </details>
       <input type="hidden" name="ordenar" value="{{ ordenar_sel }}">
