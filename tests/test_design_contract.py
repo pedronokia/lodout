@@ -228,3 +228,66 @@ def test_sem_estilo_inline_no_css():
     css = _css()
     sem_comentarios = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
     assert not re.search(r'\bstyle\s*=\s*"', sem_comentarios)
+
+
+# ── Contraste calculado (auditoria de acessibilidade, 2026-11-14) ──────
+# Em vez de só fixar o hex, CALCULA o contraste WCAG de cada par texto ×
+# fundo que o site usa de verdade. Se alguém trocar um token por um tom
+# bonito mas ilegível (como os verdes/vermelhos de tema claro que ficaram
+# meses no fundo escuro, ~3,2:1), este teste quebra com o par e o valor.
+
+def _tokens(css: str) -> "dict[str, str]":
+    raiz = css[css.index(":root {"):]
+    raiz = raiz[:raiz.index("\n}")]
+    return dict(re.findall(r"(--[\w-]+):\s*(#[0-9a-fA-F]{6})\b", raiz))
+
+
+def _luminancia(hexcor: str) -> float:
+    c = [int(hexcor[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def _contraste(a: str, b: str) -> float:
+    la, lb = _luminancia(a), _luminancia(b)
+    return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+
+
+def _mistura(frente: str, fundo: str, alfa: float) -> str:
+    f = [int(frente[i:i + 2], 16) for i in (1, 3, 5)]
+    g = [int(fundo[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(f[k] * alfa + g[k] * (1 - alfa)):02x}" for k in range(3))
+
+
+def test_contraste_dos_textos_sobre_os_fundos():
+    t = _tokens(_css())
+    fundos = ["--bg", "--surface", "--surface-hover"]
+    textos = ["--text", "--text-muted", "--text-bright", "--accent-bright",
+              "--positive", "--warn", "--danger"]
+    ruins = []
+    for tx in textos:
+        for fd in fundos:
+            r = _contraste(t[tx], t[fd])
+            if r < 4.5:
+                ruins.append(f"{tx} {t[tx]} sobre {fd} {t[fd]}: {r:.2f}:1")
+    assert not ruins, "texto abaixo de 4,5:1 -> " + "; ".join(ruins)
+
+
+def test_contraste_dos_selos_sobre_fundo_tingido():
+    # Selos (tendência, Descontinuada, resultado da coleta, pontos do Por
+    # quê) pintam o fundo com a própria cor a 6-14%, inclusive na linha
+    # da tabela em hover: o texto deles usa os tons -selo.
+    t = _tokens(_css())
+    for tx, base in (("--positive-selo", "#22a04a"), ("--danger-selo", "#f85149")):
+        for fd in ("--surface", "--surface-hover"):
+            tingido = _mistura(base, t[fd], 0.14)
+            r = _contraste(t[tx], tingido)
+            assert r >= 4.5, f"{tx} sobre {fd} tingido ({tingido}): {r:.2f}:1"
+
+
+def test_contraste_de_texto_branco_nos_fundos_cheios():
+    # Botão de perigo e contador de favoritos: branco por cima.
+    t = _tokens(_css())
+    for fd in ("--danger-fundo", "--warn-fundo"):
+        r = _contraste("#ffffff", t[fd])
+        assert r >= 4.5, f"branco sobre {fd} {t[fd]}: {r:.2f}:1"
