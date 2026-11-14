@@ -426,6 +426,14 @@ def create_app() -> Flask:
             scan, None, nota_min, preco_max, busca, ordenar, liquidez_min,
             com_historico=False, com_icone=False))
         total_geral = len(sem_categoria)
+        # Itens coletados que a lista nunca mostra (risco alto de alta
+        # artificial, descartados em `buy_candidates`). A linha de status
+        # conta o scan inteiro; sem isto ela dizia 183 e a aba "Todas" 173,
+        # sem explicar a diferença (2026-11-14).
+        ocultos_risco = (len(scan["results"]) - len(
+            recommendations.buy_candidates(
+                scan["results"], owned_names=set(),
+                limit=len(scan["results"]) or 1))) if scan else 0
         contagem_abas: dict = {}
         for c in sem_categoria:
             if c.get("category"):
@@ -493,6 +501,7 @@ def create_app() -> Flask:
             proximo_scan=(scan_store.proxima_txt(scan["ts"], intervalo_horas)
                          if scan else None),
             scan_desatualizado=scan_desatualizado,
+            ocultos_risco=ocultos_risco,
             categorias=sorted(scan_targets.SCAN_BY_CATEGORY.keys()),
             contagem_categorias=_contagem_por_categoria(scan),
             contagem_abas=contagem_abas,
@@ -1387,11 +1396,13 @@ def _motivo_fmt(texto: "str | None") -> str:
 
     Espaços fixos (\\u00a0) entre "·", o número e "pts" -- achado
     2026-10-30: com espaço normal, a quebra de linha na coluna "Por
-    quê" às vezes deixava só "pts" sozinho numa linha. O espaço antes
-    de "·" continua normal, pra quebra poder acontecer ali."""
+    quê" às vezes deixava só "pts" sozinho numa linha. Desde 2026-11-14
+    o espaço ANTES do "·" também é fixo: com ele normal, a quebra caía
+    ali e a linha de baixo começava com "· +20 pts" solto. Agora a
+    última palavra do motivo desce junto ("comprar · +20 pts")."""
     if not texto:
         return ""
-    return _PONTOS_NO_FIM_RE.sub(" · \\1 pts", texto)
+    return _PONTOS_NO_FIM_RE.sub(" · \\1 pts", texto)
 
 
 def _tamanho_fmt(bytes_: int) -> str:

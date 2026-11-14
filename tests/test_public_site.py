@@ -1290,9 +1290,9 @@ def test_index_detalhe_motivo_mostra_breakdown_completo(client, monkeypatch,
     # "(+10)" é contribuição pra nota, não porcentagem -- vira "+10 pts".
     # Espaço fixo ( ) entre "·"/número/"pts" pra não quebrar linha
     # deixando "pts" sozinho -- ver _motivo_fmt.
-    assert "Preço baixo · +10 pts" in body
-    assert "Bônus de liquidez · +5 pts" in body
-    assert "Subiu rápido · -5 pts" in body
+    assert "Preço baixo · +10 pts" in body
+    assert "Bônus de liquidez · +5 pts" in body
+    assert "Subiu rápido · -5 pts" in body
     assert "(+10)" not in body
     assert "delta-positivo" in body
     assert "delta-negativo" in body
@@ -1305,7 +1305,7 @@ def test_index_detalhe_motivo_mostra_breakdown_completo(client, monkeypatch,
     # então também vira destaque_hero (hero "nota mais alta hoje",
     # 2026-11-08) -- a 2a ocorrência é o resumo do hero, uma seção
     # diferente da linha da tabela, não a mesma duplicação de novo.
-    assert body.count("Preço baixo · +10 pts") == 2
+    assert body.count("Preço baixo · +10 pts") == 2
 
 
 def test_index_dica_expandir_so_aparece_com_breakdown(client, monkeypatch,
@@ -5916,3 +5916,44 @@ def test_ts_ultima_gravacao_e_so_um_stat(tmp_path):
     assert scan_store.ts_ultima_gravacao(p) is None
     p.write_text("{}")
     assert abs(scan_store.ts_ultima_gravacao(p) - p.stat().st_mtime) < 1e-6
+
+
+def test_index_status_conta_itens_ocultos_por_risco_alto(
+        client, monkeypatch, tmp_path):
+    # Achado 2026-11-14: a linha de status dizia "Preços de 183 itens" e a
+    # aba "Todas" 173, sem explicar que 10 ficam fora por risco alto.
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "A", "score": 80, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+        {"name": "B", "score": 70, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "high"}, "breakdown": []},
+    ])
+    body = client.get("/").data.decode("utf-8")
+    assert "Preços de 2 itens, coletados" in body
+    assert "(1 oculto por <a" in body
+    assert "#termo-risco" in body
+
+
+def test_index_status_sem_ocultos_nao_fala_em_risco(
+        client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "A", "score": 80, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/").data.decode("utf-8")
+    assert "#termo-risco" not in body
+    assert "oculto por" not in body and "ocultos por" not in body
+
+
+def test_cartao_alertas_ficam_acima_do_preco(client, monkeypatch, tmp_path):
+    # Selo embaixo do preço empurrava só aquele preço e a fileira de
+    # cartões ficava desalinhada (2026-11-14).
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "X", "score": 70, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "medium"}, "breakdown": []},
+    ])
+    body = client.get("/?ver=vitrine").data.decode("utf-8")
+    cartao = body.split('class="cartao-item', 1)[1].split("</li>", 1)[0]
+    assert cartao.index("cartao-item-alertas") < cartao.index("cartao-item-rodape")
+    selos = cartao.split('class="cartao-item-selos"', 1)[1]
+    assert "selo-risco" not in selos

@@ -180,6 +180,20 @@
         <button type="button" class="botao-recolher-motivo">recolher {{ icone("chevron-cima") }}</button>
         {% endif %}
       </details>
+      {# Alertas (risco, dado limitado, preço antigo) ficam junto do motivo,
+         ACIMA do preço (2026-11-14): embaixo dele, um selo a mais empurrava
+         só o preço daquele cartão e a fileira ficava desalinhada. #}
+      {% if c.pump_risk|risco_nivel != "low" or c.confianca_baixa or c.mantido_do_ciclo_anterior %}
+      <div class="cartao-item-alertas">
+        {% if c.pump_risk|risco_nivel != "low" %}
+        <span class="selo-risco risco-{{ c.pump_risk|risco_nivel }}" aria-label="Risco {{ c.pump_risk|risco_label|lower }}" title="Risco {{ c.pump_risk|risco_label|lower }}: possibilidade de uma alta rápida e artificial do preço.">Risco {{ c.pump_risk|risco_label|lower }}</span>
+        {% endif %}
+        {% if c.confianca_baixa %}
+        <span class="selo-confianca-baixa" title="{{ c.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>
+        {% endif %}
+        {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não devolveu preço novo deste item no último ciclo; o valor é do ciclo anterior{% if c.coletado_txt %} (coletado {{ c.coletado_txt }}){% endif %}. Ele é tentado de novo no próximo.">Preço do ciclo anterior</span>{% endif %}
+      </div>
+      {% endif %}
       <div class="cartao-item-rodape">
         <span class="cartao-item-preco">
           {{ c.price_fmt }}
@@ -192,13 +206,6 @@
         <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
       </div>
       <div class="cartao-item-selos">
-        {% if c.pump_risk|risco_nivel != "low" %}
-        <span class="selo-risco risco-{{ c.pump_risk|risco_nivel }}" aria-label="Risco {{ c.pump_risk|risco_label|lower }}" title="Risco {{ c.pump_risk|risco_label|lower }}: possibilidade de uma alta rápida e artificial do preço.">Risco {{ c.pump_risk|risco_label|lower }}</span>
-        {% endif %}
-        {% if c.confianca_baixa %}
-        <span class="selo-confianca-baixa" title="{{ c.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>
-        {% endif %}
-        {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não devolveu preço novo deste item no último ciclo; o valor é do ciclo anterior{% if c.coletado_txt %} (coletado {{ c.coletado_txt }}){% endif %}. Ele é tentado de novo no próximo.">Preço do ciclo anterior</span>{% endif %}
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa(c.name) }}</span>
         {% endif %}
@@ -273,7 +280,7 @@
        duas barras laranja pra duas frases curtas. #}
     <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
       <span class="status-coleta-ponto" aria-hidden="true"></span>
-      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
+      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com chance alta de alta rápida e artificial no preço não entram na lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
       {% if resumo_do_dia %}<span class="resumo-do-dia">{{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }} no Top 20 desde o ranking salvo {{ resumo_do_dia.quando }}</span>{% endif %}
     </p>
     {% endif %}

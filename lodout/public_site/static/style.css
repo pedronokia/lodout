@@ -3276,12 +3276,29 @@ a.paginacao-passo:hover {
 
 .cartao-item-preco .icone-tendencia { margin-top: 0; }
 
-.cartao-item-selos {
+/* Alertas do item logo abaixo do motivo, acima do preço. */
+.cartao-item-alertas {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 6px;
   font-size: var(--fs-2xs);
+}
+
+/* Rodapé (caixa + Steam Market) com altura fixa de duas linhas,
+   alinhado embaixo (2026-11-14): "Ativa · Steam Market" cabia numa linha
+   e "Descontinuada · 2024" + "Steam Market" quebrava em duas, e essa
+   diferença subia ou descia o preço de cada cartão da fileira. */
+.cartao-item-selos {
+  display: flex;
+  min-height: 36px;
+  min-height: calc(2lh + 4px);
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-end;
+  gap: 4px 6px;
+  font-size: var(--fs-2xs);
+  line-height: 1.45;
 }
 
 .cartao-item-caixa {
