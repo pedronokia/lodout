@@ -197,14 +197,33 @@ def record_item_price(name: str, price: float,
         print(f"WARNING: failed to save item history: {e}", file=sys.stderr)
 
 
+# Cache do arquivo de histórico inteiro, pela identidade do arquivo
+# (caminho, mtime, tamanho). Medido em produção com Server-Timing
+# (2026-11-14): a home lia e decodificava o arquivo TODO uma vez por item
+# da página -- 12 vezes por visita, 1,2-1,6 s. O arquivo só muda quando a
+# coleta grava, então entre gravações a leitura sai da memória.
+_CACHE_HISTORICO: dict = {"chave": None, "dados": {}}
+
+
+def _historico_todo(path: "Path | str | None" = None) -> dict:
+    p = Path(path) if path is not None else _DEFAULT_PATH
+    try:
+        st = p.stat()
+    except OSError:
+        return {}
+    chave = (str(p), st.st_mtime_ns, st.st_size)
+    if _CACHE_HISTORICO["chave"] != chave:
+        data = load_json_record(p, {})
+        _CACHE_HISTORICO["dados"] = data if isinstance(data, dict) else {}
+        _CACHE_HISTORICO["chave"] = chave
+    return _CACHE_HISTORICO["dados"]
+
+
 def load_item_history(name: str,
-                      path: Path | str = _DEFAULT_PATH) -> list[dict]:
-    """Retorna a serie [{ts, price}] do item."""
-    p = Path(path)
-    data = load_json_record(p, {})
-    if not isinstance(data, dict):
-        data = {}
-    return data.get(name, [])
+                      path: "Path | str | None" = None) -> list[dict]:
+    """Retorna a serie [{ts, price}] do item. Somente leitura: a lista
+    vem do cache compartilhado -- copie antes de modificar."""
+    return _historico_todo(path).get(name, [])
 
 
 def _record_metric(name: str, value: float, path: Path) -> None:

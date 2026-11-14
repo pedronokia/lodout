@@ -1513,3 +1513,27 @@ def test_tendencia_7d_sem_dias_suficientes_e_none():
              "purchases": 1} for h in range(30)]  # pouco mais de 1 dia
     assert signals.tendencia_7d(hist) is None
     assert signals.tendencia_7d(None) is None
+
+
+def test_load_item_history_le_o_arquivo_uma_vez_e_relê_quando_muda(tmp_path, monkeypatch):
+    """A home pedia o histórico de 12 itens e cada chamada decodificava o
+    arquivo inteiro (1,2-1,6 s em produção). Agora: uma leitura até o
+    arquivo mudar."""
+    import json, os
+    from lodout import signals
+    p = tmp_path / "item_history.json"
+    p.write_text(json.dumps({"A": [{"ts": 1, "price": 1.0}], "B": []}))
+    leituras = []
+    real = signals.load_json_record
+    monkeypatch.setattr(signals, "load_json_record",
+                        lambda *a, **k: leituras.append(1) or real(*a, **k))
+    for _ in range(12):
+        assert signals.load_item_history("A", p) == [{"ts": 1, "price": 1.0}]
+    assert signals.load_item_history("X", p) == []
+    assert len(leituras) == 1
+    # A coleta grava de novo: a próxima leitura enxerga o dado novo.
+    p.write_text(json.dumps({"A": [{"ts": 2, "price": 2.0}, {"ts": 3, "price": 3.0}]}))
+    os.utime(p, ns=(p.stat().st_atime_ns, p.stat().st_mtime_ns + 1_000_000))
+    assert len(signals.load_item_history("A", p)) == 2
+    assert len(leituras) == 2
+    assert signals.load_item_history("A", tmp_path / "nao-existe.json") == []
