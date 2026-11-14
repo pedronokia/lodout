@@ -240,7 +240,7 @@
        logo já é <p> e o <h1> diz do que é a página. #}
     <h1 class="visualmente-oculto">Lodout: notas e preços de skins de CS2</h1>
     {% if destaque_hero %}
-    <section class="hero-destaque" aria-label="Item com a nota mais alta hoje">
+    <section class="hero-destaque{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-label="Item com a nota mais alta hoje">
       <span class="hero-destaque-halo{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-hidden="true"></span>
       <span class="icone-item-quadro{{ ' icone-item-quadro-com-imagem' if destaque_hero.icon_url else '' }}{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-hidden="true">
         <span class="icone-item-placeholder"></span>
@@ -252,8 +252,19 @@
         <h2 class="hero-destaque-rotulo">Nota mais alta hoje</h2>
         <a class="hero-destaque-nome" href="{{ url_for('item_detail', name=destaque_hero.name) }}" translate="no">{{ destaque_hero.name_fmt|titulo_sem_pipe_orfao }}</a>
         <p class="hero-destaque-motivo">{{ destaque_hero.reasons[0]|motivo_fmt if destaque_hero.reasons else "Nota neutra: nenhum fator se destacou" }}</p>
+        {# Preço e variação como nos cartões (o destaque não mostrava). #}
+        <p class="hero-destaque-preco cartao-item-preco">
+          {{ destaque_hero.price_fmt }}
+          {% if destaque_hero.tendencia in ("alta", "baixa") %}
+          {% set pct_txt = ("%.1f"|format(destaque_hero.variacao_pct|abs))|replace(".", ",") ~ "%" if destaque_hero.variacao_pct is number else "" %}
+          {% set verbo = "subiu" if destaque_hero.tendencia == "alta" else "caiu" %}
+          <span class="icone-tendencia tendencia-{{ destaque_hero.tendencia }}" title="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior" aria-label="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior">{{ icone("seta-cima" if destaque_hero.tendencia == "alta" else "seta-baixo") }} {{ pct_txt or verbo|capitalize }}</span>
+          {% endif %}
+        </p>
       </div>
-      <span class="hero-destaque-nota nota-{{ destaque_hero.score|nota_classe }}" aria-label="Nota {{ destaque_hero.score }} de 100"><span class="hero-destaque-nota-num">{{ destaque_hero.score }}</span><span class="hero-destaque-nota-de">/100</span></span>
+      {# Mesmo anel dos cartões, grande: a cor diz a faixa (era o número em
+         laranja, a cor de ação, enquanto o cartão mostrava verde). #}
+      <span class="hero-destaque-nota nota-{{ destaque_hero.score|nota_classe }}" role="img" aria-label="Nota {{ destaque_hero.score }} de 100">{{ destaque_hero.score|nota_anel|safe }}<span class="hero-destaque-nota-num" aria-hidden="true">{{ destaque_hero.score }}</span></span>
     </section>
     {% endif %}
 

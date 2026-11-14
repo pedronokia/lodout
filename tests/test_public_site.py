@@ -391,19 +391,21 @@ def test_index_hero_destaque_some_sem_candidato(client, monkeypatch, tmp_path):
     assert "hero-destaque" not in body
 
 
-def test_index_hero_destaque_tem_nota_grande_sobre_100(client, monkeypatch, tmp_path):
-    """Rodada 2 do visual: o anel compacto deu lugar ao número grande +
-    "/100" -- é o momento tipográfico da home."""
+def test_index_hero_destaque_tem_anel_da_nota_e_preco(client, monkeypatch, tmp_path):
+    """2026-11-14: o destaque usa o mesmo anel dos cartões (a cor diz a
+    faixa; antes era o número grande em laranja, a cor de ação, enquanto
+    o cartão mostrava verde) e passa a mostrar o preço."""
     _salva_scan(tmp_path, monkeypatch, [
         {"name": "Item Alto", "score": 95, "price": 2.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     body = client.get("/").data.decode("utf-8")
-    hero = body.split('class="hero-destaque"', 1)[1].split("</section>", 1)[0]
-    assert 'class="hero-destaque-nota-num"' in hero
-    assert 'class="hero-destaque-nota-de"' in hero
-    assert "/100" in hero
-    assert 'class="hero-destaque-halo' in hero
+    hero = body.split('aria-label="Item com a nota mais alta hoje"', 1)[1].split("</section>", 1)[0]
+    assert 'class="hero-destaque-nota nota-alta" role="img" aria-label="Nota 95 de 100"' in hero
+    assert 'class="nota-anel"' in hero
+    assert '<span class="hero-destaque-nota-num" aria-hidden="true">95</span>' in hero
+    assert 'class="hero-destaque-preco cartao-item-preco"' in hero
+    assert "R$ 2,00" in hero
 
 
 def test_index_vitrine_de_cards_e_o_modo_padrao(client, monkeypatch, tmp_path):
