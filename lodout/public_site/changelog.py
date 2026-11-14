@@ -9,6 +9,19 @@ from __future__ import annotations
 ENTRADAS = [
     {
         "data": "2026-11-14",
+        "titulo": "Cartões alinhados e páginas de item e ranking revistas",
+        "itens": [
+            "Na lista de itens, preço, estrela e rodapé ficam na mesma altura em todos os cartões de uma fileira — antes um selo a mais empurrava só o preço daquele cartão.",
+            "A linha de status da página inicial diz quantos itens coletados ficam fora da lista por risco alto de alta artificial (era por isso que o total coletado e o da aba “Todas” não batiam).",
+            "Paginação numa linha só, com “Anterior” e “Próxima”; abas de categoria numa linha, rolando de lado no celular.",
+            "O botão “Só favoritos” ficou do tamanho da busca e ganhou a estrela dourada dos favoritos.",
+            "Na página do item, o “Por quê” vem logo abaixo da nota, a imagem ficou maior e as ações (SteamDB, Copiar nome, Favoritar) ficam numa linha só.",
+            "No ranking, “↑ +1” e “=” viraram “↑ 1 posição” e “mesma posição”.",
+            "Itens não perdem mais a imagem quando a Steam devolve o preço por um caminho mais curto, sem a foto: o site reaproveita a da coleta anterior.",
+        ],
+    },
+    {
+        "data": "2026-11-14",
         "titulo": "Mais fácil de ler, de achar e de usar",
         "itens": [
             "A tendência de preço (subindo/caindo) agora compara 7 dias de verdade. Antes, por uma mudança no formato dos dados da Steam, olhava só as últimas horas — e a nota de um item podia subir ou cair até 25 pontos de uma coleta pra outra por uma oscilação pequena.",
