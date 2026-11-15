@@ -27,7 +27,7 @@ from lodout import (
 )
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
-from lodout.public_site import db_backup, scan_progress, worker_alert
+from lodout.public_site import catalogo, db_backup, scan_progress, worker_alert
 from lodout._ambiente import ambiente
 
 _PROGRESSO_RE = re.compile(r"^\[(\d+)/(\d+)\] (.+)$")
@@ -693,6 +693,28 @@ def rodada_top() -> "list[dict]":
     return novos
 
 
+# O catálogo para esta folga antes da próxima coleta completa ou rodada do
+# Top 20, pra nunca disputar a Steam com elas.
+_CATALOGO_FOLGA_S = 10 * 60
+
+
+def _esperar(segundos: float, permitido: bool = True) -> None:
+    """Espera `segundos`; no tempo livre, avança o catálogo amplo
+    (plans/pending/catalogo-grande.md) quando ligado e quando a Steam não
+    está bloqueando a coleta (`permitido`)."""
+    if not (permitido and catalogo.ligado() and segundos > _CATALOGO_FOLGA_S):
+        time.sleep(segundos)
+        return
+    fim = time.time() + segundos
+    try:
+        catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)
+    except Exception:
+        _logger.error("varredura do catálogo falhou", exc_info=True)
+    falta = fim - time.time()
+    if falta > 0 and not _parar:
+        time.sleep(falta)
+
+
 def _dormir_com_rodadas_top(espera_s: float, permitido: bool = True) -> None:
     """Dorme `espera_s` até a próxima coleta completa, fazendo rodadas
     rápidas do Top 20 no caminho. Sem rodada quando desligado, quando a
@@ -703,16 +725,16 @@ def _dormir_com_rodadas_top(espera_s: float, permitido: bool = True) -> None:
     except (TypeError, ValueError):
         horas = _TOP_RAPIDO_HORAS_DEFAULT
     if not permitido or horas <= 0:
-        time.sleep(espera_s)
+        _esperar(espera_s, permitido)
         return
     passo = horas * 3600
     fim = time.time() + espera_s
     while True:
         falta = fim - time.time()
         if falta <= passo + _TOP_RAPIDO_MARGEM_S:
-            time.sleep(max(0.0, falta))
+            _esperar(max(0.0, falta))
             return
-        time.sleep(passo)
+        _esperar(passo)
         if _parar:
             return
         try:

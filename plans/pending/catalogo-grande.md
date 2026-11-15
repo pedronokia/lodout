@@ -44,6 +44,11 @@ Arquivos: `lodout/steam_api.py`, `lodout/public_site/catalogo.py` (novo),
 - Bloqueado por: 1.1.
 
 #### Passo 1.3: varredura no tempo livre do worker (M)
+Ajuste na execução (2026-11-15): `discovery.py` registra que a busca da
+Steam bloqueia por dezenas de minutos depois de poucas dezenas de
+chamadas seguidas. A pausa entre páginas começa em 5× `RATE_LIMIT_DELAY_S`
+(~20 s) e a frequência de 6 h passa a ser a meta, cumprida só se a Steam
+deixar; o tamanho real da página é medido e aparece no `/api/health`.
 - Fatiada por tipo (rifles, pistolas, SMGs, escopetas, metralhadoras,
   facas, luvas, caixas/cápsulas e adesivos — o mercado de CS2 inteiro), paginando de 100 em 100 com
   `RATE_LIMIT_DELAY_S` lido na hora e o disjuntor `search`.
@@ -121,6 +126,6 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 ## Progresso
 | Fase | Status |
 | --- | --- |
-| 1. Varredura no worker | aguardando aprovação |
-| 2. Site lê o catálogo | aguardando aprovação |
-| 3. Textos e verificação | aguardando aprovação |
+| 1. Varredura no worker | código pronto (2026-11-15); aguardando a 1a varredura em produção |
+| 2. Site lê o catálogo | aprovada; espera o checkpoint da Fase 1 |
+| 3. Textos e verificação | aprovada |

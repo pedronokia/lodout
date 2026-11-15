@@ -12,6 +12,12 @@ services:
     environment:
       - LODOUT_PUBLIC_SITE_SECURE_COOKIES=1
 
+  # Catálogo amplo (plans/pending/catalogo-grande.md): só em produção. Para
+  # desligar, troque por 0 e faça deploy com [restart-worker].
+  worker:
+    environment:
+      - LODOUT_CATALOGO=1
+
   caddy:
     image: caddy:2-alpine
     ports:

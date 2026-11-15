@@ -1318,3 +1318,18 @@ def test_extract_market_icon_hash_aceita_barra_escapada_do_json(trecho):
     # itens do scan de 2026-10-29 sem miniatura.
     from lodout.steam_api import extract_market_icon_hash
     assert extract_market_icon_hash(trecho) == "abc-_9"
+
+
+def test_parse_search_results_traz_imagem_raridade_e_tipo():
+    """O catálogo amplo usa imagem, cor e tipo da própria busca."""
+    rows = steam_api._parse_search_results({"results": [
+        {"hash_name": "AK-47 | Redline (Field-Tested)", "sell_price": 5000,
+         "sell_listings": 300,
+         "asset_description": {"icon_url": "abc123", "name_color": "D2D2D2",
+                               "type": "Classified Rifle"}},
+        {"hash_name": "Sem Descricao", "sell_price": 100},
+    ]})
+    assert rows[0]["icon"] == "abc123"
+    assert rows[0]["name_color"] == "d2d2d2"
+    assert rows[0]["tipo"] == "Classified Rifle"
+    assert rows[1]["icon"] is None and rows[1]["tipo"] is None

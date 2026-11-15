@@ -22,7 +22,6 @@ import time
 # visuais troca o módulo `time` deste arquivo por um relógio congelado
 # (só com time()), e a home quebrava com 500 lá.
 from time import perf_counter as _relogio
-import unicodedata
 import urllib.parse
 from datetime import date, datetime
 from functools import wraps
@@ -49,8 +48,9 @@ from lodout import (
 from lodout._paths import DATA_DIR, atomic_write_bytes
 from lodout.localization import localize_name
 from lodout.public_site import (
-    buscas, changelog, charts, db_backup, discord_notify, erro_stats, fmt,
-    icon_cache, latencia, og_cards, profile_fetcher, raridade, rate_limit,
+    buscas, catalogo, changelog, charts, db_backup, discord_notify,
+    erro_stats, fmt, icon_cache, latencia, og_cards, profile_fetcher,
+    raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
 )
 from lodout.public_site.auth import csrf_token, csrf_valid
@@ -794,6 +794,9 @@ def create_app() -> Flask:
                 "itens": len(scan["results"]) if scan else 0,
             },
             "ultimo_ciclo_worker": ultimo_ciclo,
+            # Catálogo amplo (plans/pending/catalogo-grande.md): tamanho,
+            # páginas, bloqueios e tamanho real da página da Steam.
+            "catalogo": catalogo.resumo(),
             "ultima_rodada_top": scan_store.load_rodada_top(),
             "intervalo_horas_configurado": intervalo_horas,
             "no_ar_desde": uptime.no_ar_desde(),
@@ -1373,13 +1376,7 @@ def _buscas_com_resultado(termos: "list[tuple[str, int]]",
             if any(_busca_bate(nome, t) for nome in nomes)][:limite]
 
 
-def _texto_busca(texto: str) -> str:
-    """Minúsculo, sem acento e sem hífen: "Cápsula" casa com "capsula" e
-    "AK-47" com "ak47"."""
-    sem_acento = "".join(
-        ch for ch in unicodedata.normalize("NFKD", texto)
-        if not unicodedata.combining(ch))
-    return sem_acento.lower().replace("-", "")
+_texto_busca = catalogo.texto_busca
 
 
 def _busca_bate(nome: str, busca: "str | None") -> bool:
@@ -1403,25 +1400,7 @@ def _busca_bate(nome: str, busca: "str | None") -> bool:
     return False
 
 
-# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas e
-# adesivos aparecem com o nome original): quem digita em português também
-# acha ("capsula copenhagen" -> "Copenhagen 2024 Legends Sticker Capsule").
-_SINONIMOS_BUSCA = {
-    "capsule": "capsula",
-    "sticker": "adesivo",
-    "autograph": "autografo",
-    "case": "caixa",
-    "gloves": "luvas",
-    "knife": "faca",
-}
-
-
-def _nome_para_busca(nome_original: str, nome_pt: str) -> str:
-    """Nome em português e original (inglês, como na Steam) juntos, mais
-    a tradução das palavras de tipo que ficam em inglês no nome."""
-    extras = [pt for en, pt in _SINONIMOS_BUSCA.items()
-              if en in nome_original.lower()]
-    return " ".join([nome_pt, nome_original, *extras])
+_nome_para_busca = catalogo.nome_para_busca
 
 
 def _tendencia_do_historico(hist: list) -> "str | None":
@@ -2057,27 +2036,10 @@ def _enriquecer_com_historico(candidatos: list[dict]) -> None:
 _LIQUIDEZ_ORDEM = ["iliquido", "fino", "moderado", "liquido", "muito_liquido"]
 
 # Filtros como os do Mercado da Steam (2026-11-14): Exterior, Raridade e
-# Versão. Valor curto na URL -> (texto no nome de mercado, rótulo).
-_EXTERIORES = {
-    "fn": ("(Factory New)", "Nova de Fábrica"),
-    "mw": ("(Minimal Wear)", "Pouco Usada"),
-    "ft": ("(Field-Tested)", "Testada em Campo"),
-    "ww": ("(Well-Worn)", "Bastante Usada"),
-    "bs": ("(Battle-Scarred)", "Veterana de Guerra"),
-}
-_VERSOES = {
-    "normal": "Normal",
-    "stattrak": "StatTrak™",
-    "souvenir": "Souvenir",
-}
-
-
-def _versao_do_item(nome: str) -> str:
-    if "StatTrak" in nome:
-        return "stattrak"
-    if nome.startswith("Souvenir "):
-        return "souvenir"
-    return "normal"
+# Versão. As regras de nome ficam em catalogo.py (o catálogo usa as mesmas).
+_EXTERIORES = catalogo.EXTERIORES
+_VERSOES = catalogo.VERSOES
+_versao_do_item = catalogo.versao_do_item
 
 
 def _passa_filtros_steam(c: dict, exterior: "str | None",

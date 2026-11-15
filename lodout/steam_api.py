@@ -563,11 +563,18 @@ def _parse_search_results(data: dict) -> list[dict]:
             listings = int(r.get("sell_listings") or 0)
         except (TypeError, ValueError):
             listings = 0
+        # Imagem, cor de raridade e tipo vêm na mesma resposta
+        # (`asset_description`) -- o catálogo amplo do site usa os três
+        # sem consulta a mais (2026-11-14).
+        desc = r.get("asset_description") or {}
         out.append({
             "name": r.get("name") or hash_name,
             "hash_name": hash_name,
             "price": price,
             "listings": listings,
+            "icon": desc.get("icon_url") or None,
+            "name_color": (desc.get("name_color") or "").lower() or None,
+            "tipo": desc.get("type") or None,
         })
     return out
 
