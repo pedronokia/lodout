@@ -36,6 +36,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   (`LODOUT_INVENTARIO_DIARIO=1`); abrir `/conta` nunca consulta a Steam.
   O preço pago é sempre digitado pela pessoa: ele só existe no histórico
   privado do Mercado, e o site nunca pede chave de API nem sessão.
+  Quem pagou valores diferentes pelo mesmo item separa as unidades em
+  lotes (`user_portfolio.separar`/`juntar`, campo `lote`); a sincronização
+  (`inventario._acertar_lotes`) trata os lotes do mesmo nome juntos. Mudou
+  a mesclagem? O worker também sincroniza: publique com `[restart-worker]`,
+  senão o worker antigo apaga os lotes extras.
 - O site descreve dados observados; não promete retorno nem faz previsão.
 - Mantenha validação, CSRF, limites de tentativas e codificação de saída nas
   rotas que recebem dados.
