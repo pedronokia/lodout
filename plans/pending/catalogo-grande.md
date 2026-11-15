@@ -103,7 +103,7 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 | Nota | Inalterada nesta etapa | A nota foi calibrada nos itens atuais; expandir é outro plano |
 | Adesivos | Dentro do catálogo (usuário, 2026-11-14) | Pela busca da Steam custam ~90 consultas (+50%), não o triplo; são itens que somem do mercado ao serem colados/raspados |
 | Itens sem nota na home | Só aparecem com busca ou filtro (usuário) | A home continua sendo "as notas de hoje" |
-| Frequência do catálogo | A cada 6 h (usuário) | Preço mais fresco; cabe nas janelas livres e para no primeiro 429 |
+| Frequência do catálogo | 1x por dia (usuário, 2026-11-15; era 6 h) | Medido: a busca sem login devolve 10 itens/página (não 100); mercado ≈ 2.700 páginas ≈ 15 h no ritmo de 20 s. 365 páginas seguidas sem bloqueio |
 
 ## Ainda não especificado
 - Fase 1: tamanho real da página da Steam sem login (o código já registra
@@ -126,6 +126,6 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 ## Progresso
 | Fase | Status |
 | --- | --- |
-| 1. Varredura no worker | código pronto (2026-11-15); aguardando a 1a varredura em produção |
+| 1. Varredura no worker | no ar; 1a varredura em andamento (365 páginas, 0 bloqueio às 02:15 UTC de 15/11) |
 | 2. Site lê o catálogo | aprovada; espera o checkpoint da Fase 1 |
 | 3. Textos e verificação | aprovada |

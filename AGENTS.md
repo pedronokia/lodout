@@ -77,6 +77,8 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   e parando no primeiro 429 (2 h sem tentar). A busca é a consulta mais
   vigiada da Steam: não acelere a varredura sem medir os bloqueios em
   `/api/health` → `catalogo`. Liga com `LODOUT_CATALOGO=1` (só produção).
+  Medido em 15/11: a busca sem login devolve 10 itens por página (não 100);
+  o mercado inteiro leva ~15 h, então a rodada completa é 1x por dia.
 
 ### Evidência histórica do modelo
 

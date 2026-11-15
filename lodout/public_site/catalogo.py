@@ -235,7 +235,11 @@ _FATOR_PAUSA_PADRAO = 5.0
 # Depois de um bloqueio, a varredura não volta antes disto, mesmo que o
 # disjuntor da Steam já tenha liberado (sem retry logo depois de 429).
 _ESPERA_APOS_BLOQUEIO_S = 2 * 3600
-_INTERVALO_RODADA_H_PADRAO = 6.0
+# 1 rodada completa por dia (decisão do usuário, 2026-11-15): a busca sem
+# login devolve 10 itens por página, não 100 -- o mercado inteiro são
+# ~2.700 páginas, ~15 h no ritmo atual (0 bloqueio em 365 páginas
+# seguidas). A cada 6 h não cabe.
+_INTERVALO_RODADA_H_PADRAO = 24.0
 
 
 def ligado() -> bool:
@@ -277,7 +281,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
 
     Continua de onde parou (fatia + posição ficam em
     `data/catalogo_estado.json`). Uma rodada nova só começa quando a
-    última completa tem mais de `CATALOGO_INTERVALO_HORAS` (padrão 6 h).
+    última completa tem mais de `CATALOGO_INTERVALO_HORAS` (padrão 24 h).
     Para no primeiro bloqueio (429), em erro, em página vazia antes do
     fim (pode ser bloqueio silencioso) e quando a janela acaba."""
     from lodout import steam_api
