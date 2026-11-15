@@ -700,7 +700,8 @@ def test_comparar_fontes_separa_mediana_por_liquidez():
     assert faixas["media"] == {"itens": 1, "concorda_pct": 100.0}
     assert faixas["baixa"] == {"itens": 2, "concorda_pct": 50.0}
     assert r["mediana_divergentes"] == [
-        {"name": "Parado", "vendas_24h": 2, "razao": 1.386}]
+        {"name": "Parado", "vendas_24h": 2, "razao": 1.386,
+         "idade_ultimo_ponto_h": None}]
 
 
 
@@ -718,3 +719,38 @@ def test_scan_item_fator_todos_os_periodos_usa_media_do_dia(monkeypatch):
     r = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
     rotulos = [b["label"] for b in r["breakdown"]]
     assert not any("Caindo em todos os períodos" in l for l in rotulos)
+
+
+def test_comparar_fontes_mede_quantas_notas_mudariam_so_com_a_pagina():
+    # 2026-11-15: a trava do modo de 1 consulta exige mediana a até 5%;
+    # a medida que decide é quanto a NOTA mudaria.
+    sombras = [
+        {"name": "Igual", "nota_overview": 70, "nota_pagina": 70},
+        {"name": "Pouco", "nota_overview": 60, "nota_pagina": 63},
+        {"name": "Muito", "nota_overview": 50, "nota_pagina": 62},
+        {"name": "Sem", "nota_overview": 40},
+        {"name": "X", "lowest_overview": 10.0, "best_ask": 1000},
+    ]
+    r = scan_engine.comparar_fontes(sombras)["nota_com_pagina"]
+    assert r["itens"] == 3 and r["mudariam"] == 2
+    assert r["mais_de_5_pontos"] == 1
+    assert r["diferenca_media"] == 5.0
+    assert r["maiores"][0] == {"name": "Muito", "de": 50, "para": 62}
+
+
+def test_scan_item_calcula_nota_so_com_a_pagina_em_sombra(monkeypatch):
+    t0 = 1_790_000_000
+    hist = [{"time": t0 + h * 3600, "price_median": 100.0, "purchases": 2}
+            for h in range(48)]
+    _mock_steam_ok(monkeypatch, price_history=hist)
+    monkeypatch.setattr(
+        "lodout.steam_api.get_market_page_data",
+        lambda name: {"order_book": {"spread": 5, "buy_count": 10,
+                                     "sell_count": 20, "best_ask": 10000},
+                      "price_history": hist, "order_book_approx": False,
+                      "meta": {}})
+    r = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
+    sombra = r["_sombra"]
+    assert sombra["nota_overview"] == r["score"]
+    assert isinstance(sombra["nota_pagina"], int)
+    assert sombra["idade_ultimo_ponto_h"] is not None

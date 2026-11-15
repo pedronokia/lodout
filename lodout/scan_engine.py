@@ -159,6 +159,10 @@ def scan_item(name: str, category: str | None = None,
 
     ob_approx = bool(page.get("order_book_approx")) if page else False
     sombra = _fonte_pagina(page, ob, ob_approx)
+    if sombra is not None and overview is not None:
+        sombra.update(_nota_so_com_a_pagina(
+            sombra, score, lowest, volume, supply, ob, page, meta, multi,
+            cs, is_cont))
     approx_suffix = " ~" if ob_approx else ""
 
     return {
@@ -227,6 +231,44 @@ def scan_item(name: str, category: str | None = None,
             "name": name,
         },
     }
+
+
+def _nota_so_com_a_pagina(sombra: dict, score: int, lowest: float,
+                          volume, supply, ob, page: dict, meta: dict,
+                          multi, cs, is_cont: bool) -> dict:
+    """Modo sombra (2026-11-15): a nota que o item teria se a mediana e o
+    volume viessem só da listing page (o modo de 1 consulta por item),
+    ao lado da nota de verdade. A trava do modo exige mediana a até 5% do
+    priceoverview em 90% dos itens e mede 81%; a pergunta que decide é
+    quanto a NOTA mudaria. Só cálculo, nenhuma consulta a mais.
+
+    Junto, a idade do ponto mais recente do histórico da página: se a
+    divergência vier de janela desalinhada, aparece aqui."""
+    hist = page.get("price_history") or []
+    tempos = [p["time"] for p in hist
+              if isinstance(p, dict) and isinstance(p.get("time"), (int, float))]
+    out = {"nota_overview": score,
+           "idade_ultimo_ponto_h": (round((time.time() - max(tempos)) / 3600, 1)
+                                    if tempos else None)}
+    mediana = sombra.get("mediana_24h")
+    if not isinstance(mediana, (int, float)) or mediana <= 0:
+        return out
+    try:
+        verdict_p = steam_api.fair_value_verdict(
+            lowest, mediana,
+            spread=ob.get("spread") if ob else None,
+            buy_count=ob.get("buy_count") if ob else None,
+            sell_count=ob.get("sell_count") if ob else None,
+            price_history=hist,
+            tradable_restriction=meta.get("tradable_restriction"))
+        nota_p, _ = signals.enhanced_score(
+            verdict_p, sombra.get("compras_24h") or volume, supply,
+            multi_trend=multi, price_history=hist, case_status=cs,
+            is_container=is_cont)
+    except Exception:
+        return out
+    out["nota_pagina"] = nota_p
+    return out
 
 
 def _fonte_pagina(page: "dict | None", ob: "dict | None",
@@ -342,7 +384,32 @@ def comparar_fontes(sombras: "list[dict]") -> "dict | None":
            "mediana_concorda_pct": cm}
     if rm:
         out.update(_mediana_por_liquidez(sombras, rm))
+    nota = _comparar_notas(sombras)
+    if nota:
+        out["nota_com_pagina"] = nota
     return out
+
+
+def _comparar_notas(sombras: "list[dict]") -> "dict | None":
+    """Quantas notas mudariam com o modo de 1 consulta por item, e quanto."""
+    pares = [(f.get("name"), f["nota_overview"], f["nota_pagina"])
+             for f in sombras
+             if isinstance(f.get("nota_overview"), (int, float))
+             and isinstance(f.get("nota_pagina"), (int, float))]
+    if not pares:
+        return None
+    difs = [(abs(p - o), n, o, p) for n, o, p in pares]
+    mudam = [d for d in difs if d[0] > 0]
+    mudam.sort(key=lambda d: -d[0])
+    return {
+        "itens": len(pares),
+        "mudariam": len(mudam),
+        "mudariam_pct": round(100 * len(mudam) / len(pares), 1),
+        "mais_de_5_pontos": sum(1 for d in difs if d[0] > 5),
+        "diferenca_media": round(sum(d[0] for d in difs) / len(difs), 2),
+        "maiores": [{"name": n, "de": o, "para": p}
+                    for _d, n, o, p in mudam[:10]],
+    }
 
 
 # Faixas de liquidez (vendas nas últimas 24 h, pelo priceoverview) pra
@@ -373,7 +440,8 @@ def _mediana_por_liquidez(sombras: "list[dict]", razao: float) -> dict:
                 break
         if not ok:
             divergentes.append({"name": f.get("name"), "vendas_24h": vol,
-                                "razao": round(r, 3)})
+                                "razao": round(r, 3),
+                                "idade_ultimo_ponto_h": f.get("idade_ultimo_ponto_h")})
     divergentes.sort(key=lambda d: -abs(d["razao"] - 1))
     return {
         "mediana_por_liquidez": {
