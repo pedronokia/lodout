@@ -3946,6 +3946,10 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .conta-revenda-texto strong { color: var(--text-bright); }
 
+.pagina-texto .conta-revenda-prazo-steam,
+.conta-revenda-prazo-steam { margin-top: var(--sp-2); }
+.conta-revenda-prazo-steam a { text-decoration: underline; text-underline-offset: 2px; }
+
 .pagina-texto .conta-revenda-pergunta,
 .conta-revenda-pergunta {
   margin: var(--sp-3) 0 var(--sp-2);

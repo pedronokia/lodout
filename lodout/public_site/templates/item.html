@@ -120,6 +120,7 @@
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
       <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A Steam fica com cerca de {{ taxa_steam_pct }}% de cada venda (5% da Steam e 10% do jogo), então o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+      {% include "partials/_aviso_prazo_steam.html" %}
       {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
       {% set rh = item.revenda_historica or {} %}

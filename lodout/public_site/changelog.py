@@ -20,6 +20,7 @@ ENTRADAS = [
             "Itens não perdem mais a imagem quando a Steam devolve o preço por um caminho mais curto, sem a foto: o site reaproveita a da coleta anterior.",
             "A busca e os filtros agora procuram em todo o Mercado de CS2 (skins, facas, luvas, caixas, cápsulas e adesivos): primeiro os itens com nota, depois os outros com o preço do dia, marcados “sem nota ainda”. Cada um tem sua página com o preço e a conta da revenda.",
             "Na sua conta, itens do inventário fora dos acompanhados também ganham o preço do dia.",
+            "A conta da revenda avisa que não dá para revender na hora: item comprado no Mercado só pode ser vendido depois da data que aparece nele, e item recebido por troca fica 7 dias protegido (regras oficiais da Steam).",
             "A página Status mostra o catálogo do Mercado: quantos itens, quando foi a última volta e se a Steam pediu pausa. O Glossário explica o que é “sem nota ainda”.",
             "Na conta, salvar quanto você pagou num item atualiza só aquela linha, sem recarregar a página; aceita vírgula (35,10) e os itens ainda sem valor ficam destacados.",
             "Sua conta traz os itens do seu inventário da Steam sozinha, a cada login e uma vez por dia: é só informar quanto pagou em cada um. Itens vendidos ou trocados saem da lista. O inventário precisa estar público na Steam.",

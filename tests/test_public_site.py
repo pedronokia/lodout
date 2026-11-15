@@ -6104,3 +6104,13 @@ def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, t
     assert '<span class="conta-revenda-prazo">1 ano</span> <strong class="conta-revenda-pct">80%</strong>' in body
     assert "90 dias</span>" not in body
     assert "não o que vai acontecer" in body
+
+
+def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 100.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert "Não dá para revender na hora" in body
+    assert "help.steampowered.com" in body
