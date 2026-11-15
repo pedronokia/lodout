@@ -25,6 +25,7 @@ ENTRADAS = [
             "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
             "Itens que entram na coleta sem foto agora pegam a imagem do catálogo do Mercado (no ranking, um AK-47 | Safari Mesh aparecia sem imagem).",
             "Na página do item, a tabela “Outras versões” alinha preços e vendas à direita, para comparar de linha em linha.",
+            "As raridades aparecem com os mesmos nomes da Steam em português: Nível Consumidor, Nível Industrial, Nível Militar, Restrito, Secreto e Oculto (antes em inglês: Classified, Covert…). O Glossário traz também os nomes em inglês.",
         ],
     },
     {

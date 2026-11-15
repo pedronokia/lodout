@@ -49,17 +49,18 @@ _RARIDADE_POR_ID = {
 
 # Rótulo da borda de raridade pro atributo `title` (achado 2026-11-07: a
 # borda colorida não tinha nenhuma explicação na tela -- quem não manja
-# das cores oficiais do CS2 via só uma borda sem significado. O termo em
-# inglês é o mesmo usado no jogo e no glossário do site (ver #termo-
-# raridade em glossario.html); a cor em português do lado ajuda sem
-# precisar decorar o nome em inglês.
+# das cores oficiais do CS2 via só uma borda sem significado).
+# 2026-11-15: nomes em português, exatamente os da Steam em pt-BR
+# (conferidos no filtro do Mercado, /market/appfilters/730?l=brazilian:
+# Classified = "Secreto", Covert = "Oculto"), com a cor ao lado. O
+# glossário traz o nome em inglês para quem joga com o jogo em inglês.
 _RARIDADE_LABELS = {
-    "consumer": "Consumer Grade (cinza)",
-    "industrial": "Industrial Grade (azul claro)",
-    "milspec": "Mil-Spec (azul)",
-    "restricted": "Restricted (roxo)",
-    "classified": "Classified (rosa)",
-    "covert": "Covert (vermelho)",
+    "consumer": "Nível Consumidor (cinza)",
+    "industrial": "Nível Industrial (azul claro)",
+    "milspec": "Nível Militar (azul)",
+    "restricted": "Restrito (roxo)",
+    "classified": "Secreto (rosa)",
+    "covert": "Oculto (vermelho)",
     "dourado": "Item especial — faca, luva ou contrabando (dourado)",
 }
 

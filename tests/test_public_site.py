@@ -172,12 +172,12 @@ def test_index_tem_popover_legenda_raridade(client, monkeypatch, tmp_path):
     popover = body.split('class="popover-legenda"', 1)[1].split("</details>", 1)[0]
     assert "Cores da borda" in popover
     for classe, rotulo in [
-        ("raridade-consumer", "Consumer Grade"),
-        ("raridade-industrial", "Industrial Grade"),
-        ("raridade-milspec", "Mil-Spec"),
-        ("raridade-restricted", "Restricted"),
-        ("raridade-classified", "Classified"),
-        ("raridade-covert", "Covert"),
+        ("raridade-consumer", "Nível Consumidor"),
+        ("raridade-industrial", "Nível Industrial"),
+        ("raridade-milspec", "Nível Militar"),
+        ("raridade-restricted", "Restrito"),
+        ("raridade-classified", "Secreto"),
+        ("raridade-covert", "Oculto"),
         ("raridade-dourado", "faca, luva ou contrabando"),
     ]:
         assert classe in popover
@@ -583,7 +583,7 @@ def test_index_borda_de_raridade_tem_explicacao_no_title(
         body, re.DOTALL).group(1)
 
     assert "raridade-covert" in principal
-    assert 'title="Raridade: Covert (vermelho)"' in principal
+    assert 'title="Raridade: Oculto (vermelho)"' in principal
 
 
 def test_index_sem_raridade_nao_tem_classe_nem_title(
@@ -1688,7 +1688,7 @@ def test_ranking_page_mostra_icone_e_raridade_do_scan_atual(
     assert "icone-item-quadro-compacto" in body
     assert "icone-item-quadro-com-imagem" in body
     assert "raridade-covert" in body
-    assert 'title="Raridade: Covert (vermelho)"' in body
+    assert 'title="Raridade: Oculto (vermelho)"' in body
 
 
 def test_ranking_page_item_fora_do_scan_atual_sem_icone(client, monkeypatch):
@@ -3564,7 +3564,7 @@ def test_comparar_mostra_icone_com_raridade(client, monkeypatch, tmp_path):
     assert "icone-item-quadro-compacto" not in body
     assert "icone-item-quadro-com-imagem" in body
     assert "raridade-covert" in body
-    assert 'title="Raridade: Covert (vermelho)"' in body
+    assert 'title="Raridade: Oculto (vermelho)"' in body
 
 
 def test_comparar_mostra_liquidez(client, monkeypatch, tmp_path):
