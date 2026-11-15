@@ -123,6 +123,8 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
             row["valor_total_fmt"] = fmt.brl(row["price"] * (row.get("quantity") or 1))
         row["cost_fmt"] = fmt.brl(row.get("cost"))
         row["pnl_fmt"] = fmt.brl(row.get("pnl"))
+        row["pnl_pct_fmt"] = _pct_curto(row.get("pnl_pct")) \
+            if row.get("has_cost") and row.get("pnl") is not None and custo > 0 else None
         row["score"] = raw.get("score") if raw else None
         # Item do inventário fora da coleta: a imagem vem do próprio
         # inventário (hash do CDN da Steam), em vez de ficar sem foto.
@@ -135,6 +137,15 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
     avaliacao["textos"] = _textos_totais(t)
     return avaliacao
+
+
+def _pct_curto(pct: "float | None") -> "str | None":
+    """"−88%", "+12%", "0%": porcentagem inteira com o sinal de menos
+    tipográfico, para a linha do item (o cartão usa uma casa decimal)."""
+    if pct is None:
+        return None
+    n = round(pct)
+    return ("+" if n > 0 else "\u2212" if n < 0 else "") + f"{abs(n)}%"
 
 
 def _textos_totais(t: dict) -> dict:
@@ -435,6 +446,7 @@ def editar_custo(name: str):
             "empate_fmt": row.get("empate_fmt"),
             "alvo_fmt": row.get("alvo_fmt"),
             "lucro_fmt": row.get("pnl_fmt") if pnl is not None else None,
+            "lucro_pct_fmt": row.get("pnl_pct_fmt") or "",
             "lucro": round(pnl, 4) if pnl is not None else None,
             "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
                              "valor-negativo" if pnl and pnl < 0 else ""),

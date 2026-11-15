@@ -439,14 +439,15 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
         "name": "AK-47 | Redline (Field-Tested)", "cost": "100",
         "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
-    assert '<span class="venda-por-valor" data-campo="empate">R$ 115,00</span>' in pagina
-    assert '<strong class="preco-alvo" data-campo="alvo">R$ 138,00</strong>' in pagina
+    # Preços clicáveis: copiam o número para colar na Steam (2026-11-15).
+    assert 'data-copiar data-campo="empate" title="Copiar para colar na Steam">R$ 115,00</button>' in pagina
+    assert 'data-copiar data-campo="alvo" title="Copiar para colar na Steam">R$ 138,00</button>' in pagina
     assert "Lucrar 20%" in pagina
 
     resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
-    assert '<strong class="preco-alvo" data-campo="alvo">R$ 172,50</strong>' in pagina
+    assert 'data-campo="alvo" title="Copiar para colar na Steam">R$ 172,50</button>' in pagina
     assert '<option value="50" selected>50%</option>' in pagina
 
 
@@ -528,4 +529,11 @@ def test_adicionar_a_mao_aceita_virgula(client, monkeypatch):
         "name": "Caixa Y", "cost": "35,10", "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
     assert 'value="35,10"' in pagina
+
+
+def test_conta_mostra_lucro_em_porcentagem(client, monkeypatch):
+    from lodout.public_site import account
+    assert account._pct_curto(-88.4) == "\u221288%"
+    assert account._pct_curto(12.5) == "+12%"
+    assert account._pct_curto(0.2) == "0%"
 

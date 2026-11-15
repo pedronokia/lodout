@@ -6277,3 +6277,67 @@ table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 }
 .tabela-conta .campo-reais-cada .input-custo { width: 9em; padding-right: 44px; }
 
+/* ── Conta, quarta passada (2026-11-15) ───────────────────────────── */
+.conta-identidade { display: flex; align-items: center; gap: var(--sp-3); }
+.conta-identidade-avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  outline: 1px solid rgba(255, 255, 255, 0.12);
+  outline-offset: -1px;
+}
+.conta-identidade-nome { color: var(--text-bright); font-weight: 600; }
+
+/* Lucro do item em porcentagem, embaixo do valor. */
+.lucro-pct { display: block; font-size: var(--fs-xs); }
+.lucro-pct:empty { display: none; }
+
+/* Preço de venda clicável (copia para colar na Steam). */
+.copiar-preco {
+  position: relative;
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: copy;
+  transition: background-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+.copiar-preco:hover { background: var(--surface-hover); color: var(--text-bright); }
+.copiar-preco:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.copiar-preco.copiado { color: var(--positive); }
+.copiar-preco[data-dica]::after {
+  content: attr(data-dica);
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  transform: translateY(-50%);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--positive);
+  color: #0b1a10;
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.preco-alvo.copiar-preco { font-weight: 700; }
+
+/* "informe quanto pagou" como botão que leva ao campo. */
+button.venda-por-falta {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+button.venda-por-falta:hover { color: var(--accent-bright); }
+button.venda-por-falta:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+

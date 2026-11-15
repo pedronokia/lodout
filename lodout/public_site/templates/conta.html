@@ -22,7 +22,11 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Minha conta</h1>
-      <p class="descricao-pagina">Seus itens da Steam, quanto valem hoje e por quanto vender para não ter prejuízo.</p>
+      {# Quem é o dono da conta, com o avatar da Steam (2026-11-15). #}
+      <p class="descricao-pagina conta-identidade">
+        {% if avatar_local %}<img class="conta-identidade-avatar" src="{{ url_for('account.avatar') }}" alt="" width="32" height="32">{% endif %}
+        <span>{% if usuario and usuario.persona_name %}<strong class="conta-identidade-nome" translate="no">{{ usuario.persona_name }}</strong> · {% endif %}seus itens da Steam, quanto valem hoje e por quanto vender para não ter prejuízo.</span>
+      </p>
     </header>
 
     {# Revisão 2026-11-15 (conta com inventário + polimento): rótulo,
@@ -106,7 +110,7 @@
     <div class="conta-ferramentas" data-conta-ferramentas hidden>
       <label class="conta-busca">
         <span class="visualmente-oculto">Buscar nos seus itens</span>
-        <input type="search" data-conta-busca placeholder="Buscar nos seus itens…" autocomplete="off" spellcheck="false">
+        <input type="search" data-conta-busca placeholder="Buscar nos seus itens (atalho: /)…" aria-keyshortcuts="/" autocomplete="off" spellcheck="false">
       </label>
       <div class="conta-filtros" role="group" aria-label="Mostrar">
         <button type="button" class="conta-filtro" data-conta-filtro="todos" aria-pressed="true">Todos <span data-conta-contagem="todos"></span></button>
@@ -125,6 +129,7 @@
       <p class="conta-mostrando" data-conta-mostrando role="status" aria-live="polite"></p>
     </div>
     {% endif %}
+    <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
       <thead class="cabecalho-fixo-conta">
@@ -212,13 +217,16 @@
           <td data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
           {% endif %}
           <td data-label="Lucro se vender hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
-            {{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}
+            <span data-campo="lucro-valor">{{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}</span>
+            <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
           </td>
           <td data-label="Venda por" class="celula-venda-por">
-            <span class="venda-por-falta">informe quanto pagou</span>
+            <button type="button" class="venda-por-falta" data-ir-ao-campo>informe quanto pagou</button>
             <span class="venda-por-bloco">
-            <span class="venda-por-linha">Sem prejuízo <span class="venda-por-valor" data-campo="empate">{{ row.empate_fmt or "—" }}</span></span>
-            <span class="venda-por-linha venda-por-meta">Lucrar {{ meta_lucro }}% <strong class="preco-alvo" data-campo="alvo">{{ row.alvo_fmt or "—" }}</strong></span>
+            {# Clicar no preço copia o número (ex.: "53,41") para colar na
+               tela de venda da Steam (conta.js). #}
+            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar data-campo="empate" title="Copiar para colar na Steam">{{ row.empate_fmt or "—" }}</button></span>
+            <span class="venda-por-linha venda-por-meta">Lucrar {{ meta_lucro }}% <button type="button" class="copiar-preco preco-alvo" data-copiar data-campo="alvo" title="Copiar para colar na Steam">{{ row.alvo_fmt or "—" }}</button></span>
             </span>
           </td>
         </tr>

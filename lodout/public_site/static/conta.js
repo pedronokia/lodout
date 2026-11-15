@@ -113,7 +113,19 @@
       if (botao) escolherFiltro(botao.getAttribute("data-conta-filtro"));
     });
     if (busca) busca.addEventListener("input", function () { estado.busca = busca.value; aplicar(); });
-    if (ordem) ordem.addEventListener("change", function () { estado.ordem = ordem.value; aplicar(); });
+    // A ordem escolhida fica lembrada neste navegador (só conveniência).
+    try {
+      var guardada = window.localStorage.getItem("lodout-conta-ordem");
+      if (ordem && guardada && ordem.querySelector('option[value="' + guardada + '"]')) {
+        ordem.value = guardada;
+        estado.ordem = guardada;
+      }
+    } catch (erro) { /* sem armazenamento: segue o padrão */ }
+    if (ordem) ordem.addEventListener("change", function () {
+      estado.ordem = ordem.value;
+      try { window.localStorage.setItem("lodout-conta-ordem", ordem.value); } catch (erro) { /* ignora */ }
+      aplicar();
+    });
     var limpar = document.querySelector("[data-conta-limpar]");
     if (limpar) limpar.addEventListener("click", function () {
       limparBusca();
@@ -139,6 +151,42 @@
       alvo.focus({ preventScroll: true });
     });
   }
+
+  // ── Atalhos da lista (2026-11-15) ────────────────────────────────────
+  // Clicar no preço de "Venda por" copia o número ("53,41") para colar na
+  // tela de venda da Steam.
+  var avisoCopia = document.querySelector("[data-copiado]");
+  document.addEventListener("click", function (e) {
+    var botao = e.target.closest && e.target.closest("[data-copiar]");
+    if (!botao) return;
+    var numero = (botao.textContent.match(/[\d.]+,\d{2}/) || [""])[0];
+    if (!numero || !navigator.clipboard) return;
+    navigator.clipboard.writeText(numero).then(function () {
+      botao.classList.add("copiado");
+      botao.setAttribute("data-dica", "copiado");
+      if (avisoCopia) avisoCopia.textContent = "Copiado: " + numero;
+      setTimeout(function () { botao.classList.remove("copiado"); botao.removeAttribute("data-dica"); }, 1400);
+    }, function () {});
+  });
+
+  // "informe quanto pagou" leva o cursor ao campo da própria linha.
+  document.addEventListener("click", function (e) {
+    var botao = e.target.closest && e.target.closest("[data-ir-ao-campo]");
+    if (!botao) return;
+    var campo = botao.closest("tr") && botao.closest("tr").querySelector(".input-custo");
+    if (campo) campo.focus();
+  });
+
+  // "/" vai para a busca da lista (como na página inicial).
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+    var alvo = e.target;
+    if (alvo && (alvo.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName))) return;
+    var busca = document.querySelector("[data-conta-busca]");
+    if (!busca || !busca.offsetParent) return;
+    e.preventDefault();
+    busca.focus();
+  });
 
   // Cartões do topo e aviso de itens sem valor pago, com os textos que o
   // servidor devolve ao salvar (account._textos_totais).
@@ -320,7 +368,8 @@
         texto(linha.querySelector('[data-campo="alvo"]'), d.alvo_fmt || "—");
         var lucro = linha.querySelector('[data-campo="lucro"]');
         if (lucro) {
-          texto(lucro, d.lucro_fmt || "—");
+          texto(lucro.querySelector('[data-campo="lucro-valor"]'), d.lucro_fmt || "—");
+          texto(lucro.querySelector('[data-campo="lucro-pct"]'), d.lucro_pct_fmt || "");
           lucro.classList.remove("valor-positivo", "valor-negativo");
           if (d.lucro_classe) lucro.classList.add(d.lucro_classe);
         }
