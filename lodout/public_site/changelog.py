@@ -18,6 +18,7 @@ ENTRADAS = [
             "Na página do item, o “Por quê” vem logo abaixo da nota, a imagem ficou maior e as ações (SteamDB, Copiar nome, Favoritar) ficam numa linha só.",
             "No ranking, “↑ +1” e “=” viraram “↑ 1 posição” e “mesma posição”.",
             "Itens não perdem mais a imagem quando a Steam devolve o preço por um caminho mais curto, sem a foto: o site reaproveita a da coleta anterior.",
+            "Sua conta traz os itens do seu inventário da Steam sozinha, a cada login e uma vez por dia: é só informar quanto pagou em cada um. Itens vendidos ou trocados saem da lista. O inventário precisa estar público na Steam.",
             "Na sua conta, cada item mostra por quanto vender para não ter prejuízo e para lucrar a meta que você escolher (começa em 20%), já com a taxa da Steam.",
             "Também na página do item: “Isso já aconteceu antes?” — em quantas vezes, no último ano, quem comprou o item e vendeu 30 dias, 90 dias ou 1 ano depois recuperou o que pagou, já com a taxa da Steam.",
             "Na página de cada item, a conta da revenda: por quanto o item precisa ser vendido para você receber de volta o que pagou, já que a Steam fica com cerca de 15% de cada venda.",

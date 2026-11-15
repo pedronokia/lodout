@@ -60,6 +60,22 @@
     </div>
 
     <h2 class="secao-titulo">Suas posições</h2>
+    {# Inventário da Steam (conta-inventario.md, fase 2): sincroniza no
+       login e 1x por dia; abrir esta página nunca consulta a Steam. #}
+    {% set inv = inventario_estado or {} %}
+    {% if inv.em_andamento %}
+    <p class="status-inventario">Buscando seu inventário da Steam… recarregue a página em alguns segundos.</p>
+    {% elif inv.status == "ok" %}
+    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}. Itens vendidos ou trocados saem da lista sozinhos.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou para ver por quanto vender.{% endif %}</p>
+    {% elif inv.status == "private" %}
+    <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado, então o Lodout não consegue ver seus itens. Para mostrar: na Steam, abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a></p>
+    {% elif inv.status == "empty" %}
+    <p class="status-inventario">Seu inventário de CS2 não tem itens que possam ser vendidos no Mercado da Steam.</p>
+    {% elif inv.status in ("rate_limited", "error") %}
+    <p class="status-inventario">Não deu para ler seu inventário agora (a Steam pediu uma pausa). O Lodout tenta de novo sozinho mais tarde.</p>
+    {% else %}
+    <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.</p>
+    {% endif %}
     {% if avaliacao.rows %}
     {# Meta de lucro (2026-11-15): o preço de venda de cada item já soma
        a taxa da Steam e a meta escolhida. #}

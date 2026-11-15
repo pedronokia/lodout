@@ -4005,6 +4005,25 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 /* ── Formulários (conta, watchlist, trades) ──────────── */
 
+/* Aviso do inventário na conta (2026-11-15). */
+.pagina-texto .status-inventario,
+.status-inventario {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-align: left;
+}
+
+.status-inventario-alerta {
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.status-inventario a { text-decoration: underline; text-underline-offset: 2px; }
+
 /* Meta de lucro da conta (2026-11-15). */
 .form-meta-lucro {
   display: flex;

@@ -20,8 +20,8 @@ from lodout import portfolio, scan_store
 from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
-    fmt, raridade, steam_openid, user_history, user_portfolio, user_store,
-    user_trades, user_watchlist,
+    fmt, inventario, raridade, steam_openid, user_history, user_portfolio,
+    user_store, user_trades, user_watchlist,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
 from lodout.public_site.rate_limit import (
@@ -100,7 +100,9 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         row["cost_fmt"] = fmt.brl(row.get("cost"))
         row["pnl_fmt"] = fmt.brl(row.get("pnl"))
         row["score"] = raw.get("score") if raw else None
-        row.update(raridade.icone_raridade(raw))
+        # Item do inventário fora da coleta: a imagem vem do próprio
+        # inventário (hash do CDN da Steam), em vez de ficar sem foto.
+        row.update(raridade.icone_raridade(raw or {"icon": row.get("icon")}))
     t = avaliacao["totals"]
     t["cost_fmt"] = fmt.brl(t.get("cost"))
     t["cost_known_fmt"] = fmt.brl(t.get("cost_known"))
@@ -139,6 +141,9 @@ def login_callback():
         avatar_url=perfil.get("avatar_url"),
     )
     session["steamid"] = steamid
+    # Inventário sincroniza sozinho a cada login (ação da própria pessoa),
+    # em segundo plano pra não deixar o login lento (conta-inventario.md).
+    inventario.sincronizar_em_segundo_plano(steamid)
     return redirect(url_for("account.conta"))
 
 
@@ -173,6 +178,12 @@ def conta():
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
     user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
     meta = _meta_lucro(steamid)
+    estado_inv = inventario.estado(steamid)
+    # Busca interrompida (servidor reiniciou no meio): o "buscando…" não
+    # fica preso -- depois de 5 min vale o último estado conhecido.
+    if estado_inv.get("em_andamento") and \
+            time.time() - float(estado_inv.get("iniciado_ts") or 0) > 300:
+        estado_inv["em_andamento"] = False
     avaliacao = _formatar_linhas(avaliacao_bruta, meta)
     # `usuario` NÃO é passado aqui de propósito (2026-10-27): o context
     # processor `_inject_usuario` (server.py) já busca o mesmo
@@ -184,6 +195,9 @@ def conta():
         "conta.html", avaliacao=avaliacao,
         csrf_token=csrf_token(),
         meta_lucro=meta,
+        inventario_estado=estado_inv,
+        inventario_idade=(scan_store.idade_txt(estado_inv["ts"])
+                          if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )

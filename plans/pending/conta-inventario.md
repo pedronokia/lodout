@@ -72,5 +72,5 @@ o preço do dia de todo o mercado.
 | Fase | Status |
 | --- | --- |
 | 1. Lucro com taxa e preço de venda | feita (2026-11-15) |
-| 2. Inventário sincronizado | aprovada; próxima |
+| 2. Inventário sincronizado | feita (2026-11-15) |
 | 3. "Quanto paguei" rápido | aprovada |

@@ -75,3 +75,13 @@ def _sem_disjuntores_de_rate_limit():
     yield
     steam_api._rate_limit_state.clear()
     rate_limit.reset()
+
+
+@pytest.fixture(autouse=True)
+def _sem_sync_inventario_em_segundo_plano(monkeypatch):
+    """O login dispara a sincronização do inventário numa thread
+    (inventario.py). Nos testes ela não roda solta: quem quiser testar
+    o disparo troca esta função de novo."""
+    monkeypatch.setattr(
+        "lodout.public_site.inventario.sincronizar_em_segundo_plano",
+        lambda steamid: False)

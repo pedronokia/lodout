@@ -37,6 +37,20 @@ def upsert_user(steamid: str, persona_name: "str | None" = None,
         conn.close()
 
 
+def usuarios_ativos(desde_ts: float,
+                    path: "Path | str | None" = None) -> "list[str]":
+    """SteamIDs de quem entrou no site desde `desde_ts` -- o worker
+    sincroniza o inventário só dessas contas (inventario.py)."""
+    conn = db.connect(path)
+    try:
+        linhas = conn.execute(
+            "SELECT steamid FROM users WHERE last_login_ts >= ? "
+            "ORDER BY last_login_ts DESC", (desde_ts,)).fetchall()
+    finally:
+        conn.close()
+    return [r[0] for r in linhas]
+
+
 def get_user(steamid: str, path: "Path | str | None" = None) -> "dict | None":
     """Dados da conta, ou None se o steamid nunca logou."""
     conn = db.connect(path)

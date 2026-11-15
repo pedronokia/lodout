@@ -27,7 +27,9 @@ from lodout import (
 )
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
-from lodout.public_site import catalogo, db_backup, scan_progress, worker_alert
+from lodout.public_site import (
+    catalogo, db_backup, inventario, scan_progress, worker_alert,
+)
 from lodout._ambiente import ambiente
 
 _PROGRESSO_RE = re.compile(r"^\[(\d+)/(\d+)\] (.+)$")
@@ -702,14 +704,24 @@ def _esperar(segundos: float, permitido: bool = True) -> None:
     """Espera `segundos`; no tempo livre, avança o catálogo amplo
     (plans/pending/catalogo-grande.md) quando ligado e quando a Steam não
     está bloqueando a coleta (`permitido`)."""
-    if not (permitido and catalogo.ligado() and segundos > _CATALOGO_FOLGA_S):
+    tem_tarefa = catalogo.ligado() or inventario.diario_ligado()
+    if not (permitido and tem_tarefa and segundos > _CATALOGO_FOLGA_S):
         time.sleep(segundos)
         return
     fim = time.time() + segundos
-    try:
-        catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)
-    except Exception:
-        _logger.error("varredura do catálogo falhou", exc_info=True)
+    # Inventários das contas primeiro (poucos e rápidos), depois o catálogo.
+    if inventario.diario_ligado():
+        try:
+            inventario.sincronizar_pendentes(fim - _CATALOGO_FOLGA_S,
+                                             deve_parar=lambda: _parar)
+        except Exception:
+            _logger.error("sincronização diária de inventários falhou",
+                          exc_info=True)
+    if catalogo.ligado() and not _parar:
+        try:
+            catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)
+        except Exception:
+            _logger.error("varredura do catálogo falhou", exc_info=True)
     falta = fim - time.time()
     if falta > 0 and not _parar:
         time.sleep(falta)

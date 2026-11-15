@@ -31,6 +31,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   responsável pela coleta de preços e respeita os limites da Steam.
 - Consultas de rede em telas do visitante só acontecem por ação explícita,
   fora do carregamento automático da página.
+  O inventário da conta (`public_site/inventario.py`) sincroniza no login
+  (a ação da pessoa), em segundo plano, e 1x por dia pelo worker
+  (`LODOUT_INVENTARIO_DIARIO=1`); abrir `/conta` nunca consulta a Steam.
+  O preço pago é sempre digitado pela pessoa: ele só existe no histórico
+  privado do Mercado, e o site nunca pede chave de API nem sessão.
 - O site descreve dados observados; não promete retorno nem faz previsão.
 - Mantenha validação, CSRF, limites de tentativas e codificação de saída nas
   rotas que recebem dados.

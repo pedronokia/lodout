@@ -17,6 +17,8 @@ services:
   worker:
     environment:
       - LODOUT_CATALOGO=1
+      # Inventário das contas 1x por dia (plans/pending/conta-inventario.md).
+      - LODOUT_INVENTARIO_DIARIO=1
 
   caddy:
     image: caddy:2-alpine
