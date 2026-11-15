@@ -117,7 +117,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     </form>
     {% if avaliacao.rows %}
-    <p class="form-meta-lucro-ajuda" id="explica-meta">“Venda por” já inclui a taxa de {{ taxa_steam_pct }}% da Steam: é o preço de cada unidade para anunciar no Mercado (<a href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">abrir meu inventário na Steam<span class="visualmente-oculto">, em nova aba</span></a>).{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">No valor pago, Enter salva e vai para o próximo item sem valor.</span>{% endif %}</p>
+    <p class="form-meta-lucro-ajuda" id="explica-meta">“Venda por” é o que o comprador paga por unidade, já com a taxa de {{ taxa_steam_pct }}% da Steam. Na tela de venda da Steam, cole em <strong>“O comprador paga”</strong> (não em “Você recebe”) (<a href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">abrir meu inventário na Steam<span class="visualmente-oculto">, em nova aba</span></a>).{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">No valor pago, Enter salva e vai para o próximo item sem valor.</span>{% endif %}</p>
     {# Ferramentas da lista (2026-11-15): com o inventário inteiro, achar
        o que importa sem rolar a lista toda. Tudo no navegador (conta.js),
        sem consulta nova; sem JavaScript fica escondida e a lista aparece
@@ -152,14 +152,14 @@
         <div><dt>Você pagou</dt><dd>Quanto você pagou em cada unidade. Só você sabe: a Steam não mostra esse valor para ninguém.</dd></div>
         <div><dt>Vale hoje</dt><dd>O preço do item no Mercado da Steam, o último que o Lodout coletou.</dd></div>
         <div><dt>Lucro hoje</dt><dd>O que sobraria vendendo hoje por esse preço, já sem os {{ taxa_steam_pct }}% da Steam, menos o que você pagou. Negativo quer dizer prejuízo.</dd></div>
-        <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam.</dd></div>
-        <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% a mais do que pagou, também já com a taxa. Mude a porcentagem em “Quero lucrar”.</dd></div>
-        <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
+        <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam. Na Steam, é o valor do campo “O comprador paga”.</dd></div>
+        <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% a mais do que pagou, também já com a taxa. Também vai no campo “O comprador paga”; em “Você recebe”, a Steam mostra o que sobra para você. Mude a porcentagem em “Quero lucrar”.</dd></div>
+        <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar e cole em “O comprador paga” na Steam. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
       </dl>
     </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
-    <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta" data-taxa="{{ taxa_steam_pct }}">
       <thead class="cabecalho-fixo-conta">
         <tr>
           {# data-ordenar-coluna: conta.js transforma o título num botão
@@ -168,7 +168,7 @@
           <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
           <th class="col-num" data-ordenar-coluna="valor">Vale hoje</th>
           <th class="col-num" data-ordenar-coluna="lucro" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
-          <th class="col-num">Venda por</th>
+          <th class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por</th>
         </tr>
       </thead>
       <tbody>
@@ -256,8 +256,8 @@
             <span class="venda-por-bloco">
             {# Clicar no preço copia o número (ex.: "53,41") para colar na
                tela de venda da Steam (conta.js). #}
-            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar data-campo="empate" title="Copiar para colar na Steam">{{ row.empate_fmt or "—" }}</button></span>
-            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar data-campo="alvo" title="Copiar para colar na Steam">{{ row.alvo_fmt or "—" }}</button></span>
+            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar data-campo="empate" title="Copiar: na Steam, cole em “O comprador paga”">{{ row.empate_fmt or "—" }}</button></span>
+            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">{{ row.alvo_fmt or "—" }}</button></span>
             </span>
           </td>
         </tr>

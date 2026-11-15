@@ -41,6 +41,7 @@
         var empate = Number(tr.getAttribute("data-empate") || 0);
         if (!empate) return;
         texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
+        titulosVenda(tr);
       });
     }).catch(function () { form.submit(); });
   }
@@ -255,11 +256,31 @@
     if (!numero || !navigator.clipboard) return;
     navigator.clipboard.writeText(numero).then(function () {
       botao.classList.add("copiado");
-      botao.setAttribute("data-dica", "copiado");
-      if (avisoCopia) avisoCopia.textContent = "Copiado: " + numero;
-      setTimeout(function () { botao.classList.remove("copiado"); botao.removeAttribute("data-dica"); }, 1400);
+      botao.setAttribute("data-dica", "copiado · cole em “O comprador paga”");
+      if (avisoCopia) avisoCopia.textContent = "Copiado: " + numero + ". Na Steam, cole no campo O comprador paga.";
+      setTimeout(function () { botao.classList.remove("copiado"); botao.removeAttribute("data-dica"); }, 2600);
     }, function () {});
   });
+
+  // Dica do preço de venda: o que o comprador paga e o que sobra para
+  // a pessoa (2026-11-15: o usuário colou o preço em "Você recebe" e a
+  // Steam somou a taxa de novo).
+  function titulosVenda(tr) {
+    var tabela = tr.closest("table");
+    var taxa = Number((tabela && tabela.getAttribute("data-taxa")) || 15) / 100;
+    var seletor = document.querySelector('select[name="meta"]');
+    var meta = Number((seletor && seletor.value) || 20) / 100;
+    var empate = Number(tr.getAttribute("data-empate") || 0);
+    if (!empate) return;
+    var pago = empate / (1 + taxa);
+    var pares = [["empate", empate, pago], ["alvo", empate * (1 + meta), pago * (1 + meta)]];
+    pares.forEach(function (par) {
+      var b = tr.querySelector('[data-campo="' + par[0] + '"]');
+      if (b) b.title = "O comprador paga " + reais(par[1]) + " · você recebe ≈ " + reais(par[2]) +
+        ". Clique para copiar e cole em “O comprador paga” na Steam.";
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("tr.linha-posicao"), titulosVenda);
 
   // "informe quanto pagou" leva o cursor ao campo da própria linha.
   document.addEventListener("click", function (e) {
@@ -545,6 +566,7 @@
         if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
         else linha.classList.add("linha-sem-custo");
         linha.setAttribute("data-empate", d.empate ? String(d.empate) : "");
+        titulosVenda(linha);
         var confira = linha.querySelector('[data-campo="confira"]');
         if (confira) confira.textContent = d.confira || "";
         if (lucro && !d.lucro_classe) lucro.classList.add("celula-sem-valor");

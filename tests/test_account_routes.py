@@ -441,14 +441,14 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
         "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
     # Preços clicáveis: copiam o número para colar na Steam (2026-11-15).
-    assert 'data-copiar data-campo="empate" title="Copiar para colar na Steam">R$ 115,00</button>' in pagina
-    assert 'data-copiar data-campo="alvo" title="Copiar para colar na Steam">R$ 138,00</button>' in pagina
+    assert 'data-copiar data-campo="empate" title="Copiar: na Steam, cole em “O comprador paga”">R$ 115,00</button>' in pagina
+    assert 'data-copiar data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">R$ 138,00</button>' in pagina
     assert "Lucrar 20%" in pagina
 
     resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
-    assert 'data-campo="alvo" title="Copiar para colar na Steam">R$ 172,50</button>' in pagina
+    assert 'data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">R$ 172,50</button>' in pagina
     assert '<option value="50" selected>50%</option>' in pagina
 
 

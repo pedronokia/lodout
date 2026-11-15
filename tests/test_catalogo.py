@@ -361,3 +361,44 @@ def test_worker_completa_imagem_que_falta_pelo_catalogo():
     assert novos[0]["name_color"] == "b0c3d9"
     assert novos[1]["icon"] is None
     assert novos[2]["icon"] == "outro"
+
+
+def test_catalogo_converte_dolar_para_reais_pela_cotacao_medida(monkeypatch):
+    # Achado 2026-11-15: a busca do Mercado ignora currency=7 e devolve
+    # dólar ("$5.19"); o site mostrava "R$ 5,19". A cotação vem dos itens
+    # que estão na coleta (reais) e no catálogo (dólar).
+    from lodout import scan_store
+    catalogo.CAMBIO_FIXO = None
+    catalogo._cambio_cache.update(ts=0.0, valor=None)
+    nomes = [f"Item {i}" for i in range(12)]
+    _catalogo_com(("Rifles", [_linha(n, preco=2.0 + i) for i, n in enumerate(nomes)]
+                   + [_linha("So no catalogo", preco=5.19)]))
+    # Na coleta, os mesmos itens custam 5,5x em reais (um ponto fora).
+    resultados = [{"name": n, "price": round((2.0 + i) * 5.5, 2)} for i, n in enumerate(nomes)]
+    resultados[0]["price"] = 999.0
+    monkeypatch.setattr(scan_store, "load_last_scan", lambda: {"results": resultados})
+    assert abs(catalogo.cambio() - 5.5) < 0.01
+    assert catalogo.precos(["So no catalogo"]) == {"So no catalogo": round(5.19 * 5.5, 2)}
+    assert catalogo.item("So no catalogo")["preco"] == round(5.19 * 5.5, 2)
+    total, itens = catalogo.consultar({"busca": "so no catalogo"})
+    assert itens[0]["preco"] == round(5.19 * 5.5, 2)
+    # Filtro "até R$ 30": 5,19 dólares = R$ 28,55 entra; 
+    total, _ = catalogo.consultar({"busca": "so no catalogo", "preco_max": 30})
+    assert total == 1
+    total, _ = catalogo.consultar({"busca": "so no catalogo", "preco_max": 20})
+    assert total == 0
+    # A última cotação boa fica salva como reserva.
+    monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
+    catalogo._cambio_cache.update(ts=0.0, valor=None)
+    assert abs(catalogo.cambio() - 5.5) < 0.01
+
+
+def test_catalogo_sem_cotacao_nao_mostra_preco(monkeypatch):
+    from lodout import scan_store
+    catalogo.CAMBIO_FIXO = None
+    catalogo._cambio_cache.update(ts=0.0, valor=None)
+    _catalogo_com(("Rifles", [_linha("Sozinho", preco=5.19)]))
+    monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
+    assert catalogo.cambio() is None
+    assert catalogo.precos(["Sozinho"]) == {}
+    assert catalogo.item("Sozinho")["preco"] is None

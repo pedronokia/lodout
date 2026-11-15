@@ -92,10 +92,17 @@ def _sem_catalogo_de_outro_teste():
     """O banco do catálogo amplo (data/catalogo.sqlite3) é criado por
     test_catalogo; sem isto ele vazava para os testes seguintes e a busca
     da home passava a trazer itens dele."""
+    # Os testes gravam preços do catálogo já "em reais": cotação fixa 1,0
+    # (em produção ela é medida, ver catalogo.cambio). O teste da
+    # conversão desliga isto explicitamente.
+    from lodout.public_site import catalogo
+    catalogo.CAMBIO_FIXO = 1.0
+    catalogo._cambio_cache.update(ts=0.0, valor=None)
     yield
+    catalogo.CAMBIO_FIXO = None
     import lodout._paths as paths
     for nome in ("catalogo.sqlite3", "catalogo.sqlite3-wal",
-                 "catalogo.sqlite3-shm", "catalogo_estado.json"):
+                 "catalogo.sqlite3-shm", "catalogo_estado.json", "catalogo_cambio.json"):
         p = paths.DATA_DIR / nome
         if p.exists():
             p.unlink()

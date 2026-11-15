@@ -89,6 +89,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   `/api/health` → `catalogo`. Liga com `LODOUT_CATALOGO=1` (só produção).
   Medido em 15/11: a busca sem login devolve 10 itens por página (não 100);
   o mercado inteiro leva ~15 h, então a rodada completa é 1x por dia.
+  **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
+  O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
+  `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
+  mediana reais (coleta) ÷ dólar (catálogo) dos itens nos dois. Não leia
+  a coluna `preco` direto como reais.
 
 ### Evidência histórica do modelo
 

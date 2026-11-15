@@ -345,6 +345,12 @@ def _mudanca_desde_ultima_visita(serie: "list[dict]") -> "dict | None":
     # 2026-11-15, print do usuário). Sem base, sem frase.
     if float(antes.get("total") or 0) <= 0 or float(atual.get("total") or 0) <= 0:
         return None
+    # Dobrou ou caiu à metade de uma vez: quase sempre é a carteira que
+    # mudou de tamanho (inventário novo) ou uma correção de preço do site
+    # (2026-11-15: catálogo em dólar), não o mercado. Melhor não dizer.
+    razao = float(atual["total"]) / float(antes["total"])
+    if razao > 2 or razao < 0.5:
+        return None
     diff = float(atual.get("total") or 0) - float(antes.get("total") or 0)
     if abs(diff) < 0.005:
         return None

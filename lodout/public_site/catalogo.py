@@ -422,8 +422,10 @@ def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
             partes.append(f"{coluna} = ?")
             args.append(filtros[chave])
     if filtros.get("preco_max") is not None:
+        taxa = cambio()
         partes.append("preco <= ?")
-        args.append(float(filtros["preco_max"]))
+        # O banco está em dólar; o filtro chega em reais.
+        args.append(float(filtros["preco_max"]) / taxa if taxa else -1.0)
     partes.append("preco IS NOT NULL")
     if excluir:
         partes.append(f"nome NOT IN ({','.join('?' * len(excluir))})")
@@ -447,7 +449,8 @@ def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda"
             f"SELECT * FROM itens WHERE {where} ORDER BY {ordem} "
             "LIMIT ? OFFSET ?", [*args, max(0, int(limite)), max(0, int(offset))]
         ).fetchall() if limite > 0 else []
-        return total, [dict(r) for r in linhas]
+        taxa = cambio()
+        return total, [_em_reais(dict(r), taxa) for r in linhas]
     except sqlite3.Error:
         _logger.warning("leitura do catálogo falhou", exc_info=True)
         return 0, []
@@ -476,7 +479,7 @@ def item(nome: str) -> "dict | None":
         return None
     try:
         r = conn.execute("SELECT * FROM itens WHERE nome = ?", (nome,)).fetchone()
-        return dict(r) if r else None
+        return _em_reais(dict(r), cambio()) if r else None
     except sqlite3.Error:
         return None
     finally:
@@ -509,8 +512,28 @@ def metadados(nomes: "list[str]") -> "dict[str, dict]":
         conn.close()
 
 
-def precos(nomes: "list[str]") -> "dict[str, float]":
-    """{nome: preço do dia} para os nomes que o catálogo tem."""
+# ── Moeda (achado 2026-11-15) ─────────────────────────────────────────
+# A busca do Mercado (/market/search/render) IGNORA o currency=7: sem
+# login, `sell_price` vem sempre em centavos de DÓLAR ("$5.19"). O banco
+# guarda o valor como veio (dólar) e toda leitura converte para reais com
+# a cotação que a própria Steam usa, medida sem consulta nova: a mediana
+# de preço em reais (coleta com nota, priceoverview com currency=7) ÷
+# preço em dólar (catálogo) dos itens que estão nos dois. Sem cotação
+# confiável, o catálogo não mostra preço (melhor que um número errado).
+_CAMBIO_TTL_S = 600
+_CAMBIO_MIN_PARES = 10
+_CAMBIO_FAIXA = (2.0, 15.0)
+_cambio_cache: dict = {"ts": 0.0, "valor": None}
+# Testes fixam a cotação (conftest); em produção fica None.
+CAMBIO_FIXO: "float | None" = None
+
+
+def _caminho_cambio() -> Path:
+    return _paths.DATA_DIR / "catalogo_cambio.json"
+
+
+def _precos_usd(nomes: "list[str]") -> "dict[str, float]":
+    """Preço como a Steam mandou (dólar), sem converter."""
     nomes = [n for n in nomes if n]
     conn = _conectar_leitura()
     if conn is None or not nomes:
@@ -530,6 +553,68 @@ def precos(nomes: "list[str]") -> "dict[str, float]":
         return {}
     finally:
         conn.close()
+
+
+def medir_cambio(precos_brl: "dict[str, float]") -> "tuple[float | None, int]":
+    """(cotação BRL por USD, pares usados) a partir de {nome: preço em
+    reais}. Só itens de pelo menos US$ 1 (abaixo disso o arredondamento
+    em centavos distorce a razão)."""
+    usd = _precos_usd(list(precos_brl))
+    razoes = sorted(precos_brl[n] / v for n, v in usd.items()
+                    if v and v >= 1.0 and precos_brl.get(n))
+    if len(razoes) < _CAMBIO_MIN_PARES:
+        return None, len(razoes)
+    meio = len(razoes) // 2
+    mediana = razoes[meio] if len(razoes) % 2 else (razoes[meio - 1] + razoes[meio]) / 2
+    if not _CAMBIO_FAIXA[0] <= mediana <= _CAMBIO_FAIXA[1]:
+        return None, len(razoes)
+    return mediana, len(razoes)
+
+
+def cambio() -> "float | None":
+    """Reais por dólar para os preços do catálogo (cache de 10 min; a
+    última medida boa fica salva como reserva)."""
+    if CAMBIO_FIXO is not None:
+        return CAMBIO_FIXO
+    agora = time.time()
+    if agora - _cambio_cache["ts"] < _CAMBIO_TTL_S:
+        return _cambio_cache["valor"]
+    valor = None
+    try:
+        from lodout import scan_store
+        scan = scan_store.load_last_scan() or {}
+        brl = {r["name"]: float(r["price"]) for r in scan.get("results") or []
+               if r.get("name") and isinstance(r.get("price"), (int, float)) and r["price"] > 0}
+        valor, pares = medir_cambio(brl)
+        if valor is not None:
+            _paths.atomic_write_text(_caminho_cambio(), json.dumps(
+                {"cambio": valor, "pares": pares, "ts": agora}))
+    except Exception:
+        _logger.warning("cotação do catálogo: medida falhou", exc_info=True)
+    if valor is None:
+        try:
+            salvo = json.loads(_caminho_cambio().read_text(encoding="utf-8"))
+            v = float(salvo.get("cambio"))
+            valor = v if _CAMBIO_FAIXA[0] <= v <= _CAMBIO_FAIXA[1] else None
+        except Exception:
+            valor = None
+    _cambio_cache.update(ts=agora, valor=valor)
+    return valor
+
+
+def _em_reais(linha: dict, taxa: "float | None") -> dict:
+    """Linha do banco com o preço convertido para reais (None sem cotação)."""
+    if linha.get("preco") is not None:
+        linha["preco"] = round(linha["preco"] * taxa, 2) if taxa else None
+    return linha
+
+
+def precos(nomes: "list[str]") -> "dict[str, float]":
+    """{nome: preço do dia em reais} para os nomes que o catálogo tem."""
+    taxa = cambio()
+    if not taxa:
+        return {}
+    return {n: round(v * taxa, 2) for n, v in _precos_usd(nomes).items()}
 
 
 def tem_dados() -> bool:
