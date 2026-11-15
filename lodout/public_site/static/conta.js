@@ -26,6 +26,11 @@
     return (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/-/g, " ");
   }
 
+  var formatoReais = window.Intl ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }) : null;
+  function reais(v) {
+    return formatoReais ? formatoReais.format(v) : "R$ " + v.toFixed(2).replace(".", ",");
+  }
+
   function linhas() {
     return corpo ? Array.prototype.slice.call(corpo.querySelectorAll("tr.linha-posicao")) : [];
   }
@@ -66,8 +71,11 @@
     }[estado.ordem];
     var ordenadas = todas.slice().sort(function (a, b) {
       if (estado.ordem === "nome") {
-        return semAcento(a.querySelector(".link-item").textContent).localeCompare(
-          semAcento(b.querySelector(".link-item").textContent), "pt-BR");
+        // Sem "★" e outros símbolos no começo; lotes do mesmo item na
+        // ordem original (lote 1 antes do 2).
+        var na = semAcento(a.querySelector(".link-item").textContent).replace(/^[^a-z0-9]+/, "");
+        var nb = semAcento(b.querySelector(".link-item").textContent).replace(/^[^a-z0-9]+/, "");
+        return na.localeCompare(nb, "pt-BR") || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
       }
       return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
     });
@@ -88,9 +96,19 @@
     });
     var mostrando = ferramentas.querySelector("[data-conta-mostrando]");
     if (mostrando) {
-      mostrando.textContent = visiveis === todas.length ? "" :
-        "Mostrando " + visiveis + " de " + todas.length + " " + (todas.length === 1 ? "item" : "itens");
+      var soma = 0;
+      todas.forEach(function (tr) { if (!tr.hidden) soma += Number(tr.getAttribute("data-valor") || 0); });
+      mostrando.textContent = visiveis === todas.length || visiveis === 0 ? "" :
+        "Mostrando " + visiveis + " de " + todas.length + " " + (todas.length === 1 ? "item" : "itens") +
+        " · " + (visiveis === 1 ? "vale " : "valem ") + reais(soma) + " hoje";
     }
+    // Títulos de coluna: qual está ordenando (leitor de tela e seta).
+    Array.prototype.forEach.call(document.querySelectorAll(".tabela-conta th[data-ordenar-coluna]"), function (th) {
+      var col = th.getAttribute("data-ordenar-coluna");
+      var ativo = col === estado.ordem || (col === "lucro" && estado.ordem === "prejuizo");
+      if (!ativo) { th.removeAttribute("aria-sort"); return; }
+      th.setAttribute("aria-sort", estado.ordem === "nome" || estado.ordem === "prejuizo" ? "ascending" : "descending");
+    });
   }
 
   var escolherFiltro = function () {};
@@ -112,7 +130,36 @@
       var botao = e.target.closest("[data-conta-filtro]");
       if (botao) escolherFiltro(botao.getAttribute("data-conta-filtro"));
     });
-    if (busca) busca.addEventListener("input", function () { estado.busca = busca.value; aplicar(); });
+    if (busca) {
+      busca.addEventListener("input", function () { estado.busca = busca.value; aplicar(); });
+      // Esc limpa a busca (e sai do campo, se já estava vazia).
+      busca.addEventListener("keydown", function (e) {
+        if (e.key !== "Escape") return;
+        if (busca.value) { busca.value = ""; estado.busca = ""; aplicar(); e.preventDefault(); }
+        else { busca.blur(); }
+      });
+    }
+    // Clicar no título da coluna ordena (Lucro alterna entre maior lucro
+    // e maior prejuízo); o seletor "Ordenar" acompanha.
+    function escolherOrdem(valor) {
+      estado.ordem = valor;
+      if (ordem) ordem.value = valor;
+      try { window.localStorage.setItem("lodout-conta-ordem", valor); } catch (erro) { /* ignora */ }
+      aplicar();
+    }
+    Array.prototype.forEach.call(document.querySelectorAll(".tabela-conta th[data-ordenar-coluna]"), function (th) {
+      var col = th.getAttribute("data-ordenar-coluna");
+      var botao = document.createElement("button");
+      botao.type = "button";
+      botao.className = "ordenar-coluna";
+      botao.innerHTML = th.innerHTML + '<span class="ordenar-seta" aria-hidden="true"></span>';
+      botao.addEventListener("click", function () {
+        if (col === "lucro") escolherOrdem(estado.ordem === "prejuizo" ? "lucro" : "prejuizo");
+        else escolherOrdem(col);
+      });
+      th.innerHTML = "";
+      th.appendChild(botao);
+    });
     // A ordem escolhida fica lembrada neste navegador (só conveniência).
     try {
       var guardada = window.localStorage.getItem("lodout-conta-ordem");

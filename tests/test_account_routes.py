@@ -202,7 +202,7 @@ def test_adicionar_posicao(client, monkeypatch):
     assert "Testada em Campo" in pagina  # localize_name
     assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta"' in pagina
     assert 'data-label="Você pagou"' in pagina
-    assert 'data-label="Lucro se vender hoje"' in pagina
+    assert 'data-label="Lucro hoje"' in pagina
 
 
 def test_posicao_mostra_icone_raridade_e_nota_do_scan_atual(

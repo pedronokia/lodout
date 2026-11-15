@@ -6341,3 +6341,27 @@ button.venda-por-falta {
 button.venda-por-falta:hover { color: var(--accent-bright); }
 button.venda-por-falta:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
+/* Títulos de coluna que ordenam (conta.js, 8+ itens). */
+.ordenar-coluna {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -4px -6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ordenar-coluna:hover { color: var(--text-bright); background: var(--surface-hover); }
+.ordenar-coluna:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.ordenar-seta { width: 0.7em; font-size: 0.85em; }
+th[aria-sort] .ordenar-coluna { color: var(--text-bright); }
+th[aria-sort="descending"] .ordenar-seta::before { content: "↓"; }
+th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
+
+
+#explica-meta a { text-decoration: underline; text-underline-offset: 2px; }
