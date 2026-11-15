@@ -64,7 +64,8 @@ o preço do dia de todo o mercado.
 ## Sempre / Nunca
 - Nunca: pedir, ler ou guardar senha, cookie, chave de API da Steam.
 - Nunca: consultar a Steam só por abrir uma página.
-- Sempre: o custo digitado pela pessoa é dela — nenhuma sincronização apaga.
+- Sempre: o custo digitado é da pessoa — a sincronização só o apaga quando
+  o item sai do inventário (vendido/trocado), como decidido.
 - Sempre: tom de dado, não promessa ("para lucrar 20%, venda por…").
 
 ## Progresso
