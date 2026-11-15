@@ -48,7 +48,8 @@ from lodout import (
 from lodout._paths import DATA_DIR, atomic_write_bytes
 from lodout.localization import localize_name
 from lodout.public_site import (
-    buscas, catalogo, changelog, charts, db_backup, discord_notify,
+    backtest_diario, buscas, catalogo, changelog, charts, db_backup,
+    discord_notify,
     erro_stats, fmt, icon_cache, latencia, og_cards, profile_fetcher,
     raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
@@ -850,6 +851,8 @@ def create_app() -> Flask:
             # Catálogo amplo (plans/archive/catalogo-grande.md): tamanho,
             # páginas, bloqueios e tamanho real da página da Steam.
             "catalogo": catalogo.resumo(),
+            # "A nota acertou no passado?" (backtest_diario.py): só leitura.
+            "backtest": backtest_diario.ler(),
             "ultima_rodada_top": scan_store.load_rodada_top(),
             "intervalo_horas_configurado": intervalo_horas,
             "no_ar_desde": uptime.no_ar_desde(),

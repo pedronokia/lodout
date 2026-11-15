@@ -19,6 +19,8 @@ services:
       - LODOUT_CATALOGO=1
       # Inventário das contas 1x por dia (plans/archive/conta-inventario.md).
       - LODOUT_INVENTARIO_DIARIO=1
+      # Backtest diário da nota (só cálculo, sem consulta à Steam).
+      - LODOUT_BACKTEST_DIARIO=1
 
   caddy:
     image: caddy:2-alpine

@@ -28,7 +28,8 @@ from lodout import (
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
 from lodout.public_site import (
-    catalogo, db_backup, inventario, scan_progress, worker_alert,
+    backtest_diario, catalogo, db_backup, inventario, scan_progress,
+    worker_alert,
 )
 from lodout._ambiente import ambiente
 
@@ -705,7 +706,8 @@ def _esperar(segundos: float, permitido: bool = True) -> None:
     """Espera `segundos`; no tempo livre, avança o catálogo amplo
     (plans/archive/catalogo-grande.md) quando ligado e quando a Steam não
     está bloqueando a coleta (`permitido`)."""
-    tem_tarefa = catalogo.ligado() or inventario.diario_ligado()
+    tem_tarefa = (catalogo.ligado() or inventario.diario_ligado()
+                  or backtest_diario.ligado())
     if not (permitido and tem_tarefa and segundos > _CATALOGO_FOLGA_S):
         time.sleep(segundos)
         return
@@ -718,6 +720,12 @@ def _esperar(segundos: float, permitido: bool = True) -> None:
         except Exception:
             _logger.error("sincronização diária de inventários falhou",
                           exc_info=True)
+    # Backtest diário da nota: só cálculo local, sem consulta à Steam.
+    if backtest_diario.ligado() and not _parar:
+        try:
+            backtest_diario.rodar_se_preciso()
+        except Exception:
+            _logger.error("backtest diário falhou", exc_info=True)
     if catalogo.ligado() and not _parar:
         try:
             catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)

@@ -371,3 +371,68 @@ def split_itens(itens: "list[dict]", fracao_confirmacao: float = 0.3,
     cal_containers, conf_containers = _dividir(containers)
     cal_skins, conf_skins = _dividir(skins)
     return cal_containers + cal_skins, conf_containers + conf_skins
+
+
+
+# ── Resumo em linguagem simples (2026-11-15) ─────────────────────────
+# A pergunta de quem usa o site: "itens com nota alta subiram mais?" --
+# por faixa de nota exibida, quantas vezes o preço subiu o bastante pra
+# pagar a taxa da Steam (15%) e quantas vezes caiu. Mesmo replay sem
+# lookahead de `amostras()`.
+FAIXAS_NOTA = (("85-100", 85, 101), ("70-84", 70, 85), ("50-69", 50, 70),
+               ("0-49", 0, 50))
+
+
+def resumo_por_faixa(linhas: "list[dict]", taxa_pct: float = 15.0) -> dict:
+    """{faixa: {n, mediana_pct, passou_taxa_pct, caiu_pct}} a partir das
+    linhas de `amostras()`. `passou_taxa_pct`: % das vezes em que o preço
+    subiu pelo menos `taxa_pct` (o bastante pra vender sem prejuízo)."""
+    out = {}
+    for rotulo, ini, fim in FAIXAS_NOTA:
+        rets = [r["retorno_pct"] for r in linhas if ini <= r["score"] < fim]
+        if not rets:
+            continue
+        out[rotulo] = {
+            "n": len(rets),
+            "mediana_pct": round(statistics.median(rets), 1),
+            "passou_taxa_pct": round(100 * sum(1 for x in rets if x >= taxa_pct) / len(rets)),
+            "caiu_pct": round(100 * sum(1 for x in rets if x < 0) / len(rets)),
+        }
+    return out
+
+
+def relatorio(itens: "list[dict]", horizontes=(30, 90, 365),
+              intervalo_dias: float = 30.0,
+              agora: "float | None" = None) -> dict:
+    """Por horizonte: n, Spearman (nota bruta x retorno) e o resumo por
+    faixa -- no geral e separado em skins e caixas/cápsulas (o modelo já
+    sabe que se comportam diferente, ver AGENTS.md)."""
+    out = {"itens": len(itens), "horizontes": {}}
+    for h in horizontes:
+        linhas = []
+        for item in itens:
+            for r in amostras(item["name"], item.get("price_history") or [],
+                              bool(item.get("is_container")), h,
+                              intervalo_dias=intervalo_dias, agora=agora):
+                r["is_container"] = bool(item.get("is_container"))
+                linhas.append(r)
+        if not linhas:
+            continue
+        bloco = {
+            "n": len(linhas),
+            "itens_com_amostra": len({r["name"] for r in linhas}),
+            "spearman": spearman([r["raw_score"] for r in linhas],
+                                 [r["retorno_pct"] for r in linhas]),
+            "faixas": resumo_por_faixa(linhas),
+        }
+        for chave, filtro in (("skins", False), ("caixas", True)):
+            sub = [r for r in linhas if r["is_container"] is filtro]
+            if sub:
+                bloco[chave] = {
+                    "n": len(sub),
+                    "spearman": spearman([r["raw_score"] for r in sub],
+                                         [r["retorno_pct"] for r in sub]),
+                    "faixas": resumo_por_faixa(sub),
+                }
+        out["horizontes"][str(h)] = bloco
+    return out

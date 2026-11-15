@@ -280,7 +280,7 @@ def _guardar_pagina(name: str, page: dict, agora: float) -> None:
     try:
         arq.parent.mkdir(parents=True, exist_ok=True)
         _paths.atomic_write_bytes(arq, gzip.compress(
-            json.dumps({"ts": agora, "page": pagina}).encode("utf-8")))
+            json.dumps({"ts": agora, "name": name, "page": pagina}).encode("utf-8")))
     except OSError:
         pass
 
