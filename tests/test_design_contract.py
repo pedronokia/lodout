@@ -85,8 +85,12 @@ def test_corpo_tipografico_17px():
     assert "font-size: var(--fs-base);" in corpo
     # 25/17 ≈ 1.47 (25px de entrelinha em corpo de 17px).
     assert "line-height: 1.47;" in corpo
-    # tracking da Apple no corpo de 17px.
-    assert "letter-spacing: -0.022em;" in corpo
+    # Espaçamento entre letras pelo tamanho de cada elemento (dynamic
+    # metrics da Inter), não um valor fixo no body herdado por todo texto
+    # menor -- isso espremia os rótulos de 12px (2026-11-15).
+    assert "letter-spacing" not in corpo
+    assert "letter-spacing: calc((1em - 12px) * -0.04);" in css
+    assert "font-weight: 450;" in corpo
 
 
 def test_fonte_inter_autohospedada():
