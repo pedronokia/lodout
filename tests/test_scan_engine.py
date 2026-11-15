@@ -763,3 +763,42 @@ def test_scan_item_guarda_revenda_historica(monkeypatch):
     _mock_steam_ok(monkeypatch, price_history=hist)
     r = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
     assert r["revenda_historica"]["30"] == {"pct": 0, "n": 365}
+
+
+def test_rodizio_guarda_a_pagina_e_mede_a_nota_com_a_copia(monkeypatch):
+    # 2026-11-15: rodízio em sombra -- a 1a coleta só guarda a página; a
+    # seguinte calcula também a nota com a cópia antiga + o preço de agora.
+    import shutil
+    from lodout import _paths
+    shutil.rmtree(_paths.DATA_DIR / "rodizio_paginas", ignore_errors=True)
+    t0 = 1_790_000_000
+    hist = [{"time": t0 + h * 3600, "price_median": 100.0, "purchases": 2}
+            for h in range(48)]
+    _mock_steam_ok(monkeypatch, price_history=hist)
+    agora = [2_000_000_000.0]
+    monkeypatch.setattr(scan_engine.time, "time", lambda: agora[0])
+    r1 = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
+    assert "nota_rodizio" not in r1["_sombra"]
+    agora[0] += 6 * 3600
+    r2 = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
+    s = r2["_sombra"]
+    assert s["idade_pagina_h"] == 6.0
+    assert s["nota_atual"] == r2["score"]
+    # Mesma página e mesmo preço: a nota com a cópia é igual.
+    assert s["nota_rodizio"] == r2["score"]
+
+
+def test_comparar_rodizio_resume_por_idade_da_copia():
+    sombras = [
+        {"name": "A", "nota_atual": 70, "nota_rodizio": 70, "idade_pagina_h": 6.0},
+        {"name": "B", "nota_atual": 60, "nota_rodizio": 62, "idade_pagina_h": 12.0},
+        {"name": "C", "nota_atual": 50, "nota_rodizio": 41, "idade_pagina_h": 20.0},
+        {"name": "D", "nota_atual": 50},
+    ]
+    r = scan_engine.comparar_rodizio(sombras)
+    assert r["itens"] == 3 and r["mais_de_5_pontos"] == 1
+    assert r["ate_2_pontos_pct"] == 66.7
+    assert r["por_idade"]["ate_8h"]["iguais_pct"] == 100.0
+    assert r["por_idade"]["16_30h"]["mais_de_5_pontos"] == 1
+    assert r["maiores"][0] == {"name": "C", "de": 50, "para": 41, "idade_h": 20.0}
+    assert scan_engine.comparar_rodizio([{"name": "X"}]) is None

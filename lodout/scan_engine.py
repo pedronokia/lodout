@@ -1,11 +1,14 @@
 """Lógica de coleta e avaliação usada pelo worker do site público."""
 from __future__ import annotations
 
+import gzip
+import hashlib
+import json
 import sys
 import time
 from typing import Callable
 
-from lodout import cases, discovery, scan_targets, signals, steam_api
+from lodout import _paths, cases, discovery, scan_targets, signals, steam_api
 from lodout.prices import PriceCache
 from lodout import textos
 
@@ -158,6 +161,8 @@ def scan_item(name: str, category: str | None = None,
     )
 
     ob_approx = bool(page.get("order_book_approx")) if page else False
+    rodizio = _medir_rodizio(name, overview, page, lowest, median, volume,
+                             score)
     sombra = _fonte_pagina(page, ob, ob_approx)
     if sombra is not None and overview is not None:
         sombra.update(_nota_so_com_a_pagina(
@@ -230,12 +235,131 @@ def scan_item(name: str, category: str | None = None,
         "_sem_historico": not (page and page.get("price_history")),
         "_sombra": {
             **(sombra or {}),
+            **(rodizio or {}),
             "lowest_overview": (overview or {}).get("lowest"),
             "volume_overview": volume,
             "median_overview": (overview or {}).get("median"),
             "name": name,
         },
     }
+
+
+# ── Rodízio em sombra (2026-11-15) ───────────────────────────────────
+# Ideia: buscar a listing page (histórico + ofertas, a consulta pesada) de
+# cada item 1x por dia e, nas outras coletas, só o priceoverview. Antes de
+# decidir, mede quanto a NOTA mudaria: cada coleta calcula também a nota
+# com a cópia guardada da página (de até 24 h atrás) + o preço atual. A
+# cópia é renovada 1x por dia, então ao longo do dia a idade passa por
+# ~6, 12, 18 e 24 h. Nenhuma consulta a mais à Steam.
+_RODIZIO_RENOVA_H = 24.0
+
+
+def _rodizio_arquivo(name: str):
+    nome = hashlib.sha1(name.encode("utf-8")).hexdigest() + ".json.gz"
+    return _paths.DATA_DIR / "rodizio_paginas" / nome
+
+
+def _ler_pagina_guardada(name: str) -> "tuple[float, dict] | None":
+    arq = _rodizio_arquivo(name)
+    if not arq.exists():
+        return None
+    try:
+        dados = json.loads(gzip.decompress(arq.read_bytes()).decode("utf-8"))
+        return float(dados["ts"]), dados["page"]
+    except Exception:
+        return None  # cópia ilegível: só não mede este item agora
+
+
+def _guardar_pagina(name: str, page: dict, agora: float) -> None:
+    guardada = _ler_pagina_guardada(name)
+    if guardada and agora - guardada[0] < _RODIZIO_RENOVA_H * 3600:
+        return
+    pagina = {k: page.get(k) for k in
+              ("price_history", "order_book", "order_book_approx", "meta")}
+    arq = _rodizio_arquivo(name)
+    try:
+        arq.parent.mkdir(parents=True, exist_ok=True)
+        _paths.atomic_write_bytes(arq, gzip.compress(
+            json.dumps({"ts": agora, "page": pagina}).encode("utf-8")))
+    except OSError:
+        pass
+
+
+def _nota_com_pagina(name: str, lowest, median, volume,
+                     page: dict) -> "int | None":
+    """A nota com o preço de agora e uma página (histórico + ofertas)
+    possivelmente antiga -- o mesmo cálculo de `scan_item`."""
+    ob = page.get("order_book") or None
+    meta = page.get("meta") or {}
+    hist = page.get("price_history") or None
+    verdict = steam_api.fair_value_verdict(
+        lowest, median,
+        spread=ob.get("spread") if ob else None,
+        buy_count=ob.get("buy_count") if ob else None,
+        sell_count=ob.get("sell_count") if ob else None,
+        price_history=hist,
+        tradable_restriction=meta.get("tradable_restriction"))
+    supply = ob.get("sell_count") if ob else None
+    multi = signals.multi_trend_diario(hist) if hist else None
+    cs = cases.case_status(name, collection=meta.get("collection"))
+    nota, _ = signals.enhanced_score(
+        verdict, volume, supply, multi_trend=multi, price_history=hist,
+        case_status=cs, is_container=cases.is_container(name))
+    return nota
+
+
+def _medir_rodizio(name: str, overview, page, lowest, median, volume,
+                   score: int) -> "dict | None":
+    if overview is None or not page or not page.get("price_history"):
+        return None
+    agora = time.time()
+    out = None
+    guardada = _ler_pagina_guardada(name)
+    if guardada and agora - guardada[0] > 30 * 60:
+        try:
+            out = {"nota_atual": score,
+                   "nota_rodizio": _nota_com_pagina(
+                       name, lowest, median, volume, guardada[1]),
+                   "idade_pagina_h": round((agora - guardada[0]) / 3600, 1)}
+        except Exception:
+            out = None
+    _guardar_pagina(name, page, agora)
+    return out
+
+
+_FAIXAS_IDADE = (("ate_8h", 0, 8), ("8_16h", 8, 16), ("16_30h", 16, 30))
+
+
+def comparar_rodizio(sombras: "list[dict]") -> "dict | None":
+    """Quantas notas mudariam com a página guardada (rodízio), por idade
+    da cópia."""
+    pares = [f for f in sombras
+             if isinstance(f.get("nota_atual"), (int, float))
+             and isinstance(f.get("nota_rodizio"), (int, float))
+             and isinstance(f.get("idade_pagina_h"), (int, float))]
+    if not pares:
+        return None
+
+    def _resumo(lista):
+        difs = [abs(f["nota_rodizio"] - f["nota_atual"]) for f in lista]
+        return {"itens": len(lista),
+                "iguais_pct": round(100 * sum(1 for d in difs if d == 0) / len(difs), 1),
+                "ate_2_pontos_pct": round(100 * sum(1 for d in difs if d <= 2) / len(difs), 1),
+                "mais_de_5_pontos": sum(1 for d in difs if d > 5),
+                "diferenca_media": round(sum(difs) / len(difs), 2)}
+
+    out = _resumo(pares)
+    out["por_idade"] = {}
+    for rotulo, ini, fim in _FAIXAS_IDADE:
+        grupo = [f for f in pares if ini <= f["idade_pagina_h"] < fim]
+        if grupo:
+            out["por_idade"][rotulo] = _resumo(grupo)
+    maiores = sorted(pares, key=lambda f: -abs(f["nota_rodizio"] - f["nota_atual"]))
+    out["maiores"] = [{"name": f.get("name"), "de": f["nota_atual"],
+                       "para": f["nota_rodizio"], "idade_h": f["idade_pagina_h"]}
+                      for f in maiores[:8]
+                      if f["nota_rodizio"] != f["nota_atual"]]
+    return out
 
 
 def _nota_so_com_a_pagina(sombra: dict, score: int, lowest: float,
@@ -685,6 +809,7 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
         relatorio["pausas_429"] = pausas
         relatorio["sem_preco"] = sem_preco
         relatorio["comparacao_fontes"] = comparar_fontes(sombras)
+        relatorio["comparacao_rodizio"] = comparar_rodizio(sombras)
         relatorio["throttle_silencioso"] = throttle
         relatorio["abortado"] = abortado
     return results
