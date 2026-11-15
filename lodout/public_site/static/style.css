@@ -6158,8 +6158,10 @@ table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
   }
   .tabela-conta .cabecalho-fixo-conta th:first-child { border-top-left-radius: calc(var(--radius-md) - 1px); }
   .tabela-conta .cabecalho-fixo-conta th:last-child { border-top-right-radius: calc(var(--radius-md) - 1px); }
-  .tabela-conta tbody tr:last-of-type td:first-child { border-bottom-left-radius: calc(var(--radius-md) - 1px); }
-  .tabela-conta tbody tr:last-of-type td:last-child { border-bottom-right-radius: calc(var(--radius-md) - 1px); }
+  .tabela-conta tbody:first-of-type tr:last-child td:first-child,
+  .tabela-conta tr.ultima-visivel td:first-child { border-bottom-left-radius: calc(var(--radius-md) - 1px); }
+  .tabela-conta tbody:first-of-type tr:last-child td:last-child,
+  .tabela-conta tr.ultima-visivel td:last-child { border-bottom-right-radius: calc(var(--radius-md) - 1px); }
 }
 @media (max-width: 640px) {
   .conta-ordem { margin-left: 0; }
@@ -6205,3 +6207,10 @@ table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
 .separar-lote[open] { display: block; flex-basis: 100%; }
 .form-separar .botao-link { min-height: 30px; padding: 0 4px; font-size: var(--fs-sm); }
 .conta-filtro { flex-shrink: 0; white-space: nowrap; }
+
+/* Fim da tabela da conta: a última linha visível não repete a borda da
+   tabela (era a linha dupla no rodapé). */
+table.tabela-conta tbody:first-of-type tr:last-child td,
+table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
+.tabela-conta .corpo-nenhum .linha-nenhum td { border-bottom: 0; border-top: 1px solid var(--border); }
+

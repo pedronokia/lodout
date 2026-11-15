@@ -211,6 +211,10 @@
           </td>
         </tr>
         {% endfor %}
+      </tbody>
+      {# Num corpo à parte: assim a última linha de item é mesmo a última do
+         primeiro corpo (sem borda dupla no fim da tabela). #}
+      <tbody class="corpo-nenhum">
         <tr class="linha-nenhum" data-conta-nenhum hidden>
           <td colspan="5">Nenhum item com esse filtro. <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
         </tr>

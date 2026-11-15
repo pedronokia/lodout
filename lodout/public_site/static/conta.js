@@ -19,7 +19,7 @@
   // Inventário grande: achar o que importa sem rolar a lista toda. Só
   // reorganiza as linhas que já estão na página; nenhuma consulta nova.
   var ferramentas = document.querySelector("[data-conta-ferramentas]");
-  var corpo = document.querySelector(".tabela-conta tbody");
+  var corpo = document.querySelector(".tabela-conta tbody:not(.corpo-nenhum)");
   var estado = { filtro: "todos", busca: "", ordem: "valor" };
 
   function semAcento(t) {
@@ -71,9 +71,17 @@
       }
       return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
     });
-    var nenhum = corpo.querySelector("[data-conta-nenhum]");
-    ordenadas.forEach(function (tr) { corpo.insertBefore(tr, nenhum); });
+    var nenhum = document.querySelector("[data-conta-nenhum]");
+    ordenadas.forEach(function (tr) { corpo.appendChild(tr); });
     if (nenhum) nenhum.hidden = visiveis > 0;
+    // A última linha visível fecha a tabela: sem borda de baixo nem canto
+    // reto (com filtro, a última do corpo pode estar escondida).
+    var ultima = null;
+    ordenadas.forEach(function (tr) {
+      tr.classList.remove("ultima-visivel");
+      if (!tr.hidden) ultima = tr;
+    });
+    if (ultima) ultima.classList.add("ultima-visivel");
     Object.keys(contagem).forEach(function (f) {
       var el = ferramentas.querySelector('[data-conta-contagem="' + f + '"]');
       if (el) el.textContent = contagem[f];
