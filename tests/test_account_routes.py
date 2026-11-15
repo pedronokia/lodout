@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from urllib.parse import parse_qs, urlsplit
 
+import time
 import pytest
 
 from lodout.public_site import db
@@ -587,3 +588,56 @@ def test_apagar_valor_pago_e_baixar_planilha(client, monkeypatch):
 
 def test_planilha_exige_login(client):
     assert client.get("/conta/tabela.csv").status_code in (302, 401)
+
+
+def test_ler_reais_aceita_formatos_brasileiros():
+    from lodout.public_site import fmt
+    assert fmt.ler_reais("35,10") == 35.10
+    assert fmt.ler_reais("35.10") == 35.10
+    assert fmt.ler_reais("R$ 1.234,56") == 1234.56
+    assert fmt.ler_reais("R$ 12,00") == 12.0
+    import pytest as _pt
+    with _pt.raises(ValueError):
+        fmt.ler_reais("abc")
+
+
+def test_confira_valor_fora_do_comum():
+    from lodout.public_site import account
+    assert account._confira(3.0, 33.0) == "confira: bem abaixo do preço"
+    assert account._confira(500.0, 33.0) == "confira: bem acima do preço"
+    assert account._confira(30.0, 33.0) == ""
+    assert account._confira(None, 33.0) == ""
+
+
+def test_meta_de_lucro_responde_json(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    r = client.post("/conta/meta", data={"meta": "30", "csrf_token": token},
+                    headers={"Accept": "application/json"})
+    assert r.get_json() == {"ok": True, "meta": 30}
+
+
+def test_atualizar_inventario_a_pedido_com_intervalo(client, monkeypatch):
+    from lodout.public_site import inventario, user_store
+    from lodout import steam_api
+    disparos = []
+    monkeypatch.setattr(inventario, "sincronizar_em_segundo_plano",
+                        lambda sid: disparos.append(sid))
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    sid = "76561198000000000"
+    disparos.clear()  # o próprio login já sincroniza
+    # Atualizado há pouco: não busca de novo.
+    user_store.save_user_json(sid, "inventario_sync", {"status": "ok", "ts": time.time()})
+    client.post("/conta/inventario/atualizar", data={"csrf_token": token})
+    assert disparos == []
+    # Há mais de 5 min e sem pausa da Steam: busca.
+    user_store.save_user_json(sid, "inventario_sync", {"status": "ok", "ts": time.time() - 600})
+    client.post("/conta/inventario/atualizar", data={"csrf_token": token})
+    assert disparos == [sid]
+    # Steam pediu pausa: não busca.
+    monkeypatch.setattr(steam_api, "em_cooldown", lambda familia: True)
+    client.post("/conta/inventario/atualizar", data={"csrf_token": token})
+    assert disparos == [sid]
+    # Sem CSRF: recusado.
+    assert client.post("/conta/inventario/atualizar").status_code in (400, 403)

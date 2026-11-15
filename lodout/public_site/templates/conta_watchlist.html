@@ -31,7 +31,7 @@
         <form class="form-adicionar" method="post" action="{{ url_for('watchlist.adicionar') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-          <input type="text" name="target" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Alvo, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Alvo de preço em reais, opcional">
+          <input type="text" name="target" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Alvo, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Alvo de preço em reais, opcional">
           <button type="submit" class="botao-acao">+ Acompanhar</button>
         </form>
       </div>

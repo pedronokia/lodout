@@ -12,8 +12,46 @@
   document.addEventListener("change", function (e) {
     var campo = e.target;
     if (!campo.matches || !campo.matches("[data-enviar-ao-mudar]") || !campo.form) return;
+    if (campo.form.classList.contains("form-meta-lucro") && window.fetch) {
+      trocarMeta(campo);
+      return;
+    }
     campo.form.submit();
   });
+
+  // "Quero lucrar X%" sem recarregar (2026-11-15): salva a preferência e
+  // recalcula o preço de venda de cada linha aqui mesmo (empate × meta).
+  function trocarMeta(seletor) {
+    var form = seletor.form;
+    fetch(form.action, {
+      method: "POST", body: new FormData(form),
+      headers: { "Accept": "application/json" }, credentials: "same-origin"
+    }).then(function (resp) {
+      return resp.ok ? resp.json() : Promise.reject();
+    }).then(function (d) {
+      if (!d || !d.ok) return Promise.reject();
+      var meta = Number(d.meta);
+      Array.prototype.forEach.call(document.querySelectorAll("[data-meta-rotulo]"), function (el) {
+        el.textContent = "Lucrar " + meta + "%";
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-meta-num]"), function (el) {
+        el.textContent = String(meta);
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("tr.linha-posicao"), function (tr) {
+        var empate = Number(tr.getAttribute("data-empate") || 0);
+        if (!empate) return;
+        texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
+      });
+    }).catch(function () { form.submit(); });
+  }
+
+  // Valor colado ou digitado do jeito brasileiro ("R$ 1.234,56") vira
+  // "1234,56" antes de validar e salvar.
+  function normalizarValor(campo) {
+    var v = campo.value.replace(/R\$/g, "").replace(/[\s\u00a0]/g, "");
+    if (v.indexOf(",") !== -1) v = v.replace(/\./g, "");
+    if (v !== campo.value) campo.value = v;
+  }
 
   // ── Ferramentas da lista: busca, filtro e ordem (2026-11-15) ──────────
   // Inventário grande: achar o que importa sem rolar a lista toda. Só
@@ -358,6 +396,7 @@
     var campo = e.target;
     if (e.key !== "Enter" || !campo.classList || !campo.classList.contains("input-custo")) return;
     if (!campo.form || !campo.form.classList.contains("salva-sozinho")) return;
+    normalizarValor(campo);
     if (campo.value.trim() === "") {
       // Apagou o número de um item que tinha valor: Enter tira o valor.
       if (campo.form.getAttribute("data-ultimo")) {
@@ -422,6 +461,7 @@
     document.addEventListener("change", function (e) {
       var campo = e.target;
       if (!campo.classList || !campo.classList.contains("input-custo") || !campo.form) return;
+      normalizarValor(campo);
       if (campo.form.requestSubmit) campo.form.requestSubmit();
       else campo.form.submit();
     });
@@ -504,6 +544,9 @@
         }
         if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
         else linha.classList.add("linha-sem-custo");
+        linha.setAttribute("data-empate", d.empate ? String(d.empate) : "");
+        var confira = linha.querySelector('[data-campo="confira"]');
+        if (confira) confira.textContent = d.confira || "";
         if (lucro && !d.lucro_classe) lucro.classList.add("celula-sem-valor");
         else if (lucro) lucro.classList.remove("celula-sem-valor");
       }

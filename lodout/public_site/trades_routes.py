@@ -84,8 +84,8 @@ def adicionar():
 
     try:
         # Aceita vírgula decimal (teclado brasileiro), como a conta.
-        buy_cost = float((request.form.get("buy_cost") or "").strip().replace(",", "."))
-        sell_price = float((request.form.get("sell_price") or "").strip().replace(",", "."))
+        buy_cost = fmt.ler_reais(request.form.get("buy_cost"))
+        sell_price = fmt.ler_reais(request.form.get("sell_price"))
     except ValueError:
         flash(
             "Confira os valores: compra e venda precisam ser números maiores que zero.",

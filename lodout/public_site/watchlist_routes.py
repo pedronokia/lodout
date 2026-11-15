@@ -171,7 +171,7 @@ def adicionar():
 
     target_raw = (request.form.get("target") or "").strip()
     try:
-        target = float(target_raw.replace(",", ".")) if target_raw else 0.0
+        target = fmt.ler_reais(target_raw) if target_raw else 0.0
     except ValueError:
         flash(
             "O preço-alvo precisa ser um número válido e igual ou maior que zero.",

@@ -6445,3 +6445,18 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 .como-ler-lista dt { color: var(--text-bright); font-size: var(--fs-sm); font-weight: 600; }
 .como-ler-lista dd { margin: 2px 0 0; color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.5; }
 
+/* ── Conta: confira, atualizar inventário (2026-11-15) ─────────────── */
+.confira {
+  display: block;
+  margin-top: 2px;
+  color: var(--warn);
+  font-size: var(--fs-2xs);
+}
+.confira:empty { display: none; }
+.botao-atualizar-inventario {
+  margin-left: var(--sp-2);
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+

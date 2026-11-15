@@ -110,6 +110,7 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         custo = row.get("cost") or 0
         if row.get("has_cost") and custo > 0:
             empate = portfolio.break_even_price(custo)
+            row["empate"] = empate
             row["empate_fmt"] = fmt.brl(empate)
             row["alvo_fmt"] = fmt.brl(empate * (1 + meta_pct / 100))
         raw = por_nome_scan.get(row["name"])
@@ -128,6 +129,7 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
             row["valor_total_fmt"] = fmt.brl(row["price"] * (row.get("quantity") or 1))
         row["cost_fmt"] = fmt.brl(row.get("cost"))
         row["pnl_fmt"] = fmt.brl(row.get("pnl"))
+        row["confira"] = _confira(custo if row.get("has_cost") else None, row.get("price"))
         row["pnl_pct_fmt"] = _pct_curto(row.get("pnl_pct")) \
             if row.get("has_cost") and row.get("pnl") is not None and custo > 0 else None
         row["score"] = raw.get("score") if raw else None
@@ -143,6 +145,20 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
     avaliacao["textos"] = _textos_totais(t)
     return avaliacao
+
+
+def _confira(custo: "float | None", preco: "float | None") -> str:
+    """Aviso discreto quando o valor pago parece digitado errado: muito
+    abaixo (menos de 1/5) ou muito acima (mais de 10x) do preço de hoje.
+    Não diz que está errado -- só pede pra conferir (2026-11-15, depois
+    do problema que cortava números na digitação)."""
+    if not custo or not preco:
+        return ""
+    if custo < preco / 5:
+        return "confira: bem abaixo do preço"
+    if custo > preco * 10:
+        return "confira: bem acima do preço"
+    return ""
 
 
 def _pct_curto(pct: "float | None") -> "str | None":
@@ -356,13 +372,44 @@ def definir_meta():
         meta = int((request.form.get("meta") or "").strip())
     except ValueError:
         meta = 0
+    quer_json = "application/json" in (request.headers.get("Accept") or "")
     if not 1 <= meta <= _META_LUCRO_MAX:
+        if quer_json:
+            return jsonify({"ok": False}), 400
         flash(f"A meta de lucro precisa ser um número entre 1 e {_META_LUCRO_MAX}.",
               "error")
         return redirect(url_for("account.conta"))
     prefs = user_store.load_user_json(steamid, "preferencias", {}) or {}
     prefs["meta_lucro_pct"] = meta
     user_store.save_user_json(steamid, "preferencias", prefs)
+    if quer_json:
+        # conta.js recalcula os preços na própria página (sem recarregar).
+        return jsonify({"ok": True, "meta": meta})
+    return redirect(url_for("account.conta"))
+
+
+_ATUALIZAR_INVENTARIO_INTERVALO_S = 300
+
+
+@bp.route("/conta/inventario/atualizar", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def atualizar_inventario():
+    """"Atualizar agora": busca o inventário a pedido da pessoa (ação
+    explícita, como o login). No máximo 1x a cada 5 min por conta, e
+    nunca durante uma pausa pedida pela Steam (2026-11-15)."""
+    from lodout import steam_api
+    steamid = session["steamid"]
+    est = inventario.estado(steamid)
+    if est.get("em_andamento"):
+        pass
+    elif time.time() - float(est.get("ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S:
+        flash("Seu inventário acabou de ser atualizado. Dá para pedir de novo em alguns minutos.", "error")
+    elif steam_api.em_cooldown("inventory"):
+        flash("A Steam pediu uma pausa agora. O Lodout tenta de novo sozinho mais tarde.", "error")
+    else:
+        inventario.sincronizar_em_segundo_plano(steamid)
     return redirect(url_for("account.conta"))
 
 
@@ -377,11 +424,11 @@ def adicionar_posicao():
         flash("Informe o nome do item.", "error")
         return redirect(url_for("account.conta"))
 
-    cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
+    cost_raw = (request.form.get("cost") or "").strip()
     cost = None
     if cost_raw:
         try:
-            cost = float(cost_raw)
+            cost = fmt.ler_reais(cost_raw)
         except ValueError:
             cost = None
         if cost is None or not math.isfinite(cost) or cost < 0:
@@ -419,7 +466,7 @@ def editar_custo(name: str):
     steamid = session["steamid"]
     quer_json = "application/json" in (request.headers.get("Accept") or "")
     # Aceita "35,10" além de "35.10" (teclado brasileiro).
-    cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
+    cost_raw = (request.form.get("cost") or "").strip()
     lote = (request.form.get("lote") or "").strip() or None
     erro = None
     # Campo apagado de propósito (limpar=1): o item volta a ficar sem valor
@@ -428,11 +475,11 @@ def editar_custo(name: str):
         user_portfolio.update_position_cost(steamid, name, None, lote=lote)
     if cost_raw:
         try:
-            cost = float(cost_raw)
+            cost = fmt.ler_reais(cost_raw)
         except ValueError:
             cost = None
         if cost is None or not math.isfinite(cost) or cost < 0:
-            erro = "O valor pago precisa ser um número igual ou maior que zero."
+            erro = "O valor pago precisa ser um número igual ou maior que zero (ex.: 35,10)."
         else:
             user_portfolio.update_position_cost(steamid, name, cost, lote=lote)
     if quer_json:
@@ -457,6 +504,8 @@ def editar_custo(name: str):
             "alvo_fmt": row.get("alvo_fmt"),
             "lucro_fmt": row.get("pnl_fmt") if pnl is not None else None,
             "lucro_pct_fmt": row.get("pnl_pct_fmt") or "",
+            "empate": round(row["empate"], 4) if row.get("empate") else None,
+            "confira": row.get("confira") or "",
             "lucro": round(pnl, 4) if pnl is not None else None,
             "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
                              "valor-negativo" if pnl and pnl < 0 else ""),
