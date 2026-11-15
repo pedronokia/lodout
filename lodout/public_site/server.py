@@ -635,10 +635,12 @@ def create_app() -> Flask:
             if linha is None or linha.get("preco") is None:
                 return render_template("404.html"), 404
             item_cat = _cartao_do_catalogo(linha)
-            return render_template(
+            na_conta = _na_sua_conta(name)
+            return _resposta_item(render_template(
                 "item_catalogo.html", item=item_cat,
                 preco_empate=fmt.brl(portfolio.break_even_price(item_cat["price"])),
-                taxa_steam_pct=round(portfolio.STEAM_FEE * 100))
+                taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
+                na_conta=na_conta), na_conta)
         # Mesmo achado de performance do index() (2026-11-09): ícone só
         # no item em destaque + nos parecidos exibidos, não nos ~150
         # candidatos inteiros cruzados só pra achar este item.
@@ -687,9 +689,11 @@ def create_app() -> Flask:
         # continua aparecendo nesse caso -- só o gráfico some, pra deixar
         # claro que é falta de dado NESSE recorte, não no item.
         tem_historico = sum(1 for p in hist if p.get("price")) >= 2
-        return render_template(
+        na_conta = _na_sua_conta(name)
+        return _resposta_item(render_template(
             "item.html",
             item=item,
+            na_conta=na_conta,
             grafico=grafico,
             grafico_tendencia=grafico_tendencia,
             grafico_legenda=grafico_legenda,
@@ -717,7 +721,24 @@ def create_app() -> Flask:
             # preciso que a idade do scan como um todo.
             preco_coletado_txt=(
                 scan_store.idade_txt(hist[-1]["ts"]) if hist else None),
-        )
+        ), na_conta)
+
+    def _na_sua_conta(name: str):
+        """"Na sua conta" na página do item (só com login)."""
+        from lodout.public_site import account as _conta
+        try:
+            return _conta.resumo_na_conta(session.get("steamid"), name)
+        except Exception:
+            _logger.warning("resumo da conta no item falhou", exc_info=True)
+            return None
+
+    def _resposta_item(html: str, na_conta):
+        """Com dados da conta na página, a resposta é só desta pessoa:
+        nada de cache compartilhado."""
+        resp = make_response(html)
+        if na_conta:
+            resp.headers["Cache-Control"] = "private, no-store"
+        return resp
 
     @app.route("/og/item.png")
     @rate_limit.rate_limited(rate_limit.API_MAX_HITS, rate_limit.API_WINDOW_S)

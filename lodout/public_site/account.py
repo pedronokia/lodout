@@ -58,11 +58,30 @@ def _preco_do_dia(positions: "list[dict]"):
     senão o do catálogo amplo (todo o Mercado, 1x por dia). Só leitura
     local, sem rede (catalogo-grande.md, fase 2)."""
     cache = PriceCache()
-    do_catalogo = catalogo.precos([p.get("name") for p in positions])
+    nomes = [p.get("name") for p in positions]
+    do_catalogo = catalogo.precos(nomes)
+    datas: dict = {}
 
     def _preco(nome: str):
         preco = cache.get(nome)
-        return preco if preco is not None else do_catalogo.get(nome)
+        if preco is not None:
+            datas[nome] = cache.ts(nome)
+            return preco
+        return do_catalogo.get(nome)
+
+    meta_cat: dict = {}
+
+    def _data(nome: str):
+        """Quando o preço usado foi coletado (para "coletado há 3 h").
+        As datas do catálogo vêm numa leitura só, na primeira pergunta."""
+        if nome in datas:
+            return datas[nome]
+        if nome in do_catalogo:
+            if not meta_cat:
+                meta_cat.update(catalogo.metadados(list(do_catalogo)) or {"": {}})
+            return (meta_cat.get(nome) or {}).get("atualizado_em")
+        return None
+    _preco.data = _data
     return _preco
 
 
@@ -267,12 +286,16 @@ def conta():
     # Preço vem do mesmo cache compartilhado da Fase 1 -- leitura pura,
     # sem rede. Se o item nunca foi escaneado, a linha some sem preço
     # quando a Steam não respondeu).
-    avaliacao_bruta = portfolio.evaluate_portfolio(
-        positions, _preco_do_dia(positions))
+    preco_do_dia = _preco_do_dia(positions)
+    avaliacao_bruta = portfolio.evaluate_portfolio(positions, preco_do_dia)
+    for row in avaliacao_bruta["rows"]:
+        quando = preco_do_dia.data(row["name"]) if row.get("price") is not None else None
+        row["preco_idade"] = scan_store.idade_txt(quando) if quando else None
     # Grava o ponto de histórico ANTES de formatar -- precisa do valor
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
-    user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
+    serie = user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
+    mudanca = _mudanca_desde_ultima_visita(serie)
     _marcar_lotes(avaliacao_bruta["rows"], positions)
     # Mais valioso primeiro (2026-11-15): com o inventário inteiro na
     # lista, a ordem de chegada deixava a faca no meio dos adesivos.
@@ -305,8 +328,51 @@ def conta():
         inventario_idade=(scan_store.idade_txt(estado_inv["ts"])
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
+        mudanca_valor=mudanca,
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
+
+
+def _mudanca_desde_ultima_visita(serie: "list[dict]") -> "dict | None":
+    """Quanto o total de "Tudo vale hoje" mudou desde o ponto anterior do
+    histórico da carteira (gravado a cada visita em que o valor mudou).
+    Inclui itens que entraram ou saíram, não só preço -- o título explica."""
+    if not serie or len(serie) < 2:
+        return None
+    atual, antes = serie[-1], serie[-2]
+    diff = float(atual.get("total") or 0) - float(antes.get("total") or 0)
+    if abs(diff) < 0.005:
+        return None
+    return {
+        "texto": ("+" if diff > 0 else "") + fmt.brl(diff),
+        "classe": "valor-positivo" if diff > 0 else "valor-negativo",
+        "quando": scan_store.idade_txt(antes.get("ts") or 0),
+    }
+
+
+def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
+    """O que a pessoa tem deste item, pra página do item ("Na sua conta",
+    2026-11-15): unidades, e por lote com valor pago, por quanto vender."""
+    if not steamid:
+        return None
+    lotes = [p for p in user_portfolio.load_positions(steamid) if p.get("name") == name]
+    if not lotes:
+        return None
+    meta = _meta_lucro(steamid)
+    unidades = sum(int(p.get("quantity") or 1) for p in lotes)
+    com_valor = []
+    for p in lotes:
+        custo = p.get("cost")
+        if portfolio.has_cost_basis(p) and custo:
+            empate = portfolio.break_even_price(float(custo))
+            com_valor.append({
+                "quantidade": int(p.get("quantity") or 1),
+                "pago_fmt": fmt.brl(float(custo)),
+                "empate_fmt": fmt.brl(empate),
+                "alvo_fmt": fmt.brl(empate * (1 + meta / 100)),
+            })
+    sem_valor = unidades - sum(l["quantidade"] for l in com_valor)
+    return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta}
 
 
 def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:

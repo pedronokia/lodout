@@ -60,6 +60,7 @@
     </section>
 
     {% if preco_empate %}
+    {% include "partials/_na_sua_conta.html" %}
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
       <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A Steam fica com cerca de {{ taxa_steam_pct }}% de cada venda (5% da Steam e 10% do jogo), então o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>

@@ -1,0 +1,17 @@
+{# Página do item: o que a pessoa logada tem deste item (2026-11-15).
+   Dados pessoais: item_detail marca a resposta como privada. #}
+{% if na_conta %}
+<section class="na-sua-conta" aria-labelledby="titulo-na-conta">
+  <h2 class="na-sua-conta-titulo" id="titulo-na-conta">Na sua conta</h2>
+  <p class="na-sua-conta-texto">Você tem <strong>{{ na_conta.unidades }}</strong> {{ "unidade" if na_conta.unidades == 1 else "unidades" }} deste item.</p>
+  {% if na_conta.lotes %}
+  <ul class="na-sua-conta-lotes">
+    {% for l in na_conta.lotes %}
+    <li>{% if na_conta.lotes|length > 1 or na_conta.sem_valor %}<span class="na-sua-conta-qtd">{{ l.quantidade }}×</span> {% endif %}pagou <strong>{{ l.pago_fmt }}</strong> cada · sem prejuízo a partir de <strong>{{ l.empate_fmt }}</strong> · para lucrar {{ na_conta.meta }}%, <strong>{{ l.alvo_fmt }}</strong></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if na_conta.sem_valor %}<p class="na-sua-conta-texto">{{ na_conta.sem_valor }} {{ "unidade está" if na_conta.sem_valor == 1 else "unidades estão" }} sem o valor pago.</p>{% endif %}
+  <a class="na-sua-conta-link" href="{{ url_for('account.conta') }}">Abrir minha conta →</a>
+</section>
+{% endif %}

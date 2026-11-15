@@ -46,6 +46,7 @@
         <span class="card-label">Tudo vale hoje</span>
         <span class="card-valor" data-total="valor">{{ tx.valor }}</span>
         <span class="card-sub" data-total="valor_sub">{{ tx.valor_sub }}</span>
+        {% if mudanca_valor %}<span class="card-sub card-mudanca" title="Comparado com a visita anterior ({{ mudanca_valor.quando }}). Inclui preços que mudaram e itens que entraram ou saíram."><span class="{{ mudanca_valor.classe }}">{{ mudanca_valor.texto }}</span> desde a última vez</span>{% endif %}
       </div>
       <div class="card">
         <span class="card-label">Se vender tudo hoje</span>
@@ -172,7 +173,7 @@
       </thead>
       <tbody>
         {% for row in avaliacao.rows %}
-        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
+        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
           <td data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -239,16 +240,16 @@
           {% if row.price is not none %}
           {% if row.quantity and row.quantity > 1 %}
           {# Mais de uma unidade: o preço é de cada uma; o lucro, do total. #}
-          <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt }} <span class="valor-cada">cada</span><span class="valor-total">{{ row.valor_total_fmt }} no total</span></td>
+          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}>{{ row.price_fmt }} <span class="valor-cada">cada</span><span class="valor-total">{{ row.valor_total_fmt }} no total</span></td>
           {% else %}
-          <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt }}</td>
+          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}>{{ row.price_fmt }}</td>
           {% endif %}
           {% else %}
           <td data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
           {% endif %}
           <td data-label="Lucro hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
             <span data-campo="lucro-valor">{{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}</span>
-            <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
+            <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or ("sem preço do dia" if row.has_cost and row.price is none else "") }}</span>
           </td>
           <td data-label="Venda por" class="celula-venda-por">
             <button type="button" class="venda-por-falta" data-ir-ao-campo>informe quanto pagou</button>

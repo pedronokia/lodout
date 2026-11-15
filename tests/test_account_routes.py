@@ -641,3 +641,32 @@ def test_atualizar_inventario_a_pedido_com_intervalo(client, monkeypatch):
     assert disparos == [sid]
     # Sem CSRF: recusado.
     assert client.post("/conta/inventario/atualizar").status_code in (400, 403)
+
+
+def test_item_mostra_na_sua_conta_so_para_quem_tem(client, monkeypatch):
+    from lodout.public_site import catalogo
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Rifles", [{"hash_name": "Caixa N", "price": 10.0, "listings": 5,
+                                      "name_color": "4b69ff", "icon": "hash-n"}])
+    conn.close()
+    # Sem login: sem o bloco.
+    pagina = client.get("/item/Caixa N")
+    assert pagina.status_code == 200 and "Na sua conta" not in pagina.data.decode("utf-8")
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={"name": "Caixa N", "cost": "8", "quantity": "3",
+                                         "csrf_token": token})
+    r = client.get("/item/Caixa N")
+    corpo = r.data.decode("utf-8")
+    assert "Na sua conta" in corpo and "Você tem <strong>3</strong> unidades" in corpo
+    assert "R$ 9,20" in corpo  # 8 × 1,15
+    assert r.headers["Cache-Control"] == "private, no-store"
+
+
+def test_mudanca_desde_a_visita_anterior():
+    from lodout.public_site import account
+    assert account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}]) is None
+    m = account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}, {"ts": 2, "total": 103.2}])
+    assert m["texto"] == "+R$ 3,20" and m["classe"] == "valor-positivo"
+    m = account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}, {"ts": 2, "total": 90.0}])
+    assert m["texto"] == "−R$ 10,00"

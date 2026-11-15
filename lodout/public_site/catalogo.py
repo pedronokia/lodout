@@ -498,9 +498,10 @@ def metadados(nomes: "list[str]") -> "dict[str, dict]":
             lote = nomes[i:i + 500]
             marcas = ",".join("?" * len(lote))
             for r in conn.execute(
-                    f"SELECT nome, icon, raridade FROM itens WHERE nome IN ({marcas})",
+                    f"SELECT nome, icon, raridade, atualizado_em FROM itens WHERE nome IN ({marcas})",
                     lote):
-                saida[r["nome"]] = {"icon": r["icon"], "raridade": r["raridade"]}
+                saida[r["nome"]] = {"icon": r["icon"], "raridade": r["raridade"],
+                                    "atualizado_em": r["atualizado_em"]}
         return saida
     except sqlite3.Error:
         return {}

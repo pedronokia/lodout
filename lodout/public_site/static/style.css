@@ -6460,3 +6460,29 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   text-underline-offset: 2px;
 }
 
+
+/* ── Conta e item: mudança, lotes, "Na sua conta" (2026-11-15) ────── */
+.card-mudanca .valor-positivo,
+.card-mudanca .valor-negativo { font-weight: 600; }
+/* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
+@media (min-width: 641px) {
+  .tabela-conta tr.linha-lote td:first-child { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+}
+@media (max-width: 640px) {
+  table.tabela-conta tbody tr.linha-lote { border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+}
+.na-sua-conta {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.na-sua-conta-titulo { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
+.na-sua-conta-texto { margin: 0 0 var(--sp-2); color: var(--text); }
+.na-sua-conta-lotes { margin: 0 0 var(--sp-2); padding-left: 1.1em; color: var(--text-muted); }
+.na-sua-conta-lotes li { margin: 2px 0; font-variant-numeric: tabular-nums; }
+.na-sua-conta-lotes strong { color: var(--text-bright); }
+.na-sua-conta-qtd { color: var(--text); font-weight: 600; }
+.na-sua-conta-link { font-size: var(--fs-sm); }
+.confira { white-space: nowrap; }

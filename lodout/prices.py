@@ -66,6 +66,14 @@ class PriceCache:
             return entry.get("price")
         return None
 
+    def ts(self, name: str, now: float | None = None) -> float | None:
+        """Quando o preço válido de `name` foi guardado (epoch), ou None."""
+        now = time.time() if now is None else now
+        entry = self._data.get(name)
+        if entry and self._entry_valid(entry, now) and entry.get("price") is not None:
+            return entry.get("ts")
+        return None
+
     def put(self, name: str, price: float | None,
             now: float | None = None) -> None:
         """Cacheia preco. price=None registra "sem preco" (TTL curto)."""
