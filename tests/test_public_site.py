@@ -6076,3 +6076,16 @@ def test_filtro_de_versao_aparece_quando_ha_stattrak(
         {**base, "name": "StatTrak™ AK-47 | Redline (Field-Tested)"}])
     body = client.get("/").data.decode("utf-8")
     assert 'name="versao"' in body
+
+
+def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_path):
+    # 2026-11-15: quem entra compra pensando em revender; a Steam fica com
+    # ~15% da venda. R$ 100,00 hoje -> precisa vender por R$ 115,00.
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 100.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert "Para revender sem prejuízo" in body
+    assert "<strong>R$ 115,00</strong>" in body
+    assert "cerca de 15% de cada venda" in body

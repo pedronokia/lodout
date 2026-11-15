@@ -42,8 +42,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from lodout import (
-    __version__, cases, gamedata, ranking, recommendations, scan_store,
-    scan_targets, signals, steam_news,
+    __version__, cases, gamedata, portfolio, ranking, recommendations,
+    scan_store, scan_targets, signals, steam_news,
 )
 from lodout._paths import DATA_DIR, atomic_write_bytes
 from lodout.localization import localize_name
@@ -657,6 +657,13 @@ def create_app() -> Flask:
             variantes=_variantes_para_tela(
                 item, {c["name"] for c in candidatos}),
             itens_da_caixa=cases.skins_in_case(item.get("case")),
+            # "Para revender sem prejuízo" (2026-11-15): quem entra no site
+            # compra pensando em vender mais caro depois, e muito iniciante
+            # não sabe que a Steam fica com ~15% de cada venda. Mesma conta
+            # da carteira (portfolio.break_even_price).
+            preco_empate=(fmt.brl(portfolio.break_even_price(item["price"]))
+                          if item.get("price") else None),
+            taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             # Preço mais recente DESTE item específico -- cada item do
             # scan é coletado em instantes diferentes dentro do ciclo de
             # ~25min (ver scan_engine.run_full_scan), então isto é mais

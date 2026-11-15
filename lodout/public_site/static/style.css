@@ -3918,6 +3918,34 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   font-size: var(--fs-xs);
 }
 
+/* Conta da revenda na página do item (2026-11-15): caixa discreta com
+   fio na cor de alerta -- é um aviso prático, não um destaque de venda. */
+.conta-revenda {
+  margin: 0 0 var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.conta-revenda-titulo {
+  margin: 0 0 var(--sp-1);
+  color: var(--text-bright);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.pagina-texto .conta-revenda-texto,
+.conta-revenda-texto {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  text-align: left;
+}
+
+.conta-revenda-texto strong { color: var(--text-bright); }
+
 /* ── Formulários (conta, watchlist, trades) ──────────── */
 
 .form-adicionar {
