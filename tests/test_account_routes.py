@@ -484,6 +484,10 @@ def test_salvar_quanto_paguei_sem_recarregar_devolve_a_linha(client, monkeypatch
     assert dados["ok"] is True
     assert dados["empate_fmt"] == "R$ 115,00"
     assert dados["alvo_fmt"] == "R$ 138,00"
+    # Os cartões do topo atualizam juntos (polimento, 2026-11-15).
+    assert dados["totais"]["pago"] == "R$ 100,00"
+    assert dados["totais"]["pago_sub"] == "em 1 de 1 item"
+    assert dados["totais"]["aviso_sem_custo"] == ""
 
     resp = client.post("/conta/posicoes/Caixa X/custo",
                        data={"cost": "-1", "csrf_token": token},
@@ -502,3 +506,17 @@ def test_conta_carrega_o_script_de_salvar_rapido(client, monkeypatch):
     _login(client, monkeypatch)
     pagina = client.get("/conta").data.decode("utf-8")
     assert 'src="/static/conta.js' in pagina
+
+
+def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "AK-47 | Redline (Field-Tested)", "cost": "",
+        "quantity": "1", "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert ">AK-47 | Redline</a>" in pagina
+    assert '<span class="item-exterior">Testada em Campo</span>' in pagina
+    assert "1 item está sem o valor pago" in pagina
+    assert "informe o valor pago para ver" in pagina
+

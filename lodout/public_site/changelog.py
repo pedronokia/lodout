@@ -18,6 +18,8 @@ ENTRADAS = [
             "Remover um item pede confirmação antes.",
             "O valor pago salva sozinho: digite e aperte Enter ou saia do campo. Sem o botão “salvar”, a lista cabe na tela sem rolar de lado, também em tablet.",
             "Item sem o valor pago mostra “informe quanto pagou” em “Venda por”, em vez de traços.",
+            "Acabamento da conta: nome do item em destaque com o desgaste embaixo, valores alinhados à direita, “R$” dentro do campo do valor pago e cada cartão do topo com uma linha de contexto (quantos itens, em quantos você informou o valor, quanto o lucro representa do que você pagou).",
+            "Ao salvar um valor pago, os cartões do topo e o aviso de itens sem valor atualizam na hora. A meta de lucro aplica ao escolher, sem o botão “aplicar”.",
         ],
     },
     {

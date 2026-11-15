@@ -25,37 +25,55 @@
       <p class="descricao-pagina">Seus itens da Steam, quanto valem hoje e por quanto vender para não ter prejuízo.</p>
     </header>
 
-    {# Revisão 2026-11-15 (conta com inventário): rótulos curtos, números
-       que cabem numa linha, prejuízo como "−R$". #}
-    <section class="resumo-cards resumo-cards-conta">
-      <div class="card"><span class="card-label">Tudo vale hoje</span><span class="card-valor">{{ avaliacao.totals.market_fmt }}</span></div>
-      <div class="card"><span class="card-label" title="O que entra na sua carteira Steam vendendo tudo hoje, já sem os {{ taxa_steam_pct }}% da Steam">Se vender tudo hoje</span><span class="card-valor">{{ avaliacao.totals.net_if_sold_fmt }}</span></div>
-      <div class="card"><span class="card-label" title="Soma do que você informou ter pago">Você pagou</span><span class="card-valor">{{ avaliacao.totals.cost_known_fmt }}</span></div>
+    {# Revisão 2026-11-15 (conta com inventário + polimento): rótulo,
+       valor e uma linha de contexto por cartão. Os textos vêm de
+       account._textos_totais -- o mesmo que conta.js recebe ao salvar um
+       valor pago, pra o topo atualizar sem recarregar. #}
+    {% set tx = avaliacao.textos %}
+    <section class="resumo-cards resumo-cards-conta" aria-label="Resumo da sua conta">
+      <div class="card">
+        <span class="card-label">Tudo vale hoje</span>
+        <span class="card-valor" data-total="valor">{{ tx.valor }}</span>
+        <span class="card-sub" data-total="valor_sub">{{ tx.valor_sub }}</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Se vender tudo hoje</span>
+        <span class="card-valor" data-total="liquido">{{ tx.liquido }}</span>
+        <span class="card-sub">já sem os {{ taxa_steam_pct }}% da Steam</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Você pagou</span>
+        <span class="card-valor" data-total="pago">{{ tx.pago }}</span>
+        <span class="card-sub" data-total="pago_sub">{{ tx.pago_sub }}</span>
+      </div>
       <div class="card card-nota-destaque">
-        <span class="card-label" title="O que sobra vendendo hoje, já descontados os {{ taxa_steam_pct }}% da Steam, menos o que você pagou (só itens com o valor pago)">Lucro se vender hoje</span>
-        <span class="card-valor {{ 'valor-positivo' if avaliacao.totals.pnl and avaliacao.totals.pnl > 0 else ('valor-negativo' if avaliacao.totals.pnl and avaliacao.totals.pnl < 0 else ('card-valor-texto' if avaliacao.totals.pnl is none else '')) }}">
-          {{ avaliacao.totals.pnl_fmt if avaliacao.totals.pnl is not none else "—" }}
-        </span>
+        <span class="card-label">Lucro se vender hoje</span>
+        <span class="card-valor {{ tx.lucro_classe }}" data-total="lucro">{{ tx.lucro }}</span>
+        <span class="card-sub" data-total="lucro_sub">{{ tx.lucro_sub }}</span>
       </div>
     </section>
 
-    {% if avaliacao.totals.unknown_cost %}
-      <p class="aviso-sem-custo">{{ avaliacao.totals.unknown_cost }} {{ "item está" if avaliacao.totals.unknown_cost == 1 else "itens estão" }} sem o valor pago. Digite na coluna “Você pagou” para ver por quanto vender e para {{ "ele entrar" if avaliacao.totals.unknown_cost == 1 else "eles entrarem" }} no lucro.</p>
-    {% endif %}
+    <p class="aviso-sem-custo" data-total="aviso_sem_custo"{% if not tx.aviso_sem_custo %} hidden{% endif %}>{{ tx.aviso_sem_custo }}</p>
 
-    {# O inventário vem sozinho; adicionar à mão fica recolhido. #}
-    <details class="adicionar-manual">
-      <summary>Adicionar um item à mão</summary>
-      <form class="form-adicionar" method="post" action="{{ url_for('account.adicionar_posicao') }}">
+    <div class="conta-lista-cabecalho">
+      <h2 class="secao-titulo">Seus itens</h2>
+      {% if avaliacao.rows %}
+      {# Meta de lucro (2026-11-15): o preço de venda de cada item já soma
+         a taxa da Steam e a meta escolhida. #}
+      <form class="form-meta-lucro" method="post" action="{{ url_for('account.definir_meta') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="text" name="name" placeholder="Nome exato do item (ex.: AK-47 | Redline (Field-Tested))" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-        <input type="number" name="cost" step="0.01" min="0" placeholder="Você pagou (R$, opcional)" aria-label="Quanto você pagou em reais, opcional">
-        <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
-        <button type="submit" class="botao-acao">+ Adicionar</button>
+        <label class="form-meta-lucro-rotulo">Quero lucrar
+          <select name="meta" data-enviar-ao-mudar aria-describedby="explica-meta">
+            {% for op in meta_lucro_opcoes %}
+            <option value="{{ op }}" {{ "selected" if op == meta_lucro else "" }}>{{ op }}%</option>
+            {% endfor %}
+            {% if meta_lucro not in meta_lucro_opcoes %}<option value="{{ meta_lucro }}" selected>{{ meta_lucro }}%</option>{% endif %}
+          </select>
+        </label>
+        <button type="submit" class="botao-link botao-filtrar-sem-js">aplicar</button>
       </form>
-    </details>
-
-    <h2 class="secao-titulo">Suas posições</h2>
+      {% endif %}
+    </div>
     {# Inventário da Steam (conta-inventario.md, fase 2): sincroniza no
        login e 1x por dia; abrir esta página nunca consulta a Steam. #}
     {% set inv = inventario_estado or {} %}
@@ -73,30 +91,16 @@
     <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.</p>
     {% endif %}
     {% if avaliacao.rows %}
-    {# Meta de lucro (2026-11-15): o preço de venda de cada item já soma
-       a taxa da Steam e a meta escolhida. #}
-    <form class="form-meta-lucro" method="post" action="{{ url_for('account.definir_meta') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <label class="form-meta-lucro-rotulo">Quero lucrar
-        <select name="meta" data-enviar-ao-mudar aria-describedby="explica-meta">
-          {% for op in meta_lucro_opcoes %}
-          <option value="{{ op }}" {{ "selected" if op == meta_lucro else "" }}>{{ op }}%</option>
-          {% endfor %}
-          {% if meta_lucro not in meta_lucro_opcoes %}<option value="{{ meta_lucro }}" selected>{{ meta_lucro }}%</option>{% endif %}
-        </select>
-      </label>
-      <button type="submit" class="botao-link botao-filtrar-sem-js">aplicar</button>
-      <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de venda abaixo já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.</p>
-    </form>
+    <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de “Venda por” já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
       <thead>
         <tr>
           <th>Item</th>
           <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
-          <th>Vale hoje</th>
-          <th title="Vendendo hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro se vender hoje</th>
-          <th>Venda por</th>
+          <th class="col-num">Vale hoje</th>
+          <th class="col-num" title="Vendendo hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro se vender hoje</th>
+          <th class="col-num">Venda por</th>
         </tr>
       </thead>
       <tbody>
@@ -111,29 +115,38 @@
             {% endif %}
             </span>
             <span class="celula-item-conta-texto">
-              <a class="link-item" href="{{ url_for('item_detail', name=row.name) }}" translate="no">{{ row.name_fmt }}</a>{% if row.quantity and row.quantity > 1 %} <span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
+              <a class="link-item" href="{{ url_for('item_detail', name=row.name) }}" translate="no" title="{{ row.name_fmt }}">{{ row.nome_curto }}</a>
               <span class="celula-item-conta-extra">
+                {% if row.exterior_fmt %}<span class="item-exterior">{{ row.exterior_fmt }}</span>{% endif %}
+                {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
                 {% if row.score is not none %}<span class="nota-texto nota-{{ row.score|nota_classe }}" title="Nota do Lodout">nota {{ row.score }}</span>{% endif %}
                 <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                  <button type="submit" class="botao-link botao-remover">remover</button>
+                  <button type="submit" class="botao-link botao-remover" aria-label="Remover {{ row.name_fmt }}">remover</button>
                 </form>
               </span>
             </span>
             </div>
           </td>
           <td data-label="Você pagou">
-            {# Salva sem recarregar a página quando há JavaScript (conta.js);
-               sem ele, o formulário funciona como sempre. #}
+            {# Salva sozinho (Enter ou ao sair do campo) quando há
+               JavaScript (conta.js); sem ele, o botão "salvar" envia. #}
             <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline form-custo">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
+              <span class="campo-reais">
+                <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
+                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
+              </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>
             </form>
           </td>
-          <td data-label="Vale hoje"{% if row.price is not none %} class="celula-numero"{% endif %}>{{ row.price_fmt if row.price is not none else "sem preço ainda" }}</td>
-          <td data-label="Lucro se vender hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else '') }}">
+          {% if row.price is not none %}
+          <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt }}</td>
+          {% else %}
+          <td data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
+          {% endif %}
+          <td data-label="Lucro se vender hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
             {{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}
           </td>
           <td data-label="Venda por" class="celula-venda-por">
@@ -149,8 +162,20 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item ainda. Seus itens da Steam aparecem aqui sozinhos; se quiser, adicione um à mão acima.</p>
+      <p class="status status-vazio">Nenhum item ainda. Seus itens da Steam aparecem aqui sozinhos; se quiser, adicione um à mão abaixo.</p>
     {% endif %}
+
+    {# O inventário vem sozinho; adicionar à mão fica recolhido, no fim. #}
+    <details class="adicionar-manual">
+      <summary>Adicionar um item à mão</summary>
+      <form class="form-adicionar" method="post" action="{{ url_for('account.adicionar_posicao') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="text" name="name" placeholder="Nome exato do item (ex.: AK-47 | Redline (Field-Tested))" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
+        <input type="number" name="cost" step="0.01" min="0" placeholder="Você pagou (R$, opcional)" aria-label="Quanto você pagou em reais, opcional">
+        <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
+        <button type="submit" class="botao-acao">+ Adicionar</button>
+      </form>
+    </details>
 
     <p class="link-excluir-conta">
       <a href="{{ url_for('account.exportar_dados') }}">Baixar uma cópia dos meus dados (arquivo .json)</a>

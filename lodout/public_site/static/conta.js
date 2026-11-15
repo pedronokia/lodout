@@ -6,6 +6,31 @@
 (function () {
   "use strict";
 
+  // Com JS, o botão "aplicar" da meta some e a meta aplica ao escolher
+  // (mesma regra do app.js, que esta página não carrega).
+  document.documentElement.classList.add("js-ativo");
+  document.addEventListener("change", function (e) {
+    var campo = e.target;
+    if (!campo.matches || !campo.matches("[data-enviar-ao-mudar]") || !campo.form) return;
+    campo.form.submit();
+  });
+
+  // Cartões do topo e aviso de itens sem valor pago, com os textos que o
+  // servidor devolve ao salvar (account._textos_totais).
+  function atualizarTotais(totais) {
+    if (!totais) return;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-total]"), function (el) {
+      var chave = el.getAttribute("data-total");
+      if (!(chave in totais)) return;
+      el.textContent = totais[chave];
+      if (chave === "aviso_sem_custo") el.hidden = !totais[chave];
+      if (chave === "lucro") {
+        el.classList.remove("valor-positivo", "valor-negativo", "card-valor-texto");
+        if (totais.lucro_classe) el.classList.add(totais.lucro_classe);
+      }
+    });
+  }
+
   function texto(el, valor) {
     if (el) el.textContent = valor;
   }
@@ -79,7 +104,10 @@
           if (d.lucro_classe) lucro.classList.add(d.lucro_classe);
         }
         if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
+        if (lucro && !d.lucro_classe) lucro.classList.add("celula-sem-valor");
+        else if (lucro) lucro.classList.remove("celula-sem-valor");
       }
+      atualizarTotais(d.totais);
       setTimeout(function () { if (aviso && aviso.textContent === "salvo ✓") aviso.textContent = ""; }, 2500);
     }).catch(function () {
       // Rede caiu ou resposta inesperada: cai no envio normal.

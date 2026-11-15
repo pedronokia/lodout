@@ -4260,7 +4260,6 @@ table.tabela-conta th { white-space: normal; }
 
 .custo-salvo.custo-erro { color: var(--danger); }
 
-.linha-sem-custo .form-custo input { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
 
 
 .form-adicionar {
@@ -5812,3 +5811,93 @@ a.paginacao-passo:active {
 
 /* Mesmo retorno ao toque dos outros cartões clicáveis. */
 .movimento-do-dia:active { transform: scale(0.98); }
+
+
+/* ── Conta: polimento (2026-11-15) ───────────────────────────────────
+   No fim do arquivo de propósito: vale sobre as regras gerais de
+   tabela/cartões acima. O que é só de computador fica em min-width
+   641px, pra não mexer nos cartões do celular. */
+.resumo-cards-conta .card { gap: 6px; }
+.resumo-cards-conta .card-label { font-weight: 500; }
+.card-sub {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.resumo-cards-conta .card-valor.card-valor-texto { font-size: clamp(1.25rem, 2.2vw, 1.75rem); font-weight: 400; color: var(--text-muted); }
+.aviso-sem-custo[hidden] { display: none; }
+
+.conta-lista-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  margin: var(--sp-6) 0 var(--sp-1);
+}
+.conta-lista-cabecalho .secao-titulo { margin: 0; }
+.conta-lista-cabecalho .form-meta-lucro { margin: 0; }
+.status-inventario + .form-meta-lucro-ajuda { margin: 0 0 var(--sp-3); }
+
+/* Nome forte, detalhes em cinza; "remover" discreto até o mouse/foco. */
+.tabela-conta .link-item { color: var(--text-bright); font-weight: 600; }
+.item-exterior { color: var(--text-muted); font-size: var(--fs-xs); }
+.tabela-conta .botao-remover { color: var(--text-fraco); }
+.tabela-conta .botao-remover:hover,
+.tabela-conta .botao-remover:focus-visible { color: var(--danger); }
+.tabela-conta .celula-sem-valor { color: var(--text-fraco); }
+
+/* Campo de reais com "R$" dentro. */
+.campo-reais {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.campo-reais-prefixo {
+  position: absolute;
+  left: 9px;
+  color: var(--text-fraco);
+  font-size: var(--fs-xs);
+  pointer-events: none;
+}
+.tabela-conta .input-custo {
+  width: 7.5em;
+  padding-left: 30px;
+  font-variant-numeric: tabular-nums;
+  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
+}
+.tabela-conta .input-custo:hover { border-color: var(--border-strong); }
+.tabela-conta .input-custo:focus { border-color: var(--accent); }
+/* Sem valor pago: borda tracejada, sem gritar em todas as linhas. */
+.linha-sem-custo .input-custo { border-style: dashed; background: transparent; }
+
+@media (min-width: 641px) {
+  .tabela-conta .col-num,
+  .tabela-conta .celula-numero,
+  .tabela-conta .celula-venda-por { text-align: right; }
+  .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+    display: inline-grid;
+    /* Coluna do valor com largura mínima: rótulos alinham entre linhas. */
+    grid-template-columns: auto minmax(5.4em, auto);
+    text-align: left;
+  }
+  .tabela-conta tbody tr { transition: background-color var(--dur-base) var(--ease-standard); }
+  .tabela-conta tbody tr:hover { background: var(--surface-hover); }
+  .tabela-conta tbody tr:last-child td { border-bottom: 0; }
+  .tabela-conta td:first-child,
+  .tabela-conta th:first-child { padding-left: 16px; }
+  .tabela-conta td:last-child,
+  .tabela-conta th:last-child { padding-right: 16px; }
+}
+
+@media (min-width: 641px) and (max-width: 1000px) {
+  .tabela-conta .input-custo { width: 6.2em; }
+  table.tabela-conta th,
+  table.tabela-conta td { padding-left: 8px; padding-right: 8px; }
+  .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco { grid-template-columns: auto; }
+}
+
+
+/* Celular: "remover" na mesma linha do desgaste (o .form-inline dos
+   cartões ocupa a largura toda por padrão). */
+table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }

@@ -109,6 +109,15 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
             row["alvo_fmt"] = fmt.brl(empate * (1 + meta_pct / 100))
         raw = por_nome_scan.get(row["name"])
         row["name_fmt"] = localize_name(row["name"])
+        # Nome em cima, desgaste embaixo em cinza (polimento, 2026-11-15).
+        row["nome_curto"], row["exterior_fmt"] = row["name_fmt"], None
+        ext = catalogo.exterior_do_item(row["name"])
+        if ext:
+            rotulo = catalogo.EXTERIORES[ext][1]
+            sufixo = f" ({rotulo})"
+            if row["name_fmt"].endswith(sufixo):
+                row["nome_curto"] = row["name_fmt"][:-len(sufixo)]
+                row["exterior_fmt"] = rotulo
         row["price_fmt"] = fmt.brl(row.get("price"))
         row["cost_fmt"] = fmt.brl(row.get("cost"))
         row["pnl_fmt"] = fmt.brl(row.get("pnl"))
@@ -122,7 +131,43 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["market_fmt"] = fmt.brl(t.get("market"))
     t["net_if_sold_fmt"] = fmt.brl(t.get("net_if_sold"))
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
+    avaliacao["textos"] = _textos_totais(t)
     return avaliacao
+
+
+def _textos_totais(t: dict) -> dict:
+    """Textos dos cartões do topo e do aviso de itens sem valor pago.
+    A página e a resposta JSON de "salvar valor pago" usam os mesmos,
+    pra o topo atualizar sem recarregar e sem divergir do servidor."""
+    n, com = t.get("positions") or 0, t.get("known_cost") or 0
+    sem = t.get("unknown_cost") or 0
+    pnl, pct = t.get("pnl"), t.get("pnl_pct")
+    if pnl is None:
+        lucro_sub = "informe o valor pago para ver"
+    elif pct is None:
+        lucro_sub = "dos itens com o valor pago"
+    else:
+        sinal = "+" if pct > 0.05 else ("\u2212" if pct < -0.05 else "")
+        lucro_sub = f"{sinal}{fmt.pct(abs(pct))}% do que você pagou"
+    if sem:
+        aviso = (f"{sem} {'item está' if sem == 1 else 'itens estão'} sem o "
+                 "valor pago. Digite na coluna “Você pagou” para ver por quanto "
+                 f"vender e para {'ele entrar' if sem == 1 else 'eles entrarem'} no lucro.")
+    else:
+        aviso = ""
+    return {
+        "valor": t.get("market_fmt") or fmt.brl(t.get("market")),
+        "valor_sub": f"{n} {'item' if n == 1 else 'itens'}",
+        "liquido": t.get("net_if_sold_fmt") or fmt.brl(t.get("net_if_sold")),
+        "pago": t.get("cost_known_fmt") or fmt.brl(t.get("cost_known")),
+        "pago_sub": f"em {com} de {n} {'item' if n == 1 else 'itens'}",
+        "lucro": fmt.brl(pnl) if pnl is not None else "—",
+        "lucro_sub": lucro_sub,
+        "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
+                         "valor-negativo" if pnl and pnl < 0 else
+                         "card-valor-texto" if pnl is None else ""),
+        "aviso_sem_custo": aviso,
+    }
 
 
 @bp.route("/login")
@@ -318,8 +363,12 @@ def editar_custo(name: str):
             _meta_lucro(steamid))
         row = avaliacao["rows"][0]
         pnl = row.get("pnl") if row.get("has_cost") else None
+        todas = user_portfolio.load_positions(steamid)
+        totais = _textos_totais(_formatar_linhas(
+            portfolio.evaluate_portfolio(todas, _preco_do_dia(todas)))["totals"])
         return jsonify({
             "ok": True,
+            "totais": totais,
             "empate_fmt": row.get("empate_fmt"),
             "alvo_fmt": row.get("alvo_fmt"),
             "lucro_fmt": row.get("pnl_fmt") if pnl is not None else None,
