@@ -156,3 +156,125 @@ def test_health_mostra_o_catalogo(monkeypatch, sem_pausa):
     dados = app.test_client().get("/api/health").get_json()
     assert dados["catalogo"]["itens_no_banco"] == 1
     assert dados["catalogo"]["motivo"] == "completa"
+
+
+# ── Fase 2: o site lê o catálogo ─────────────────────────────────────
+
+def _catalogo_com(*linhas_por_fatia):
+    conn = catalogo.conectar()
+    for fatia, itens in linhas_por_fatia:
+        catalogo.gravar(conn, fatia, itens)
+    conn.close()
+
+
+def test_consultar_busca_filtros_e_ordem():
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", preco=50.0, a_venda=300),
+        _linha("AK-47 | Redline (Minimal Wear)", preco=90.0, a_venda=80),
+        _linha("M4A4 | Howl (Field-Tested)", preco=9000.0, a_venda=5, cor="e4ae39"),
+    ]))
+    total, itens = catalogo.consultar({"busca": "redline ak"})
+    assert total == 2
+    assert [i["nome"] for i in itens][0] == "AK-47 | Redline (Field-Tested)"  # mais à venda
+    total, itens = catalogo.consultar({"busca": "redline"}, ordenar="preco")
+    assert [i["preco"] for i in itens] == [50.0, 90.0]
+    assert catalogo.consultar({"exterior": "mw"})[0] == 1
+    assert catalogo.consultar({"preco_max": 60})[0] == 1
+    assert catalogo.consultar({"busca": "redline"},
+                              excluir=["AK-47 | Redline (Field-Tested)"])[0] == 1
+    assert catalogo.contar_por_categoria({"busca": "ak"}) == {"Rifles": 2}
+    assert catalogo.precos(["M4A4 | Howl (Field-Tested)", "Nada"]) == {
+        "M4A4 | Howl (Field-Tested)": 9000.0}
+
+
+def test_consultar_sem_banco_volta_vazio():
+    assert catalogo.consultar({"busca": "x"}) == (0, [])
+    assert catalogo.item("x") is None and catalogo.precos(["x"]) == {}
+    assert catalogo.tem_dados() is False
+
+
+@pytest.fixture
+def client(monkeypatch, tmp_path):
+    from lodout import scan_store
+    from lodout.public_site.server import create_app
+    original = scan_store.load_last_scan
+    p = tmp_path / "scanner_last.json"
+    scan_store.save_last_scan("Todas", [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "category": "Rifles"},
+        {"name": "Item Arriscado", "score": 90, "price": 5.0, "case_label": "",
+         "pump_risk": {"level": "high"}, "breakdown": [], "category": "Rifles"},
+    ], path=p)
+    monkeypatch.setattr(scan_store, "load_last_scan", lambda: original(path=p))
+    app = create_app()
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+def test_home_sem_busca_fica_igual(client):
+    _catalogo_com(("Rifles", [_linha("AK-47 | Fire Serpent (Field-Tested)")]))
+    body = client.get("/").data.decode("utf-8")
+    assert "Fire Serpent" not in body
+    assert "selo-sem-nota" not in body
+
+
+def test_busca_traz_itens_com_nota_e_depois_o_catalogo(client):
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", preco=51.0, a_venda=999),
+        _linha("AK-47 | Redline (Minimal Wear)", preco=90.0, a_venda=50),
+        _linha("Item Arriscado", preco=5.0),
+    ]))
+    body = client.get("/?q=redline").data.decode("utf-8")
+    com_nota = body.index('data-nome="AK-47 | Redline (Field-Tested)"')
+    divisor = body.index('class="divisor-catalogo"')
+    assert com_nota < divisor < body.index('data-nome="AK-47 | Redline (Minimal Wear)"')
+    # O item com nota não se repete como "sem nota", e o escondido por
+    # risco alto não aparece pelo catálogo.
+    assert body.count('data-nome="AK-47 | Redline (Field-Tested)"') == 1
+    assert 'data-nome="Item Arriscado"' not in body
+    assert "Mostrando 1–2 de 2 itens" in body
+
+
+def test_busca_pagina_atravessa_nota_e_catalogo(client):
+    _catalogo_com(("Rifles", [_linha(f"AK-47 | Redline X{i:02d}", a_venda=100 - i)
+                              for i in range(20)]))
+    p1 = client.get("/?q=redline").data.decode("utf-8")
+    assert "Mostrando 1–12 de 21 itens" in p1
+    p2 = client.get("/?q=redline&pagina=2").data.decode("utf-8")
+    assert "Mostrando 13–21 de 21 itens" in p2
+    # Página 1: 1 item com nota + 11 do catálogo (X00..X10).
+    assert 'data-nome="AK-47 | Redline X10"' in p1
+    assert 'data-nome="AK-47 | Redline X11"' in p2
+    assert 'data-nome="AK-47 | Redline X19"' in p2
+    assert 'data-nome="AK-47 | Redline X10"' not in p2
+
+
+def test_nota_minima_mostra_so_itens_com_nota(client):
+    _catalogo_com(("Rifles", [_linha("AK-47 | Redline (Minimal Wear)")]))
+    body = client.get("/?q=redline&nota_min=10").data.decode("utf-8")
+    assert 'data-nome="AK-47 | Redline (Minimal Wear)"' not in body
+
+
+def test_pagina_de_item_so_do_catalogo(client):
+    _catalogo_com(("Facas", [_linha("★ Karambit | Fade (Factory New)",
+                                    preco=100.0, a_venda=7, cor="eb4b4b")]))
+    r = client.get("/item/★ Karambit | Fade (Factory New)")
+    assert r.status_code == 200
+    body = r.data.decode("utf-8")
+    assert "Sem nota ainda" in body and "Por que ainda não tem nota?" in body
+    assert "<strong>R$ 115,00</strong>" in body  # conta da revenda
+    assert "raridade-dourado" in body
+    assert client.get("/item/Item Arriscado").status_code == 404
+    assert client.get("/item/Nao Existe").status_code == 404
+
+
+def test_conta_usa_preco_do_catalogo(client):
+    from lodout.public_site import user_portfolio
+    _catalogo_com(("Caixas e cápsulas", [_linha("Snakebite Case", preco=2.0)]))
+    sid = "76561198000000077"
+    user_portfolio.add_position(sid, "Snakebite Case", 1.0)
+    with client.session_transaction() as s:
+        s["steamid"] = sid
+    body = client.get("/conta").data.decode("utf-8")
+    assert '<td data-label="Vale hoje">R$ 2,00</td>' in body

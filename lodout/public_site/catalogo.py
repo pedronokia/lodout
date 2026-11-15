@@ -378,3 +378,132 @@ def resumo() -> dict:
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts")
     return {k: estado.get(k) for k in chaves if k in estado}
+
+
+# ── Leitura (o site) ─────────────────────────────────────────────────
+# Só SQLite local: nenhuma consulta à Steam. Sem banco (dev, testes, ou
+# antes da 1a varredura), tudo volta vazio e o site segue como antes.
+
+def _conectar_leitura() -> "sqlite3.Connection | None":
+    caminho = _caminho_banco()
+    if not caminho.exists():
+        return None
+    conn = sqlite3.connect(f"file:{caminho}?mode=ro", uri=True, timeout=5)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
+    """Cláusula WHERE para os filtros da busca (mesma regra de busca do
+    site: palavras em qualquer ordem, sem acento; "a OR b")."""
+    partes, args = [], []
+    busca = (filtros.get("busca") or "").strip()
+    if busca:
+        grupos = []
+        for grupo in texto_busca(busca).split(" or "):
+            palavras = [p for p in grupo.split() if any(ch.isalnum() for ch in p)]
+            if palavras:
+                grupos.append("(" + " AND ".join("busca LIKE ?" for _ in palavras) + ")")
+                args.extend(f"%{p}%" for p in palavras)
+        if grupos:
+            partes.append("(" + " OR ".join(grupos) + ")")
+    for coluna, chave in (("categoria", "categoria"), ("exterior", "exterior"),
+                          ("raridade", "raridade"), ("versao", "versao")):
+        if filtros.get(chave):
+            partes.append(f"{coluna} = ?")
+            args.append(filtros[chave])
+    if filtros.get("preco_max") is not None:
+        partes.append("preco <= ?")
+        args.append(float(filtros["preco_max"]))
+    partes.append("preco IS NOT NULL")
+    if excluir:
+        partes.append(f"nome NOT IN ({','.join('?' * len(excluir))})")
+        args.extend(excluir)
+    return " AND ".join(partes), args
+
+
+def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda",
+              limite: int = 12, offset: int = 0) -> "tuple[int, list[dict]]":
+    """(total, itens) do catálogo que batem com os filtros, sem os
+    `excluir` (os itens com nota, que a lista já mostra antes)."""
+    conn = _conectar_leitura()
+    if conn is None:
+        return 0, []
+    try:
+        where, args = _where(filtros, list(excluir))
+        total = conn.execute(f"SELECT COUNT(*) FROM itens WHERE {where}",
+                             args).fetchone()[0]
+        ordem = "preco ASC" if ordenar == "preco" else "a_venda DESC, nome"
+        linhas = conn.execute(
+            f"SELECT * FROM itens WHERE {where} ORDER BY {ordem} "
+            "LIMIT ? OFFSET ?", [*args, max(0, int(limite)), max(0, int(offset))]
+        ).fetchall() if limite > 0 else []
+        return total, [dict(r) for r in linhas]
+    except sqlite3.Error:
+        _logger.warning("leitura do catálogo falhou", exc_info=True)
+        return 0, []
+    finally:
+        conn.close()
+
+
+def contar_por_categoria(filtros: dict, excluir: "list[str]" = ()) -> dict:
+    conn = _conectar_leitura()
+    if conn is None:
+        return {}
+    try:
+        where, args = _where({**filtros, "categoria": None}, list(excluir))
+        return {r[0]: r[1] for r in conn.execute(
+            f"SELECT categoria, COUNT(*) FROM itens WHERE {where} "
+            "GROUP BY categoria", args)}
+    except sqlite3.Error:
+        return {}
+    finally:
+        conn.close()
+
+
+def item(nome: str) -> "dict | None":
+    conn = _conectar_leitura()
+    if conn is None:
+        return None
+    try:
+        r = conn.execute("SELECT * FROM itens WHERE nome = ?", (nome,)).fetchone()
+        return dict(r) if r else None
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+
+
+def precos(nomes: "list[str]") -> "dict[str, float]":
+    """{nome: preço do dia} para os nomes que o catálogo tem."""
+    nomes = [n for n in nomes if n]
+    conn = _conectar_leitura()
+    if conn is None or not nomes:
+        if conn is not None:
+            conn.close()
+        return {}
+    try:
+        out = {}
+        for i in range(0, len(nomes), 500):
+            lote = nomes[i:i + 500]
+            for r in conn.execute(
+                    f"SELECT nome, preco FROM itens WHERE nome IN "
+                    f"({','.join('?' * len(lote))}) AND preco IS NOT NULL", lote):
+                out[r[0]] = r[1]
+        return out
+    except sqlite3.Error:
+        return {}
+    finally:
+        conn.close()
+
+
+def tem_dados() -> bool:
+    conn = _conectar_leitura()
+    if conn is None:
+        return False
+    try:
+        return conn.execute("SELECT 1 FROM itens LIMIT 1").fetchone() is not None
+    except sqlite3.Error:
+        return False
+    finally:
+        conn.close()

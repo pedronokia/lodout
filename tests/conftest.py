@@ -85,3 +85,17 @@ def _sem_sync_inventario_em_segundo_plano(monkeypatch):
     monkeypatch.setattr(
         "lodout.public_site.inventario.sincronizar_em_segundo_plano",
         lambda steamid: False)
+
+
+@pytest.fixture(autouse=True)
+def _sem_catalogo_de_outro_teste():
+    """O banco do catálogo amplo (data/catalogo.sqlite3) é criado por
+    test_catalogo; sem isto ele vazava para os testes seguintes e a busca
+    da home passava a trazer itens dele."""
+    yield
+    import lodout._paths as paths
+    for nome in ("catalogo.sqlite3", "catalogo.sqlite3-wal",
+                 "catalogo.sqlite3-shm", "catalogo_estado.json"):
+        p = paths.DATA_DIR / nome
+        if p.exists():
+            p.unlink()

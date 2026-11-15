@@ -127,5 +127,5 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 | Fase | Status |
 | --- | --- |
 | 1. Varredura no worker | no ar; 1a varredura em andamento (365 páginas, 0 bloqueio às 02:15 UTC de 15/11) |
-| 2. Site lê o catálogo | aprovada; espera o checkpoint da Fase 1 |
+| 2. Site lê o catálogo | feita (2026-11-15): busca/filtros, cartão e página "sem nota ainda", preço na conta; ~30 ms com 29 mil itens |
 | 3. Textos e verificação | aprovada |

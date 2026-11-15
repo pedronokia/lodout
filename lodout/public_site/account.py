@@ -20,7 +20,7 @@ from lodout import portfolio, scan_store
 from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
-    fmt, inventario, raridade, steam_openid, user_history, user_portfolio,
+    catalogo, fmt, inventario, raridade, steam_openid, user_history, user_portfolio,
     user_store, user_trades, user_watchlist,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
@@ -51,6 +51,19 @@ def _openid_return_to_matches(expected: "str | None") -> bool:
         request.args.getlist(key) == values
         for key, values in expected_query.items()
     )
+
+
+def _preco_do_dia(positions: "list[dict]"):
+    """Preço de cada item da conta: o da coleta com nota quando existe;
+    senão o do catálogo amplo (todo o Mercado, 1x por dia). Só leitura
+    local, sem rede (catalogo-grande.md, fase 2)."""
+    cache = PriceCache()
+    do_catalogo = catalogo.precos([p.get("name") for p in positions])
+
+    def _preco(nome: str):
+        preco = cache.get(nome)
+        return preco if preco is not None else do_catalogo.get(nome)
+    return _preco
 
 
 def _scan_lookup() -> dict:
@@ -172,7 +185,8 @@ def conta():
     # Preço vem do mesmo cache compartilhado da Fase 1 -- leitura pura,
     # sem rede. Se o item nunca foi escaneado, a linha some sem preço
     # quando a Steam não respondeu).
-    avaliacao_bruta = portfolio.evaluate_portfolio(positions, PriceCache().get)
+    avaliacao_bruta = portfolio.evaluate_portfolio(
+        positions, _preco_do_dia(positions))
     # Grava o ponto de histórico ANTES de formatar -- precisa do valor
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
@@ -296,7 +310,7 @@ def editar_custo(name: str):
         if not linhas:
             return jsonify({"ok": False, "erro": "Item não encontrado."}), 404
         avaliacao = _formatar_linhas(
-            portfolio.evaluate_portfolio(linhas, PriceCache().get),
+            portfolio.evaluate_portfolio(linhas, _preco_do_dia(linhas)),
             _meta_lucro(steamid))
         row = avaliacao["rows"][0]
         pnl = row.get("pnl") if row.get("has_cost") else None

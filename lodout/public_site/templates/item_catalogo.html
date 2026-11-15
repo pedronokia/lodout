@@ -1,0 +1,83 @@
+{% from "partials/_icons.html" import icone %}
+{#- Página de um item do catálogo amplo, sem nota ainda (plans/pending/
+    catalogo-grande.md, fase 2). Só o que o catálogo sabe: preço do dia,
+    quantos à venda, raridade e imagem -- mais a conta da revenda, que não
+    depende de nota. Mesma moldura da página do item com nota. -#}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ item.name_fmt }} — Lodout</title>
+  <meta name="description" content="{{ item.name_fmt }}: {{ item.price_fmt }} hoje no Mercado da Steam, {{ item.a_venda }} à venda.">
+  <meta property="og:title" content="{{ item.name_fmt }} — Lodout">
+  <meta property="og:description" content="{{ item.price_fmt }} hoje · {{ item.a_venda }} à venda no Mercado da Steam">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:locale" content="pt_BR">
+  <link rel="canonical" href="{{ request.url }}">
+  {% include "partials/_head_pwa.html" %}
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
+</head>
+<body>
+  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <header class="topo">
+    <div class="topo-linha">
+      <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
+      {% include "partials/_conta_link.html" %}
+    </div>
+  </header>
+
+  <main id="conteudo" class="pagina-texto pagina-item">
+    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pra lista</a></p>
+
+    <div class="hero-item{{ ' ' ~ item.raridade_classe if item.raridade_classe else '' }}">
+      <div class="hero-item-grade">
+        <div class="hero-item-corpo">
+          {% if item.raridade_titulo %}<p class="hero-item-tag">{{ item.raridade_titulo }}</p>{% endif %}
+          <h1 class="titulo-item" translate="no">{{ item.name_fmt|titulo_sem_pipe_orfao }}</h1>
+          <p class="hero-item-acoes">
+            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
+            <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
+          </p>
+        </div>
+        <div class="hero-item-imagem">
+          <span class="icone-item-quadro hero-item-quadro{{ ' icone-item-quadro-com-imagem' if item.icon_url else '' }}{{ ' ' ~ item.raridade_classe if item.raridade_classe else '' }}" aria-hidden="true">
+            <span class="icone-item-placeholder"></span>
+            {% if item.icon_url %}
+            <img class="icone-item" src="{{ item.icon_url }}" srcset="{{ item.icon_url }} 1x, {{ item.icon_url_2x }} 2x" alt="" aria-hidden="true" width="192" height="192">
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <section class="resumo-cards resumo-cards-item" aria-label="Resumo do item">
+      <div class="card"><span class="card-label">Nota</span><span class="card-valor card-valor-texto">Sem nota ainda</span></div>
+      <div class="card"><span class="card-label">Preço hoje</span><span class="card-valor">{{ item.price_fmt }}</span></div>
+      <div class="card"><span class="card-label">À venda na Steam</span><span class="card-valor">{{ item.a_venda }}</span></div>
+      {% if item.atualizado_txt %}<p class="card-coleta">Preço coletado {{ item.atualizado_txt }}, da busca do Mercado da Steam (menor anúncio).</p>{% endif %}
+    </section>
+
+    {% if preco_empate %}
+    <section class="conta-revenda" aria-labelledby="titulo-revenda">
+      <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
+      <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A Steam fica com cerca de {{ taxa_steam_pct }}% de cada venda (5% da Steam e 10% do jogo), então o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+    </section>
+    {% endif %}
+
+    <h2 class="secao-titulo">Por que ainda não tem nota?</h2>
+    <p>O Lodout acompanha todo o Mercado de CS2 com o preço do dia, mas a nota de 0 a 100 precisa do histórico de preço de cada item, que é uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
+
+    {% if item.category %}
+    <p class="status"><a class="link-com-seta" href="{{ url_for('index', categoria=item.category) }}">Ver os itens com nota de “{{ item.category }}” {{ icone("seta-direita") }}</a></p>
+    {% endif %}
+  </main>
+
+  <footer class="rodape">
+    {% include "partials/_rodape_links.html" %}
+  </footer>
+
+  <script src="{{ static_v('app.js') }}" defer></script>
+</body>
+</html>

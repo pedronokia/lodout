@@ -215,6 +215,59 @@
   </li>
   {% endmacro %}
 
+  {# Itens do catálogo amplo (plans/pending/catalogo-grande.md, fase 2):
+     sem nota ainda -- só o preço do dia e quantos estão à venda, vindos
+     da busca do Mercado da Steam. Aparecem depois dos itens com nota,
+     quando há busca ou filtro. #}
+  {% macro cartao_catalogo(c) %}
+  <li class="cartao-item cartao-item-catalogo{{ ' ' ~ c.raridade_classe if c.raridade_classe else '' }}" data-nome="{{ c.name }}">
+    <div class="cartao-item-imagem">
+      <a class="cartao-item-imagem-link" href="{{ url_for('item_detail', name=c.name) }}" aria-label="Abrir {{ c.name_fmt }}">
+        {% if c.icon_url %}
+        <img class="cartao-item-icon" src="{{ c.icon_url }}" srcset="{{ c.icon_url }} 1x, {{ c.icon_url_2x }} 2x" alt="" aria-hidden="true" loading="lazy" width="192" height="192">
+        {% else %}
+        <span class="icone-item-placeholder" aria-hidden="true"></span>
+        {% endif %}
+      </a>
+      <div class="cartao-item-nota-area">
+        <span class="selo-sem-nota" title="O Lodout ainda não calcula a nota deste item: mostra só o preço do dia">sem nota ainda</span>
+      </div>
+    </div>
+    <div class="cartao-item-corpo">
+      <a class="cartao-item-nome" href="{{ url_for('item_detail', name=c.name) }}" translate="no">{{ c.name_fmt }}</a>
+      <p class="cartao-item-a-venda">{{ c.a_venda }} à venda na Steam</p>
+      <div class="cartao-item-rodape">
+        <span class="cartao-item-preco">{{ c.price_fmt }}</span>
+      </div>
+      <div class="cartao-item-selos">
+        <span class="cartao-item-caixa">Preço do dia</span>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam Market {{ icone("seta-direita") }}</a>
+      </div>
+    </div>
+  </li>
+  {% endmacro %}
+
+  {% macro linha_catalogo(c) %}
+  <tr class="linha-catalogo" data-nome="{{ c.name }}">
+    <td class="celula-item" data-label="Item">
+      <div class="celula-item-principal">
+        <span class="icone-item-quadro{{ ' icone-item-quadro-com-imagem' if c.icon_url else '' }}{{ ' ' ~ c.raridade_classe if c.raridade_classe else '' }}" aria-hidden="true"{% if c.raridade_titulo %} title="{{ c.raridade_titulo }}"{% endif %}>
+          <span class="icone-item-placeholder"></span>
+        {% if c.icon_url %}
+          <img class="icone-item" src="{{ c.icon_url }}" srcset="{{ c.icon_url }} 1x, {{ c.icon_url_2x }} 2x" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
+        {% endif %}
+        </span>
+        <a class="link-item" href="{{ url_for('item_detail', name=c.name) }}" translate="no">{{ c.name_fmt }}</a>
+      </div>
+    </td>
+    <td class="celula-preco" data-label="Preço">{{ c.price_fmt }}</td>
+    <td class="celula-sparkline" data-label="Histórico">—</td>
+    <td class="celula-nota" data-label="Nota"><span class="selo-sem-nota">sem nota ainda</span></td>
+    <td data-label="Caixa/Cápsula">—</td>
+    <td data-label="Por quê">{{ c.a_venda }} à venda · <a href="{{ c.market_url }}" target="_blank" rel="noopener">Steam Market</a></td>
+  </tr>
+  {% endmacro %}
+
   {% macro colgroup_itens() %}
   <colgroup>
     <col class="col-item"><col class="col-preco"><col class="col-historico">
@@ -443,7 +496,7 @@
     </ul>
     {% endif %}
 
-    {% if candidatos %}
+    {% if candidatos or itens_catalogo %}
     <h2 class="visualmente-oculto">Todos os itens</h2>
     {# Frase-guia mais curta e "Cores da borda" na mesma linha (2026-11-14):
        a explicação do selo de risco só entra quando há selo na página. #}
@@ -457,7 +510,7 @@
     </div>
     {% endif %}
 
-    {% if candidatos %}
+    {% if candidatos or itens_catalogo %}
     {% if ver_sel == 'lista' %}
     <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
     {% endif %}
@@ -478,7 +531,7 @@
     </nav>
     {% endif %}
 
-    {% if candidatos %}
+    {% if candidatos or itens_catalogo %}
     {# Seletor Vitrine/Lista (revisão de direção visual 2026-11-08,
        rodada 2). Os dois modos mostram os mesmos itens e filtros; a
        escolha fica num cookie (pref_ver) e o link abaixo a redefine. #}
@@ -502,7 +555,7 @@
       <ul id="lista-favoritos-fora" class="lista-favoritos-fora" hidden></ul>
     </div>
 
-    {% if candidatos %}
+    {% if candidatos or itens_catalogo %}
     {% if ver_sel == 'lista' %}
     <div class="faixa faixa-lista">
     <div class="faixa-dentro">
@@ -511,6 +564,10 @@
       <thead class="cabecalho-fixo">{{ cabecalho_tabela() }}</thead>
       <tbody>
         {% for c in candidatos %}{{ linha_candidato(c, pagina == 1 and loop.first) }}{% endfor %}
+        {% if itens_catalogo %}
+        <tr class="linha-divisor-catalogo"><td colspan="6">Sem nota ainda: preço do dia de outros itens do Mercado da Steam que batem com a sua busca.</td></tr>
+        {% for c in itens_catalogo %}{{ linha_catalogo(c) }}{% endfor %}
+        {% endif %}
       </tbody>
     </table>
     </div>
@@ -520,11 +577,15 @@
     <div class="faixa faixa-vitrine">
     <ul class="grade-cards" aria-label="Vitrine de itens">
       {% for c in candidatos %}{{ cartao_candidato(c, loop.index0) }}{% endfor %}
+      {% if itens_catalogo %}
+      <li class="divisor-catalogo">Sem nota ainda: preço do dia de outros itens do Mercado da Steam que batem com a sua busca.</li>
+      {% for c in itens_catalogo %}{{ cartao_catalogo(c) }}{% endfor %}
+      {% endif %}
     </ul>
     </div>
     {% endif %}
     {% endif %}
-    {% if candidatos %}
+    {% if candidatos or itens_catalogo %}
     <nav class="paginacao" aria-label="Paginação">
       {# Uma linha só: Anterior · números · Próxima (2026-11-14). "Ver mais"
          era ambíguo, e "· página N" repetia o número destacado. #}

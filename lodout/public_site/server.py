@@ -451,13 +451,42 @@ def create_app() -> Flask:
         for c in sem_categoria:
             if c.get("category"):
                 contagem_abas[c["category"]] = contagem_abas.get(c["category"], 0) + 1
-        total_paginas = max(1, -(-len(todos) // _PAGINA_TAMANHO))
+        # Catálogo amplo (plans/pending/catalogo-grande.md, fase 2): com
+        # busca ou com os filtros "da Steam", a lista continua com os itens
+        # que têm nota e depois traz o resto do mercado, "sem nota ainda".
+        # Nota mínima e liquidez só existem nos itens com nota. Sem busca
+        # nem filtro, a home fica igual (as notas de hoje). Só SQLite local.
+        usa_catalogo = bool(busca or exterior or raridade_sel or versao
+                            or preco_max is not None) \
+            and nota_min is None and not liquidez_min
+        filtros_cat = {"busca": busca, "categoria": categoria,
+                       "exterior": exterior, "raridade": raridade_sel,
+                       "versao": versao, "preco_max": preco_max}
+        nomes_com_nota = ([r["name"] for r in scan["results"]]
+                          if scan else [])
+        total_cat = 0
+        if usa_catalogo:
+            total_cat, _ = catalogo.consultar(
+                filtros_cat, nomes_com_nota, ordenar, limite=0)
+            for cat, n in catalogo.contar_por_categoria(
+                    filtros_cat, nomes_com_nota).items():
+                contagem_abas[cat] = contagem_abas.get(cat, 0) + n
+                total_geral += n
+        total_itens = len(todos) + total_cat
+        total_paginas = max(1, -(-total_itens // _PAGINA_TAMANHO))
         # Link antigo (?pagina=15 depois que a lista encolheu) ou digitado
         # à mão: mostra a última página que existe em vez de uma lista
         # vazia sem explicação.
         pagina = min(max(1, pagina), total_paginas)
         inicio = (pagina - 1) * _PAGINA_TAMANHO
         candidatos_pagina = todos[inicio:inicio + _PAGINA_TAMANHO]
+        itens_catalogo_pagina: list = []
+        falta = _PAGINA_TAMANHO - len(candidatos_pagina)
+        if usa_catalogo and falta > 0 and total_cat:
+            _total_ignorado, linhas = catalogo.consultar(
+                filtros_cat, nomes_com_nota, ordenar, limite=falta,
+                offset=max(0, inicio - len(todos)))
+            itens_catalogo_pagina = [_cartao_do_catalogo(r) for r in linhas]
         _marca("filtro")
         _enriquecer_com_historico(candidatos_pagina)
         _marca("historico")
@@ -517,7 +546,8 @@ def create_app() -> Flask:
                          if scan else None),
             scan_desatualizado=scan_desatualizado,
             ocultos_risco=ocultos_risco,
-            categorias=sorted(scan_targets.SCAN_BY_CATEGORY.keys()),
+            categorias=sorted(set(scan_targets.SCAN_BY_CATEGORY.keys())
+                              | set(contagem_abas.keys())),
             contagem_categorias=_contagem_por_categoria(scan),
             contagem_abas=contagem_abas,
             filtro_alem_da_categoria=bool(
@@ -529,9 +559,9 @@ def create_app() -> Flask:
             exterior_opcoes={k: v[1] for k, v in _EXTERIORES.items()},
             raridade_opcoes=raridade._RARIDADE_LABELS,
             versao_opcoes=_VERSOES,
-            # O filtro de Versão só aparece quando a coleta tem algum item
-            # StatTrak™/Souvenir -- hoje não tem, e ele só voltava vazio.
-            mostrar_versao=bool(versao) or any(
+            # O filtro de Versão só aparece quando há itens StatTrak™/
+            # Souvenir para filtrar: na coleta com nota ou no catálogo.
+            mostrar_versao=bool(versao) or catalogo.tem_dados() or any(
                 _versao_do_item(r.get("name") or "") != "normal"
                 for r in (scan or {}).get("results") or []),
             total_acompanhados=len(scan["results"]) if scan else 0,
@@ -546,10 +576,13 @@ def create_app() -> Flask:
             ver_sel=ver,
             pagina=pagina,
             primeiro_item=inicio + 1,
-            ultimo_item=inicio + len(candidatos_pagina),
-            tem_proxima_pagina=len(todos) > inicio + _PAGINA_TAMANHO,
+            ultimo_item=inicio + len(candidatos_pagina) + len(itens_catalogo_pagina),
+            tem_proxima_pagina=total_itens > inicio + _PAGINA_TAMANHO,
             tem_pagina_anterior=pagina > 1,
-            total_candidatos=len(todos),
+            total_candidatos=total_itens,
+            itens_catalogo=itens_catalogo_pagina,
+            total_com_nota=len(todos),
+            total_catalogo=total_cat,
             total_paginas=total_paginas,
             paginas_visiveis=_paginas_visiveis(pagina, total_paginas),
         ))
@@ -591,7 +624,20 @@ def create_app() -> Flask:
             scan, com_historico=False, com_icone=False)
         item = next((c for c in candidatos if c["name"] == name), None)
         if item is None:
-            return render_template("404.html"), 404
+            # Item do catálogo amplo, sem nota ainda (catalogo-grande.md,
+            # fase 2): página simples com preço do dia e a conta da revenda.
+            # Item que tem nota mas está fora da lista (risco alto de alta
+            # artificial) não vira "sem nota ainda": continua como antes.
+            no_scan = any(r.get("name") == name
+                          for r in (scan or {}).get("results") or [])
+            linha = None if no_scan else catalogo.item(name)
+            if linha is None or linha.get("preco") is None:
+                return render_template("404.html"), 404
+            item_cat = _cartao_do_catalogo(linha)
+            return render_template(
+                "item_catalogo.html", item=item_cat,
+                preco_empate=fmt.brl(portfolio.break_even_price(item_cat["price"])),
+                taxa_steam_pct=round(portfolio.STEAM_FEE * 100))
         # Mesmo achado de performance do index() (2026-11-09): ícone só
         # no item em destaque + nos parecidos exibidos, não nos ~150
         # candidatos inteiros cruzados só pra achar este item.
@@ -2047,6 +2093,32 @@ _LIQUIDEZ_ORDEM = ["iliquido", "fino", "moderado", "liquido", "muito_liquido"]
 _EXTERIORES = catalogo.EXTERIORES
 _VERSOES = catalogo.VERSOES
 _versao_do_item = catalogo.versao_do_item
+
+
+def _cartao_do_catalogo(r: dict) -> dict:
+    """Item do catálogo amplo (sem nota) no formato que os templates
+    usam: nome, preço do dia, quantos à venda, imagem e raridade."""
+    icon = r.get("icon")
+    suf = r.get("raridade") or ""
+    return {
+        "catalogo": True,
+        "name": r["nome"],
+        "name_fmt": r.get("nome_pt") or localize_name(r["nome"]),
+        "price": r.get("preco"),
+        "price_fmt": fmt.brl(r.get("preco")),
+        "a_venda": f"{int(r.get('a_venda') or 0):,}".replace(",", "."),
+        "category": r.get("categoria"),
+        "icon_url": url_for("icone_cache", hash_icone=icon, v=3) if icon else None,
+        "icon_url_2x": (url_for("icone_cache", hash_icone=icon, v=3, tam=384)
+                        if icon else None),
+        "raridade_classe": "raridade-" + suf if suf else "",
+        "raridade_titulo": ("Raridade: " + raridade._RARIDADE_LABELS[suf]
+                            if suf in raridade._RARIDADE_LABELS else ""),
+        "market_url": _MARKET_LISTING_URL.format(
+            name=urllib.parse.quote(r["nome"], safe="")),
+        "atualizado_txt": (scan_store.idade_txt(r["atualizado_em"])
+                           if r.get("atualizado_em") else None),
+    }
 
 
 def _passa_filtros_steam(c: dict, exterior: "str | None",
