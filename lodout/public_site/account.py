@@ -340,6 +340,11 @@ def _mudanca_desde_ultima_visita(serie: "list[dict]") -> "dict | None":
     if not serie or len(serie) < 2:
         return None
     atual, antes = serie[-1], serie[-2]
+    # Ponto zerado = visita com a conta ainda vazia (antes do inventário
+    # chegar): comparar com ele dava "+ o valor inteiro" (achado
+    # 2026-11-15, print do usuário). Sem base, sem frase.
+    if float(antes.get("total") or 0) <= 0 or float(atual.get("total") or 0) <= 0:
+        return None
     diff = float(atual.get("total") or 0) - float(antes.get("total") or 0)
     if abs(diff) < 0.005:
         return None

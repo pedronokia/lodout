@@ -249,7 +249,7 @@
           {% endif %}
           <td data-label="Lucro hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
             <span data-campo="lucro-valor">{{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}</span>
-            <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or ("sem preço do dia" if row.has_cost and row.price is none else "") }}</span>
+            <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
           </td>
           <td data-label="Venda por" class="celula-venda-por">
             <button type="button" class="venda-por-falta" data-ir-ao-campo>informe quanto pagou</button>

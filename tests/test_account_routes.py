@@ -670,3 +670,6 @@ def test_mudanca_desde_a_visita_anterior():
     assert m["texto"] == "+R$ 3,20" and m["classe"] == "valor-positivo"
     m = account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}, {"ts": 2, "total": 90.0}])
     assert m["texto"] == "−R$ 10,00"
+    # Visita com a conta vazia (R$ 0) não serve de base: era o "+ o valor
+    # inteiro desde a última vez" do print de 15/11.
+    assert account._mudanca_desde_ultima_visita([{"ts": 1, "total": 0.0}, {"ts": 2, "total": 197.43}]) is None
