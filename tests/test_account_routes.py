@@ -201,8 +201,8 @@ def test_adicionar_posicao(client, monkeypatch):
     pagina = client.get("/conta").data.decode("utf-8")
     assert "Testada em Campo" in pagina  # localize_name
     assert 'class="tabela-candidatos tabela-cards-mobile"' in pagina
-    assert 'data-label="Custo"' in pagina
-    assert 'data-label="Lucro (sem taxa)"' in pagina
+    assert 'data-label="Você pagou"' in pagina
+    assert 'data-label="Lucro se vender hoje"' in pagina
 
 
 def test_posicao_mostra_icone_raridade_e_nota_do_scan_atual(
@@ -428,3 +428,41 @@ def test_excluir_apaga_avatar_em_cache(client, monkeypatch, tmp_path):
 
     assert not avatar_path.exists()
     assert steamid not in profile_fetcher._load_cache()
+
+
+def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
+    # 2026-11-15: pagou R$ 100 -> vender por R$ 115,00 empata (taxa de
+    # 15% da Steam) e por R$ 138,00 lucra 20% (meta padrão).
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "AK-47 | Redline (Field-Tested)", "cost": "100",
+        "quantity": "1", "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert '<td data-label="Vender sem prejuízo">R$ 115,00</td>' in pagina
+    assert '<strong class="preco-alvo">R$ 138,00</strong>' in pagina
+    assert "Vender para lucrar 20%" in pagina
+
+    resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
+    assert resp.status_code == 302
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert '<strong class="preco-alvo">R$ 172,50</strong>' in pagina
+    assert '<option value="50" selected>50%</option>' in pagina
+
+
+def test_meta_de_lucro_invalida_e_recusada(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "AK-47 | Redline (Field-Tested)", "cost": "100",
+        "quantity": "1", "csrf_token": token})
+    for valor in ("0", "-5", "abc", "9999"):
+        client.post("/conta/meta", data={"meta": valor, "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Vender para lucrar 20%" in pagina
+
+
+def test_meta_de_lucro_exige_csrf(client, monkeypatch):
+    _login(client, monkeypatch)
+    resp = client.post("/conta/meta", data={"meta": "50"})
+    assert resp.status_code in (400, 403)

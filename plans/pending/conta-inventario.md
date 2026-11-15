@@ -71,6 +71,6 @@ o preço do dia de todo o mercado.
 ## Progresso
 | Fase | Status |
 | --- | --- |
-| 1. Lucro com taxa e preço de venda | decisões tomadas; aguardando o "pode começar" |
-| 2. Inventário sincronizado | aguardando aprovação |
-| 3. "Quanto paguei" rápido | aguardando aprovação |
+| 1. Lucro com taxa e preço de venda | feita (2026-11-15) |
+| 2. Inventário sincronizado | aprovada; próxima |
+| 3. "Quanto paguei" rápido | aprovada |

@@ -4005,6 +4005,45 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 /* ── Formulários (conta, watchlist, trades) ──────────── */
 
+/* Meta de lucro da conta (2026-11-15). */
+.form-meta-lucro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0 0 var(--sp-3);
+}
+
+.form-meta-lucro-rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.form-meta-lucro select {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-bright);
+  font-size: var(--fs-base);
+}
+
+.pagina-texto .form-meta-lucro-ajuda,
+.form-meta-lucro-ajuda {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.preco-alvo { color: var(--text-bright); font-variant-numeric: tabular-nums; }
+
+
 .form-adicionar {
   display: flex;
   flex-wrap: wrap;
@@ -4647,7 +4686,8 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 /* ── Ajustes de comportamento ────────────────────────── */
 
-.js-ativo .form-filtros .botao-filtrar-sem-js { display: none; }
+.js-ativo .form-filtros .botao-filtrar-sem-js,
+.js-ativo .form-meta-lucro .botao-filtrar-sem-js { display: none; }
 
 /* Ações da linha só no hover/foco em telas com mouse; em toque ficam
    sempre visíveis. Ficam visíveis também quando estão em uso. */

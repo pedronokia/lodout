@@ -64,11 +64,36 @@ def _scan_lookup() -> dict:
     return {r["name"]: r for r in scan["results"]}
 
 
-def _formatar_linhas(avaliacao: dict) -> dict:
+# Meta de lucro da pessoa (2026-11-15): começa em 20%, ela escolhe. Fica
+# em user_data (kind "preferencias"), junto do resto do que é dela.
+_META_LUCRO_PADRAO = 20
+_META_LUCRO_OPCOES = (10, 20, 30, 50, 100)
+_META_LUCRO_MAX = 500
+
+
+def _meta_lucro(steamid: str) -> int:
+    prefs = user_store.load_user_json(steamid, "preferencias", {})
+    try:
+        meta = int((prefs or {}).get("meta_lucro_pct", _META_LUCRO_PADRAO))
+    except (TypeError, ValueError):
+        return _META_LUCRO_PADRAO
+    return meta if 1 <= meta <= _META_LUCRO_MAX else _META_LUCRO_PADRAO
+
+
+def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dict:
     """Acrescenta campos *_fmt pro template -- mesmo padrão de
-    `server.py:_candidatos` (formata em Python, template fica simples)."""
+    `server.py:_candidatos` (formata em Python, template fica simples).
+
+    Por item com custo conhecido: o preço de venda para empatar (custo +
+    a taxa da Steam) e o preço para lucrar `meta_pct` % já com a taxa --
+    a pergunta de quem comprou para revender (2026-11-15)."""
     por_nome_scan = _scan_lookup()
     for row in avaliacao["rows"]:
+        custo = row.get("cost") or 0
+        if row.get("has_cost") and custo > 0:
+            empate = portfolio.break_even_price(custo)
+            row["empate_fmt"] = fmt.brl(empate)
+            row["alvo_fmt"] = fmt.brl(empate * (1 + meta_pct / 100))
         raw = por_nome_scan.get(row["name"])
         row["name_fmt"] = localize_name(row["name"])
         row["price_fmt"] = fmt.brl(row.get("price"))
@@ -147,7 +172,8 @@ def conta():
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
     user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
-    avaliacao = _formatar_linhas(avaliacao_bruta)
+    meta = _meta_lucro(steamid)
+    avaliacao = _formatar_linhas(avaliacao_bruta, meta)
     # `usuario` NÃO é passado aqui de propósito (2026-10-27): o context
     # processor `_inject_usuario` (server.py) já busca o mesmo
     # `user_store.get_user(steamid)` pra TODO template com sessão ativa
@@ -157,7 +183,31 @@ def conta():
     return render_template(
         "conta.html", avaliacao=avaliacao,
         csrf_token=csrf_token(),
+        meta_lucro=meta,
+        meta_lucro_opcoes=_META_LUCRO_OPCOES,
+        taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
+
+
+@bp.route("/conta/meta", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def definir_meta():
+    """Meta de lucro (%) usada no preço de venda de cada item."""
+    steamid = session["steamid"]
+    try:
+        meta = int((request.form.get("meta") or "").strip())
+    except ValueError:
+        meta = 0
+    if not 1 <= meta <= _META_LUCRO_MAX:
+        flash(f"A meta de lucro precisa ser um número entre 1 e {_META_LUCRO_MAX}.",
+              "error")
+        return redirect(url_for("account.conta"))
+    prefs = user_store.load_user_json(steamid, "preferencias", {}) or {}
+    prefs["meta_lucro_pct"] = meta
+    user_store.save_user_json(steamid, "preferencias", prefs)
+    return redirect(url_for("account.conta"))
 
 
 @bp.route("/conta/posicoes", methods=["POST"])
@@ -248,6 +298,7 @@ def exportar_dados():
         "trades": user_trades.load_trades(steamid),
         "watchlist": user_watchlist.load_items(steamid),
         "historico_valor": user_history.load_history(steamid),
+        "preferencias": user_store.load_user_json(steamid, "preferencias", {}),
     })
     resp.headers["Content-Disposition"] = (
         f'attachment; filename="lodout-dados-{steamid}.json"')
