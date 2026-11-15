@@ -191,6 +191,10 @@ def conta():
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
     user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
+    # Mais valioso primeiro (2026-11-15): com o inventário inteiro na
+    # lista, a ordem de chegada deixava a faca no meio dos adesivos.
+    avaliacao_bruta["rows"].sort(
+        key=lambda r: -((r.get("price") or 0) * (r.get("quantity") or 1)))
     meta = _meta_lucro(steamid)
     estado_inv = inventario.estado(steamid)
     # Busca interrompida (servidor reiniciou no meio): o "buscando…" não

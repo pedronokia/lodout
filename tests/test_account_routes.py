@@ -200,7 +200,7 @@ def test_adicionar_posicao(client, monkeypatch):
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
     assert "Testada em Campo" in pagina  # localize_name
-    assert 'class="tabela-candidatos tabela-cards-mobile"' in pagina
+    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta"' in pagina
     assert 'data-label="Você pagou"' in pagina
     assert 'data-label="Lucro se vender hoje"' in pagina
 
@@ -226,7 +226,7 @@ def test_posicao_mostra_icone_raridade_e_nota_do_scan_atual(
     assert "icone-item-quadro-compacto" in pagina
     assert "icone-item-quadro-com-imagem" in pagina
     assert "raridade-covert" in pagina
-    assert '<span class="nota-numero">77</span>' in pagina
+    assert 'title="Nota do Lodout">nota 77</span>' in pagina
 
 
 def test_adicionar_posicao_sem_csrf_falha(client, monkeypatch):
@@ -439,9 +439,9 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
         "name": "AK-47 | Redline (Field-Tested)", "cost": "100",
         "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
-    assert '<td data-label="Vender sem prejuízo" data-campo="empate">R$ 115,00</td>' in pagina
+    assert '<span class="venda-por-valor" data-campo="empate">R$ 115,00</span>' in pagina
     assert '<strong class="preco-alvo" data-campo="alvo">R$ 138,00</strong>' in pagina
-    assert "Vender para lucrar 20%" in pagina
+    assert "Lucrar 20%" in pagina
 
     resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
     assert resp.status_code == 302
@@ -459,7 +459,7 @@ def test_meta_de_lucro_invalida_e_recusada(client, monkeypatch):
     for valor in ("0", "-5", "abc", "9999"):
         client.post("/conta/meta", data={"meta": valor, "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
-    assert "Vender para lucrar 20%" in pagina
+    assert "Lucrar 20%" in pagina
 
 
 def test_meta_de_lucro_exige_csrf(client, monkeypatch):

@@ -4058,6 +4058,102 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 /* ── Formulários (conta, watchlist, trades) ──────────── */
 
+/* Conta, revisão de 2026-11-15 (inventário inteiro na lista). */
+.resumo-cards-conta .card-valor {
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  white-space: nowrap;
+}
+
+.pagina-texto .aviso-sem-custo,
+.aviso-sem-custo {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  text-align: left;
+}
+
+.adicionar-manual { margin: 0 0 var(--sp-5); }
+
+.adicionar-manual > summary {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  color: var(--accent-bright);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.adicionar-manual[open] > summary { margin-bottom: var(--sp-2); }
+
+.tabela-conta td { vertical-align: middle; }
+
+.celula-item-conta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 220px;
+}
+
+.celula-item-conta-texto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.celula-item-conta-extra {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--sp-2);
+  font-size: var(--fs-xs);
+}
+
+.celula-item-conta-extra .botao-remover {
+  min-height: 0;
+  padding: 0;
+  font-size: var(--fs-xs);
+}
+
+.item-quantidade {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.nota-texto { font-weight: 600; font-variant-numeric: tabular-nums; }
+.nota-texto.nota-alta { color: var(--positive); }
+.nota-texto.nota-media { color: var(--warn); }
+.nota-texto.nota-baixa { color: var(--text-muted); }
+
+.celula-numero { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.input-custo { width: 6.5em; }
+
+.celula-venda-por { white-space: nowrap; }
+/* O flex fica num bloco dentro da célula: flex direto no <td> tira a
+   célula do layout de tabela (fundo e bordas desalinhados). */
+.venda-por-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.venda-por-linha {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.venda-por-valor { color: var(--text); font-variant-numeric: tabular-nums; }
+.venda-por-meta .preco-alvo { font-size: var(--fs-sm); }
+
+
 /* Aviso do inventário na conta (2026-11-15). */
 .pagina-texto .status-inventario,
 .status-inventario {

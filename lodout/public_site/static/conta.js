@@ -10,6 +10,17 @@
     if (el) el.textContent = valor;
   }
 
+  // Remover pede confirmação (ação destrutiva, AGENTS.md). Sem JS o
+  // formulário envia direto, como antes.
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!form.classList || !form.classList.contains("form-remover")) return;
+    var nome = form.getAttribute("data-nome") || "este item";
+    if (!window.confirm("Remover " + nome + " da sua lista? Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização.")) {
+      e.preventDefault();
+    }
+  });
+
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (!form.classList || !form.classList.contains("form-custo")) return;
@@ -37,7 +48,7 @@
       if (aviso) aviso.classList.remove("custo-erro");
       texto(aviso, "salvo ✓");
       if (linha) {
-        texto(linha.querySelector('[data-campo="empate"]'), d.empate_fmt || "informe quanto pagou");
+        texto(linha.querySelector('[data-campo="empate"]'), d.empate_fmt || "—");
         texto(linha.querySelector('[data-campo="alvo"]'), d.alvo_fmt || "—");
         var lucro = linha.querySelector('[data-campo="lucro"]');
         if (lucro) {

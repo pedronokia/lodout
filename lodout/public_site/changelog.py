@@ -8,6 +8,17 @@ from __future__ import annotations
 
 ENTRADAS = [
     {
+        "data": "2026-11-15",
+        "titulo": "Sua conta mais fácil de ler",
+        "itens": [
+            "A lista da sua conta tem 5 colunas que cabem na tela: o item, quanto você pagou, quanto vale hoje, o lucro se vender hoje e “Venda por” (sem prejuízo e com a sua meta de lucro).",
+            "Os itens aparecem do mais valioso para o menos valioso.",
+            "Prejuízo aparece como “−R$ 98,76”, e os números dos cartões do topo cabem numa linha.",
+            "Um aviso no topo diz quantos itens estão sem o valor pago; adicionar um item à mão fica recolhido, já que o inventário vem sozinho.",
+            "Remover um item pede confirmação antes.",
+        ],
+    },
+    {
         "data": "2026-11-14",
         "titulo": "Cartões alinhados e páginas de item e ranking revistas",
         "itens": [

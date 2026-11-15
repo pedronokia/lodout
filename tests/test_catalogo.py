@@ -284,7 +284,7 @@ def test_conta_usa_preco_do_catalogo(client):
     with client.session_transaction() as s:
         s["steamid"] = sid
     body = client.get("/conta").data.decode("utf-8")
-    assert '<td data-label="Vale hoje">R$ 2,00</td>' in body
+    assert '<td data-label="Vale hoje" class="celula-numero">R$ 2,00</td>' in body
 
 
 
@@ -326,3 +326,17 @@ def test_status_mostra_o_catalogo(client, monkeypatch, sem_pausa):
 
 def test_status_sem_catalogo_nao_mostra_a_secao(client):
     assert "Catálogo do Mercado" not in client.get("/status").data.decode("utf-8")
+
+
+def test_conta_lista_o_mais_valioso_primeiro(client):
+    from lodout.public_site import user_portfolio
+    _catalogo_com(("Rifles", [_linha("Barato", preco=1.0), _linha("Caro", preco=100.0),
+                              _linha("Medio", preco=5.0)]))
+    sid = "76561198000000078"
+    for nome in ("Barato", "Caro", "Medio"):
+        user_portfolio.add_position(sid, nome, None)
+    with client.session_transaction() as s:
+        s["steamid"] = sid
+    body = client.get("/conta").data.decode("utf-8")
+    assert body.index(">Caro<") < body.index(">Medio<") < body.index(">Barato<")
+    assert "3 itens estão sem o valor pago" in body

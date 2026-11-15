@@ -4281,7 +4281,7 @@ def test_comparar_trunca_em_3_mesmo_com_mais_nomes(client, monkeypatch, tmp_path
 
 
 def test_fmt_brl_valor_negativo():
-    assert fmt.brl(-42.5) == "R$ -42,50"
+    assert fmt.brl(-42.5) == "\u2212R$ 42,50"
 
 
 def test_fmt_brl_valor_grande():

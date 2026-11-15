@@ -13,7 +13,10 @@ FUSO_BR = datetime.timezone(datetime.timedelta(hours=-3))
 def brl(v: "float | None") -> str:
     if v is None:
         return "—"
-    return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    # Negativo como "−R$ 42,50" (sinal de menos antes da moeda), não
+    # "R$ -42,50" -- é como se escreve prejuízo em português (2026-11-15).
+    texto = f"R$ {abs(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return ("\u2212" + texto) if round(v, 2) < 0 else texto
 
 
 def pct(v: "float | None") -> str:
