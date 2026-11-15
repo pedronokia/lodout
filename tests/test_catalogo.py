@@ -341,7 +341,8 @@ def test_conta_lista_o_mais_valioso_primeiro(client):
         s["steamid"] = sid
     body = client.get("/conta").data.decode("utf-8")
     assert body.index(">Caro<") < body.index(">Medio<") < body.index(">Barato<")
-    assert "3 itens estão sem o valor pago" in body
+    assert 'data-total="falta_texto">3 itens<' in body
+    assert "valem R$ 106,00 hoje" in body
 
 
 def test_worker_completa_imagem_que_falta_pelo_catalogo():

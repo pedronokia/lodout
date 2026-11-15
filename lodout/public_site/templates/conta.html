@@ -1,8 +1,9 @@
 {# "Atualizar agora": busca o inventário a pedido (ação explícita), no
    máximo 1x a cada 5 min por conta (account.atualizar_inventario). #}
 {% macro atualizar_agora(rotulo="Atualizar agora") -%}
- <button type="submit" form="form-atualizar-inventario" class="botao-link botao-atualizar-inventario">{{ rotulo }}</button>
+ <button type="submit" form="form-atualizar-inventario" class="acao-texto botao-atualizar-inventario">{{ rotulo }}</button>
 {%- endmacro %}
+{% from "partials/_icons.html" import icone %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -41,17 +42,15 @@
     {% set tx = avaliacao.textos %}
     {# Sem itens, os cartões só mostrariam zeros: ficam de fora. #}
     {% if avaliacao.rows %}
+    {# Crítica de 15/11 (impeccable): "Tudo vale hoje" e "Se vender tudo
+       hoje" viraram um cartão só; o lucro diz de quantos itens é; o que
+       falta preencher é um cartão com a ação, no lugar da faixa amarela. #}
     <section class="resumo-cards resumo-cards-conta" aria-label="Resumo da sua conta">
       <div class="card">
-        <span class="card-label">Tudo vale hoje</span>
+        <span class="card-label">Vale hoje</span>
         <span class="card-valor" data-total="valor">{{ tx.valor }}</span>
-        <span class="card-sub" data-total="valor_sub">{{ tx.valor_sub }}</span>
+        <span class="card-sub"><span data-total="valor_sub">{{ tx.valor_sub }}</span> · <span data-total="liquido_sub">{{ tx.liquido_sub }}</span></span>
         {% if mudanca_valor %}<span class="card-sub card-mudanca" title="Comparado com a visita anterior ({{ mudanca_valor.quando }}). Inclui preços que mudaram e itens que entraram ou saíram."><span class="{{ mudanca_valor.classe }}">{{ mudanca_valor.texto }}</span> desde a última vez</span>{% endif %}
-      </div>
-      <div class="card">
-        <span class="card-label">Se vender tudo hoje</span>
-        <span class="card-valor" data-total="liquido">{{ tx.liquido }}</span>
-        <span class="card-sub">já sem os {{ taxa_steam_pct }}% da Steam</span>
       </div>
       <div class="card">
         <span class="card-label">Você pagou</span>
@@ -60,19 +59,23 @@
         {% if avaliacao.totals.positions %}<progress class="card-progresso" max="{{ avaliacao.totals.positions }}" value="{{ avaliacao.totals.known_cost }}" data-total-progresso aria-label="Itens com o valor pago informado"></progress>{% endif %}
       </div>
       <div class="card card-nota-destaque">
-        <span class="card-label">Lucro se vender hoje</span>
+        <span class="card-label">Lucro hoje</span>
         <span class="card-valor {{ tx.lucro_classe }}" data-total="lucro">{{ tx.lucro }}</span>
         <span class="card-sub" data-total="lucro_sub">{{ tx.lucro_sub }}</span>
       </div>
+      {% if tx.falta_texto %}
+      {# "Preencher agora" (conta.js): filtra os itens sem valor e põe o
+         cursor no primeiro campo. Sem JavaScript, o botão fica escondido
+         e o cartão só informa. #}
+      <div class="card card-falta" data-card-falta>
+        <span class="card-label" data-falta-rotulo>Sem valor pago</span>
+        <span class="card-valor" data-total="falta_texto">{{ tx.falta_texto }}</span>
+        <span class="card-sub" data-total="falta_sub">{{ tx.falta_sub }}</span>
+        <button type="button" class="botao-preencher" data-preencher hidden>Preencher agora</button>
+      </div>
+      {% endif %}
     </section>
     {% endif %}
-
-    {# "Preencher agora" (conta.js): filtra os itens sem valor e põe o
-       cursor no primeiro campo. Sem JavaScript, fica escondido. #}
-    <div class="aviso-sem-custo"{% if not tx.aviso_sem_custo %} hidden{% endif %}>
-      <span data-total="aviso_sem_custo">{{ tx.aviso_sem_custo }}</span>
-      <button type="button" class="botao-preencher" data-preencher hidden>Preencher agora</button>
-    </div>
 
     <div class="conta-lista-cabecalho">
       <h2 class="secao-titulo">Seus itens</h2>
@@ -101,7 +104,7 @@
        próprio site, sem consultar a Steam) até a busca terminar. #}
     <p class="status-inventario status-inventario-buscando" data-recarregar-enquanto-busca>Buscando seu inventário da Steam… a lista aparece aqui em alguns segundos.</p>
     {% elif inv.status == "ok" %}
-    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}. Vendeu ou trocou um item? Ele sai da lista sozinho.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou para ver por quanto vender.{% endif %}{{ atualizar_agora() }}</p>
+    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou.{% endif %}{{ atualizar_agora() }} <a class="acao-texto" href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">Abrir na Steam<span class="visualmente-oculto"> (seu inventário, em nova aba)</span></a></p>
     {% elif inv.status == "private" %}
     <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado, então o Lodout não consegue ver seus itens. Para mostrar: na Steam, abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a>{{ atualizar_agora("Já deixei público: tentar de novo") }}</p>
     {% elif inv.status == "empty" %}
@@ -117,7 +120,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     </form>
     {% if avaliacao.rows %}
-    <p class="form-meta-lucro-ajuda" id="explica-meta">“Venda por” é o que o comprador paga por unidade, já com a taxa de {{ taxa_steam_pct }}% da Steam. Na tela de venda da Steam, cole em <strong>“O comprador paga”</strong> (não em “Você recebe”) (<a href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">abrir meu inventário na Steam<span class="visualmente-oculto">, em nova aba</span></a>).{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">No valor pago, Enter salva e vai para o próximo item sem valor.</span>{% endif %}</p>
+    <p class="visualmente-oculto" id="explica-meta">Muda o preço de venda para lucrar em cada item. O preço já inclui a taxa de {{ taxa_steam_pct }}% da Steam.</p>
     {# Ferramentas da lista (2026-11-15): com o inventário inteiro, achar
        o que importa sem rolar a lista toda. Tudo no navegador (conta.js),
        sem consulta nova; sem JavaScript fica escondida e a lista aparece
@@ -147,13 +150,15 @@
     {% endif %}
     {# Para iniciantes: o que cada coluna quer dizer (2026-11-15). #}
     <details class="como-ler">
-      <summary>Como ler esta tabela</summary>
+      <summary><span class="como-ler-icone" aria-hidden="true">{{ icone("ajuda") }}</span>Como ler esta tabela</summary>
       <dl class="como-ler-lista">
+        <div><dt>Venda por</dt><dd>O preço que o <strong>comprador paga</strong>, por unidade, já com a taxa de {{ taxa_steam_pct }}% da Steam. Na tela de venda da Steam, cole em “O comprador paga”, não em “Você recebe”.</dd></div>
         <div><dt>Você pagou</dt><dd>Quanto você pagou em cada unidade. Só você sabe: a Steam não mostra esse valor para ninguém.</dd></div>
         <div><dt>Vale hoje</dt><dd>O preço do item no Mercado da Steam, o último que o Lodout coletou.</dd></div>
         <div><dt>Lucro hoje</dt><dd>O que sobraria vendendo hoje por esse preço, já sem os {{ taxa_steam_pct }}% da Steam, menos o que você pagou. Negativo quer dizer prejuízo.</dd></div>
         <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam. Na Steam, é o valor do campo “O comprador paga”.</dd></div>
         <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% a mais do que pagou, também já com a taxa. Também vai no campo “O comprador paga”; em “Você recebe”, a Steam mostra o que sobra para você. Mude a porcentagem em “Quero lucrar”.</dd></div>
+        <div><dt>Inventário</dt><dd>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Vendeu ou trocou um item? Ele sai da lista sozinho. “Atualizar agora” busca na hora.</dd></div>
         <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar e cole em “O comprador paga” na Steam. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
       </dl>
     </details>
@@ -168,7 +173,7 @@
           <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
           <th class="col-num" data-ordenar-coluna="valor">Vale hoje</th>
           <th class="col-num" data-ordenar-coluna="lucro" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
-          <th class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por</th>
+          <th class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por <span class="th-sub">o comprador paga</span></th>
         </tr>
       </thead>
       <tbody>
@@ -194,7 +199,7 @@
                    com o valor médio. #}
                 {% if row.quantity and row.quantity > 1 %}
                 <details class="separar-lote">
-                  <summary>valores diferentes?</summary>
+                  <summary class="acao-texto">valores diferentes?<span class="visualmente-oculto"> Separar unidades de {{ row.name_fmt }}</span></summary>
                   <form method="post" action="{{ url_for('account.separar_lote', name=row.name) }}" class="form-separar">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
@@ -209,7 +214,7 @@
                 {% if row.lotes_total and row.lotes_total > 1 and row.lote_numero == 1 %}
                 <form method="post" action="{{ url_for('account.juntar_lotes', name=row.name) }}" class="form-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                  <button type="submit" class="botao-link botao-juntar" title="Volta a ser uma linha só, com o valor médio que você pagou">juntar lotes</button>
+                  <button type="submit" class="acao-texto botao-juntar" title="Volta a ser uma linha só, com o valor médio que você pagou" aria-label="Juntar os lotes de {{ row.name_fmt }} numa linha só">juntar lotes</button>
                 </form>
                 {% endif %}
                 <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}">
@@ -252,12 +257,12 @@
             <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
           </td>
           <td data-label="Venda por" class="celula-venda-por">
-            <button type="button" class="venda-por-falta" data-ir-ao-campo>informe quanto pagou</button>
+            <button type="button" class="acao-texto venda-por-falta" data-ir-ao-campo aria-label="Informar quanto pagou em {{ row.name_fmt }}">informe quanto pagou</button>
             <span class="venda-por-bloco">
             {# Clicar no preço copia o número (ex.: "53,41") para colar na
                tela de venda da Steam (conta.js). #}
-            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar data-campo="empate" title="Copiar: na Steam, cole em “O comprador paga”">{{ row.empate_fmt or "—" }}</button></span>
-            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">{{ row.alvo_fmt or "—" }}</button></span>
+            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.empate_fmt or '' }}, preço sem prejuízo de {{ row.name_fmt }}"><span data-campo="empate">{{ row.empate_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></span>
+            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.alvo_fmt or '' }}, preço para lucrar {{ meta_lucro }}% em {{ row.name_fmt }}"><span data-campo="alvo">{{ row.alvo_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></span>
             </span>
           </td>
         </tr>

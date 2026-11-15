@@ -441,14 +441,15 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
         "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
     # Preços clicáveis: copiam o número para colar na Steam (2026-11-15).
-    assert 'data-copiar data-campo="empate" title="Copiar: na Steam, cole em “O comprador paga”">R$ 115,00</button>' in pagina
-    assert 'data-copiar data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">R$ 138,00</button>' in pagina
+    assert '<span data-campo="empate">R$ 115,00</span>' in pagina
+    assert '<span data-campo="alvo">R$ 138,00</span>' in pagina
+    assert 'aria-label="Copiar R$ 138,00, preço para lucrar 20% em AK-47 | Redline (Testada em Campo)"' in pagina
     assert "Lucrar 20%" in pagina
 
     resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
-    assert 'data-campo="alvo" title="Copiar: na Steam, cole em “O comprador paga”">R$ 172,50</button>' in pagina
+    assert '<span data-campo="alvo">R$ 172,50</span>' in pagina
     assert '<option value="50" selected>50%</option>' in pagina
 
 
@@ -519,7 +520,8 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     pagina = client.get("/conta").data.decode("utf-8")
     assert ">AK-47 | Redline</a>" in pagina
     assert '<span class="item-exterior">Testada em Campo</span>' in pagina
-    assert "1 item está sem o valor pago" in pagina
+    # Cartão "Sem valor pago" (no lugar da faixa amarela, crítica de 15/11).
+    assert 'data-total="falta_texto">1 item<' in pagina
     assert "informe o valor pago para ver" in pagina
 
 
@@ -673,3 +675,17 @@ def test_mudanca_desde_a_visita_anterior():
     # Visita com a conta vazia (R$ 0) não serve de base: era o "+ o valor
     # inteiro desde a última vez" do print de 15/11.
     assert account._mudanca_desde_ultima_visita([{"ts": 1, "total": 0.0}, {"ts": 2, "total": 197.43}]) is None
+
+
+def test_lucro_diz_de_quantos_itens_e():
+    # Crítica de 15/11 (P1): "−50%" era só de parte da carteira.
+    from lodout.public_site import account
+    t = {"positions": 17, "known_cost": 9, "unknown_cost": 8, "pnl": -55.46,
+         "pnl_pct": -50.3, "market": 1118.11, "net_if_sold": 972.27,
+         "cost_known": 130.49, "market_sem_custo": 1050.0}
+    tx = account._textos_totais(t)
+    assert tx["lucro_sub"] == "−50,3% · só dos 9 itens com valor pago"
+    assert tx["falta_texto"] == "8 itens" and tx["falta_sub"] == "valem R$ 1.050,00 hoje"
+    t.update(unknown_cost=0, known_cost=17, market_sem_custo=0)
+    assert account._textos_totais(t)["lucro_sub"] == "−50,3% do que você pagou"
+    assert account._textos_totais(t)["falta_texto"] == ""

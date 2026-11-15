@@ -157,6 +157,11 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         row.update(raridade.icone_raridade(
             raw or do_catalogo.get(row["name"]) or {"icon": row.get("icon")}))
     t = avaliacao["totals"]
+    # Quanto valem hoje os itens sem valor pago: o lucro em destaque não
+    # os inclui, e o cartão "Sem valor pago" diz isso (crítica de 15/11).
+    t["market_sem_custo"] = sum(
+        (r.get("price") or 0) * (r.get("quantity") or 1)
+        for r in avaliacao["rows"] if not r.get("has_cost"))
     t["cost_fmt"] = fmt.brl(t.get("cost"))
     t["cost_known_fmt"] = fmt.brl(t.get("cost_known"))
     t["market_fmt"] = fmt.brl(t.get("market"))
@@ -198,21 +203,28 @@ def _textos_totais(t: dict) -> dict:
     pnl, pct = t.get("pnl"), t.get("pnl_pct")
     if pnl is None:
         lucro_sub = "informe o valor pago para ver"
-    elif pct is None:
-        lucro_sub = "dos itens com o valor pago"
     else:
-        sinal = "+" if pct > 0.05 else ("\u2212" if pct < -0.05 else "")
-        lucro_sub = f"{sinal}{fmt.pct(abs(pct))}% do que você pagou"
+        sinal = "+" if pct and pct > 0.05 else ("\u2212" if pct and pct < -0.05 else "")
+        base = (f"{sinal}{fmt.pct(abs(pct))}% do que você pagou" if pct is not None
+                else "dos itens com o valor pago")
+        # Com itens sem valor pago, o lucro é só de parte da carteira: diz
+        # de quantos (crítica de 15/11, problema P1).
+        lucro_sub = (f"{sinal}{fmt.pct(abs(pct))}% · só dos {com} {'item' if com == 1 else 'itens'} com valor pago"
+                     if sem and pct is not None else base)
     if sem:
         aviso = (f"{sem} {'item está' if sem == 1 else 'itens estão'} sem o "
                  "valor pago. Preencha para ver por quanto vender e para "
                  f"{'ele entrar' if sem == 1 else 'eles entrarem'} no lucro.")
     else:
         aviso = ""
+    falta_valor = float(t.get("market_sem_custo") or 0)
     return {
         "valor": t.get("market_fmt") or fmt.brl(t.get("market")),
         "valor_sub": f"{n} {'item' if n == 1 else 'itens'}",
         "liquido": t.get("net_if_sold_fmt") or fmt.brl(t.get("net_if_sold")),
+        "liquido_sub": f"{t.get('net_if_sold_fmt') or fmt.brl(t.get('net_if_sold'))} vendendo tudo, sem a taxa",
+        "falta_texto": f"{sem} {'item' if sem == 1 else 'itens'}" if sem else "",
+        "falta_sub": (f"valem {fmt.brl(falta_valor)} hoje" if sem and falta_valor else ""),
         "pago": t.get("cost_known_fmt") or fmt.brl(t.get("cost_known")),
         "pago_sub": f"em {com} de {n} {'item' if n == 1 else 'itens'}",
         "lucro": fmt.brl(pnl) if pnl is not None else "—",

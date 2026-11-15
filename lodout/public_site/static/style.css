@@ -430,7 +430,8 @@ summary:focus-visible,
   padding: 12px 20px;
   border-radius: 0 0 var(--radius-sm) 0;
   background: var(--accent);
-  color: #ffffff;
+  /* Texto escuro: branco sobre o laranja dava 2,8:1; este dá ~7:1. */
+  color: #1a0d03;
   font-weight: 600;
   font-size: var(--fs-sm);
   text-decoration: none;
@@ -5278,7 +5279,7 @@ table.tabela-conta th { white-space: normal; }
     padding: 4px 2px;
     border-radius: var(--radius-xs);
     color: rgba(255, 255, 255, 0.64);
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 400;
     text-decoration: none;
   }
@@ -6465,12 +6466,9 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 .card-mudanca .valor-positivo,
 .card-mudanca .valor-negativo { font-weight: 600; }
 /* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
-@media (min-width: 641px) {
-  .tabela-conta tr.linha-lote td:first-child { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
-}
-@media (max-width: 640px) {
-  table.tabela-conta tbody tr.linha-lote { border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
-}
+/* Lotes do mesmo item: a linha entre eles é tracejada (continuação do
+   mesmo item), em vez de uma faixa colorida na lateral. */
+table.tabela-conta tbody tr.linha-lote:has(+ tr.linha-lote) td { border-bottom-style: dashed; }
 .na-sua-conta {
   margin: 0 0 var(--sp-4);
   padding: var(--sp-4) var(--sp-5);
@@ -6486,3 +6484,70 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 .na-sua-conta-qtd { color: var(--text); font-weight: 600; }
 .na-sua-conta-link { font-size: var(--fs-sm); }
 .confira { white-space: nowrap; }
+
+/* ── Conta: crítica do Impeccable, 15/11 ───────────────────────────── */
+/* Um estilo só para as ações secundárias de texto ("Atualizar agora",
+   "Abrir na Steam", "valores diferentes?", "juntar lotes", "informe quanto
+   pagou"): laranja, sem sublinhado, sublinha no mouse/foco. */
+.acao-texto {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-bright);
+  font: inherit;
+  font-size: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.acao-texto:hover,
+.acao-texto:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+.acao-texto:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--radius-xs); }
+.status-inventario .acao-texto { margin-left: var(--sp-3); }
+.separar-lote > summary.acao-texto { color: var(--accent-bright); }
+.separar-lote > summary.acao-texto:hover { color: var(--accent-bright); }
+.botao-juntar.acao-texto { font-size: var(--fs-xs); color: var(--accent-bright); }
+button.venda-por-falta.acao-texto { font-size: var(--fs-xs); text-decoration: none; color: var(--accent-bright); }
+button.venda-por-falta.acao-texto:hover { text-decoration: underline; }
+
+/* Cartão "Sem valor pago" (no lugar da faixa amarela). */
+.card-falta { border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); }
+.card-falta .botao-preencher { align-self: flex-start; margin: var(--sp-1) 0 0; }
+.card-falta.card-pronto { border-color: color-mix(in srgb, var(--positive) 50%, var(--border)); }
+.card-falta.card-pronto .card-valor { color: var(--positive); }
+
+/* Título "Venda por" com o lembrete do campo da Steam. */
+.th-sub { display: block; color: var(--text-muted); font-size: var(--fs-2xs); font-weight: 500; }
+
+/* Ícone de copiar no preço: aparece no mouse/foco; no toque, sempre. */
+.icone-copiar { display: inline-flex; margin-left: 4px; vertical-align: -2px; opacity: 0; transition: opacity var(--dur-base) var(--ease-standard); }
+.icone-copiar svg { width: 13px; height: 13px; }
+.copiar-preco:hover .icone-copiar,
+.copiar-preco:focus-visible .icone-copiar { opacity: 0.8; }
+@media (hover: none) { .icone-copiar { opacity: 0.6; } }
+
+/* "Como ler esta tabela" mais fácil de achar. */
+.como-ler > summary { gap: 6px; color: var(--text); }
+.como-ler-icone { display: inline-flex; color: var(--accent-bright); }
+.como-ler-icone svg { width: 16px; height: 16px; }
+
+/* Superfícies do navegador no tema do site. */
+::selection { background: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--text-bright); }
+input, textarea { caret-color: var(--accent); }
+
+.como-ler-icone[hidden],
+.icone-copiar[hidden] { display: none; }
+.status-inventario a.acao-texto { text-decoration: none; }
+.status-inventario a.acao-texto:hover,
+.status-inventario a.acao-texto:focus-visible { text-decoration: underline; }
+
+
+@media (min-width: 641px) and (max-width: 1000px) {
+  .tabela-conta .campo-reais-cada .input-custo { width: 7.4em; padding-right: 38px; }
+}
+@media (min-width: 641px) and (max-width: 1000px) {
+  .tabela-conta .confira { white-space: normal; }
+  .tabela-conta .valor-cada { display: block; }
+  .tabela-conta .valor-total { white-space: normal; }
+}

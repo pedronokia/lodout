@@ -43,6 +43,9 @@ ENTRADAS = [
             "A watchlist mostra o preço de hoje e a imagem também dos itens que o Lodout não acompanha (antes aparecia “—”). Nos trades, a imagem também vem do catálogo do Mercado.",
             "O histórico da carteira fica em ordem de data, com o gráfico num quadro só.",
             "As raridades aparecem com os mesmos nomes da Steam em português: Nível Consumidor, Nível Industrial, Nível Militar, Restrito, Secreto e Oculto (antes em inglês: Classified, Covert…). O Glossário traz também os nomes em inglês.",
+            "Topo da conta mais direto: “Vale hoje” já mostra quanto sobra vendendo tudo; “Lucro hoje” diz de quantos itens é a conta quando falta valor pago; e os itens sem valor pago ganharam um cartão próprio, com quanto valem hoje e o botão “Preencher agora” (no lugar da faixa amarela).",
+            "Menos texto antes da lista: a linha do inventário ficou curta, com “Atualizar agora” e “Abrir na Steam”, e as explicações foram para “Como ler esta tabela”. A coluna “Venda por” diz embaixo “o comprador paga”, e o preço mostra um ícone de copiar ao passar o mouse.",
+            "Acabamento geral: as ações secundárias da conta têm um só estilo, os lotes do mesmo item ficam ligados por uma linha tracejada, os nomes do menu de baixo no celular ficaram maiores e leitores de tela dizem o nome do item em cada botão.",
         ],
     },
     {

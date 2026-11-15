@@ -274,10 +274,17 @@
     if (!empate) return;
     var pago = empate / (1 + taxa);
     var pares = [["empate", empate, pago], ["alvo", empate * (1 + meta), pago * (1 + meta)]];
+    var item = tr.querySelector(".link-item");
+    var nome = item ? (item.getAttribute("title") || item.textContent) : "";
     pares.forEach(function (par) {
-      var b = tr.querySelector('[data-campo="' + par[0] + '"]');
-      if (b) b.title = "O comprador paga " + reais(par[1]) + " · você recebe ≈ " + reais(par[2]) +
+      var campo = tr.querySelector('[data-campo="' + par[0] + '"]');
+      var b = campo && campo.closest("[data-copiar]");
+      if (!b) return;
+      b.title = "O comprador paga " + reais(par[1]) + " · você recebe ≈ " + reais(par[2]) +
         ". Clique para copiar e cole em “O comprador paga” na Steam.";
+      b.setAttribute("aria-label", "Copiar " + reais(par[1]) + ", preço " +
+        (par[0] === "empate" ? "sem prejuízo" : "para lucrar " + Math.round(meta * 100) + "%") +
+        (nome ? " de " + nome : ""));
     });
   }
   Array.prototype.forEach.call(document.querySelectorAll("tr.linha-posicao"), titulosVenda);
@@ -329,21 +336,25 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-total]"), function (el) {
       var chave = el.getAttribute("data-total");
       if (!(chave in totais)) return;
-      if (chave === "aviso_sem_custo") {
-        var caixa = el.closest(".aviso-sem-custo") || el;
+      if (chave === "falta_texto") {
+        var cartao = el.closest("[data-card-falta]");
         if (totais[chave]) {
-          el.textContent = totais[chave];
-          caixa.hidden = false;
-          caixa.classList.remove("aviso-pronto");
-        } else if (!caixa.hidden && !caixa.classList.contains("aviso-pronto")) {
-          // Acabou de preencher o último: comemora em vez de sumir.
-          el.textContent = "Pronto: todos os itens têm o valor pago. Os preços de venda e o lucro já estão completos.";
-          caixa.classList.add("aviso-pronto");
-          var botaoPreencher = caixa.querySelector("[data-preencher]");
+          texto(el, totais[chave]);
+          if (cartao) cartao.classList.remove("card-pronto");
+        } else if (cartao && !cartao.classList.contains("card-pronto")) {
+          // Acabou de preencher o último: o cartão comemora em vez de sumir.
+          cartao.classList.add("card-pronto");
+          var rotulo = cartao.querySelector("[data-falta-rotulo]");
+          if (rotulo) rotulo.textContent = "Valor pago";
+          el.textContent = "Tudo preenchido";
+          var botaoPreencher = cartao.querySelector("[data-preencher]");
           if (botaoPreencher) botaoPreencher.hidden = true;
           // Quem estava no filtro "Sem valor pago" não fica com a lista vazia.
           if (estado.filtro === "sem-valor") setTimeout(function () { escolherFiltro("todos"); }, 1000);
         }
+      } else if (chave === "falta_sub") {
+        var c2 = el.closest("[data-card-falta]");
+        el.textContent = totais[chave] || (c2 && c2.classList.contains("card-pronto") ? "lucro e preços completos" : "");
       } else {
         texto(el, totais[chave]);
       }
