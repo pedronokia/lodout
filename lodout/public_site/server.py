@@ -2148,6 +2148,9 @@ def _estado_do_catalogo() -> "dict | None":
         "bloqueios": int(est.get("bloqueios") or 0),
         "ultimo_bloqueio_txt": (scan_store.idade_txt(ultimo_bloqueio)
                                 if ultimo_bloqueio else None),
+        "cotacao_fmt": (f"{est['cotacao_brl_por_usd']:.2f}".replace(".", ",")
+                        if est.get("cotacao_brl_por_usd") else None),
+        "cotacao_pares": est.get("cotacao_pares"),
     }
 
 

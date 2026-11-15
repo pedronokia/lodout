@@ -402,3 +402,18 @@ def test_catalogo_sem_cotacao_nao_mostra_preco(monkeypatch):
     assert catalogo.cambio() is None
     assert catalogo.precos(["Sozinho"]) == {}
     assert catalogo.item("Sozinho")["preco"] is None
+
+
+def test_status_mostra_a_cotacao(client, monkeypatch):
+    from lodout import scan_store
+    catalogo.CAMBIO_FIXO = None
+    catalogo._cambio_cache.update(ts=0.0, valor=None)
+    nomes = [f"Item {i}" for i in range(12)]
+    _catalogo_com(("Rifles", [_linha(n, preco=2.0 + i) for i, n in enumerate(nomes)]))
+    monkeypatch.setattr(scan_store, "load_last_scan", lambda: {"results": [
+        {"name": n, "price": round((2.0 + i) * 5.62, 2)} for i, n in enumerate(nomes)]})
+    import lodout.public_site.catalogo as c
+    c._salvar_estado({"itens_no_banco": 12, "totais": {"Rifles": 12}, "fatia": 0, "start": 0})
+    assert catalogo.resumo()["cotacao_brl_por_usd"] == 5.62
+    body = client.get("/status").data.decode("utf-8")
+    assert "R$ 5,62</strong> por dólar" in body and "medida em 12 itens" in body

@@ -386,7 +386,19 @@ def resumo() -> dict:
               "paginas_ultima", "tamanho_pagina", "bloqueios",
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts")
-    return {k: estado.get(k) for k in chaves if k in estado}
+    saida = {k: estado.get(k) for k in chaves if k in estado}
+    # Cotação usada para converter os preços (dólar → reais), com quantos
+    # itens a mediram -- pra acompanhar se ela sair do normal (2026-11-15).
+    taxa = cambio() if saida else None  # sem catálogo, sem cotação
+    if taxa:
+        saida["cotacao_brl_por_usd"] = round(taxa, 4)
+        try:
+            salvo = json.loads(_caminho_cambio().read_text(encoding="utf-8"))
+            saida["cotacao_pares"] = salvo.get("pares")
+            saida["cotacao_ts"] = salvo.get("ts")
+        except Exception:
+            pass
+    return saida
 
 
 # ── Leitura (o site) ─────────────────────────────────────────────────

@@ -70,6 +70,9 @@
       <li>{{ "Volta em andamento" if catalogo_estado.ultima_completa_txt else "Primeira volta em andamento" }}: {{ catalogo_estado.andamento.pct }}% ({{ catalogo_estado.andamento.fatia|lower }})</li>
       {% endif %}
       <li>{% if catalogo_estado.bloqueios %}Pausas pedidas pela Steam: {{ catalogo_estado.bloqueios }} (a última {{ catalogo_estado.ultimo_bloqueio_txt }}){% else %}Nenhuma pausa pedida pela Steam até agora{% endif %}</li>
+      {% if catalogo_estado.cotacao_fmt %}
+      <li>A busca do Mercado responde em dólar; o Lodout converte para reais com a mesma cotação que a Steam usa: <strong>R$ {{ catalogo_estado.cotacao_fmt }}</strong> por dólar{% if catalogo_estado.cotacao_pares %}, medida em {{ catalogo_estado.cotacao_pares }} itens que têm preço nas duas moedas{% endif %}.</li>
+      {% endif %}
     </ul>
     {% endif %}
 
