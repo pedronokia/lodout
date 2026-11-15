@@ -21,11 +21,32 @@
     }
   });
 
+  // Com fetch, o valor pago salva sozinho: Enter ou ao sair do campo.
+  if (window.fetch && window.FormData) {
+    Array.prototype.forEach.call(document.querySelectorAll(".form-custo"), function (form) {
+      form.classList.add("salva-sozinho");
+      var campo = form.querySelector(".input-custo");
+      if (campo) form.setAttribute("data-ultimo", campo.value);
+    });
+    document.addEventListener("change", function (e) {
+      var campo = e.target;
+      if (!campo.classList || !campo.classList.contains("input-custo") || !campo.form) return;
+      if (campo.form.requestSubmit) campo.form.requestSubmit();
+      else campo.form.submit();
+    });
+  }
+
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (!form.classList || !form.classList.contains("form-custo")) return;
     if (!window.fetch || !window.FormData) return;
     e.preventDefault();
+    // Enter e "sair do campo" podem disparar juntos: o mesmo valor só
+    // é enviado uma vez.
+    var campo = form.querySelector(".input-custo");
+    var valor = campo ? campo.value.trim() : "";
+    if (valor === "" || valor === form.getAttribute("data-ultimo")) return;
+    form.setAttribute("data-ultimo", valor);
     var linha = form.closest("tr");
     var aviso = form.querySelector(".custo-salvo");
     var botao = form.querySelector("button[type=submit]");
@@ -40,6 +61,7 @@
       return resp.json().then(function (dados) { return { ok: resp.ok, dados: dados }; });
     }).then(function (r) {
       if (!r.ok || !r.dados.ok) {
+        form.removeAttribute("data-ultimo");
         texto(aviso, (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.");
         if (aviso) aviso.classList.add("custo-erro");
         return;

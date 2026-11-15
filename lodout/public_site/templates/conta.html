@@ -22,7 +22,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Minha conta</h1>
-      <p class="descricao-pagina">Sua carteira, com o mesmo preço guardado que o dashboard público usa — sem chamada nova à Steam.</p>
+      <p class="descricao-pagina">Seus itens da Steam, quanto valem hoje e por quanto vender para não ter prejuízo.</p>
     </header>
 
     {# Revisão 2026-11-15 (conta com inventário): rótulos curtos, números
@@ -40,7 +40,7 @@
     </section>
 
     {% if avaliacao.totals.unknown_cost %}
-      <p class="aviso-sem-custo">{{ avaliacao.totals.unknown_cost }} {{ "item está" if avaliacao.totals.unknown_cost == 1 else "itens estão" }} sem o valor pago. Preencha na lista abaixo para ver por quanto vender e para {{ "ele entrar" if avaliacao.totals.unknown_cost == 1 else "eles entrarem" }} no lucro.</p>
+      <p class="aviso-sem-custo">{{ avaliacao.totals.unknown_cost }} {{ "item está" if avaliacao.totals.unknown_cost == 1 else "itens estão" }} sem o valor pago. Digite na coluna “Você pagou” para ver por quanto vender e para {{ "ele entrar" if avaliacao.totals.unknown_cost == 1 else "eles entrarem" }} no lucro.</p>
     {% endif %}
 
     {# O inventário vem sozinho; adicionar à mão fica recolhido. #}
@@ -93,7 +93,7 @@
       <thead>
         <tr>
           <th>Item</th>
-          <th>Você pagou</th>
+          <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
           <th>Vale hoje</th>
           <th title="Vendendo hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro se vender hoje</th>
           <th>Venda por</th>
@@ -132,11 +132,12 @@
               <span class="custo-salvo" role="status" aria-live="polite"></span>
             </form>
           </td>
-          <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt if row.price is not none else "sem preço ainda" }}</td>
+          <td data-label="Vale hoje"{% if row.price is not none %} class="celula-numero"{% endif %}>{{ row.price_fmt if row.price is not none else "sem preço ainda" }}</td>
           <td data-label="Lucro se vender hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else '') }}">
             {{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}
           </td>
           <td data-label="Venda por" class="celula-venda-por">
+            <span class="venda-por-falta">informe quanto pagou</span>
             <span class="venda-por-bloco">
             <span class="venda-por-linha">Sem prejuízo <span class="venda-por-valor" data-campo="empate">{{ row.empate_fmt or "—" }}</span></span>
             <span class="venda-por-linha venda-por-meta">Lucrar {{ meta_lucro }}% <strong class="preco-alvo" data-campo="alvo">{{ row.alvo_fmt or "—" }}</strong></span>

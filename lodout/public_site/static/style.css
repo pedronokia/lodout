@@ -4133,26 +4133,65 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .celula-numero { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.input-custo { width: 6.5em; }
+.input-custo { width: 6em; }
 
 .celula-venda-por { white-space: nowrap; }
-/* O flex fica num bloco dentro da célula: flex direto no <td> tira a
-   célula do layout de tabela (fundo e bordas desalinhados). */
+/* O grid fica num bloco dentro da célula: display direto no <td> tira a
+   célula do layout de tabela (fundo e bordas desalinhados). Rótulo à
+   esquerda, valor à direita, alinhados entre as duas linhas. */
 .venda-por-bloco {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px var(--sp-2);
+  align-items: baseline;
   white-space: nowrap;
 }
 
 .venda-por-linha {
+  display: contents;
   color: var(--text-muted);
   font-size: var(--fs-xs);
 }
 
-.venda-por-valor { color: var(--text); font-variant-numeric: tabular-nums; }
+.venda-por-valor,
+.venda-por-meta .preco-alvo {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+.venda-por-valor { color: var(--text); }
 .venda-por-meta .preco-alvo { font-size: var(--fs-sm); }
 
+/* Sem o valor pago não há "venda por": um aviso curto no lugar dos
+   traços. conta.js tira a classe da linha quando o valor é salvo. */
+.venda-por-falta {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  white-space: normal;
+}
+.linha-sem-custo .venda-por-bloco,
+.linha-posicao:not(.linha-sem-custo) .venda-por-falta { display: none; }
+
+/* Com JavaScript o valor pago salva sozinho (Enter ou ao sair do
+   campo); o botão "salvar" só aparece sem ele. */
+.form-custo.salva-sozinho button[type="submit"] { display: none; }
+
+table.tabela-conta { min-width: 0; }
+table.tabela-conta th,
+table.tabela-conta td { padding: 10px 12px; }
+table.tabela-conta th { white-space: normal; }
+/* "salvo ✓" não reserva largura: aparece ao lado ou embaixo do campo. */
+.tabela-conta .form-custo { flex-wrap: wrap; }
+.tabela-conta .custo-salvo { min-width: 0; }
+
+/* Janela estreita (tablet): o nome do item quebra mais cedo e "Venda
+   por" empilha rótulo e valor, pra tabela caber sem rolar de lado. */
+@media (min-width: 641px) and (max-width: 1000px) {
+  .celula-item-conta { min-width: 150px; }
+  .celula-item-conta .icone-item-quadro { display: none; }
+  .venda-por-bloco { grid-template-columns: auto; gap: 0; }
+  .venda-por-valor,
+  .venda-por-meta .preco-alvo { justify-self: start; margin-bottom: 2px; }
+}
 
 /* Aviso do inventário na conta (2026-11-15). */
 .pagina-texto .status-inventario,

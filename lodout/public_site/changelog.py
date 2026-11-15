@@ -16,6 +16,8 @@ ENTRADAS = [
             "Prejuízo aparece como “−R$ 98,76”, e os números dos cartões do topo cabem numa linha.",
             "Um aviso no topo diz quantos itens estão sem o valor pago; adicionar um item à mão fica recolhido, já que o inventário vem sozinho.",
             "Remover um item pede confirmação antes.",
+            "O valor pago salva sozinho: digite e aperte Enter ou saia do campo. Sem o botão “salvar”, a lista cabe na tela sem rolar de lado, também em tablet.",
+            "Item sem o valor pago mostra “informe quanto pagou” em “Venda por”, em vez de traços.",
         ],
     },
     {
