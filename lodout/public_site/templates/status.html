@@ -56,6 +56,23 @@
       </ul>
     {% endif %}
 
+    {% if catalogo_estado %}
+    {# Catálogo amplo (plans/archive/catalogo-grande.md): todo o Mercado de
+       CS2 com o preço do dia, sem nota -- é o que a busca usa. #}
+    <h2 class="secao-titulo">Catálogo do Mercado</h2>
+    <p>Além dos itens com nota, o Lodout guarda o preço do dia de todo o Mercado de CS2 (skins, facas, luvas, caixas, cápsulas e adesivos) para a busca e para a sua conta. A coleta é lenta de propósito, uma consulta a cada ~20 segundos, e para sozinha se a Steam pedir pausa.</p>
+    <ul class="lista-status-catalogo">
+      <li><strong>{{ catalogo_estado.itens_fmt }}</strong> itens no catálogo</li>
+      {% if catalogo_estado.ultima_completa_txt %}
+      <li>Última volta completa: {{ catalogo_estado.ultima_completa_txt }}{% if catalogo_estado.duracao_h %} (levou {{ catalogo_estado.duracao_h|string|replace(".", ",") }} h){% endif %}</li>
+      {% endif %}
+      {% if catalogo_estado.andamento %}
+      <li>{{ "Volta em andamento" if catalogo_estado.ultima_completa_txt else "Primeira volta em andamento" }}: {{ catalogo_estado.andamento.pct }}% ({{ catalogo_estado.andamento.fatia|lower }})</li>
+      {% endif %}
+      <li>{% if catalogo_estado.bloqueios %}Pausas pedidas pela Steam: {{ catalogo_estado.bloqueios }} (a última {{ catalogo_estado.ultimo_bloqueio_txt }}){% else %}Nenhuma pausa pedida pela Steam até agora{% endif %}</li>
+    </ul>
+    {% endif %}
+
     <h2 class="secao-titulo">Últimas coletas de preços</h2>
     {% if estado_scan.rodando %}
     <div class="card estado-scan">

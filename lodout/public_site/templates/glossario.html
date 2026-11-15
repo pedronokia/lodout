@@ -22,6 +22,7 @@
       {"@type": "DefinedTerm", "name": "Souvenir", "description": "Variante de arma que só sai de cápsulas de torneio, sem StatTrak. Geralmente mais rara e mais cara que a versão normal."},
       {"@type": "DefinedTerm", "name": "Float", "description": "Número entre 0 e 1 que define o desgaste exato de um item específico dentro da faixa do seu Desgaste. O Lodout não mostra float individual — só o preço agregado por faixa de desgaste."},
       {"@type": "DefinedTerm", "name": "Nota", "description": "Número de 0 a 100 que o Lodout calcula pra cada item, resumindo sinais factuais do mercado — não é previsão."},
+      {"@type": "DefinedTerm", "name": "Sem nota ainda", "description": "Item do Mercado que o Lodout mostra só com o preço do dia: a nota precisa do histórico de preço, que ainda não foi coletado para ele."},
       {"@type": "DefinedTerm", "name": "Preço típico", "description": "A mediana dos preços recentes do item — o preço normal dele, usado como referência pra saber se o preço atual está caro ou barato."},
       {"@type": "DefinedTerm", "name": "Caixa descontinuada", "description": "Caixa que parou de ser sorteada no jogo (saiu do drop pool). No histórico medido, caixas assim valorizaram mais que as ainda ativas, o que não garante o que vai acontecer."},
       {"@type": "DefinedTerm", "name": "Risco", "description": "No Lodout, mede só uma coisa: chance de o preço ter subido rápido e artificialmente recentemente."},
@@ -113,6 +114,14 @@
       <dd>Número de 0 a 100 que o Lodout calcula pra cada item,
       resumindo sinais factuais do mercado de agora — não é previsão. Ver
       <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</dd>
+      </div>
+
+      <div class="termo-glossario">
+      <dt id="termo-sem-nota"><strong>Sem nota ainda</strong></dt>
+      <dd>Item do Mercado que aparece na busca só com o preço do dia e
+      quantos estão à venda. A nota precisa do histórico de preço do item,
+      que é uma consulta mais pesada à Steam; por enquanto ela existe para
+      os itens mais negociados, e outros entram aos poucos.</dd>
       </div>
 
       <div class="termo-glossario">

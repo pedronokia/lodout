@@ -1,4 +1,4 @@
-"""Catálogo amplo (plans/pending/catalogo-grande.md) -- sem rede: a busca da
+"""Catálogo amplo (plans/archive/catalogo-grande.md) -- sem rede: a busca da
 Steam é sempre substituída por uma função falsa."""
 from __future__ import annotations
 
@@ -305,3 +305,24 @@ def test_varrer_sobrepoe_um_item_entre_paginas(monkeypatch, sem_pausa):
     assert estado["motivo"] == "completa"
     assert chamadas == [0, 9, 18]
     assert estado["itens_no_banco"] == 25
+
+
+def test_status_mostra_o_catalogo(client, monkeypatch, sem_pausa):
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"), ("Adesivos", "S")))
+    chamadas = []
+    # Para no meio (bloqueio na 2a fatia): volta em andamento.
+    def fake(facets=None, start=0, **_):
+        if facets["type"] == "S":
+            return steam_api.SEARCH_RATE_LIMITED, [], 0
+        return steam_api.SEARCH_OK, [_linha("AK-47 | Redline (Field-Tested)")], 1
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    catalogo.varrer(ate_ts=1e12)
+    body = client.get("/status").data.decode("utf-8")
+    assert "Catálogo do Mercado" in body
+    assert "<strong>1</strong> itens no catálogo" in body
+    assert "Primeira volta em andamento" in body
+    assert "Pausas pedidas pela Steam: 1" in body
+
+
+def test_status_sem_catalogo_nao_mostra_a_secao(client):
+    assert "Catálogo do Mercado" not in client.get("/status").data.decode("utf-8")

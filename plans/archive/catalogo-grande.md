@@ -128,4 +128,18 @@ Arquivos: `lodout/public_site/server.py`, `templates/index.html`,
 | --- | --- |
 | 1. Varredura no worker | no ar; 1a varredura em andamento (365 páginas, 0 bloqueio às 02:15 UTC de 15/11) |
 | 2. Site lê o catálogo | feita (2026-11-15): busca/filtros, cartão e página "sem nota ainda", preço na conta; ~30 ms com 29 mil itens |
-| 3. Textos e verificação | aprovada |
+| 3. Textos e verificação | feita (2026-11-15) |
+
+
+## Registro de execução (2026-11-15)
+- Fase 1 no ar em 15/11 00:10 UTC. Medido: a busca sem login devolve 10
+  itens por página (não 100); 1.882 páginas seguidas sem nenhum 429 até
+  14:20 UTC. Frequência ajustada de 6 h para 1x/dia (decisão do usuário).
+  Sobreposição de 1 item entre páginas depois de 3,5% de itens pulados
+  na 1a volta (a lista "escorrega" com itens entrando e saindo).
+- Fase 2 no ar em 15/11 14:10 UTC: busca/filtros sobre o catálogo, cartão
+  e página "sem nota ainda", preço na conta. ~30 ms local com 29 mil itens;
+  0,1-0,3 s em produção (servidor mais lento + worker gravando). Se o
+  tráfego crescer: índice FTS5.
+- Fase 3: Status mostra o catálogo; Glossário (termo-sem-nota) e Método.
+- Desvio do plano: a frequência e a sobreposição; o resto como planejado.

@@ -1,6 +1,6 @@
 """Catálogo amplo: todo o mercado de CS2 com o preço do dia, sem nota.
 
-Plano: `plans/pending/catalogo-grande.md` (2026-11-14). O site dá nota a
+Plano: `plans/archive/catalogo-grande.md` (2026-11-14). O site dá nota a
 ~180 itens (precisa do histórico de cada um, 2 consultas por item). O
 catálogo cobre o resto -- skins em todos os desgastes, caixas, cápsulas e
 adesivos -- pela busca do Mercado da Steam, que traz até 100 itens por

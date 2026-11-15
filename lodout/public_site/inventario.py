@@ -1,4 +1,4 @@
-"""Inventário da Steam na conta (plans/pending/conta-inventario.md, fase 2).
+"""Inventário da Steam na conta (plans/archive/conta-inventario.md, fase 2).
 
 A conta mostra os itens do inventário público da pessoa sem ela precisar
 digitar nada além de quanto pagou. Sincroniza:

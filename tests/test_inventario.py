@@ -1,4 +1,4 @@
-"""Inventário da Steam na conta (plans/pending/conta-inventario.md, fase 2).
+"""Inventário da Steam na conta (plans/archive/conta-inventario.md, fase 2).
 Sem rede: `steam_api.fetch_inventory` é sempre substituído."""
 from __future__ import annotations
 

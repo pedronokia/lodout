@@ -1,5 +1,5 @@
 // Página da conta: salvar "quanto paguei" sem recarregar a página
-// (plans/pending/conta-inventario.md, fase 3). Sem JavaScript, o
+// (plans/archive/conta-inventario.md, fase 3). Sem JavaScript, o
 // formulário de cada linha continua funcionando como sempre (POST +
 // recarregar). Só a linha salva muda: preço de empate, preço para a meta
 // de lucro e o lucro se vender hoje.

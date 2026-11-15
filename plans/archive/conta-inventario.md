@@ -74,3 +74,12 @@ o preço do dia de todo o mercado.
 | 1. Lucro com taxa e preço de venda | feita (2026-11-15) |
 | 2. Inventário sincronizado | feita (2026-11-15) |
 | 3. "Quanto paguei" rápido | feita (2026-11-15) |
+
+
+## Registro de execução (2026-11-15)
+- Fase 1 (preço de empate e para a meta, meta escolhida pela pessoa),
+  fase 2 (inventário no login + 1x/dia pelo worker; item vendido some com
+  o preço pago) e fase 3 (salvar "quanto paguei" sem recarregar, com
+  vírgula decimal) no ar em 15/11.
+- Testado com Steam simulada; falta o teste com uma conta real (usuário).
+- "Lucro (sem taxa)" já descontava a taxa; o problema era o nome ambíguo.

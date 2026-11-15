@@ -703,7 +703,7 @@ _CATALOGO_FOLGA_S = 10 * 60
 
 def _esperar(segundos: float, permitido: bool = True) -> None:
     """Espera `segundos`; no tempo livre, avança o catálogo amplo
-    (plans/pending/catalogo-grande.md) quando ligado e quando a Steam não
+    (plans/archive/catalogo-grande.md) quando ligado e quando a Steam não
     está bloqueando a coleta (`permitido`)."""
     tem_tarefa = catalogo.ligado() or inventario.diario_ligado()
     if not (permitido and tem_tarefa and segundos > _CATALOGO_FOLGA_S):

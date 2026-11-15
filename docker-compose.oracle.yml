@@ -12,12 +12,12 @@ services:
     environment:
       - LODOUT_PUBLIC_SITE_SECURE_COOKIES=1
 
-  # Catálogo amplo (plans/pending/catalogo-grande.md): só em produção. Para
+  # Catálogo amplo (plans/archive/catalogo-grande.md): só em produção. Para
   # desligar, troque por 0 e faça deploy com [restart-worker].
   worker:
     environment:
       - LODOUT_CATALOGO=1
-      # Inventário das contas 1x por dia (plans/pending/conta-inventario.md).
+      # Inventário das contas 1x por dia (plans/archive/conta-inventario.md).
       - LODOUT_INVENTARIO_DIARIO=1
 
   caddy:

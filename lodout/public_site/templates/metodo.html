@@ -119,6 +119,11 @@
       dias de vendas registradas. O fator “subindo/caindo em todos os
       períodos” também usa o preço médio de cada dia, e não uma venda
       solta: uma única venda fora do normal não muda a nota.</li>
+      <li>Nem todo item tem nota. A busca mostra todo o Mercado de CS2 com o
+      preço do dia, mas a nota precisa do histórico de preço de cada item,
+      uma consulta mais pesada à Steam. Por enquanto ela existe para os
+      itens mais negociados; os outros aparecem como
+      <a href="{{ url_for('glossario') }}#termo-sem-nota">“sem nota ainda”</a>.</li>
     </ul>
 
     <p>Nada disso substitui seu próprio julgamento. A decisão é sempre sua.</p>

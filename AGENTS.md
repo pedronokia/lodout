@@ -77,7 +77,7 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
 - Registros de aposentadoria de caixas exigem fonte factual. Não invente data
   de saída do drop pool; consulte `retirements.py` e os dados persistidos.
 - O catálogo amplo (`public_site/catalogo.py`, plano em
-  `plans/pending/catalogo-grande.md`) varre a busca do Mercado no tempo livre
+  `plans/archive/catalogo-grande.md`) varre a busca do Mercado no tempo livre
   do worker, com pausa de `RATE_LIMIT_DELAY_S` × `LODOUT_CATALOGO_FATOR_PAUSA`
   e parando no primeiro 429 (2 h sem tentar). A busca é a consulta mais
   vigiada da Steam: não acelere a varredura sem medir os bloqueios em

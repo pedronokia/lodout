@@ -451,7 +451,7 @@ def create_app() -> Flask:
         for c in sem_categoria:
             if c.get("category"):
                 contagem_abas[c["category"]] = contagem_abas.get(c["category"], 0) + 1
-        # Catálogo amplo (plans/pending/catalogo-grande.md, fase 2): com
+        # Catálogo amplo (plans/archive/catalogo-grande.md, fase 2): com
         # busca ou com os filtros "da Steam", a lista continua com os itens
         # que têm nota e depois traz o resto do mercado, "sem nota ainda".
         # Nota mínima e liquidez só existem nos itens com nota. Sem busca
@@ -847,7 +847,7 @@ def create_app() -> Flask:
                 "itens": len(scan["results"]) if scan else 0,
             },
             "ultimo_ciclo_worker": ultimo_ciclo,
-            # Catálogo amplo (plans/pending/catalogo-grande.md): tamanho,
+            # Catálogo amplo (plans/archive/catalogo-grande.md): tamanho,
             # páginas, bloqueios e tamanho real da página da Steam.
             "catalogo": catalogo.resumo(),
             "ultima_rodada_top": scan_store.load_rodada_top(),
@@ -1345,6 +1345,7 @@ def create_app() -> Flask:
             grafico_visitas_legenda=grafico_visitas_legenda,
             mais_buscados=_buscas_com_resultado(
                 buscas.mais_buscados(limite=60), limite=10),
+            catalogo_estado=_estado_do_catalogo(),
         )
 
     @app.route("/feed.xml")
@@ -2093,6 +2094,37 @@ _LIQUIDEZ_ORDEM = ["iliquido", "fino", "moderado", "liquido", "muito_liquido"]
 _EXTERIORES = catalogo.EXTERIORES
 _VERSOES = catalogo.VERSOES
 _versao_do_item = catalogo.versao_do_item
+
+
+def _estado_do_catalogo() -> "dict | None":
+    """Resumo do catálogo amplo para a página Status (transparência da
+    coleta): tamanho, última volta completa, andamento e bloqueios."""
+    est = catalogo.resumo()
+    if not est:
+        return None
+    totais = est.get("totais") or {}
+    nomes = [n for n, _tag in catalogo.FATIAS]
+    fatia = est.get("fatia")
+    andamento = None
+    if isinstance(fatia, int) and 0 <= fatia < len(nomes) and totais:
+        feito = sum(totais.get(n, 0) for n in nomes[:fatia]) + int(est.get("start") or 0)
+        total = sum(totais.values())
+        if total:
+            andamento = {"pct": min(99, round(100 * feito / total)),
+                         "fatia": nomes[fatia]}
+    ultima = est.get("ultima_completa_ts")
+    ultimo_bloqueio = est.get("ultimo_bloqueio_ts")
+    return {
+        "itens": est.get("itens_no_banco"),
+        "itens_fmt": f"{int(est.get('itens_no_banco') or 0):,}".replace(",", "."),
+        "ultima_completa_txt": scan_store.idade_txt(ultima) if ultima else None,
+        "duracao_h": (round(est["duracao_ultima_min"] / 60, 1)
+                      if est.get("duracao_ultima_min") else None),
+        "andamento": andamento,
+        "bloqueios": int(est.get("bloqueios") or 0),
+        "ultimo_bloqueio_txt": (scan_store.idade_txt(ultimo_bloqueio)
+                                if ultimo_bloqueio else None),
+    }
 
 
 def _cartao_do_catalogo(r: dict) -> dict:
