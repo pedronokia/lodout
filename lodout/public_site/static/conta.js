@@ -22,7 +22,8 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-total]"), function (el) {
       var chave = el.getAttribute("data-total");
       if (!(chave in totais)) return;
-      el.textContent = totais[chave];
+      if (chave === "aviso_sem_custo") el.textContent = totais[chave];
+      else texto(el, totais[chave]);
       if (chave === "aviso_sem_custo") el.hidden = !totais[chave];
       if (chave === "lucro") {
         el.classList.remove("valor-positivo", "valor-negativo", "card-valor-texto");
@@ -31,8 +32,18 @@
     });
   }
 
+  // Troca o texto e, se mudou, realça de leve (.acabou-de-mudar).
   function texto(el, valor) {
-    if (el) el.textContent = valor;
+    if (!el) return;
+    var mudou = el.textContent.trim() !== String(valor).trim();
+    el.textContent = valor;
+    if (mudou && el.getAttribute("role") !== "status") realcar(el);
+  }
+
+  function realcar(el) {
+    el.classList.remove("acabou-de-mudar");
+    void el.offsetWidth; // reinicia a animação se mudar duas vezes
+    el.classList.add("acabou-de-mudar");
   }
 
   // Remover pede confirmação (ação destrutiva, AGENTS.md). Sem JS o
@@ -99,7 +110,7 @@
         texto(linha.querySelector('[data-campo="alvo"]'), d.alvo_fmt || "—");
         var lucro = linha.querySelector('[data-campo="lucro"]');
         if (lucro) {
-          lucro.textContent = d.lucro_fmt || "—";
+          texto(lucro, d.lucro_fmt || "—");
           lucro.classList.remove("valor-positivo", "valor-negativo");
           if (d.lucro_classe) lucro.classList.add(d.lucro_classe);
         }

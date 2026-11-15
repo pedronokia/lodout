@@ -5901,3 +5901,26 @@ a.paginacao-passo:active {
 /* Celular: "remover" na mesma linha do desgaste (o .form-inline dos
    cartões ocupa a largura toda por padrão). */
 table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
+
+/* Conta, acabamento pela skill make-interfaces-feel-better (2026-11-15).
+   "remover" é texto pequeno: a área de clique cresce por um
+   pseudo-elemento, sem mudar o desenho nem encostar no campo vizinho. */
+@media (min-width: 641px) {
+  .tabela-conta .botao-remover { position: relative; }
+  .tabela-conta .botao-remover::after {
+    content: "";
+    position: absolute;
+    inset: -2px -8px -10px; /* nao cobre o nome do item logo acima */
+  }
+}
+.tabela-conta .input-custo { min-height: 38px; }
+
+/* Valor que acabou de mudar (salvar o valor pago): um realce que some,
+   em vez de o número trocar de repente. Sem movimento para quem pede. */
+@keyframes conta-realce {
+  from { color: var(--accent-bright); }
+}
+.acabou-de-mudar { animation: conta-realce 1.4s var(--ease-standard); }
+@media (prefers-reduced-motion: reduce) {
+  .acabou-de-mudar { animation: none; }
+}
