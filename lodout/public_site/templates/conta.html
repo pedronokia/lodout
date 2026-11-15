@@ -135,7 +135,7 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
               <span class="campo-reais">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
-                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
+                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>
@@ -170,8 +170,8 @@
       <summary>Adicionar um item à mão</summary>
       <form class="form-adicionar" method="post" action="{{ url_for('account.adicionar_posicao') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="text" name="name" placeholder="Nome exato do item (ex.: AK-47 | Redline (Field-Tested))" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-        <input type="number" name="cost" step="0.01" min="0" placeholder="Você pagou (R$, opcional)" aria-label="Quanto você pagou em reais, opcional">
+        <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item, ex.: AK-47 | Redline (Field-Tested)…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
+        <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Você pagou, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Quanto você pagou em reais, opcional">
         <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
         <button type="submit" class="botao-acao">+ Adicionar</button>
       </form>
@@ -187,6 +187,19 @@
     <p>O preço é o último que o Lodout coletou da Steam. Se o item não está entre os que o Lodout acompanha, o preço pode estar desatualizado.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  {# Confirmação de remover (design-guide: ação destrutiva abre uma
+     janela com o botão de perigo visível antes do clique). Sem
+     JavaScript ou sem <dialog>, conta.js cai no confirm() do navegador. #}
+  <dialog class="dialogo-confirmar" id="dialogo-remover" aria-labelledby="dialogo-remover-titulo" aria-describedby="dialogo-remover-texto">
+    <form method="dialog" class="dialogo-conteudo">
+      <h2 class="dialogo-titulo" id="dialogo-remover-titulo">Remover <span data-dialogo-nome translate="no"></span>?</h2>
+      <p class="dialogo-texto" id="dialogo-remover-texto">O item sai da sua lista junto com o valor que você informou. Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago.</p>
+      <div class="dialogo-acoes">
+        <button type="submit" value="cancelar" class="botao-secundario">Cancelar</button>
+        <button type="submit" value="remover" class="botao-perigo">Remover</button>
+      </div>
+    </form>
+  </dialog>
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

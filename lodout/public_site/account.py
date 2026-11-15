@@ -298,7 +298,7 @@ def adicionar_posicao():
         flash("Informe o nome do item.", "error")
         return redirect(url_for("account.conta"))
 
-    cost_raw = (request.form.get("cost") or "").strip()
+    cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
     cost = None
     if cost_raw:
         try:

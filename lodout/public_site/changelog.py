@@ -21,6 +21,8 @@ ENTRADAS = [
             "Acabamento da conta: nome do item em destaque com o desgaste embaixo, valores alinhados à direita, “R$” dentro do campo do valor pago e cada cartão do topo com uma linha de contexto (quantos itens, em quantos você informou o valor, quanto o lucro representa do que você pagou).",
             "Ao salvar um valor pago, os cartões do topo e o aviso de itens sem valor atualizam na hora. A meta de lucro aplica ao escolher, sem o botão “aplicar”.",
             "Os números que mudam ao salvar acendem de leve e voltam ao normal, para você ver o que mudou (sem animação para quem pediu menos movimento no sistema). O “remover” ficou mais fácil de clicar.",
+            "Remover um item abre uma janela própria de confirmação, com o botão vermelho e o foco em “Cancelar”. Os textos de apoio da lista ficaram maiores.",
+            "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
         ],
     },
     {

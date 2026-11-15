@@ -48,13 +48,57 @@
 
   // Remover pede confirmação (ação destrutiva, AGENTS.md). Sem JS o
   // formulário envia direto, como antes.
+  // Com <dialog>, uma janela própria com o botão vermelho; sem ela, o
+  // confirm() do navegador.
+  var dialogo = document.getElementById("dialogo-remover");
+  var formPendente = null;
+  var botaoDeOrigem = null;
+  if (dialogo && typeof dialogo.showModal === "function") {
+    dialogo.addEventListener("close", function () {
+      var form = formPendente;
+      formPendente = null;
+      if (dialogo.returnValue === "remover" && form) {
+        form.submit(); // submit() não dispara o evento: não reabre a janela
+        return;
+      }
+      if (botaoDeOrigem) botaoDeOrigem.focus();
+    });
+    // Clique fora da janela (no fundo escuro) = cancelar.
+    dialogo.addEventListener("click", function (e) {
+      if (e.target === dialogo) dialogo.close("cancelar");
+    });
+  }
+
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (!form.classList || !form.classList.contains("form-remover")) return;
     var nome = form.getAttribute("data-nome") || "este item";
-    if (!window.confirm("Remover " + nome + " da sua lista? Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização.")) {
-      e.preventDefault();
+    e.preventDefault();
+    if (dialogo && typeof dialogo.showModal === "function") {
+      formPendente = form;
+      botaoDeOrigem = form.querySelector("button");
+      var alvo = dialogo.querySelector("[data-dialogo-nome]");
+      if (alvo) alvo.textContent = nome;
+      dialogo.returnValue = "";
+      dialogo.showModal();
+      return;
     }
+    if (window.confirm("Remover " + nome + " da sua lista? Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago.")) {
+      form.submit();
+    }
+  });
+
+  // Sair da página com um valor digitado e ainda não salvo (ou salvando)
+  // pede confirmação ao navegador, em vez de perder o valor calado.
+  var salvando = 0;
+  window.addEventListener("beforeunload", function (e) {
+    var pendente = salvando > 0;
+    Array.prototype.forEach.call(document.querySelectorAll(".form-custo.salva-sozinho"), function (form) {
+      var campo = form.querySelector(".input-custo");
+      var v = campo ? campo.value.trim() : "";
+      if (v !== "" && v !== form.getAttribute("data-ultimo")) pendente = true;
+    });
+    if (pendente) { e.preventDefault(); e.returnValue = ""; }
   });
 
   // Com fetch, o valor pago salva sozinho: Enter ou ao sair do campo.
@@ -83,6 +127,7 @@
     var valor = campo ? campo.value.trim() : "";
     if (valor === "" || valor === form.getAttribute("data-ultimo")) return;
     form.setAttribute("data-ultimo", valor);
+    salvando++;
     var linha = form.closest("tr");
     var aviso = form.querySelector(".custo-salvo");
     var botao = form.querySelector("button[type=submit]");
@@ -99,6 +144,7 @@
       if (!r.ok || !r.dados.ok) {
         form.removeAttribute("data-ultimo");
         texto(aviso, (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.");
+        if (campo) campo.focus(); // o erro aparece ao lado: foco no campo para corrigir
         if (aviso) aviso.classList.add("custo-erro");
         return;
       }
@@ -120,8 +166,14 @@
       }
       atualizarTotais(d.totais);
       setTimeout(function () { if (aviso && aviso.textContent === "salvo ✓") aviso.textContent = ""; }, 2500);
-    }).catch(function () {
-      // Rede caiu ou resposta inesperada: cai no envio normal.
+    }).then(function () {
+      salvando--;
+    }, function () {
+      // Rede caiu ou resposta inesperada: cai no envio normal (o próprio
+      // envio leva o valor, então não conta como "não salvo").
+      salvando--;
+      form.removeAttribute("data-ultimo");
+      if (campo) form.setAttribute("data-ultimo", campo.value.trim());
       form.submit();
     }).then(function () {
       if (botao) botao.disabled = false;

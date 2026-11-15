@@ -520,3 +520,12 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     assert "1 item está sem o valor pago" in pagina
     assert "informe o valor pago para ver" in pagina
 
+
+def test_adicionar_a_mao_aceita_virgula(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "Caixa Y", "cost": "35,10", "quantity": "1", "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'value="35,10"' in pagina
+
