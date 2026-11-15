@@ -6019,3 +6019,27 @@ table.tabela-variantes td:not(:first-child) {
   .tabela-conta-lista tbody tr:not(.linha-regras):hover { background: var(--surface-hover); }
 }
 .grafico-card + .status-muted { margin: var(--sp-2) 0 var(--sp-6); }
+
+/* Conta, segunda passada (2026-11-15):
+   - a tabela cabe sem rolar, então não reserva a faixa da barra de
+     rolagem (era isso que a deixava 15px mais curta que os cartões);
+   - valor pago alinhado à direita, centavos na mesma coluna das outras;
+   - "Adicionar um item à mão" com respiro depois da tabela. */
+.tabela-wrap:has(> .tabela-conta) { scrollbar-gutter: auto; }
+.tabela-conta .input-custo { text-align: right; padding-right: 10px; }
+
+.tabela-wrap:has(> .tabela-conta) + .adicionar-manual { margin-top: var(--sp-4); }
+.dica-enter { color: var(--text-muted); }
+@media (hover: none) { .dica-enter { display: none; } }
+
+
+/* Conta no celular: cartão de item mais compacto -- o rótulo "Item" é
+   redundante (o nome já está ali) e o respiro entre as linhas dobrava a
+   altura de cada cartão. */
+@media (max-width: 640px) {
+  table.tabela-conta tbody td[data-label="Item"]::before { display: none; }
+  table.tabela-conta tbody tr:not(.linha-regras) { gap: 0 var(--sp-2); padding: 4px; }
+  table.tabela-conta tbody td { padding: 6px 8px; }
+  table.tabela-conta tbody td[data-label="Item"] { padding-bottom: 2px; }
+  table.tabela-conta .celula-item-conta-texto { gap: 0; }
+}

@@ -25,6 +25,7 @@ ENTRADAS = [
             "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
             "Itens que entram na coleta sem foto agora pegam a imagem do catálogo do Mercado (no ranking, um AK-47 | Safari Mesh aparecia sem imagem).",
             "Na página do item, a tabela “Outras versões” alinha preços e vendas à direita, para comparar de linha em linha.",
+            "Na conta, preencher o valor pago ficou como numa planilha: digite e aperte Enter para salvar e ir direto ao próximo item sem valor. Os valores ficam alinhados pelos centavos, a tabela tem a mesma largura dos cartões e, no celular, cada item ocupa menos espaço.",
             "Watchlist, trades e histórico com o mesmo acabamento da conta: números alinhados à direita, “remover” discreto com janela de confirmação, campos de valor que aceitam vírgula e títulos dos quadros no lugar certo.",
             "A watchlist mostra o preço de hoje e a imagem também dos itens que o Lodout não acompanha (antes aparecia “—”). Nos trades, a imagem também vem do catálogo do Mercado.",
             "O histórico da carteira fica em ordem de data, com o gráfico num quadro só.",

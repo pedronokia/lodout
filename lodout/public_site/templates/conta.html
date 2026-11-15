@@ -91,7 +91,7 @@
     <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.</p>
     {% endif %}
     {% if avaliacao.rows %}
-    <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de “Venda por” já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.</p>
+    <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de “Venda por” já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">Dica: digite o valor pago e aperte Enter para ir direto ao próximo item sem valor.</span>{% endif %}</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
       <thead>
@@ -99,7 +99,7 @@
           <th>Item</th>
           <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
           <th class="col-num">Vale hoje</th>
-          <th class="col-num" title="Vendendo hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro se vender hoje</th>
+          <th class="col-num" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
           <th class="col-num">Venda por</th>
         </tr>
       </thead>

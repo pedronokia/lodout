@@ -88,6 +88,29 @@
     }
   });
 
+  // Enter no valor pago salva e leva ao próximo item sem valor, como numa
+  // planilha (2026-11-15: com o inventário inteiro, eram vários campos
+  // para clicar um a um). Sem próximo, o cursor sai do campo.
+  document.addEventListener("keydown", function (e) {
+    var campo = e.target;
+    if (e.key !== "Enter" || !campo.classList || !campo.classList.contains("input-custo")) return;
+    if (!campo.form || !campo.form.classList.contains("salva-sozinho")) return;
+    if (campo.value.trim() === "" || !campo.checkValidity()) return; // deixa o navegador avisar
+    e.preventDefault();
+    if (campo.form.requestSubmit) campo.form.requestSubmit(); else campo.form.submit();
+    var campos = Array.prototype.slice.call(document.querySelectorAll(".input-custo"));
+    var depois = campos.slice(campos.indexOf(campo) + 1);
+    var proximo = null;
+    for (var i = 0; i < depois.length; i++) {
+      if (depois[i].value.trim() === "") { proximo = depois[i]; break; }
+    }
+    if (proximo) {
+      proximo.focus();
+    } else {
+      campo.blur();
+    }
+  });
+
   // Sair da página com um valor digitado e ainda não salvo (ou salvando)
   // pede confirmação ao navegador, em vez de perder o valor calado.
   var salvando = 0;
@@ -150,6 +173,12 @@
       }
       var d = r.dados;
       if (aviso) aviso.classList.remove("custo-erro");
+      // "20" vira "20,00", como as outras linhas.
+      var numero = Number(valor.replace(",", "."));
+      if (campo && isFinite(numero) && campo.value.trim() === valor) {
+        campo.value = numero.toFixed(2).replace(".", ",");
+        form.setAttribute("data-ultimo", campo.value);
+      }
       texto(aviso, "salvo ✓");
       if (linha) {
         texto(linha.querySelector('[data-campo="empate"]'), d.empate_fmt || "—");
