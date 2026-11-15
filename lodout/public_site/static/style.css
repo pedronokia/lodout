@@ -212,11 +212,24 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--fs-base);
+  /* 450 em vez de 400: a Inter variável aceita o meio-termo, e o texto
+     claro sobre fundo escuro afinava demais (impressão do usuário,
+     2026-11-15: "a fonte que é ruim"). */
+  font-weight: 450;
   line-height: 1.47;
-  /* tracking da Apple no corpo de 17px (-0.022em) */
-  letter-spacing: -0.022em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Espaçamento entre letras pelo tamanho (dynamic metrics da Inter,
+   rsms.me/inter/dynmetrics): zero em 12px, -0,08px em 14px, -0,2px em
+   17px, mais fechado nos títulos. Antes era -0.022em no body, herdado
+   como valor fixo (-0,37px) por todo texto menor -- num rótulo de 12px
+   isso dava -3% e, no Windows, buracos dentro das palavras ("pag ou").
+   :where() tem especificidade zero: quem declara letter-spacing próprio
+   (títulos, rótulos em caixa alta) continua valendo. */
+:where(body, body *) {
+  letter-spacing: calc((1em - 12px) * -0.04);
 }
 
 h1, h2, h3 {
@@ -6042,4 +6055,13 @@ table.tabela-variantes td:not(:first-child) {
   table.tabela-conta tbody td { padding: 6px 8px; }
   table.tabela-conta tbody td[data-label="Item"] { padding-bottom: 2px; }
   table.tabela-conta .celula-item-conta-texto { gap: 0; }
+}
+
+/* Categorias no computador: se não couberem numa linha (texto um pouco
+   mais largo depois do ajuste de espaçamento, 2026-11-15), quebram para
+   a linha de baixo em vez de cortar a última aba. No celular continuam
+   numa linha, rolando de lado. */
+@media (min-width: 641px) {
+  .abas-categoria { flex-wrap: wrap; overflow-x: visible; gap: 6px 5px; }
+  .aba-categoria { padding: 5px 10px; gap: 5px; }
 }
