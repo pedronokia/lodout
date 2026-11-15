@@ -189,3 +189,86 @@ def test_buscando_inventario_nao_fica_preso(client):
     pagina = client.get("/conta").data.decode("utf-8")
     assert "Buscando seu inventário" not in pagina
     assert "Inventário da Steam atualizado" in pagina
+
+
+# ── lotes: o mesmo item pago por valores diferentes (2026-11-15) ─────
+
+def test_separar_e_juntar_lotes():
+    sid = "76561198000000010"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa X", "cost": 2.0, "quantity": 5, "source": "steam"}])
+    novo = user_portfolio.separar(sid, "Caixa X", 2)
+    assert novo
+    pos = user_portfolio.load_positions(sid)
+    assert [(p["quantity"], p["cost"]) for p in pos] == [(3, 2.0), (2, None)]
+    assert all(p.get("lote") for p in pos)
+    # Fora de 1..unidades-1 não separa.
+    assert user_portfolio.separar(sid, "Caixa X", 3, lote=pos[0]["lote"]) is None
+    # Valor só do lote novo.
+    user_portfolio.update_position_cost(sid, "Caixa X", 5.0, lote=novo)
+    pos = user_portfolio.load_positions(sid)
+    assert [p["cost"] for p in pos] == [2.0, 5.0]
+    # Juntar: valor médio ponderado (3x2 + 2x5) / 5 = 3,20.
+    assert user_portfolio.juntar(sid, "Caixa X") == "ok"
+    pos = user_portfolio.load_positions(sid)
+    assert len(pos) == 1 and pos[0]["quantity"] == 5 and pos[0]["cost"] == 3.2
+
+
+def test_juntar_recusa_lote_com_e_sem_valor():
+    sid = "76561198000000011"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa X", "cost": 2.0, "quantity": 1, "source": "steam", "lote": "a"},
+        {"name": "Caixa X", "cost": None, "quantity": 1, "source": "steam", "lote": "b"}])
+    assert user_portfolio.juntar(sid, "Caixa X") == "misto"
+    assert len(user_portfolio.load_positions(sid)) == 2
+
+
+def test_mesclar_respeita_lotes():
+    lotes = [
+        {"name": "Caixa X", "cost": 2.0, "quantity": 3, "source": "steam", "lote": "a", "added_ts": 1},
+        {"name": "Caixa X", "cost": 5.0, "quantity": 2, "source": "steam", "lote": "b", "added_ts": 2},
+    ]
+    # Igual: nada muda.
+    pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=5))
+    assert [(p["lote"], p["quantity"]) for p in pos] == [("a", 3), ("b", 2)]
+    # Chegaram 2: lote novo sem valor, pra pessoa informar.
+    pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=7))
+    assert [(p["quantity"], p["cost"]) for p in pos] == [(3, 2.0), (2, 5.0), (2, None)]
+    # Vendeu 4: saem primeiro as mais antigas (3 do lote a, 1 do b).
+    pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=1))
+    assert [(p["lote"], p["quantity"]) for p in pos] == [("b", 1)]
+    # Lote sem valor sai antes dos com valor.
+    com_sem = lotes + [{"name": "Caixa X", "cost": None, "quantity": 1,
+                        "source": "steam", "lote": "c", "added_ts": 3}]
+    pos, _ = inventario.mesclar(com_sem, _inv("Caixa X", qtd=5))
+    assert [p["lote"] for p in pos] == ["a", "b"]
+    # Vendeu tudo: todos os lotes saem.
+    pos, resumo = inventario.mesclar(lotes, [])
+    assert pos == [] and resumo["removidos"] == 2
+
+
+def test_conta_separa_e_salva_valor_por_lote(client):
+    from lodout.public_site import catalogo
+    sid = "76561198000000012"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa L", "cost": 2.0, "quantity": 4, "source": "steam"}])
+    _logado(client, sid)
+    import re
+    pagina = client.get("/conta").data.decode("utf-8")
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    assert "valores diferentes?" in pagina
+    r = client.post("/conta/posicoes/Caixa L/separar",
+                    data={"quantidade": "1", "csrf_token": token})
+    assert r.status_code == 302
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "lote 1 de 2" in pagina and "lote 2 de 2" in pagina
+    assert "Separado: 1 unidade ficou numa linha própria" in pagina
+    assert 'class="status status-sucesso"' in pagina
+    lote2 = user_portfolio.load_positions(sid)[1]["lote"]
+    r = client.post("/conta/posicoes/Caixa L/custo",
+                    data={"cost": "7,00", "lote": lote2, "csrf_token": token},
+                    headers={"Accept": "application/json"})
+    assert r.get_json()["ok"] is True
+    assert [p["cost"] for p in user_portfolio.load_positions(sid)] == [2.0, 7.0]
+    client.post("/conta/posicoes/Caixa L/remover", data={"lote": lote2, "csrf_token": token})
+    assert [p["quantity"] for p in user_portfolio.load_positions(sid)] == [3]

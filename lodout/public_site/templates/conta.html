@@ -92,9 +92,36 @@
     {% endif %}
     {% if avaliacao.rows %}
     <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de “Venda por” já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">Dica: digite o valor pago e aperte Enter para ir direto ao próximo item sem valor.</span>{% endif %}</p>
+    {# Ferramentas da lista (2026-11-15): com o inventário inteiro, achar
+       o que importa sem rolar a lista toda. Tudo no navegador (conta.js),
+       sem consulta nova; sem JavaScript fica escondida e a lista aparece
+       inteira, como antes. Só a partir de 8 itens. #}
+    {% if avaliacao.rows|length >= 8 %}
+    <div class="conta-ferramentas" data-conta-ferramentas hidden>
+      <label class="conta-busca">
+        <span class="visualmente-oculto">Buscar nos seus itens</span>
+        <input type="search" data-conta-busca placeholder="Buscar nos seus itens…" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="conta-filtros" role="group" aria-label="Mostrar">
+        <button type="button" class="conta-filtro" data-conta-filtro="todos" aria-pressed="true">Todos <span data-conta-contagem="todos"></span></button>
+        <button type="button" class="conta-filtro" data-conta-filtro="sem-valor" aria-pressed="false">Sem valor pago <span data-conta-contagem="sem-valor"></span></button>
+        <button type="button" class="conta-filtro" data-conta-filtro="lucro" aria-pressed="false">No lucro <span data-conta-contagem="lucro"></span></button>
+        <button type="button" class="conta-filtro" data-conta-filtro="prejuizo" aria-pressed="false">No prejuízo <span data-conta-contagem="prejuizo"></span></button>
+      </div>
+      <label class="conta-ordem">Ordenar
+        <select data-conta-ordem>
+          <option value="valor">Mais valioso</option>
+          <option value="prejuizo">Maior prejuízo</option>
+          <option value="lucro">Maior lucro</option>
+          <option value="nome">Nome (A–Z)</option>
+        </select>
+      </label>
+      <p class="conta-mostrando" data-conta-mostrando role="status" aria-live="polite"></p>
+    </div>
+    {% endif %}
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
-      <thead>
+      <thead class="cabecalho-fixo-conta">
         <tr>
           <th>Item</th>
           <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
@@ -105,7 +132,7 @@
       </thead>
       <tbody>
         {% for row in avaliacao.rows %}
-        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}">
+        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}">
           <td data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -119,9 +146,34 @@
               <span class="celula-item-conta-extra">
                 {% if row.exterior_fmt %}<span class="item-exterior">{{ row.exterior_fmt }}</span>{% endif %}
                 {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
+                {% if row.lotes_total and row.lotes_total > 1 %}<span class="item-lote" title="Unidades deste item separadas por valor pago">lote {{ row.lote_numero }} de {{ row.lotes_total }}</span>{% endif %}
                 {% if row.score is not none %}<span class="nota-texto nota-{{ row.score|nota_classe }}" title="Nota do Lodout">nota {{ row.score }}</span>{% endif %}
-                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}">
+                {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
+                   item? Separa unidades numa linha própria; junta de novo
+                   com o valor médio. #}
+                {% if row.quantity and row.quantity > 1 %}
+                <details class="separar-lote">
+                  <summary>valores diferentes?</summary>
+                  <form method="post" action="{{ url_for('account.separar_lote', name=row.name) }}" class="form-separar">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
+                    <label>Separar
+                      <input type="number" name="quantidade" min="1" max="{{ row.quantity - 1 }}" value="1" inputmode="numeric" class="input-compacto input-quantidade" aria-describedby="explica-separar-{{ loop.index }}">
+                      de {{ row.quantity }}</label>
+                    <button type="submit" class="botao-link">separar</button>
+                    <span class="explica-separar" id="explica-separar-{{ loop.index }}">As unidades separadas viram uma linha própria, para você informar quanto pagou nelas.</span>
+                  </form>
+                </details>
+                {% endif %}
+                {% if row.lotes_total and row.lotes_total > 1 and row.lote_numero == 1 %}
+                <form method="post" action="{{ url_for('account.juntar_lotes', name=row.name) }}" class="form-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button type="submit" class="botao-link botao-juntar" title="Volta a ser uma linha só, com o valor médio que você pagou">juntar lotes</button>
+                </form>
+                {% endif %}
+                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
                   <button type="submit" class="botao-link botao-remover" aria-label="Remover {{ row.name_fmt }}">remover</button>
                 </form>
               </span>
@@ -133,6 +185,7 @@
                JavaScript (conta.js); sem ele, o botão "salvar" envia. #}
             <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline form-custo">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
               <span class="campo-reais">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
                 <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
@@ -158,6 +211,9 @@
           </td>
         </tr>
         {% endfor %}
+        <tr class="linha-nenhum" data-conta-nenhum hidden>
+          <td colspan="5">Nenhum item com esse filtro. <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
+        </tr>
       </tbody>
     </table>
     </div>

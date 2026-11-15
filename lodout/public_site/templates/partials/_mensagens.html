@@ -1,3 +1,9 @@
-{% for mensagem in get_flashed_messages() %}
+{# Mensagens de uma ação (flash). "success" aparece em verde, como
+   confirmação; o resto continua como aviso de erro (2026-11-15). #}
+{% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+  {% if categoria == "success" %}
+  <p class="status status-sucesso" role="status">{{ mensagem }}</p>
+  {% else %}
   <p class="status status-erro" role="alert">{{ mensagem }}</p>
+  {% endif %}
 {% endfor %}

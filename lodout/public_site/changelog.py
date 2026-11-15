@@ -25,6 +25,8 @@ ENTRADAS = [
             "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
             "Itens que entram na coleta sem foto agora pegam a imagem do catálogo do Mercado (no ranking, um AK-47 | Safari Mesh aparecia sem imagem).",
             "Na página do item, a tabela “Outras versões” alinha preços e vendas à direita, para comparar de linha em linha.",
+            "Pagou valores diferentes pelo mesmo item? Na conta, “valores diferentes?” separa as unidades em lotes, cada um com o seu valor pago e a sua conta de lucro; “juntar lotes” volta a uma linha só, com o valor médio. Ao vender parte, saem primeiro as unidades sem valor pago e depois as compradas há mais tempo.",
+            "Inventário grande: a conta ganhou busca pelo nome, filtros (sem valor pago, no lucro, no prejuízo) e ordem (mais valioso, maior prejuízo, maior lucro, nome). O cabeçalho da tabela fica fixo ao rolar e as linhas ficaram um pouco mais baixas.",
             "Texto mais legível em todo o site: as letras pequenas não ficam mais espremidas (no Windows apareciam buracos dentro das palavras) e o texto ficou um pouco mais firme sobre o fundo escuro.",
             "Na conta, preencher o valor pago ficou como numa planilha: digite e aperte Enter para salvar e ir direto ao próximo item sem valor. Os valores ficam alinhados pelos centavos, a tabela tem a mesma largura dos cartões e, no celular, cada item ocupa menos espaço.",
             "Watchlist, trades e histórico com o mesmo acabamento da conta: números alinhados à direita, “remover” discreto com janela de confirmação, campos de valor que aceitam vírgula e títulos dos quadros no lugar certo.",

@@ -65,20 +65,29 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
         if p.get("source") != SOURCE_STEAM:
             manuais_por_nome[p.get("name")] = manuais_por_nome.get(p.get("name"), 0) + 1
 
+    # Lotes (2026-11-15): a pessoa pode ter separado as unidades de um
+    # item por valor pago. Todas as posições do inventário com o mesmo
+    # nome são tratadas juntas.
+    lotes_steam: dict = {}
+    for p in posicoes:
+        if p.get("source") == SOURCE_STEAM:
+            lotes_steam.setdefault(p.get("name"), []).append(p)
+
     saida: list[dict] = []
     vistos: set = set()
     novos = atualizados = removidos = 0
     for p in posicoes:
         nome = p.get("name")
         if p.get("source") == SOURCE_STEAM:
-            if nome in inv and nome not in vistos:
-                it = inv[nome]
-                saida.append({**p, "quantity": int(it.get("quantity") or 1),
-                              "icon": it.get("icon") or p.get("icon")})
+            if nome in vistos:
+                continue  # lote já tratado junto com o primeiro do nome
+            if nome in inv:
+                saida.extend(_acertar_lotes(lotes_steam[nome], inv[nome], agora))
                 vistos.add(nome)
                 atualizados += 1
             else:
-                removidos += 1
+                removidos += len(lotes_steam[nome])
+                vistos.add(nome)
             continue
         if nome in inv and manuais_por_nome.get(nome) == 1 and nome not in vistos:
             it = inv[nome]
@@ -101,6 +110,48 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
         novos += 1
     return saida, {"novos": novos, "atualizados": atualizados,
                    "removidos": removidos}
+
+
+def _acertar_lotes(lotes: "list[dict]", it: dict, agora: float) -> "list[dict]":
+    """Ajusta os lotes de um item à quantidade que o inventário tem hoje.
+
+    - Um lote só: a quantidade acompanha o inventário e o valor pago
+      fica (como sempre foi).
+    - Vários lotes (a pessoa separou por valor pago):
+      * chegaram unidades: entram no lote sem valor pago, ou num lote
+        novo sem valor, pra pessoa informar quanto pagou;
+      * saíram unidades (vendeu/trocou): saem primeiro as sem valor pago
+        e depois as mais antigas (a primeira compra é a primeira venda).
+    """
+    from lodout.public_site import user_portfolio
+    qtd_inv = int(it.get("quantity") or 1)
+    icone = it.get("icon")
+    lotes = [{**l, "icon": icone or l.get("icon")} for l in lotes]
+    if len(lotes) == 1:
+        return [{**lotes[0], "quantity": qtd_inv}]
+    total = sum(int(l.get("quantity") or 1) for l in lotes)
+    if qtd_inv > total:
+        sem_valor = next((l for l in lotes if l.get("cost") is None), None)
+        if sem_valor is not None:
+            sem_valor["quantity"] = int(sem_valor.get("quantity") or 1) + qtd_inv - total
+        else:
+            lotes.append({"name": lotes[0].get("name"), "cost": None,
+                          "quantity": qtd_inv - total, "added_ts": agora,
+                          "source": SOURCE_STEAM, "icon": icone,
+                          "lote": user_portfolio.novo_lote()})
+    elif qtd_inv < total:
+        sobra = total - qtd_inv
+        ordem = sorted(range(len(lotes)), key=lambda i: (
+            lotes[i].get("cost") is not None, lotes[i].get("added_ts") or 0, i))
+        for i in ordem:
+            if sobra <= 0:
+                break
+            q = int(lotes[i].get("quantity") or 1)
+            tira = min(q, sobra)
+            lotes[i]["quantity"] = q - tira
+            sobra -= tira
+        lotes = [l for l in lotes if int(l.get("quantity") or 0) > 0]
+    return lotes
 
 
 def estado(steamid: str) -> dict:

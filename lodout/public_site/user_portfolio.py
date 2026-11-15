@@ -9,6 +9,7 @@ added_ts, source}.
 """
 from __future__ import annotations
 
+import secrets
 import time
 from pathlib import Path
 
@@ -40,14 +41,29 @@ def add_position(steamid: str, name: str, cost: "float | None",
     return positions
 
 
+def novo_lote() -> str:
+    """Identificador curto de um lote (unidades do mesmo item com o mesmo
+    valor pago). Só precisa ser único dentro da conta da pessoa."""
+    return secrets.token_hex(4)
+
+
+def _alvo(pos: dict, name: str, lote: "str | None") -> bool:
+    """A posição é a que a pessoa quis mexer? Com `lote`, só aquele lote;
+    sem, todas as posições do nome (comportamento de antes dos lotes)."""
+    if pos.get("name") != name:
+        return False
+    return not lote or pos.get("lote") == lote
+
+
 def update_position_cost(steamid: str, name: str, cost: float,
-                         path: "Path | str | None" = None) -> "list[dict] | None":
-    """Atualiza o custo de toda posição com esse nome. None se nenhuma
-    posição desse nome existir (nada pra atualizar)."""
+                         path: "Path | str | None" = None,
+                         lote: "str | None" = None) -> "list[dict] | None":
+    """Atualiza o custo das posições com esse nome (só do `lote`, se
+    dado). None se nenhuma posição bater (nada pra atualizar)."""
     positions = load_positions(steamid, path=path)
     found = False
     for pos in positions:
-        if pos.get("name") == name:
+        if _alvo(pos, name, lote):
             pos["cost"] = cost
             found = True
     if not found:
@@ -57,11 +73,64 @@ def update_position_cost(steamid: str, name: str, cost: float,
 
 
 def remove_position(steamid: str, name: str,
-                    path: "Path | str | None" = None) -> bool:
-    """Remove TODAS as posições com esse nome. True se algo foi removido."""
+                    path: "Path | str | None" = None,
+                    lote: "str | None" = None) -> bool:
+    """Remove as posições com esse nome (só o `lote`, se dado). True se
+    algo foi removido."""
     positions = load_positions(steamid, path=path)
-    remaining = [p for p in positions if p.get("name") != name]
+    remaining = [p for p in positions if not _alvo(p, name, lote)]
     changed = len(remaining) != len(positions)
     if changed:
         user_store.save_user_json(steamid, _KIND, remaining, path=path)
     return changed
+
+
+def separar(steamid: str, name: str, quantidade: int,
+            lote: "str | None" = None,
+            path: "Path | str | None" = None) -> "str | None":
+    """Tira `quantidade` unidades de uma posição e cria um lote novo, sem
+    valor pago, logo depois dela -- pra quem pagou valores diferentes
+    pelo mesmo item (pedido do usuário, 2026-11-15). Devolve o id do
+    lote novo, ou None se não der (posição não achada ou quantidade
+    fora de 1..unidades-1)."""
+    positions = load_positions(steamid, path=path)
+    for i, pos in enumerate(positions):
+        if not _alvo(pos, name, lote):
+            continue
+        qtd = int(pos.get("quantity") or 1)
+        if not 1 <= quantidade < qtd:
+            return None
+        pos["quantity"] = qtd - quantidade
+        pos.setdefault("lote", novo_lote())
+        novo = {**pos, "quantity": quantidade, "cost": None,
+                "added_ts": time.time(), "lote": novo_lote()}
+        positions.insert(i + 1, novo)
+        user_store.save_user_json(steamid, _KIND, positions, path=path)
+        return novo["lote"]
+    return None
+
+
+def juntar(steamid: str, name: str,
+           path: "Path | str | None" = None) -> str:
+    """Junta os lotes de um item numa posição só, com o valor médio
+    ponderado pelas unidades. Devolve "ok", "nada" (menos de 2 lotes) ou
+    "misto" (algum lote com valor e outro sem: juntar inventaria um
+    preço, então não junta)."""
+    positions = load_positions(steamid, path=path)
+    lotes = [p for p in positions if p.get("name") == name]
+    if len(lotes) < 2:
+        return "nada"
+    com_valor = [p for p in lotes if p.get("cost") is not None]
+    if com_valor and len(com_valor) != len(lotes):
+        return "misto"
+    unidades = sum(int(p.get("quantity") or 1) for p in lotes)
+    custo = (round(sum(float(p["cost"]) * int(p.get("quantity") or 1)
+                       for p in lotes) / unidades, 2)
+             if com_valor else None)
+    primeiro = positions.index(lotes[0])
+    unido = {**lotes[0], "quantity": unidades, "cost": custo}
+    unido.pop("lote", None)
+    restantes = [p for p in positions if p.get("name") != name]
+    restantes.insert(min(primeiro, len(restantes)), unido)
+    user_store.save_user_json(steamid, _KIND, restantes, path=path)
+    return "ok"

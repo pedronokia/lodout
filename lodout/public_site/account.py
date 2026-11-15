@@ -236,10 +236,16 @@ def conta():
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
     user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
+    _marcar_lotes(avaliacao_bruta["rows"], positions)
     # Mais valioso primeiro (2026-11-15): com o inventário inteiro na
     # lista, a ordem de chegada deixava a faca no meio dos adesivos.
+    # Lotes do mesmo item ficam juntos (ordem pelo valor do item todo).
+    valor_por_nome: dict = {}
+    for r in avaliacao_bruta["rows"]:
+        valor_por_nome[r["name"]] = valor_por_nome.get(r["name"], 0) + \
+            (r.get("price") or 0) * (r.get("quantity") or 1)
     avaliacao_bruta["rows"].sort(
-        key=lambda r: -((r.get("price") or 0) * (r.get("quantity") or 1)))
+        key=lambda r: (-valor_por_nome[r["name"]], r["name"]))
     meta = _meta_lucro(steamid)
     estado_inv = inventario.estado(steamid)
     # Busca interrompida (servidor reiniciou no meio): o "buscando…" não
@@ -264,6 +270,58 @@ def conta():
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
+
+
+def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
+    """Leva o id do lote de cada posição para a linha (mesma ordem: uma
+    linha por posição) e numera os lotes do mesmo item ("lote 1 de 2")."""
+    total: dict = {}
+    for pos in positions:
+        total[pos.get("name")] = total.get(pos.get("name"), 0) + 1
+    visto: dict = {}
+    for row, pos in zip(rows, positions):
+        row["lote"] = pos.get("lote")
+        n = total.get(pos.get("name"), 1)
+        visto[pos.get("name")] = visto.get(pos.get("name"), 0) + 1
+        row["lotes_total"] = n
+        row["lote_numero"] = visto[pos.get("name")]
+
+
+@bp.route("/conta/posicoes/<name>/separar", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def separar_lote(name: str):
+    """Pagou valores diferentes pelo mesmo item: separa unidades num lote
+    novo, sem valor pago, pra pessoa informar (pedido 2026-11-15)."""
+    steamid = session["steamid"]
+    try:
+        quantidade = int((request.form.get("quantidade") or "").strip())
+    except ValueError:
+        quantidade = 0
+    lote = (request.form.get("lote") or "").strip() or None
+    if user_portfolio.separar(steamid, name, quantidade, lote=lote):
+        flash(f"Separado: {quantidade} {'unidade ficou' if quantidade == 1 else 'unidades ficaram'} "
+              "numa linha própria, sem valor pago. Informe quanto você pagou nela.", "success")
+    else:
+        flash("Não deu para separar: escolha de 1 até uma unidade a menos que o total da linha.", "error")
+    return redirect(url_for("account.conta"))
+
+
+@bp.route("/conta/posicoes/<name>/juntar", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def juntar_lotes(name: str):
+    """Junta os lotes de um item de novo, com o valor médio ponderado."""
+    steamid = session["steamid"]
+    resultado = user_portfolio.juntar(steamid, name)
+    if resultado == "ok":
+        flash("Lotes juntados numa linha só, com o valor médio que você pagou.", "success")
+    elif resultado == "misto":
+        flash("Para juntar, informe o valor pago de todos os lotes desse item "
+              "(ou de nenhum): juntar com um lote sem valor inventaria um preço.", "error")
+    return redirect(url_for("account.conta"))
 
 
 @bp.route("/conta/meta", methods=["POST"])
@@ -341,6 +399,7 @@ def editar_custo(name: str):
     quer_json = "application/json" in (request.headers.get("Accept") or "")
     # Aceita "35,10" além de "35.10" (teclado brasileiro).
     cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
+    lote = (request.form.get("lote") or "").strip() or None
     erro = None
     if cost_raw:
         try:
@@ -350,12 +409,12 @@ def editar_custo(name: str):
         if cost is None or not math.isfinite(cost) or cost < 0:
             erro = "O valor pago precisa ser um número igual ou maior que zero."
         else:
-            user_portfolio.update_position_cost(steamid, name, cost)
+            user_portfolio.update_position_cost(steamid, name, cost, lote=lote)
     if quer_json:
         if erro:
             return jsonify({"ok": False, "erro": erro}), 400
         linhas = [p for p in user_portfolio.load_positions(steamid)
-                  if p.get("name") == name]
+                  if p.get("name") == name and (not lote or p.get("lote") == lote)]
         if not linhas:
             return jsonify({"ok": False, "erro": "Item não encontrado."}), 404
         avaliacao = _formatar_linhas(
@@ -372,6 +431,7 @@ def editar_custo(name: str):
             "empate_fmt": row.get("empate_fmt"),
             "alvo_fmt": row.get("alvo_fmt"),
             "lucro_fmt": row.get("pnl_fmt") if pnl is not None else None,
+            "lucro": round(pnl, 4) if pnl is not None else None,
             "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
                              "valor-negativo" if pnl and pnl < 0 else ""),
         })
@@ -386,7 +446,8 @@ def editar_custo(name: str):
 @csrf_protect
 def remover_posicao(name: str):
     steamid = session["steamid"]
-    user_portfolio.remove_position(steamid, name)
+    lote = (request.form.get("lote") or "").strip() or None
+    user_portfolio.remove_position(steamid, name, lote=lote)
     return redirect(url_for("account.conta"))
 
 

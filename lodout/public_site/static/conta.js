@@ -15,6 +15,103 @@
     campo.form.submit();
   });
 
+  // ── Ferramentas da lista: busca, filtro e ordem (2026-11-15) ──────────
+  // Inventário grande: achar o que importa sem rolar a lista toda. Só
+  // reorganiza as linhas que já estão na página; nenhuma consulta nova.
+  var ferramentas = document.querySelector("[data-conta-ferramentas]");
+  var corpo = document.querySelector(".tabela-conta tbody");
+  var estado = { filtro: "todos", busca: "", ordem: "valor" };
+
+  function semAcento(t) {
+    return (t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/-/g, " ");
+  }
+
+  function linhas() {
+    return corpo ? Array.prototype.slice.call(corpo.querySelectorAll("tr.linha-posicao")) : [];
+  }
+
+  function lucroDe(tr) {
+    var v = tr.getAttribute("data-lucro");
+    return v === "" || v === null ? null : Number(v);
+  }
+
+  function passaFiltro(tr, filtro) {
+    var lucro = lucroDe(tr);
+    if (filtro === "sem-valor") return tr.classList.contains("linha-sem-custo");
+    if (filtro === "lucro") return lucro !== null && lucro > 0;
+    if (filtro === "prejuizo") return lucro !== null && lucro < 0;
+    return true;
+  }
+
+  function aplicar() {
+    if (!ferramentas || !corpo) return;
+    var todas = linhas();
+    var palavras = semAcento(estado.busca).split(/\s+/).filter(Boolean);
+    var contagem = { todos: 0, "sem-valor": 0, lucro: 0, prejuizo: 0 };
+    var visiveis = 0;
+    todas.forEach(function (tr) {
+      var texto = semAcento(tr.getAttribute("data-busca"));
+      var achou = palavras.every(function (p) { return texto.indexOf(p) !== -1; });
+      if (achou) {
+        Object.keys(contagem).forEach(function (f) { if (passaFiltro(tr, f)) contagem[f]++; });
+      }
+      var mostra = achou && passaFiltro(tr, estado.filtro);
+      tr.hidden = !mostra;
+      if (mostra) visiveis++;
+    });
+    var chave = {
+      valor: function (tr) { return -Number(tr.getAttribute("data-valor") || 0); },
+      prejuizo: function (tr) { var l = lucroDe(tr); return l === null ? Infinity : l; },
+      lucro: function (tr) { var l = lucroDe(tr); return l === null ? Infinity : -l; },
+    }[estado.ordem];
+    var ordenadas = todas.slice().sort(function (a, b) {
+      if (estado.ordem === "nome") {
+        return semAcento(a.querySelector(".link-item").textContent).localeCompare(
+          semAcento(b.querySelector(".link-item").textContent), "pt-BR");
+      }
+      return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
+    });
+    var nenhum = corpo.querySelector("[data-conta-nenhum]");
+    ordenadas.forEach(function (tr) { corpo.insertBefore(tr, nenhum); });
+    if (nenhum) nenhum.hidden = visiveis > 0;
+    Object.keys(contagem).forEach(function (f) {
+      var el = ferramentas.querySelector('[data-conta-contagem="' + f + '"]');
+      if (el) el.textContent = contagem[f];
+    });
+    var mostrando = ferramentas.querySelector("[data-conta-mostrando]");
+    if (mostrando) {
+      mostrando.textContent = visiveis === todas.length ? "" :
+        "Mostrando " + visiveis + " de " + todas.length + " " + (todas.length === 1 ? "item" : "itens");
+    }
+  }
+
+  if (ferramentas && corpo) {
+    linhas().forEach(function (tr, i) { tr.setAttribute("data-ordem", i); });
+    ferramentas.hidden = false;
+    var busca = ferramentas.querySelector("[data-conta-busca]");
+    var ordem = ferramentas.querySelector("[data-conta-ordem]");
+    function escolherFiltro(f) {
+      estado.filtro = f;
+      Array.prototype.forEach.call(ferramentas.querySelectorAll("[data-conta-filtro]"), function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-conta-filtro") === f ? "true" : "false");
+      });
+      aplicar();
+    }
+    ferramentas.addEventListener("click", function (e) {
+      var botao = e.target.closest("[data-conta-filtro]");
+      if (botao) escolherFiltro(botao.getAttribute("data-conta-filtro"));
+    });
+    if (busca) busca.addEventListener("input", function () { estado.busca = busca.value; aplicar(); });
+    if (ordem) ordem.addEventListener("change", function () { estado.ordem = ordem.value; aplicar(); });
+    var limpar = document.querySelector("[data-conta-limpar]");
+    if (limpar) limpar.addEventListener("click", function () {
+      if (busca) busca.value = "";
+      estado.busca = "";
+      escolherFiltro("todos");
+    });
+    aplicar();
+  }
+
   // Cartões do topo e aviso de itens sem valor pago, com os textos que o
   // servidor devolve ao salvar (account._textos_totais).
   function atualizarTotais(totais) {
@@ -102,7 +199,8 @@
     var depois = campos.slice(campos.indexOf(campo) + 1);
     var proximo = null;
     for (var i = 0; i < depois.length; i++) {
-      if (depois[i].value.trim() === "") { proximo = depois[i]; break; }
+      var tr = depois[i].closest("tr");
+      if (depois[i].value.trim() === "" && !(tr && tr.hidden)) { proximo = depois[i]; break; }
     }
     if (proximo) {
       proximo.focus();
@@ -194,6 +292,12 @@
         else if (lucro) lucro.classList.remove("celula-sem-valor");
       }
       atualizarTotais(d.totais);
+      if (linha) {
+        linha.setAttribute("data-lucro", d.lucro === null || d.lucro === undefined ? "" : String(d.lucro));
+        // Contagens dos filtros mudam; a linha só some do filtro atual
+        // depois de um instante, pra quem salvou ver o "salvo ✓".
+        setTimeout(aplicar, estado.filtro === "todos" ? 0 : 900);
+      }
       setTimeout(function () { if (aviso && aviso.textContent === "salvo ✓") aviso.textContent = ""; }, 2500);
     }).then(function () {
       salvando--;

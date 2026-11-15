@@ -1043,6 +1043,14 @@ footer.rodape .rodape-base a:hover {
   font-size: var(--fs-sm);
 }
 
+.status-sucesso {
+  padding: 10px 14px;
+  border: 1px solid rgba(57, 194, 102, 0.3);
+  border-radius: var(--radius-sm);
+  background: rgba(57, 194, 102, 0.07);
+  color: var(--positive);
+}
+
 .status-erro {
   padding: 10px 14px;
   border: 1px solid rgba(255, 110, 112, 0.28);
@@ -6065,3 +6073,135 @@ table.tabela-variantes td:not(:first-child) {
   .abas-categoria { flex-wrap: wrap; overflow-x: visible; gap: 6px 5px; }
   .aba-categoria { padding: 5px 10px; gap: 5px; }
 }
+
+/* ── Conta: ferramentas da lista para inventário grande (2026-11-15) ──
+   Busca, filtros com contagem e ordem, numa faixa acima da tabela. */
+.conta-ferramentas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  margin: 0 0 var(--sp-3);
+}
+.conta-ferramentas[hidden] { display: none; }
+.conta-busca { flex: 1 1 220px; min-width: 0; }
+.conta-busca input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+.conta-busca input:focus-visible { border-color: var(--accent); outline: none; }
+.conta-filtros { display: flex; flex-wrap: wrap; gap: 6px; }
+.conta-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
+}
+.conta-filtro span { color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.conta-filtro:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.conta-filtro[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--text-bright); }
+.conta-filtro[aria-pressed="true"] span { color: var(--text); }
+.conta-filtro:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.conta-ordem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.conta-ordem select {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+.conta-mostrando { flex-basis: 100%; margin: 0; color: var(--text-muted); font-size: var(--fs-xs); }
+.conta-mostrando:empty { display: none; }
+.linha-nenhum td { padding: var(--sp-5) 16px; color: var(--text-muted); text-align: center; }
+.linha-nenhum[hidden] { display: none; }
+
+/* Linhas um pouco mais baixas: mais itens por tela, mesma letra. */
+table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
+
+/* Cabeçalho da tabela fixo ao rolar (computador). A tabela cabe sem
+   rolar de lado a partir de 641px, então o invólucro não precisa
+   recortar -- e sem recorte o cabeçalho pode grudar no topo. */
+@media (min-width: 641px) {
+  .tabela-wrap:has(> .tabela-conta),
+  table.tabela-candidatos.tabela-conta { overflow: visible; }
+  .tabela-conta .cabecalho-fixo-conta th {
+    position: sticky;
+    top: var(--altura-topo);
+    z-index: 5;
+    box-shadow: 0 1px 0 var(--border);
+  }
+  .tabela-conta .cabecalho-fixo-conta th:first-child { border-top-left-radius: calc(var(--radius-md) - 1px); }
+  .tabela-conta .cabecalho-fixo-conta th:last-child { border-top-right-radius: calc(var(--radius-md) - 1px); }
+  .tabela-conta tbody tr:last-of-type td:first-child { border-bottom-left-radius: calc(var(--radius-md) - 1px); }
+  .tabela-conta tbody tr:last-of-type td:last-child { border-bottom-right-radius: calc(var(--radius-md) - 1px); }
+}
+@media (max-width: 640px) {
+  .conta-ordem { margin-left: 0; }
+  .conta-filtros { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; width: 100%; }
+}
+
+/* Lotes do mesmo item (2026-11-15). */
+.item-lote {
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+.separar-lote { display: inline; }
+.separar-lote > summary {
+  display: inline;
+  color: var(--text-fraco);
+  cursor: pointer;
+  list-style: none;
+}
+.separar-lote > summary::-webkit-details-marker { display: none; }
+.separar-lote > summary:hover,
+.separar-lote > summary:focus-visible { color: var(--accent-bright); }
+.separar-lote[open] > summary { color: var(--accent-bright); }
+.form-separar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--sp-2);
+  margin: 6px 0 2px;
+  color: var(--text);
+  font-size: var(--fs-xs);
+}
+.form-separar label { display: inline-flex; align-items: center; gap: 6px; }
+.input-quantidade { width: 4em; min-height: 30px; text-align: right; }
+.explica-separar { flex-basis: 100%; color: var(--text-muted); }
+.botao-juntar { color: var(--text-fraco); font-size: var(--fs-xs); min-height: 0; padding: 0; }
+.botao-juntar:hover, .botao-juntar:focus-visible { color: var(--accent-bright); }
+
+
+.separar-lote[open] { display: block; flex-basis: 100%; }
+.form-separar .botao-link { min-height: 30px; padding: 0 4px; font-size: var(--fs-sm); }
+.conta-filtro { flex-shrink: 0; white-space: nowrap; }
