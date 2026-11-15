@@ -93,18 +93,21 @@
     }
   }
 
+  var escolherFiltro = function () {};
+  var limparBusca = function () {};
   if (ferramentas && corpo) {
     linhas().forEach(function (tr, i) { tr.setAttribute("data-ordem", i); });
     ferramentas.hidden = false;
     var busca = ferramentas.querySelector("[data-conta-busca]");
     var ordem = ferramentas.querySelector("[data-conta-ordem]");
-    function escolherFiltro(f) {
+    limparBusca = function () { if (busca) busca.value = ""; estado.busca = ""; };
+    escolherFiltro = function (f) {
       estado.filtro = f;
       Array.prototype.forEach.call(ferramentas.querySelectorAll("[data-conta-filtro]"), function (b) {
         b.setAttribute("aria-pressed", b.getAttribute("data-conta-filtro") === f ? "true" : "false");
       });
       aplicar();
-    }
+    };
     ferramentas.addEventListener("click", function (e) {
       var botao = e.target.closest("[data-conta-filtro]");
       if (botao) escolherFiltro(botao.getAttribute("data-conta-filtro"));
@@ -113,23 +116,49 @@
     if (ordem) ordem.addEventListener("change", function () { estado.ordem = ordem.value; aplicar(); });
     var limpar = document.querySelector("[data-conta-limpar]");
     if (limpar) limpar.addEventListener("click", function () {
-      if (busca) busca.value = "";
-      estado.busca = "";
+      limparBusca();
       escolherFiltro("todos");
     });
     aplicar();
+  }
+
+  // "Preencher agora" no aviso: mostra só os itens sem valor pago e põe o
+  // cursor no primeiro campo (com Enter, a pessoa segue para o próximo).
+  var preencher = document.querySelector("[data-preencher]");
+  if (preencher && window.fetch && window.FormData) {
+    preencher.hidden = false;
+    preencher.addEventListener("click", function () {
+      if (ferramentas && corpo) {
+        limparBusca();
+        escolherFiltro("sem-valor");
+      }
+      var alvo = document.querySelector("tr.linha-sem-custo:not([hidden]) .input-custo");
+      if (!alvo) return;
+      var suave = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      alvo.scrollIntoView({ block: "center", behavior: suave ? "smooth" : "auto" });
+      alvo.focus({ preventScroll: true });
+    });
   }
 
   // Cartões do topo e aviso de itens sem valor pago, com os textos que o
   // servidor devolve ao salvar (account._textos_totais).
   function atualizarTotais(totais) {
     if (!totais) return;
+    var progresso = document.querySelector("[data-total-progresso]");
+    if (progresso && typeof totais.com_valor === "number") {
+      progresso.max = totais.total_itens || progresso.max;
+      progresso.value = totais.com_valor;
+    }
     Array.prototype.forEach.call(document.querySelectorAll("[data-total]"), function (el) {
       var chave = el.getAttribute("data-total");
       if (!(chave in totais)) return;
-      if (chave === "aviso_sem_custo") el.textContent = totais[chave];
-      else texto(el, totais[chave]);
-      if (chave === "aviso_sem_custo") el.hidden = !totais[chave];
+      if (chave === "aviso_sem_custo") {
+        el.textContent = totais[chave];
+        var caixa = el.closest(".aviso-sem-custo") || el;
+        caixa.hidden = !totais[chave];
+      } else {
+        texto(el, totais[chave]);
+      }
       if (chave === "lucro") {
         el.classList.remove("valor-positivo", "valor-negativo", "card-valor-texto");
         if (totais.lucro_classe) el.classList.add(totais.lucro_classe);

@@ -119,6 +119,8 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
                 row["nome_curto"] = row["name_fmt"][:-len(sufixo)]
                 row["exterior_fmt"] = rotulo
         row["price_fmt"] = fmt.brl(row.get("price"))
+        if row.get("price") is not None:
+            row["valor_total_fmt"] = fmt.brl(row["price"] * (row.get("quantity") or 1))
         row["cost_fmt"] = fmt.brl(row.get("cost"))
         row["pnl_fmt"] = fmt.brl(row.get("pnl"))
         row["score"] = raw.get("score") if raw else None
@@ -151,8 +153,8 @@ def _textos_totais(t: dict) -> dict:
         lucro_sub = f"{sinal}{fmt.pct(abs(pct))}% do que você pagou"
     if sem:
         aviso = (f"{sem} {'item está' if sem == 1 else 'itens estão'} sem o "
-                 "valor pago. Digite na coluna “Você pagou” para ver por quanto "
-                 f"vender e para {'ele entrar' if sem == 1 else 'eles entrarem'} no lucro.")
+                 "valor pago. Preencha para ver por quanto vender e para "
+                 f"{'ele entrar' if sem == 1 else 'eles entrarem'} no lucro.")
     else:
         aviso = ""
     return {
@@ -167,6 +169,8 @@ def _textos_totais(t: dict) -> dict:
                          "valor-negativo" if pnl and pnl < 0 else
                          "card-valor-texto" if pnl is None else ""),
         "aviso_sem_custo": aviso,
+        "com_valor": com,
+        "total_itens": n,
     }
 
 

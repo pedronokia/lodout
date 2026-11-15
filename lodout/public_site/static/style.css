@@ -6214,3 +6214,66 @@ table.tabela-conta tbody:first-of-type tr:last-child td,
 table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 .tabela-conta .corpo-nenhum .linha-nenhum td { border-bottom: 0; border-top: 1px solid var(--border); }
 
+
+/* ── Conta, terceira passada de acabamento (2026-11-15) ───────────── */
+
+/* Barrinha de progresso do valor pago no cartão "Você pagou". */
+.card-progresso {
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  margin-top: 2px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+.card-progresso::-webkit-progress-bar { background: var(--surface-hover); border-radius: var(--radius-pill); }
+.card-progresso::-webkit-progress-value { background: var(--positive); border-radius: var(--radius-pill); transition: width var(--dur-base) var(--ease-standard); }
+.card-progresso::-moz-progress-bar { background: var(--positive); border-radius: var(--radius-pill); }
+
+/* Aviso com a ação ao lado. */
+.aviso-sem-custo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-3); }
+.aviso-sem-custo[hidden] { display: none; }
+.botao-preencher {
+  min-height: 32px;
+  margin-left: auto;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--warn) 60%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--text-bright);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-base) var(--ease-standard);
+}
+.botao-preencher:hover { background: color-mix(in srgb, var(--warn) 22%, transparent); }
+.botao-preencher:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.botao-preencher[hidden] { display: none; }
+
+/* Mais de uma unidade: "cada" e o total, pra não confundir o preço de
+   uma unidade com o lucro do total. */
+.valor-cada,
+.custo-cada { color: var(--text-muted); font-size: var(--fs-xs); }
+.valor-total { display: block; color: var(--text-muted); font-size: var(--fs-xs); }
+
+/* "remover" só aparece na linha sob o mouse ou com foco (computador com
+   mouse); no toque e no teclado continua ao alcance. */
+@media (hover: hover) and (pointer: fine) and (min-width: 641px) {
+  .tabela-conta .botao-remover { opacity: 0; transition: opacity var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard); }
+  .tabela-conta tr:hover .botao-remover,
+  .tabela-conta tr:focus-within .botao-remover { opacity: 1; }
+}
+
+/* "cada" dentro do campo, depois do número (mais de uma unidade). */
+.campo-reais-sufixo {
+  position: absolute;
+  right: 10px;
+  color: var(--text-fraco);
+  font-size: var(--fs-xs);
+  pointer-events: none;
+}
+.tabela-conta .campo-reais-cada .input-custo { width: 9em; padding-right: 44px; }
+

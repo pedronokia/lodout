@@ -45,6 +45,7 @@
         <span class="card-label">Você pagou</span>
         <span class="card-valor" data-total="pago">{{ tx.pago }}</span>
         <span class="card-sub" data-total="pago_sub">{{ tx.pago_sub }}</span>
+        {% if avaliacao.totals.positions %}<progress class="card-progresso" max="{{ avaliacao.totals.positions }}" value="{{ avaliacao.totals.known_cost }}" data-total-progresso aria-label="Itens com o valor pago informado"></progress>{% endif %}
       </div>
       <div class="card card-nota-destaque">
         <span class="card-label">Lucro se vender hoje</span>
@@ -53,7 +54,12 @@
       </div>
     </section>
 
-    <p class="aviso-sem-custo" data-total="aviso_sem_custo"{% if not tx.aviso_sem_custo %} hidden{% endif %}>{{ tx.aviso_sem_custo }}</p>
+    {# "Preencher agora" (conta.js): filtra os itens sem valor e põe o
+       cursor no primeiro campo. Sem JavaScript, fica escondido. #}
+    <div class="aviso-sem-custo"{% if not tx.aviso_sem_custo %} hidden{% endif %}>
+      <span data-total="aviso_sem_custo">{{ tx.aviso_sem_custo }}</span>
+      <button type="button" class="botao-preencher" data-preencher hidden>Preencher agora</button>
+    </div>
 
     <div class="conta-lista-cabecalho">
       <h2 class="secao-titulo">Seus itens</h2>
@@ -80,7 +86,7 @@
     {% if inv.em_andamento %}
     <p class="status-inventario">Buscando seu inventário da Steam… recarregue a página em alguns segundos.</p>
     {% elif inv.status == "ok" %}
-    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}. Itens vendidos ou trocados saem da lista sozinhos.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou para ver por quanto vender.{% endif %}</p>
+    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}. Vendeu ou trocou um item? Ele sai da lista sozinho.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou para ver por quanto vender.{% endif %}</p>
     {% elif inv.status == "private" %}
     <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado, então o Lodout não consegue ver seus itens. Para mostrar: na Steam, abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a></p>
     {% elif inv.status == "empty" %}
@@ -91,7 +97,7 @@
     <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.</p>
     {% endif %}
     {% if avaliacao.rows %}
-    <p class="form-meta-lucro-ajuda" id="explica-meta">Os preços de “Venda por” já incluem a taxa de {{ taxa_steam_pct }}% da Steam: é o valor para anunciar no Mercado.{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">Dica: digite o valor pago e aperte Enter para ir direto ao próximo item sem valor.</span>{% endif %}</p>
+    <p class="form-meta-lucro-ajuda" id="explica-meta">“Venda por” já inclui a taxa de {{ taxa_steam_pct }}% da Steam: é o preço de cada unidade para anunciar no Mercado.{% if avaliacao.totals.unknown_cost %} <span class="dica-enter">No valor pago, Enter salva e vai para o próximo item sem valor.</span>{% endif %}</p>
     {# Ferramentas da lista (2026-11-15): com o inventário inteiro, achar
        o que importa sem rolar a lista toda. Tudo no navegador (conta.js),
        sem consulta nova; sem JavaScript fica escondida e a lista aparece
@@ -186,16 +192,22 @@
             <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline form-custo">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
               {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
-              <span class="campo-reais">
+              <span class="campo-reais{{ ' campo-reais-cada' if row.quantity and row.quantity > 1 else '' }}">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
-                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
+                {% if row.quantity and row.quantity > 1 %}<span class="campo-reais-sufixo" aria-hidden="true">cada</span>{% endif %}
+                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>
             </form>
           </td>
           {% if row.price is not none %}
+          {% if row.quantity and row.quantity > 1 %}
+          {# Mais de uma unidade: o preço é de cada uma; o lucro, do total. #}
+          <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt }} <span class="valor-cada">cada</span><span class="valor-total">{{ row.valor_total_fmt }} no total</span></td>
+          {% else %}
           <td data-label="Vale hoje" class="celula-numero">{{ row.price_fmt }}</td>
+          {% endif %}
           {% else %}
           <td data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
           {% endif %}
