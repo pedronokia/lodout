@@ -293,7 +293,7 @@ def test_editar_custo_invalido_preserva_custo_atual(client, monkeypatch):
     })
     assert resp.status_code == 302
     pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
-    assert "O custo precisa ser um número válido e igual ou maior que zero" in pagina
+    assert "O valor pago precisa ser um número igual ou maior que zero" in pagina
     assert "10,00" in pagina
 
 
@@ -439,14 +439,14 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
         "name": "AK-47 | Redline (Field-Tested)", "cost": "100",
         "quantity": "1", "csrf_token": token})
     pagina = client.get("/conta").data.decode("utf-8")
-    assert '<td data-label="Vender sem prejuízo">R$ 115,00</td>' in pagina
-    assert '<strong class="preco-alvo">R$ 138,00</strong>' in pagina
+    assert '<td data-label="Vender sem prejuízo" data-campo="empate">R$ 115,00</td>' in pagina
+    assert '<strong class="preco-alvo" data-campo="alvo">R$ 138,00</strong>' in pagina
     assert "Vender para lucrar 20%" in pagina
 
     resp = client.post("/conta/meta", data={"meta": "50", "csrf_token": token})
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
-    assert '<strong class="preco-alvo">R$ 172,50</strong>' in pagina
+    assert '<strong class="preco-alvo" data-campo="alvo">R$ 172,50</strong>' in pagina
     assert '<option value="50" selected>50%</option>' in pagina
 
 
@@ -466,3 +466,39 @@ def test_meta_de_lucro_exige_csrf(client, monkeypatch):
     _login(client, monkeypatch)
     resp = client.post("/conta/meta", data={"meta": "50"})
     assert resp.status_code in (400, 403)
+
+
+
+def test_salvar_quanto_paguei_sem_recarregar_devolve_a_linha(client, monkeypatch):
+    # conta-inventario.md, fase 3: o script da conta pede JSON e atualiza
+    # só a linha; vírgula decimal (teclado brasileiro) também vale.
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "Caixa X", "cost": "", "quantity": "1", "csrf_token": token})
+    resp = client.post("/conta/posicoes/Caixa X/custo",
+                       data={"cost": "100,00", "csrf_token": token},
+                       headers={"Accept": "application/json"})
+    assert resp.status_code == 200
+    dados = resp.get_json()
+    assert dados["ok"] is True
+    assert dados["empate_fmt"] == "R$ 115,00"
+    assert dados["alvo_fmt"] == "R$ 138,00"
+
+    resp = client.post("/conta/posicoes/Caixa X/custo",
+                       data={"cost": "-1", "csrf_token": token},
+                       headers={"Accept": "application/json"})
+    assert resp.status_code == 400 and resp.get_json()["ok"] is False
+
+
+def test_salvar_quanto_paguei_sem_csrf_e_recusado(client, monkeypatch):
+    _login(client, monkeypatch)
+    resp = client.post("/conta/posicoes/Caixa X/custo", data={"cost": "1"},
+                       headers={"Accept": "application/json"})
+    assert resp.status_code in (400, 403)
+
+
+def test_conta_carrega_o_script_de_salvar_rapido(client, monkeypatch):
+    _login(client, monkeypatch)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'src="/static/conta.js' in pagina

@@ -4062,6 +4062,18 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .preco-alvo { color: var(--text-bright); font-variant-numeric: tabular-nums; }
 
+/* "Quanto paguei" na conta: aviso de salvo ao lado do campo, e a linha
+   sem preço pago marcada de leve pra pessoa achar o que falta. */
+.custo-salvo {
+  min-width: 4.5em;
+  color: var(--positive);
+  font-size: var(--fs-xs);
+}
+
+.custo-salvo.custo-erro { color: var(--danger); }
+
+.linha-sem-custo .form-custo input { border-color: color-mix(in srgb, var(--warn) 55%, transparent); }
+
 
 .form-adicionar {
   display: flex;

@@ -73,4 +73,4 @@ o preço do dia de todo o mercado.
 | --- | --- |
 | 1. Lucro com taxa e preço de venda | feita (2026-11-15) |
 | 2. Inventário sincronizado | feita (2026-11-15) |
-| 3. "Quanto paguei" rápido | aprovada |
+| 3. "Quanto paguei" rápido | feita (2026-11-15) |

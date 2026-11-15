@@ -270,20 +270,46 @@ def adicionar_posicao():
 @login_required
 @csrf_protect
 def editar_custo(name: str):
+    """Salva quanto a pessoa pagou. Pelo script da conta (Accept: JSON)
+    devolve os números novos só desta linha -- sem recarregar a página
+    inteira (conta-inventario.md, fase 3). Sem JavaScript, redireciona
+    como sempre."""
     steamid = session["steamid"]
-    cost_raw = (request.form.get("cost") or "").strip()
+    quer_json = "application/json" in (request.headers.get("Accept") or "")
+    # Aceita "35,10" além de "35.10" (teclado brasileiro).
+    cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
+    erro = None
     if cost_raw:
         try:
             cost = float(cost_raw)
         except ValueError:
             cost = None
         if cost is None or not math.isfinite(cost) or cost < 0:
-            flash(
-                "O custo precisa ser um número válido e igual ou maior que zero.",
-                "error",
-            )
-            return redirect(url_for("account.conta"))
-        user_portfolio.update_position_cost(steamid, name, cost)
+            erro = "O valor pago precisa ser um número igual ou maior que zero."
+        else:
+            user_portfolio.update_position_cost(steamid, name, cost)
+    if quer_json:
+        if erro:
+            return jsonify({"ok": False, "erro": erro}), 400
+        linhas = [p for p in user_portfolio.load_positions(steamid)
+                  if p.get("name") == name]
+        if not linhas:
+            return jsonify({"ok": False, "erro": "Item não encontrado."}), 404
+        avaliacao = _formatar_linhas(
+            portfolio.evaluate_portfolio(linhas, PriceCache().get),
+            _meta_lucro(steamid))
+        row = avaliacao["rows"][0]
+        pnl = row.get("pnl") if row.get("has_cost") else None
+        return jsonify({
+            "ok": True,
+            "empate_fmt": row.get("empate_fmt"),
+            "alvo_fmt": row.get("alvo_fmt"),
+            "lucro_fmt": row.get("pnl_fmt") if pnl is not None else None,
+            "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
+                             "valor-negativo" if pnl and pnl < 0 else ""),
+        })
+    if erro:
+        flash(erro, "error")
     return redirect(url_for("account.conta"))
 
 

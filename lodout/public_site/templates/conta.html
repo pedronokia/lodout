@@ -109,7 +109,7 @@
       </thead>
       <tbody>
         {% for row in avaliacao.rows %}
-        <tr>
+        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}">
           <td data-label="Item">
             <div class="celula-item-ranking">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -126,18 +126,21 @@
           </td>
           <td data-label="Qtd">{{ row.quantity }}</td>
           <td data-label="Você pagou">
-            <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline">
+            {# Salva sem recarregar a página quando há JavaScript (conta.js);
+               sem ele, o formulário funciona como sempre. #}
+            <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline form-custo">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <input type="number" name="cost" step="0.01" min="0" value="{{ '%.2f'|format(row.cost) if row.cost else '' }}" class="input-compacto" aria-label="Novo custo de {{ row.name_fmt }}, em reais">
+              <input type="number" name="cost" step="0.01" min="0" inputmode="decimal" value="{{ '%.2f'|format(row.cost) if row.cost else '' }}" placeholder="R$ 0,00" class="input-compacto" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais">
               <button type="submit" class="botao-link">salvar</button>
+              <span class="custo-salvo" role="status" aria-live="polite"></span>
             </form>
           </td>
           <td data-label="Vale hoje">{{ row.price_fmt if row.price is not none else "sem preço ainda" }}</td>
-          <td data-label="Lucro se vender hoje" class="{{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else '') }}">
+          <td data-label="Lucro se vender hoje" data-campo="lucro" class="{{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else '') }}">
             {{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}
           </td>
-          <td data-label="Vender sem prejuízo">{{ row.empate_fmt or "informe quanto pagou" }}</td>
-          <td data-label="Vender para lucrar {{ meta_lucro }}%"><strong class="preco-alvo">{{ row.alvo_fmt or "—" }}</strong></td>
+          <td data-label="Vender sem prejuízo" data-campo="empate">{{ row.empate_fmt or "informe quanto pagou" }}</td>
+          <td data-label="Vender para lucrar {{ meta_lucro }}%"><strong class="preco-alvo" data-campo="alvo">{{ row.alvo_fmt or "—" }}</strong></td>
           <td data-label="Ações">
             <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -163,5 +166,6 @@
     <p>O preço é o último que o Lodout coletou da Steam. Se o item não está entre os que o Lodout acompanha, o preço pode estar desatualizado.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>
