@@ -340,3 +340,22 @@ def test_conta_lista_o_mais_valioso_primeiro(client):
     body = client.get("/conta").data.decode("utf-8")
     assert body.index(">Caro<") < body.index(">Medio<") < body.index(">Barato<")
     assert "3 itens estão sem o valor pago" in body
+
+
+def test_worker_completa_imagem_que_falta_pelo_catalogo():
+    # Achado 2026-11-15: item novo no scan, sem coleta anterior e com o
+    # preço do priceoverview, aparecia no ranking sem foto.
+    from lodout.public_site import worker
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Safari Mesh (Battle-Scarred)", cor="b0c3d9", icon="hash-safari"),
+    ]))
+    novos = [
+        {"name": "AK-47 | Safari Mesh (Battle-Scarred)", "icon": None},
+        {"name": "Fora do catálogo", "icon": None},
+        {"name": "Já tem", "icon": "outro"},
+    ]
+    assert worker._completar_metadados_do_catalogo(novos) == 1
+    assert novos[0]["icon"] == "hash-safari"
+    assert novos[0]["name_color"] == "b0c3d9"
+    assert novos[1]["icon"] is None
+    assert novos[2]["icon"] == "outro"

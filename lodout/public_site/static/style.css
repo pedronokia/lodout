@@ -5991,3 +5991,13 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
   font-size: 1rem;
 }
 
+
+/* Item, "Outras versões": preço e vendas alinhados à direita, com
+   algarismos de mesma largura, pra comparar de linha em linha
+   (revisão web-design-guidelines, 2026-11-15). */
+table.tabela-variantes th:not(:first-child),
+table.tabela-variantes td:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

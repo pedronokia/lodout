@@ -228,6 +228,42 @@ def _completar_metadados_do_anterior(novos: "list[dict]",
     return completados
 
 
+def _completar_metadados_do_catalogo(novos: "list[dict]") -> int:
+    """Segundo recurso depois do ciclo anterior: item que segue sem
+    imagem (ex.: entrou no scan agora e o preço veio do priceoverview)
+    pega a imagem e a cor de raridade do catálogo do Mercado, que a
+    varredura já gravou. Sem requisição nenhuma. Devolve quantos itens
+    foram completados.
+
+    Achado 2026-11-15: "AK-47 | Safari Mesh" apareceu no ranking sem
+    foto -- era novo no scan, então não havia coleta anterior para
+    herdar."""
+    faltando = [r for r in novos if not r.get("icon")]
+    if not faltando:
+        return 0
+    try:
+        from lodout.public_site import catalogo, raridade
+        meta = catalogo.metadados([r.get("name") for r in faltando])
+        cor_por_raridade: dict = {}
+        for cor, suf in raridade._RARIDADE_POR_COR.items():
+            cor_por_raridade.setdefault(suf, cor)
+    except Exception:
+        _logger.warning("catálogo ilegível ao completar imagens", exc_info=True)
+        return 0
+    completados = 0
+    for r in faltando:
+        m = meta.get(r.get("name"))
+        if not m or not m.get("icon"):
+            continue
+        r["icon"] = m["icon"]
+        if not r.get("name_color") and not r.get("rarity_id"):
+            cor = cor_por_raridade.get(m.get("raridade") or "")
+            if cor:
+                r["name_color"] = cor
+        completados += 1
+    return completados
+
+
 # Eventos do gamedata que trazem um container novo pro jogo.
 _EVENTOS_CONTAINER_NOVO = ("new_container", "xpshop_added")
 
@@ -464,6 +500,9 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
     if completados:
         _logger.info("Imagem/raridade herdadas do ciclo anterior: %d itens",
                      completados)
+    do_catalogo = _completar_metadados_do_catalogo(novos)
+    if do_catalogo:
+        _logger.info("Imagem/raridade vindas do catálogo: %d itens", do_catalogo)
     if falhas:
         _logger.info("Sem resultado neste ciclo (%d): %s", len(falhas),
                      ", ".join(falhas[:30]))

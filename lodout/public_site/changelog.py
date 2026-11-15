@@ -23,6 +23,8 @@ ENTRADAS = [
             "Os números que mudam ao salvar acendem de leve e voltam ao normal, para você ver o que mudou (sem animação para quem pediu menos movimento no sistema). O “remover” ficou mais fácil de clicar.",
             "Remover um item abre uma janela própria de confirmação, com o botão vermelho e o foco em “Cancelar”. Os textos de apoio da lista ficaram maiores.",
             "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
+            "Itens que entram na coleta sem foto agora pegam a imagem do catálogo do Mercado (no ranking, um AK-47 | Safari Mesh aparecia sem imagem).",
+            "Na página do item, a tabela “Outras versões” alinha preços e vendas à direita, para comparar de linha em linha.",
         ],
     },
     {

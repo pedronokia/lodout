@@ -483,6 +483,31 @@ def item(nome: str) -> "dict | None":
         conn.close()
 
 
+def metadados(nomes: "list[str]") -> "dict[str, dict]":
+    """{nome: {"icon", "raridade"}} do catálogo, para completar item da
+    coleta que chegou sem imagem (worker). Só leitura local, sem rede."""
+    nomes = [n for n in nomes if n]
+    conn = _conectar_leitura()
+    if conn is None or not nomes:
+        if conn is not None:
+            conn.close()
+        return {}
+    try:
+        saida: dict = {}
+        for i in range(0, len(nomes), 500):
+            lote = nomes[i:i + 500]
+            marcas = ",".join("?" * len(lote))
+            for r in conn.execute(
+                    f"SELECT nome, icon, raridade FROM itens WHERE nome IN ({marcas})",
+                    lote):
+                saida[r["nome"]] = {"icon": r["icon"], "raridade": r["raridade"]}
+        return saida
+    except sqlite3.Error:
+        return {}
+    finally:
+        conn.close()
+
+
 def precos(nomes: "list[str]") -> "dict[str, float]":
     """{nome: preço do dia} para os nomes que o catálogo tem."""
     nomes = [n for n in nomes if n]
