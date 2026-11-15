@@ -1584,3 +1584,31 @@ def test_multi_trend_diario_sem_dado_suficiente():
     from lodout import signals
     assert signals.multi_trend_diario(None) == {}
     assert signals.multi_trend_diario([{"time": 1_790_000_000, "price_median": 1.0}]) == {}
+
+
+def test_revenda_historica_conta_com_a_taxa_e_venda_em_dia_fixo():
+    from lodout import signals
+    t0 = 1_700_000_000 - (1_700_000_000 % 86400)
+    # Sobe 0,1 por dia a partir de 100: em 30 e 90 dias não paga os 15%;
+    # em 1 ano paga sempre.
+    subindo = [{"time": t0 + d * 86400, "price_median": 100 + d * 0.1,
+                "purchases": 5} for d in range(800)]
+    r = signals.revenda_historica(subindo)
+    assert r["30"] == {"pct": 0, "n": 365}
+    assert r["90"]["pct"] == 0
+    assert r["365"]["pct"] == 100
+    # Um pico de 1 dia no meio do prazo não conta: a venda é no dia fixo.
+    plano = [{"time": t0 + d * 86400, "price_median": 100.0, "purchases": 5}
+             for d in range(500)]
+    plano[480] = dict(plano[480], price_median=300.0)
+    assert signals.revenda_historica(plano)["30"]["pct"] <= 1
+
+
+def test_revenda_historica_sem_amostra_suficiente_fica_de_fora():
+    from lodout import signals
+    t0 = 1_700_000_000
+    curto = [{"time": t0 + d * 86400, "price_median": 10.0, "purchases": 1}
+             for d in range(80)]
+    r = signals.revenda_historica(curto)
+    assert "365" not in r and "90" not in r
+    assert signals.revenda_historica(None) == {}

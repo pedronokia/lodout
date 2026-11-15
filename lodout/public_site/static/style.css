@@ -3946,6 +3946,63 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .conta-revenda-texto strong { color: var(--text-bright); }
 
+.pagina-texto .conta-revenda-pergunta,
+.conta-revenda-pergunta {
+  margin: var(--sp-3) 0 var(--sp-2);
+  color: var(--text-bright);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: left;
+}
+
+/* Três quadrinhos (30 dias, 90 dias, 1 ano) lado a lado, também no
+   celular. O número grande é a resposta; a pergunta acima explica. */
+.pagina-texto .conta-revenda-lista,
+.conta-revenda-lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-2);
+  padding: 0;
+  list-style: none;
+}
+
+.conta-revenda-lista li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+}
+
+.conta-revenda-prazo {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conta-revenda-pct {
+  color: var(--text-bright);
+  font-size: var(--fs-copy);
+  font-variant-numeric: tabular-nums;
+}
+
+.conta-revenda-desc {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.pagina-texto .conta-revenda-nota,
+.conta-revenda-nota {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  text-align: left;
+}
+
 /* ── Formulários (conta, watchlist, trades) ──────────── */
 
 .form-adicionar {

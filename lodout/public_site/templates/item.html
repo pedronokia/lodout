@@ -120,6 +120,18 @@
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
       <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A Steam fica com cerca de {{ taxa_steam_pct }}% de cada venda (5% da Steam e 10% do jogo), então o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+      {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
+         histórico completo da Steam (scan_engine/signals.revenda_historica). #}
+      {% set rh = item.revenda_historica or {} %}
+      {% if rh %}
+      <p class="conta-revenda-pergunta">Isso já aconteceu antes? No último ano, quem comprou este item recuperou o que pagou, vendendo depois de…</p>
+      <ul class="conta-revenda-lista">
+        {% for h, rotulo in [("30", "30 dias"), ("90", "90 dias"), ("365", "1 ano")] if h in rh %}
+        <li><span class="conta-revenda-prazo">{{ rotulo }}</span> <strong class="conta-revenda-pct">{{ rh[h].pct }}%</strong> <span class="conta-revenda-desc">das vezes</span></li>
+        {% endfor %}
+      </ul>
+      <p class="conta-revenda-nota">Compara o preço médio de cada dia com o de 30, 90 ou 365 dias depois, já com a taxa da Steam. Mostra o que aconteceu no passado, não o que vai acontecer.</p>
+      {% endif %}
     </section>
     {% endif %}
 

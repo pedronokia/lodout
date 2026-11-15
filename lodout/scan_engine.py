@@ -216,6 +216,11 @@ def scan_item(name: str, category: str | None = None,
         "order_book_approx": ob_approx,
         "derived_price": derived_price,
         "variantes": _resumo_variantes(name, page),
+        # "Isso já aconteceu antes?" na página do item: calculado aqui, com
+        # o histórico completo que a página já trouxe (anos), em vez de
+        # guardar o histórico inteiro. Nenhuma consulta a mais.
+        "revenda_historica": signals.revenda_historica(
+            page.get("price_history") if page else None),
         # Modo sombra (2026-11-13): o que a listing page sozinha diria de
         # menor preço e volume 24h, ao lado do priceoverview. Só medido --
         # `run_full_scan` tira isto do resultado (não vai pro scan_store

@@ -6089,3 +6089,18 @@ def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_p
     assert "Para revender sem prejuízo" in body
     assert "<strong>R$ 115,00</strong>" in body
     assert "cerca de 15% de cada venda" in body
+
+
+def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 100.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "revenda_historica": {"30": {"pct": 12, "n": 365},
+                               "365": {"pct": 80, "n": 300}}},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert "Isso já aconteceu antes?" in body
+    assert '<span class="conta-revenda-prazo">30 dias</span> <strong class="conta-revenda-pct">12%</strong>' in body
+    assert '<span class="conta-revenda-prazo">1 ano</span> <strong class="conta-revenda-pct">80%</strong>' in body
+    assert "90 dias</span>" not in body
+    assert "não o que vai acontecer" in body

@@ -754,3 +754,12 @@ def test_scan_item_calcula_nota_so_com_a_pagina_em_sombra(monkeypatch):
     assert sombra["nota_overview"] == r["score"]
     assert isinstance(sombra["nota_pagina"], int)
     assert sombra["idade_ultimo_ponto_h"] is not None
+
+
+def test_scan_item_guarda_revenda_historica(monkeypatch):
+    t0 = 1_700_000_000
+    hist = [{"time": t0 + d * 86400, "price_median": 100.0, "purchases": 3}
+            for d in range(500)]
+    _mock_steam_ok(monkeypatch, price_history=hist)
+    r = scan_engine.scan_item("AK-47 | Redline (Field-Tested)")
+    assert r["revenda_historica"]["30"] == {"pct": 0, "n": 365}

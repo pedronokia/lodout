@@ -18,6 +18,7 @@ ENTRADAS = [
             "Na página do item, o “Por quê” vem logo abaixo da nota, a imagem ficou maior e as ações (SteamDB, Copiar nome, Favoritar) ficam numa linha só.",
             "No ranking, “↑ +1” e “=” viraram “↑ 1 posição” e “mesma posição”.",
             "Itens não perdem mais a imagem quando a Steam devolve o preço por um caminho mais curto, sem a foto: o site reaproveita a da coleta anterior.",
+            "Também na página do item: “Isso já aconteceu antes?” — em quantas vezes, no último ano, quem comprou o item e vendeu 30 dias, 90 dias ou 1 ano depois recuperou o que pagou, já com a taxa da Steam.",
             "Na página de cada item, a conta da revenda: por quanto o item precisa ser vendido para você receber de volta o que pagou, já que a Steam fica com cerca de 15% de cada venda.",
             "Em “Mais filtros”, os mesmos filtros do Mercado da Steam: Exterior (Nova de Fábrica, Testada em Campo…), Raridade (a cor da borda).",
             "A busca funciona como a do Mercado da Steam: aceita o nome em inglês (“Field-Tested”, “Snakebite Case”) ou em português, não liga para acento e aceita as palavras em qualquer ordem (“redline ak”).",

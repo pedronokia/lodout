@@ -587,6 +587,59 @@ def veredito_multiperiodo(mt: "dict | None") -> "str | None":
     return None
 
 
+# "Isso já aconteceu antes?" (2026-11-15): quem entra no site compra
+# pensando em revender. Para cada dia de compra da janela, compara o preço
+# médio daquele dia com o de H dias depois e conta em quantas vezes a venda
+# teria coberto a compra mais a taxa da Steam. Venda num dia FIXO (não no
+# melhor dia dentro do prazo -- isso seria escolher o topo depois de vê-lo).
+_REVENDA_HORIZONTES = (30, 90, 365)
+_REVENDA_JANELA_DIAS = 365
+_REVENDA_MIN_AMOSTRAS = 60
+_REVENDA_TOLERANCIA_DIAS = 2
+
+
+def revenda_historica(price_history: "list[dict] | None",
+                      taxa: float = 0.15) -> dict:
+    """{"30": {"pct": 41.0, "n": 330}, "90": {...}, "365": {...}} --
+    em quantos % dos dias de compra (janela de 1 ano terminando H dias
+    atrás) vender H dias depois, pelo preço médio do dia, teria devolvido
+    o que foi pago já descontando a taxa. Horizonte sem amostra suficiente
+    fica de fora. Só o passado; não é previsão."""
+    diario = daily_series(price_history or [])
+    if len(diario) < 2:
+        return {}
+    precos = {int(d["time"] // 86400): d["price_median"] for d in diario
+              if d.get("price_median")}
+    if not precos:
+        return {}
+    ultimo = max(precos)
+
+    def _preco_perto(dia: int) -> "float | None":
+        for desvio in range(_REVENDA_TOLERANCIA_DIAS + 1):
+            for alvo in (dia + desvio, dia - desvio):
+                if alvo in precos:
+                    return precos[alvo]
+        return None
+
+    out = {}
+    for h in _REVENDA_HORIZONTES:
+        fim = ultimo - h
+        inicio = fim - _REVENDA_JANELA_DIAS
+        ok = n = 0
+        for dia in range(inicio + 1, fim + 1):
+            compra = precos.get(dia)
+            if not compra:
+                continue
+            venda = _preco_perto(dia + h)
+            if not venda:
+                continue
+            n += 1
+            ok += venda >= compra * (1 + taxa)
+        if n >= _REVENDA_MIN_AMOSTRAS:
+            out[str(h)] = {"pct": round(100 * ok / n), "n": n}
+    return out
+
+
 def daily_series(price_history: list[dict], days: int | None = None,
                  now: float | None = None) -> list[dict]:
     """Agrega o price_history em UM ponto por dia (UTC).
