@@ -240,6 +240,7 @@ _ESPERA_APOS_BLOQUEIO_S = 2 * 3600
 # ~2.700 páginas, ~15 h no ritmo atual (0 bloqueio em 365 páginas
 # seguidas). A cada 6 h não cabe.
 _INTERVALO_RODADA_H_PADRAO = 24.0
+_SOBREPOSICAO = 1
 
 
 def ligado() -> bool:
@@ -340,7 +341,15 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                                       + gravar(conn, nome_fatia, pagina))
             if pagina:
                 estado["tamanho_pagina"] = len(pagina)
-            estado["start"] = int(estado["start"]) + len(pagina)
+            # Sobreposição de 1 item entre páginas (2026-11-15): itens entram
+            # e saem do Mercado durante a varredura e a lista "escorrega"; na
+            # 1a volta vieram 642 repetidos e um tanto parecido foi pulado
+            # (~3,5%, a AWP | Dragon Lore entre eles). Repetido é inofensivo
+            # (grava por cima); pulado só voltava numa próxima volta.
+            ultima = int(estado["start"]) + len(pagina) >= total
+            avanco = (len(pagina) if ultima or len(pagina) <= _SOBREPOSICAO
+                      else len(pagina) - _SOBREPOSICAO)
+            estado["start"] = int(estado["start"]) + avanco
             if not pagina or estado["start"] >= total:
                 estado["fatia"] = int(estado["fatia"]) + 1
                 estado["start"] = 0

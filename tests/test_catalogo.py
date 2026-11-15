@@ -9,6 +9,13 @@ from lodout.public_site import catalogo, worker
 
 
 @pytest.fixture(autouse=True)
+def _sem_sobreposicao(monkeypatch):
+    # Os testes de paginação usam páginas de 2 itens; a sobreposição de 1
+    # item tem teste próprio.
+    monkeypatch.setattr(catalogo, "_SOBREPOSICAO", 0)
+
+
+@pytest.fixture(autouse=True)
 def _catalogo_limpo():
     for caminho in (catalogo._caminho_banco(), catalogo._caminho_estado()):
         for extra in ("", "-wal", "-shm"):
@@ -278,3 +285,23 @@ def test_conta_usa_preco_do_catalogo(client):
         s["steamid"] = sid
     body = client.get("/conta").data.decode("utf-8")
     assert '<td data-label="Vale hoje">R$ 2,00</td>' in body
+
+
+
+def test_varrer_sobrepoe_um_item_entre_paginas(monkeypatch, sem_pausa):
+    # 2026-11-15: a lista da Steam "escorrega" durante a varredura; cada
+    # página começa 1 item antes do fim da anterior.
+    monkeypatch.setattr(catalogo, "_SOBREPOSICAO", 1)
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append(start)
+        itens = [_linha(f"Rifle {i:02d}") for i in range(25)]
+        return steam_api.SEARCH_OK, itens[start:start + 10], 25
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert estado["motivo"] == "completa"
+    assert chamadas == [0, 9, 18]
+    assert estado["itens_no_banco"] == 25
