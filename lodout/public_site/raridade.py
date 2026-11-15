@@ -122,3 +122,38 @@ def icone_raridade(raw: "dict | None") -> dict:
         "raridade_classe": raridade_classe(raw),
         "raridade_titulo": raridade_titulo(raw),
     }
+
+
+def cor_da_raridade(suf: str) -> "str | None":
+    """Uma cor (name_color) que `raridade_suffix` reconhece como `suf` --
+    pra montar um item a partir do catálogo, que guarda só o sufixo."""
+    for cor, s in _RARIDADE_POR_COR.items():
+        if s == suf:
+            return cor
+    return None
+
+
+def completar_com_catalogo(por_nome: dict, nomes: "list[str]") -> dict:
+    """Devolve `por_nome` ({nome: item bruto}) com imagem e cor de
+    raridade do catálogo do Mercado para os nomes que não têm imagem.
+    Leitura local, sem rede. Usado na watchlist e nos trades, que
+    mostram itens fora da coleta (2026-11-15)."""
+    faltam = [n for n in nomes if not (por_nome.get(n) or {}).get("icon")]
+    if not faltam:
+        return por_nome
+    from lodout.public_site import catalogo
+    meta = catalogo.metadados(faltam)
+    saida = dict(por_nome)
+    for n in faltam:
+        m = meta.get(n)
+        if not m or not m.get("icon"):
+            continue
+        base = dict(saida.get(n) or {})
+        base["icon"] = m["icon"]
+        if not base.get("name_color") and not base.get("rarity_id"):
+            cor = cor_da_raridade(m.get("raridade") or "")
+            if cor:
+                base["name_color"] = cor
+        saida[n] = base
+    return saida
+

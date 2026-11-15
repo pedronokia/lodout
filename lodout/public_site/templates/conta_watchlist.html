@@ -22,7 +22,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Minha watchlist</h1>
-      <p class="descricao-pagina">Itens que você acompanha — avaliado com o preço e os dados já guardados, sem chamada nova à Steam.</p>
+      <p class="descricao-pagina">Itens que você está de olho, com o preço de hoje e um alerta quando chegarem onde você quer.</p>
     </header>
 
     <div class="resumo-cards">
@@ -30,8 +30,8 @@
         <h2 class="secao-titulo">Adicionar item</h2>
         <form class="form-adicionar" method="post" action="{{ url_for('watchlist.adicionar') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <input type="text" name="name" placeholder="Nome exato do item" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-          <input type="number" name="target" step="0.01" min="0" placeholder="Alvo de preço (R$, opcional)" aria-label="Alvo de preço em reais, opcional">
+          <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
+          <input type="text" name="target" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Alvo, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Alvo de preço em reais, opcional">
           <button type="submit" class="botao-acao">+ Acompanhar</button>
         </form>
       </div>
@@ -54,11 +54,11 @@
     {% if items %}
     <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para o lado para ver as demais colunas.</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de itens acompanhados, com rolagem lateral">
-    <table class="tabela-candidatos tabela-cards-mobile">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
       <thead>
         <tr>
           <th>Item</th>
-          <th>Preço</th>
+          <th class="col-num">Preço de hoje</th>
           <th>Regras</th>
           <th>Status</th>
           <th>Ações</th>
@@ -81,7 +81,7 @@
           {% endif %}
             </div>
           </td>
-          <td data-label="Preço">{{ it.price_fmt }}</td>
+          <td data-label="Preço de hoje" class="celula-numero">{{ it.price_fmt }}</td>
           <td data-label="Regras">{{ it.rules_resumo }}</td>
           <td data-label="Status">
             {% if it.disparado %}
@@ -91,16 +91,16 @@
             {% endif %}
           </td>
           <td data-label="Ações">
-            <form method="post" action="{{ url_for('watchlist.remover', name=it.name) }}" class="form-inline">
+            <form method="post" action="{{ url_for('watchlist.remover', name=it.name) }}" class="form-inline form-remover" data-nome="{{ it.name_fmt }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="botao-link botao-remover">remover</button>
+              <button type="submit" class="botao-link botao-remover" aria-label="Deixar de acompanhar {{ it.name_fmt }}">remover</button>
             </form>
           </td>
         </tr>
         <tr class="linha-regras">
           <td colspan="5">
             <details>
-              <summary>Editar regras de {{ it.name_fmt }}</summary>
+              <summary>Editar regras<span class="visualmente-oculto"> de {{ it.name_fmt }}</span></summary>
               <form method="post" action="{{ url_for('watchlist.editar_regras', name=it.name) }}" class="form-regras">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <label>Alerta abaixo de (R$)
@@ -139,5 +139,7 @@
     <p>Avaliado com o preço/volume/nota já guardados — pode estar desatualizado se o item não teve o preço coletado há pouco tempo.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  {% with dialogo_titulo="Deixar de acompanhar", dialogo_texto="O item sai da sua watchlist junto com as regras de alerta dele." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

@@ -187,19 +187,7 @@
     <p>O preço é o último que o Lodout coletou da Steam. Se o item não está entre os que o Lodout acompanha, o preço pode estar desatualizado.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
-  {# Confirmação de remover (design-guide: ação destrutiva abre uma
-     janela com o botão de perigo visível antes do clique). Sem
-     JavaScript ou sem <dialog>, conta.js cai no confirm() do navegador. #}
-  <dialog class="dialogo-confirmar" id="dialogo-remover" aria-labelledby="dialogo-remover-titulo" aria-describedby="dialogo-remover-texto">
-    <form method="dialog" class="dialogo-conteudo">
-      <h2 class="dialogo-titulo" id="dialogo-remover-titulo">Remover <span data-dialogo-nome translate="no"></span>?</h2>
-      <p class="dialogo-texto" id="dialogo-remover-texto">O item sai da sua lista junto com o valor que você informou. Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago.</p>
-      <div class="dialogo-acoes">
-        <button type="submit" value="cancelar" class="botao-secundario">Cancelar</button>
-        <button type="submit" value="remover" class="botao-perigo">Remover</button>
-      </div>
-    </form>
-  </dialog>
+  {% with dialogo_titulo="Remover", dialogo_texto="O item sai da sua lista junto com o valor que você informou. Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

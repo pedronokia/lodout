@@ -43,11 +43,11 @@
         <h2 class="secao-titulo">Registrar trade encerrado</h2>
         <form class="form-adicionar" method="post" action="{{ url_for('trades.adicionar') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <input type="text" name="name" placeholder="Nome exato do item" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-          <input type="number" name="buy_cost" step="0.01" min="0.01" placeholder="Comprou por (R$)" aria-label="Valor de compra, em reais" required>
-          <input type="number" name="sell_price" step="0.01" min="0.01" placeholder="Vendeu por (R$)" aria-label="Valor de venda, em reais" required>
+          <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
+          <input type="text" name="buy_cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Comprou por, ex.: 25,00…" title="Valor em reais, por exemplo 25,00" aria-label="Valor de compra, em reais" required>
+          <input type="text" name="sell_price" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Vendeu por, ex.: 31,50…" title="Valor em reais, por exemplo 31,50" aria-label="Valor de venda, em reais" required>
           <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
-          <input type="text" name="notes" placeholder="Notas (opcional)" aria-label="Notas, opcional">
+          <input type="text" name="notes" autocomplete="off" placeholder="Notas (opcional)…" aria-label="Notas, opcional">
           <button type="submit" class="botao-acao">+ Registrar</button>
         </form>
       </div>
@@ -57,14 +57,14 @@
     {% if trades %}
     <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para o lado para ver as demais colunas.</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de trades encerrados, com rolagem lateral">
-    <table class="tabela-candidatos tabela-cards-mobile">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
       <thead>
         <tr>
           <th>Item</th>
-          <th>Qtd</th>
-          <th>Comprou</th>
-          <th>Vendeu</th>
-          <th>Lucro (líquido)</th>
+          <th class="col-num">Qtd</th>
+          <th class="col-num">Comprou</th>
+          <th class="col-num">Vendeu</th>
+          <th class="col-num">Lucro (líquido)</th>
           <th>Notas</th>
           <th>Ações</th>
         </tr>
@@ -83,15 +83,15 @@
             {{ t.name_fmt }}
             </div>
           </td>
-          <td data-label="Qtd">{{ t.quantity }}</td>
-          <td data-label="Comprou">{{ t.buy_cost_fmt }}</td>
-          <td data-label="Vendeu">{{ t.sell_price_fmt }}</td>
-          <td data-label="Lucro (líquido)" class="{{ 'valor-positivo' if t.pnl > 0 else ('valor-negativo' if t.pnl < 0 else '') }}">{{ t.pnl_fmt }}</td>
+          <td data-label="Qtd" class="celula-numero">{{ t.quantity }}</td>
+          <td data-label="Comprou" class="celula-numero">{{ t.buy_cost_fmt }}</td>
+          <td data-label="Vendeu" class="celula-numero">{{ t.sell_price_fmt }}</td>
+          <td data-label="Lucro (líquido)" class="celula-numero {{ 'valor-positivo' if t.pnl > 0 else ('valor-negativo' if t.pnl < 0 else '') }}">{{ t.pnl_fmt }}</td>
           <td data-label="Notas">{{ t.notes or "—" }}</td>
           <td data-label="Ações">
-            <form method="post" action="{{ url_for('trades.remover', index=t.index) }}" class="form-inline">
+            <form method="post" action="{{ url_for('trades.remover', index=t.index) }}" class="form-inline form-remover" data-nome="o trade de {{ t.name_fmt }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="botao-link botao-remover">remover</button>
+              <button type="submit" class="botao-link botao-remover" aria-label="Apagar o trade de {{ t.name_fmt }}">remover</button>
             </form>
           </td>
         </tr>
@@ -108,5 +108,7 @@
     <p>Lucro já descontado os 15% da taxa da Steam no momento da venda.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  {% with dialogo_titulo="Apagar", dialogo_texto="O registro sai do seu histórico de trades e das contas do topo. Não dá para desfazer." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

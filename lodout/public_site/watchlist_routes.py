@@ -18,7 +18,7 @@ from lodout import alerts, scan_store, signals
 from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
-    discord_notify, fmt, raridade, user_watchlist, user_webhook,
+    catalogo, discord_notify, fmt, raridade, user_watchlist, user_webhook,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
 from lodout.public_site.rate_limit import (
@@ -48,11 +48,19 @@ def _scan_lookup() -> dict:
 
 def _avaliar(items: list[dict]) -> list[dict]:
     cache = PriceCache()
+    nomes = [it["name"] for it in items]
     por_nome_scan = _scan_lookup()
+    # Item fora da coleta: imagem e preço do dia vêm do catálogo do
+    # Mercado (leitura local), como na conta -- antes ficava "—".
+    imagens = raridade.completar_com_catalogo(por_nome_scan, nomes)
+    precos = {n: cache.get(n) for n in nomes}
+    sem_preco = [n for n, p in precos.items() if p is None]
+    if sem_preco:
+        precos.update(catalogo.precos(sem_preco))
     out = []
     for it in items:
         name = it["name"]
-        price = cache.get(name)
+        price = precos.get(name)
         raw = por_nome_scan.get(name)
         score = raw.get("score") if raw else None
         alertas = alerts.evaluate_item(
@@ -70,7 +78,7 @@ def _avaliar(items: list[dict]) -> list[dict]:
                             or "Sem regra configurada",
             "alertas": alertas,
             "disparado": bool(alertas),
-            **raridade.icone_raridade(raw),
+            **raridade.icone_raridade(imagens.get(name)),
         })
     return out
 
@@ -163,7 +171,7 @@ def adicionar():
 
     target_raw = (request.form.get("target") or "").strip()
     try:
-        target = float(target_raw) if target_raw else 0.0
+        target = float(target_raw.replace(",", ".")) if target_raw else 0.0
     except ValueError:
         flash(
             "O preço-alvo precisa ser um número válido e igual ou maior que zero.",

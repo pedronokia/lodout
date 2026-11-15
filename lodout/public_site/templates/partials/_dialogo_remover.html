@@ -1,0 +1,15 @@
+{# Confirmação de remover (design-guide: ação destrutiva abre uma janela
+   com o botão de perigo visível antes do clique). conta.js abre esta
+   janela para qualquer <form class="form-remover" data-nome="...">; sem
+   JavaScript ou sem <dialog>, cai no confirm() do navegador.
+   Variáveis: dialogo_titulo (antes do nome), dialogo_texto. #}
+<dialog class="dialogo-confirmar" id="dialogo-remover" aria-labelledby="dialogo-remover-titulo" aria-describedby="dialogo-remover-texto">
+  <form method="dialog" class="dialogo-conteudo">
+    <h2 class="dialogo-titulo" id="dialogo-remover-titulo">{{ dialogo_titulo }} <span data-dialogo-nome translate="no"></span>?</h2>
+    <p class="dialogo-texto" id="dialogo-remover-texto">{{ dialogo_texto }}</p>
+    <div class="dialogo-acoes">
+      <button type="submit" value="cancelar" class="botao-secundario">Cancelar</button>
+      <button type="submit" value="remover" class="botao-perigo">Remover</button>
+    </div>
+  </form>
+</dialog>

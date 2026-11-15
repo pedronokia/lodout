@@ -83,7 +83,7 @@ def test_adicionar_item(client, monkeypatch):
     assert resp.status_code == 302
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
     assert "AK-47" in pagina
-    assert 'class="tabela-candidatos tabela-cards-mobile"' in pagina
+    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
     assert 'class="linha-watchlist"' in pagina
     assert 'data-label="Regras"' in pagina
 
@@ -347,3 +347,21 @@ def test_listar_busca_webhook_url_uma_vez_so(client, monkeypatch):
     chamadas.clear()
     client.get("/conta/watchlist")
     assert len(chamadas) == 1
+
+
+def test_watchlist_usa_preco_e_imagem_do_catalogo(client, monkeypatch):
+    # 2026-11-15: item fora da coleta aparecia com preço "—" e sem foto.
+    from lodout.public_site import catalogo
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Rifles", [{"hash_name": "Caixa W", "price": 42.2,
+                                      "listings": 5, "name_color": "4b69ff",
+                                      "icon": "hash-w"}])
+    conn.close()
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/watchlist", data={
+        "name": "Caixa W", "target": "40,00", "csrf_token": token})
+    pagina = client.get("/conta/watchlist").data.decode("utf-8")
+    assert "R$ 42,20" in pagina
+    assert "hash-w" in pagina
+    assert 'class="form-inline form-remover" data-nome="Caixa W"' in pagina

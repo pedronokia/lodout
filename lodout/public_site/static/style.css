@@ -6001,3 +6001,21 @@ table.tabela-variantes td:not(:first-child) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Watchlist, trades e histórico (2026-11-15): mesmo acabamento da conta.
+   Título no topo do quadro sem o respiro de seção (que empurrava o
+   título pra baixo dentro do cartão); números à direita no computador;
+   "remover" discreto em todo o site, vermelho só no mouse/foco -- a
+   confirmação fica na janela (partials/_dialogo_remover.html). */
+.resumo-cards .card > .secao-titulo:first-child { margin-top: 0; }
+.botao-remover { color: var(--text-fraco); }
+.botao-remover:hover,
+.botao-remover:focus-visible { color: var(--danger); }
+.celula-data { font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (min-width: 641px) {
+  .tabela-conta-lista .col-num,
+  .tabela-conta-lista .celula-numero { text-align: right; }
+  .tabela-conta-lista tbody tr { transition: background-color var(--dur-base) var(--ease-standard); }
+  .tabela-conta-lista tbody tr:not(.linha-regras):hover { background: var(--surface-hover); }
+}
+.grafico-card + .status-muted { margin: var(--sp-2) 0 var(--sp-6); }

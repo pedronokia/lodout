@@ -18,7 +18,11 @@ bp = Blueprint("history", __name__)
 @login_required
 def listar():
     steamid = session["steamid"]
-    series = user_history.load_history(steamid)
+    # Em ordem de data (o arquivo é gravado na ordem das visitas, que
+    # normalmente já é essa; ordenar deixa a tabela e o gráfico certos
+    # mesmo se não for).
+    series = sorted(user_history.load_history(steamid),
+                    key=lambda p: p.get("ts") or 0)
     pontos = [
         {"data": fmt.data_hora_br(p["ts"]), "total_fmt": fmt.brl(p["total"])}
         for p in series

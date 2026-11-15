@@ -244,9 +244,6 @@ def _completar_metadados_do_catalogo(novos: "list[dict]") -> int:
     try:
         from lodout.public_site import catalogo, raridade
         meta = catalogo.metadados([r.get("name") for r in faltando])
-        cor_por_raridade: dict = {}
-        for cor, suf in raridade._RARIDADE_POR_COR.items():
-            cor_por_raridade.setdefault(suf, cor)
     except Exception:
         _logger.warning("catálogo ilegível ao completar imagens", exc_info=True)
         return 0
@@ -257,7 +254,7 @@ def _completar_metadados_do_catalogo(novos: "list[dict]") -> int:
             continue
         r["icon"] = m["icon"]
         if not r.get("name_color") and not r.get("rarity_id"):
-            cor = cor_por_raridade.get(m.get("raridade") or "")
+            cor = raridade.cor_da_raridade(m.get("raridade") or "")
             if cor:
                 r["name_color"] = cor
         completados += 1

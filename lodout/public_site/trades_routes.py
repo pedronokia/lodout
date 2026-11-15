@@ -38,7 +38,8 @@ def _scan_lookup() -> dict:
 def _formatar(registros: list[dict]) -> list[dict]:
     """Acrescenta `index` (posição original, pra remover certo) e
     campos *_fmt -- mesmo padrão de `account.py:_formatar_linhas`."""
-    por_nome_scan = _scan_lookup()
+    por_nome_scan = raridade.completar_com_catalogo(
+        _scan_lookup(), [t["name"] for t in registros])
     out = []
     for i, t in enumerate(registros):
         out.append({
@@ -82,8 +83,9 @@ def adicionar():
         return redirect(url_for("trades.listar"))
 
     try:
-        buy_cost = float(request.form.get("buy_cost") or "")
-        sell_price = float(request.form.get("sell_price") or "")
+        # Aceita vírgula decimal (teclado brasileiro), como a conta.
+        buy_cost = float((request.form.get("buy_cost") or "").strip().replace(",", "."))
+        sell_price = float((request.form.get("sell_price") or "").strip().replace(",", "."))
     except ValueError:
         flash(
             "Confira os valores: compra e venda precisam ser números maiores que zero.",

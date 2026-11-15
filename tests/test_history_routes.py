@@ -58,7 +58,7 @@ def test_visitar_conta_grava_ponto_de_historico(client, monkeypatch):
     pagina = client.get("/conta/historico").data.decode("utf-8")
     assert "Nenhum ponto registrado" not in pagina
     assert "R$" in pagina
-    assert 'class="tabela-candidatos tabela-cards-mobile"' in pagina
+    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
     assert 'data-label="Valor de mercado"' in pagina
 
 

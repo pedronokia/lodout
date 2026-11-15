@@ -71,7 +71,7 @@ def test_adicionar_trade(client, monkeypatch):
     pagina = client.get("/conta/trades").data.decode("utf-8")
     assert "Testada em Campo" in pagina
     assert "teste" in pagina
-    assert 'class="tabela-candidatos tabela-cards-mobile"' in pagina
+    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
     assert 'data-label="Comprou"' in pagina
     assert 'data-label="Ações"' in pagina
 
@@ -163,3 +163,24 @@ def test_link_trades_aparece_no_dashboard_logado(client, monkeypatch):
     _login(client, monkeypatch)
     pagina = client.get("/").data.decode("utf-8")
     assert "/conta/trades" in pagina
+
+
+def test_registrar_trade_aceita_virgula_e_imagem_do_catalogo(client, monkeypatch):
+    # 2026-11-15: campos de valor aceitam "25,00" (teclado brasileiro) e
+    # o item fora da coleta pega a imagem do catálogo do Mercado.
+    from lodout.public_site import catalogo
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Rifles", [{"hash_name": "Caixa Z", "price": 1.0,
+                                      "listings": 5, "name_color": "4b69ff",
+                                      "icon": "hash-z"}])
+    conn.close()
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    resp = client.post("/conta/trades", data={
+        "name": "Caixa Z", "buy_cost": "25,00", "sell_price": "31,50",
+        "quantity": "1", "csrf_token": token})
+    assert resp.status_code == 302
+    pagina = client.get("/conta/trades").data.decode("utf-8")
+    assert "R$ 25,00" in pagina and "R$ 31,50" in pagina
+    assert "hash-z" in pagina
+    assert 'id="dialogo-remover"' in pagina

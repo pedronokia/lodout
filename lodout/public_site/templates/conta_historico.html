@@ -20,36 +20,34 @@
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Meu histórico</h1>
-      <p class="descricao-pagina">Valor de mercado da sua carteira a cada visita a "Minha conta" — um ponto por mudança, não por segundo.</p>
+      <p class="descricao-pagina">Quanto seus itens valiam a cada vez que você abriu “Minha conta”. Um ponto novo só quando o valor muda.</p>
     </header>
 
-    <div class="resumo-cards">
-      <div class="card">
-        {% if grafico %}
-          <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
-          {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
-        {% else %}
-          <p class="status status-vazio">Ainda não há pontos suficientes pra um gráfico — visite "Minha conta" de novo depois que o valor mudar.</p>
-        {% endif %}
-      </div>
-    </div>
+    {# Um quadro só (antes havia um quadro dentro do outro: borda dupla
+       e cantos desencontrados). #}
+    {% if grafico %}
+      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
+      {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
+    {% else %}
+      <p class="status status-vazio">Ainda não há pontos suficientes para um gráfico. Abra “Minha conta” de novo depois que o valor mudar.</p>
+    {% endif %}
 
     <h2 class="secao-titulo">Pontos registrados</h2>
     {% if pontos %}
     <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para o lado para ver as demais colunas.</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de pontos registrados do histórico, com rolagem lateral">
-    <table class="tabela-candidatos tabela-cards-mobile">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
       <thead>
         <tr>
           <th>Data</th>
-          <th>Valor de mercado</th>
+          <th class="col-num">Valor de mercado</th>
         </tr>
       </thead>
       <tbody>
         {% for p in pontos %}
         <tr>
-          <td data-label="Data">{{ p.data }}</td>
-          <td data-label="Valor de mercado">{{ p.total_fmt }}</td>
+          <td data-label="Data" class="celula-data">{{ p.data }}</td>
+          <td data-label="Valor de mercado" class="celula-numero">{{ p.total_fmt }}</td>
         </tr>
         {% endfor %}
       </tbody>
