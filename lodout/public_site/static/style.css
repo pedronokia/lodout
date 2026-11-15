@@ -6365,3 +6365,47 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 
 
 #explica-meta a { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ── Conta, pacote de acabamento (2026-11-15) ─────────────────────── */
+/* Aviso vira confirmação quando o último valor pago é preenchido. */
+.aviso-sem-custo.aviso-pronto {
+  border-left-color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 8%, var(--surface));
+}
+/* "Buscando…" com um pontinho pulsando (sem movimento pra quem pede). */
+.status-inventario-buscando::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .status-inventario-buscando::before { animation: conta-pulso 1.2s ease-in-out infinite; }
+}
+@keyframes conta-pulso { 50% { opacity: 0.3; } }
+/* Conta vazia. */
+.conta-vazia {
+  margin: var(--sp-3) 0 var(--sp-5);
+  padding: var(--sp-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+.conta-vazia p { margin: 0 0 var(--sp-2); }
+.conta-vazia p:last-child { margin-bottom: 0; }
+.conta-vazia-titulo { color: var(--text-bright); font-size: var(--fs-lg); font-weight: 600; }
+/* Linha com o foco do teclado em destaque. */
+.tabela-conta tbody tr:focus-within { background: var(--surface-hover); }
+/* Celular: os filtros esmaecem na borda, mostrando que dá pra rolar. */
+@media (max-width: 640px) {
+  .conta-filtros {
+    padding-right: 24px;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+}
+

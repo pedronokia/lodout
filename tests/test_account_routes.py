@@ -537,3 +537,20 @@ def test_conta_mostra_lucro_em_porcentagem(client, monkeypatch):
     assert account._pct_curto(12.5) == "+12%"
     assert account._pct_curto(0.2) == "0%"
 
+
+
+def test_conta_item_a_mao_pega_imagem_do_catalogo_e_conta_vazia(client, monkeypatch):
+    _login(client, monkeypatch)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'class="conta-vazia"' in pagina and "Privacidade" in pagina
+    from lodout.public_site import catalogo
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Rifles", [{"hash_name": "Caixa M", "price": 1.0, "listings": 5,
+                                      "name_color": "4b69ff", "icon": "hash-m"}])
+    conn.close()
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={"name": "Caixa M", "cost": "", "quantity": "1",
+                                         "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "hash-m" in pagina
+    assert 'enterkeyhint="next"' in pagina

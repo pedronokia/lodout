@@ -80,7 +80,14 @@
       return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
     });
     var nenhum = document.querySelector("[data-conta-nenhum]");
-    ordenadas.forEach(function (tr) { corpo.appendChild(tr); });
+    // Mover uma linha tira o cursor do campo que está nela (e o "change"
+    // ao perder o foco salvaria um valor pela metade). Com um valor pago
+    // sendo digitado, a ordem espera; esconder/mostrar linhas não mexe
+    // no cursor e continua valendo.
+    var ativo = document.activeElement;
+    var digitando = ativo && ativo.classList && ativo.classList.contains("input-custo") && corpo.contains(ativo);
+    var mudou = ordenadas.some(function (tr, i) { return todas[i] !== tr; });
+    if (mudou && !digitando) ordenadas.forEach(function (tr) { corpo.appendChild(tr); });
     if (nenhum) nenhum.hidden = visiveis > 0;
     // A última linha visível fecha a tabela: sem borda de baixo nem canto
     // reto (com filtro, a última do corpo pode estar escondida).
@@ -235,6 +242,22 @@
     busca.focus();
   });
 
+  // "Buscando seu inventário…": lê esta página de novo, do próprio site
+  // (sem consultar a Steam), até a busca acabar. No máximo 12 vezes por
+  // aba, pra nunca virar um laço.
+  if (document.querySelector("[data-recarregar-enquanto-busca]")) {
+    var tentativas = 0;
+    try { tentativas = Number(window.sessionStorage.getItem("lodout-conta-recarga") || 0); } catch (erro) { tentativas = 12; }
+    if (tentativas < 12) {
+      setTimeout(function () {
+        try { window.sessionStorage.setItem("lodout-conta-recarga", String(tentativas + 1)); } catch (erro) { /* ignora */ }
+        window.location.reload();
+      }, 5000);
+    }
+  } else {
+    try { window.sessionStorage.removeItem("lodout-conta-recarga"); } catch (erro) { /* ignora */ }
+  }
+
   // Cartões do topo e aviso de itens sem valor pago, com os textos que o
   // servidor devolve ao salvar (account._textos_totais).
   function atualizarTotais(totais) {
@@ -248,9 +271,20 @@
       var chave = el.getAttribute("data-total");
       if (!(chave in totais)) return;
       if (chave === "aviso_sem_custo") {
-        el.textContent = totais[chave];
         var caixa = el.closest(".aviso-sem-custo") || el;
-        caixa.hidden = !totais[chave];
+        if (totais[chave]) {
+          el.textContent = totais[chave];
+          caixa.hidden = false;
+          caixa.classList.remove("aviso-pronto");
+        } else if (!caixa.hidden && !caixa.classList.contains("aviso-pronto")) {
+          // Acabou de preencher o último: comemora em vez de sumir.
+          el.textContent = "Pronto: todos os itens têm o valor pago. Os preços de venda e o lucro já estão completos.";
+          caixa.classList.add("aviso-pronto");
+          var botaoPreencher = caixa.querySelector("[data-preencher]");
+          if (botaoPreencher) botaoPreencher.hidden = true;
+          // Quem estava no filtro "Sem valor pago" não fica com a lista vazia.
+          if (estado.filtro === "sem-valor") setTimeout(function () { escolherFiltro("todos"); }, 1000);
+        }
       } else {
         texto(el, totais[chave]);
       }

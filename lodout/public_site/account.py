@@ -101,6 +101,11 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     a taxa da Steam) e o preço para lucrar `meta_pct` % já com a taxa --
     a pergunta de quem comprou para revender (2026-11-15)."""
     por_nome_scan = _scan_lookup()
+    # Sem imagem na coleta nem no inventário (ex.: item adicionado à mão):
+    # a imagem vem do catálogo do Mercado, leitura local (2026-11-15).
+    sem_imagem = [r["name"] for r in avaliacao["rows"]
+                  if not (por_nome_scan.get(r["name"]) or {}).get("icon") and not r.get("icon")]
+    do_catalogo = raridade.completar_com_catalogo({}, sem_imagem) if sem_imagem else {}
     for row in avaliacao["rows"]:
         custo = row.get("cost") or 0
         if row.get("has_cost") and custo > 0:
@@ -128,7 +133,8 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         row["score"] = raw.get("score") if raw else None
         # Item do inventário fora da coleta: a imagem vem do próprio
         # inventário (hash do CDN da Steam), em vez de ficar sem foto.
-        row.update(raridade.icone_raridade(raw or {"icon": row.get("icon")}))
+        row.update(raridade.icone_raridade(
+            raw or do_catalogo.get(row["name"]) or {"icon": row.get("icon")}))
     t = avaliacao["totals"]
     t["cost_fmt"] = fmt.brl(t.get("cost"))
     t["cost_known_fmt"] = fmt.brl(t.get("cost_known"))

@@ -34,6 +34,8 @@
        account._textos_totais -- o mesmo que conta.js recebe ao salvar um
        valor pago, pra o topo atualizar sem recarregar. #}
     {% set tx = avaliacao.textos %}
+    {# Sem itens, os cartões só mostrariam zeros: ficam de fora. #}
+    {% if avaliacao.rows %}
     <section class="resumo-cards resumo-cards-conta" aria-label="Resumo da sua conta">
       <div class="card">
         <span class="card-label">Tudo vale hoje</span>
@@ -57,6 +59,7 @@
         <span class="card-sub" data-total="lucro_sub">{{ tx.lucro_sub }}</span>
       </div>
     </section>
+    {% endif %}
 
     {# "Preencher agora" (conta.js): filtra os itens sem valor e põe o
        cursor no primeiro campo. Sem JavaScript, fica escondido. #}
@@ -88,7 +91,9 @@
        login e 1x por dia; abrir esta página nunca consulta a Steam. #}
     {% set inv = inventario_estado or {} %}
     {% if inv.em_andamento %}
-    <p class="status-inventario">Buscando seu inventário da Steam… recarregue a página em alguns segundos.</p>
+    {# A página se atualiza sozinha (conta.js lê de novo esta página do
+       próprio site, sem consultar a Steam) até a busca terminar. #}
+    <p class="status-inventario status-inventario-buscando" data-recarregar-enquanto-busca>Buscando seu inventário da Steam… a lista aparece aqui em alguns segundos.</p>
     {% elif inv.status == "ok" %}
     <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}. Vendeu ou trocou um item? Ele sai da lista sozinho.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou para ver por quanto vender.{% endif %}</p>
     {% elif inv.status == "private" %}
@@ -202,7 +207,7 @@
               <span class="campo-reais{{ ' campo-reais-cada' if row.quantity and row.quantity > 1 else '' }}">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
                 {% if row.quantity and row.quantity > 1 %}<span class="campo-reais-sufixo" aria-hidden="true">cada</span>{% endif %}
-                <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
+                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="[0-9]+([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>
@@ -244,7 +249,12 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item ainda. Seus itens da Steam aparecem aqui sozinhos; se quiser, adicione um à mão abaixo.</p>
+      {# Conta vazia: o que aparece aqui e o que fazer (2026-11-15). #}
+      <div class="conta-vazia">
+        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens de CS2 aparecem aqui sozinhos.</p>
+        <p>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Depois é só informar quanto pagou em cada item para ver por quanto vender sem prejuízo.</p>
+        <p>Não apareceu nada? Confira se o inventário está como Público na Steam (Perfil → Editar perfil → Privacidade). Se preferir, adicione um item à mão abaixo.</p>
+      </div>
     {% endif %}
 
     {# O inventário vem sozinho; adicionar à mão fica recolhido, no fim. #}
@@ -253,7 +263,7 @@
       <form class="form-adicionar" method="post" action="{{ url_for('account.adicionar_posicao') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item, ex.: AK-47 | Redline (Field-Tested)…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-        <input type="text" name="cost" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Você pagou, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Quanto você pagou em reais, opcional">
+        <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Você pagou, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Quanto você pagou em reais, opcional">
         <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
         <button type="submit" class="botao-acao">+ Adicionar</button>
       </form>
