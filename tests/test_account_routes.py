@@ -554,3 +554,36 @@ def test_conta_item_a_mao_pega_imagem_do_catalogo_e_conta_vazia(client, monkeypa
     pagina = client.get("/conta").data.decode("utf-8")
     assert "hash-m" in pagina
     assert 'enterkeyhint="next"' in pagina
+
+
+def test_apagar_valor_pago_e_baixar_planilha(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "=Caixa X", "cost": "10", "quantity": "2", "csrf_token": token})
+    # Apagar: limpar=1 com o campo vazio tira o valor pago.
+    r = client.post("/conta/posicoes/=Caixa X/custo",
+                    data={"cost": "", "limpar": "1", "csrf_token": token},
+                    headers={"Accept": "application/json"})
+    assert r.get_json()["ok"] is True and r.get_json()["empate_fmt"] is None
+    # Campo vazio sem limpar=1 não mexe em nada (comportamento de antes).
+    client.post("/conta/posicoes/=Caixa X/custo",
+                data={"cost": "12,50", "csrf_token": token})
+    client.post("/conta/posicoes/=Caixa X/custo",
+                data={"cost": "", "csrf_token": token})
+    r = client.get("/conta/tabela.csv")
+    assert r.status_code == 200
+    assert r.headers["Content-Type"].startswith("text/csv")
+    assert "attachment" in r.headers["Content-Disposition"]
+    texto = r.data.decode("utf-8")
+    assert texto.startswith("﻿Item;Nome na Steam;Quantidade")
+    linha = texto.splitlines()[1].split(";")
+    # Nome que começa com "=" não vira fórmula na planilha.
+    assert linha[0] == "'=Caixa X"
+    assert linha[2] == "2" and linha[4] == "12,50"
+    # Venda sem prejuízo: 12,50 × 1,15 = 14,38 (aprox.)
+    assert linha[9].startswith("14,3")
+
+
+def test_planilha_exige_login(client):
+    assert client.get("/conta/tabela.csv").status_code in (302, 401)

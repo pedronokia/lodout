@@ -25,6 +25,7 @@ ENTRADAS = [
             "Se você digitou um valor pago e tentar sair da página antes de salvar, o navegador avisa. Adicionar um item à mão também aceita vírgula (35,10).",
             "Itens que entram na coleta sem foto agora pegam a imagem do catálogo do Mercado (no ranking, um AK-47 | Safari Mesh aparecia sem imagem).",
             "Na página do item, a tabela “Outras versões” alinha preços e vendas à direita, para comparar de linha em linha.",
+            "Na conta, dá para desfazer logo depois de salvar um valor pago e para apagar um valor (apague o número e aperte Enter); as setas ↑ e ↓ mudam de item; “Como ler esta tabela” explica cada coluna; e a tabela pode ser baixada como planilha (.csv), que abre no Excel ou no Google Planilhas.",
             "Correção na conta: ao preencher o valor pago com Enter, a lista podia se reorganizar no meio da digitação, perdendo o próximo valor ou salvando um número cortado (ex.: 3 em vez de 333). Agora a ordem espera você terminar de digitar.",
             "Mais acabamento na conta: ao salvar o último valor que faltava, o aviso vira “Pronto”; no celular, o Enter do teclado vira “Próximo”; enquanto o inventário é buscado, a página se atualiza sozinha; itens adicionados à mão ganham imagem; e a conta vazia explica o que fazer.",
             "Na conta, clicar no título da coluna (Item, Vale hoje, Lucro hoje) ordena a lista; com um filtro, aparece quanto os itens mostrados valem juntos; Esc limpa a busca; e há um atalho para abrir o seu inventário na Steam e anunciar.",

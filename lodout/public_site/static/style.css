@@ -6409,3 +6409,39 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   }
 }
 
+/* ── Conta: desfazer, como ler a tabela (2026-11-15) ──────────────── */
+.botao-desfazer {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-bright);
+  font: inherit;
+  font-size: var(--fs-xs);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.botao-desfazer:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.como-ler { margin: 0 0 var(--sp-3); }
+.como-ler > summary {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.como-ler > summary:hover { color: var(--text-bright); }
+.como-ler-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-2) var(--sp-5);
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.como-ler-lista dt { color: var(--text-bright); font-size: var(--fs-sm); font-weight: 600; }
+.como-ler-lista dd { margin: 2px 0 0; color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.5; }
+

@@ -358,7 +358,15 @@
     var campo = e.target;
     if (e.key !== "Enter" || !campo.classList || !campo.classList.contains("input-custo")) return;
     if (!campo.form || !campo.form.classList.contains("salva-sozinho")) return;
-    if (campo.value.trim() === "" || !campo.checkValidity()) return; // deixa o navegador avisar
+    if (campo.value.trim() === "") {
+      // Apagou o número de um item que tinha valor: Enter tira o valor.
+      if (campo.form.getAttribute("data-ultimo")) {
+        e.preventDefault();
+        if (campo.form.requestSubmit) campo.form.requestSubmit(); else campo.form.submit();
+      }
+      return;
+    }
+    if (!campo.checkValidity()) return; // deixa o navegador avisar
     e.preventDefault();
     if (campo.form.requestSubmit) campo.form.requestSubmit(); else campo.form.submit();
     var campos = Array.prototype.slice.call(document.querySelectorAll(".input-custo"));
@@ -373,6 +381,22 @@
     } else {
       campo.blur();
     }
+  });
+
+  // ↑ e ↓ no valor pago mudam de item (só os visíveis), como numa planilha.
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    var campo = e.target;
+    if (!campo.classList || !campo.classList.contains("input-custo")) return;
+    var campos = Array.prototype.slice.call(document.querySelectorAll(".input-custo")).filter(function (c) {
+      var tr = c.closest("tr");
+      return !(tr && tr.hidden);
+    });
+    var i = campos.indexOf(campo) + (e.key === "ArrowDown" ? 1 : -1);
+    if (i < 0 || i >= campos.length) return;
+    e.preventDefault();
+    campos[i].focus();
+    campos[i].select();
   });
 
   // Sair da página com um valor digitado e ainda não salvo (ou salvando)
@@ -412,8 +436,13 @@
     // é enviado uma vez.
     var campo = form.querySelector(".input-custo");
     var valor = campo ? campo.value.trim() : "";
-    if (valor === "" || valor === form.getAttribute("data-ultimo")) return;
+    var anterior = form.getAttribute("data-ultimo") || "";
+    // Campo apagado num item que tinha valor: tira o valor pago.
+    var limpar = valor === "" && anterior !== "";
+    if ((valor === "" && !limpar) || valor === anterior) return;
     form.setAttribute("data-ultimo", valor);
+    var dadosForm = new FormData(form);
+    if (limpar) dadosForm.append("limpar", "1");
     salvando++;
     var linha = form.closest("tr");
     var aviso = form.querySelector(".custo-salvo");
@@ -422,7 +451,7 @@
     texto(aviso, "salvando…");
     fetch(form.action, {
       method: "POST",
-      body: new FormData(form),
+      body: dadosForm,
       headers: { "Accept": "application/json" },
       credentials: "same-origin"
     }).then(function (resp) {
@@ -443,7 +472,26 @@
         campo.value = numero.toFixed(2).replace(".", ",");
         form.setAttribute("data-ultimo", campo.value);
       }
-      texto(aviso, "salvo ✓");
+      // "salvo ✓ · desfazer": volta ao valor de antes (ou a nenhum).
+      if (aviso) {
+        aviso.textContent = limpar ? "valor apagado " : "salvo ✓ ";
+        var desfazer = document.createElement("button");
+        desfazer.type = "button";
+        desfazer.className = "botao-desfazer";
+        desfazer.textContent = "desfazer";
+        desfazer.addEventListener("click", function () {
+          if (!campo) return;
+          campo.value = anterior;
+          if (form.requestSubmit) form.requestSubmit(); else form.submit();
+          campo.focus();
+        });
+        aviso.appendChild(desfazer);
+        var marca = String(Date.now());
+        aviso.setAttribute("data-marca", marca);
+        setTimeout(function () {
+          if (aviso.getAttribute("data-marca") === marca) { aviso.textContent = ""; aviso.removeAttribute("data-marca"); }
+        }, 6000);
+      }
       if (linha) {
         texto(linha.querySelector('[data-campo="empate"]'), d.empate_fmt || "—");
         texto(linha.querySelector('[data-campo="alvo"]'), d.alvo_fmt || "—");
@@ -455,6 +503,7 @@
           if (d.lucro_classe) lucro.classList.add(d.lucro_classe);
         }
         if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
+        else linha.classList.add("linha-sem-custo");
         if (lucro && !d.lucro_classe) lucro.classList.add("celula-sem-valor");
         else if (lucro) lucro.classList.remove("celula-sem-valor");
       }
@@ -465,7 +514,6 @@
         // depois de um instante, pra quem salvou ver o "salvo ✓".
         setTimeout(aplicar, estado.filtro === "todos" ? 0 : 900);
       }
-      setTimeout(function () { if (aviso && aviso.textContent === "salvo ✓") aviso.textContent = ""; }, 2500);
     }).then(function () {
       salvando--;
     }, function () {

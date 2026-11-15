@@ -12,7 +12,7 @@ import time
 import urllib.parse
 
 from flask import (
-    Blueprint, flash, jsonify, redirect, render_template, request,
+    Blueprint, flash, jsonify, make_response, redirect, render_template, request,
     send_file, session, url_for,
 )
 
@@ -422,6 +422,10 @@ def editar_custo(name: str):
     cost_raw = (request.form.get("cost") or "").strip().replace(",", ".")
     lote = (request.form.get("lote") or "").strip() or None
     erro = None
+    # Campo apagado de propósito (limpar=1): o item volta a ficar sem valor
+    # pago -- pra corrigir um valor errado ou desfazer (2026-11-15).
+    if not cost_raw and request.form.get("limpar") == "1":
+        user_portfolio.update_position_cost(steamid, name, None, lote=lote)
     if cost_raw:
         try:
             cost = float(cost_raw)
@@ -471,6 +475,60 @@ def remover_posicao(name: str):
     lote = (request.form.get("lote") or "").strip() or None
     user_portfolio.remove_position(steamid, name, lote=lote)
     return redirect(url_for("account.conta"))
+
+
+def _celula_csv(valor) -> str:
+    """Texto seguro pra planilha: nome que começa com = + - @ viraria
+    fórmula no Excel (injeção de CSV), então ganha um apóstrofo."""
+    texto = "" if valor is None else str(valor)
+    return "'" + texto if texto[:1] in ("=", "+", "-", "@", "\t", "\r") else texto
+
+
+def _num_csv(v) -> str:
+    """Número com vírgula decimal (planilha em português)."""
+    return "" if v is None else f"{v:.2f}".replace(".", ",")
+
+
+@bp.route("/conta/tabela.csv")
+@login_required
+def exportar_tabela():
+    """A tabela da conta como planilha (.csv), com os mesmos números da
+    tela. Separador ";" e vírgula decimal, como o Excel em português
+    espera; BOM pra acentos abrirem certos (2026-11-15)."""
+    import csv
+    import io
+    steamid = session["steamid"]
+    positions = user_portfolio.load_positions(steamid)
+    meta = _meta_lucro(steamid)
+    avaliacao = portfolio.evaluate_portfolio(positions, _preco_do_dia(positions))
+    _marcar_lotes(avaliacao["rows"], positions)
+    avaliacao = _formatar_linhas(avaliacao, meta)
+    saida = io.StringIO()
+    escritor = csv.writer(saida, delimiter=";", lineterminator="\r\n")
+    escritor.writerow([
+        "Item", "Nome na Steam", "Quantidade", "Lote",
+        "Você pagou (cada)", "Vale hoje (cada)", "Vale hoje (total)",
+        "Lucro se vender hoje", "Lucro (%)",
+        "Venda sem prejuízo (cada)", f"Venda para lucrar {meta}% (cada)"])
+    for r in avaliacao["rows"]:
+        custo = r.get("cost") if r.get("has_cost") else None
+        empate = portfolio.break_even_price(custo) if custo else None
+        qtd = r.get("quantity") or 1
+        escritor.writerow([
+            _celula_csv(r.get("name_fmt")), _celula_csv(r.get("name")), qtd,
+            r.get("lote_numero") if (r.get("lotes_total") or 1) > 1 else "",
+            _num_csv(custo), _num_csv(r.get("price")),
+            _num_csv(r["price"] * qtd if r.get("price") is not None else None),
+            _num_csv(r.get("pnl") if custo is not None else None),
+            _num_csv(r.get("pnl_pct") if custo else None),
+            _num_csv(empate), _num_csv(empate * (1 + meta / 100) if empate else None),
+        ])
+    nome = time.strftime("lodout-conta-%Y-%m-%d.csv", time.gmtime())
+    resp = make_response("\ufeff" + saida.getvalue())
+    resp.headers["Content-Type"] = "text/csv; charset=utf-8"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{nome}"'
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 @bp.route("/conta/exportar")

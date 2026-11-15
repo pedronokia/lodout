@@ -134,6 +134,18 @@
       <p class="conta-mostrando" data-conta-mostrando role="status" aria-live="polite"></p>
     </div>
     {% endif %}
+    {# Para iniciantes: o que cada coluna quer dizer (2026-11-15). #}
+    <details class="como-ler">
+      <summary>Como ler esta tabela</summary>
+      <dl class="como-ler-lista">
+        <div><dt>Você pagou</dt><dd>Quanto você pagou em cada unidade. Só você sabe: a Steam não mostra esse valor para ninguém.</dd></div>
+        <div><dt>Vale hoje</dt><dd>O preço do item no Mercado da Steam, o último que o Lodout coletou.</dd></div>
+        <div><dt>Lucro hoje</dt><dd>O que sobraria vendendo hoje por esse preço, já sem os {{ taxa_steam_pct }}% da Steam, menos o que você pagou. Negativo quer dizer prejuízo.</dd></div>
+        <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam.</dd></div>
+        <div><dt>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com {{ meta_lucro }}% a mais do que pagou, também já com a taxa. Mude a porcentagem em “Quero lucrar”.</dd></div>
+        <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
+      </dl>
+    </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta">
@@ -270,7 +282,7 @@
     </details>
 
     <p class="link-excluir-conta">
-      <a href="{{ url_for('account.exportar_dados') }}">Baixar uma cópia dos meus dados (arquivo .json)</a>
+      {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">Baixar a tabela (planilha .csv)</a> · {% endif %}<a href="{{ url_for('account.exportar_dados') }}">Baixar uma cópia dos meus dados (arquivo .json)</a>
       · <a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta e todos os meus dados</a>
     </p>
   </main>
