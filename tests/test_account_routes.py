@@ -227,7 +227,7 @@ def test_posicao_mostra_icone_raridade_e_nota_do_scan_atual(
     assert "icone-item-quadro-compacto" in pagina
     assert "icone-item-quadro-com-imagem" in pagina
     assert "raridade-covert" in pagina
-    assert 'title="Nota do Lodout">nota 77</span>' in pagina
+    assert 'aria-label="Nota 77 de 100"' in pagina
 
 
 def test_adicionar_posicao_sem_csrf_falha(client, monkeypatch):

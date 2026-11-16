@@ -2738,6 +2738,13 @@ table.tabela-candidatos td.celula-preco {
 
 .nota-grande .nota-numero { font-size: var(--fs-xl); }
 
+/* Nota pequena na linha da conta (pedido 16/11: o mesmo círculo do resto
+   do site, em vez do texto "nota 67"). */
+.nota-mini { width: 28px; height: 28px; }
+.nota-mini .nota-anel-fundo,
+.nota-mini .nota-anel-progresso { stroke-width: 2.5; }
+.nota-mini .nota-numero { font-size: var(--fs-2xs); }
+
 .nota-alta { color: var(--positive); }
 .nota-media { color: var(--warn); }
 .nota-baixa { color: var(--text-muted); }

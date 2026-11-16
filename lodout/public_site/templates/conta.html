@@ -201,7 +201,7 @@
                 {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
                 {% if row.lotes_total and row.lotes_total > 1 %}<span class="item-lote" title="Unidades deste item separadas por valor pago">lote {{ row.lote_numero }} de {{ row.lotes_total }}</span>{% endif %}
                 {% if row.anunciado %}<span class="item-etiqueta-fora item-etiqueta-anunciado" title="Fora do seu inventário da Steam desde {{ row.fora_quando }}">anunciado{% if row.anuncio_preco_fmt %} por {{ row.anuncio_preco_fmt }}{% endif %}</span>{% elif row.fora_desde %}<span class="item-etiqueta-fora" title="Não aparece no seu inventário público da Steam: anunciado no Mercado ou vendido">fora do inventário desde {{ row.fora_quando }}</span>{% endif %}
-                {% if row.score is not none %}<span class="nota-texto nota-{{ row.score|nota_classe }}" title="Nota do Lodout">nota {{ row.score }}</span>{% endif %}
+                {% if row.score is not none %}<span class="nota nota-mini nota-{{ row.score|nota_classe }}" role="img" title="Nota do Lodout: {{ row.score }} de 100" aria-label="Nota {{ row.score }} de 100">{{ row.score|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ row.score }}</span></span>{% endif %}
                 {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
                    item? Separa unidades numa linha própria; junta de novo
                    com o valor médio. #}
