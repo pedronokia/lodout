@@ -6749,3 +6749,19 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 }
 .status-inventario .acao-texto:hover,
 .status-inventario .acao-texto:focus-visible { text-decoration-color: currentColor; }
+
+/* Revisão 2026-11-16 (rodada 10). "valores diferentes?" aberto no
+   celular: "Separar [1] de 3" inteiro (quebrava "Separ/ar"). */
+.form-separar { overflow-wrap: normal; }
+.form-separar label { flex: 0 0 auto; white-space: nowrap; }
+/* Adicionar à mão na conta: rótulo visível em cada campo. */
+.form-adicionar:has(.campo-adicionar) { align-items: flex-end; }
+.campo-adicionar { display: flex; flex-direction: column; gap: 4px; color: var(--text-muted); font-size: var(--fs-xs); }
+.campo-adicionar-nome { flex: 1; min-width: 220px; }
+.campo-adicionar-nome input[name="name"] { flex: none; width: 100%; min-width: 0; }
+/* Texto do botão "+ Adicionar" no meio (no celular o botão ocupa a largura toda). */
+.form-adicionar button { justify-content: center; text-align: center; }
+@media (max-width: 640px) {
+  .form-adicionar:has(.campo-adicionar) { align-items: stretch; }
+  .campo-adicionar-nome { min-width: 0; }
+}

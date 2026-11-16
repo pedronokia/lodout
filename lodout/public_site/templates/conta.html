@@ -300,9 +300,14 @@
       <summary>Adicionar um item à mão</summary>
       <form class="form-adicionar" method="post" action="{{ url_for('account.adicionar_posicao') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item, ex.: AK-47 | Redline (Field-Tested)…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-        <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Você pagou, ex.: 35,10 (opcional)…" title="Valor em reais, por exemplo 35,10" aria-label="Quanto você pagou em reais, opcional">
-        <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
+        {# Rótulos visíveis (revisão 2026-11-16): no celular o campo de
+           quantidade era só um "1" solto. #}
+        <label class="campo-adicionar campo-adicionar-nome"><span>Nome exato no Mercado da Steam</span>
+          <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="ex.: AK-47 | Redline (Field-Tested)" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" maxlength="200" required></label>
+        <label class="campo-adicionar"><span>Você pagou, cada (opcional)</span>
+          <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="ex.: 35,10" title="Valor em reais, por exemplo 35,10"></label>
+        <label class="campo-adicionar"><span>Quantidade</span>
+          <input type="number" name="quantity" min="1" value="1"></label>
         <button type="submit" class="botao-acao">+ Adicionar</button>
       </form>
     </details>
