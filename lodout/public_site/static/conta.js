@@ -361,14 +361,38 @@
   // "Buscando seu inventário…": lê esta página de novo, do próprio site
   // (sem consultar a Steam), até a busca acabar. No máximo 12 vezes por
   // aba, pra nunca virar um laço.
-  if (document.querySelector("[data-recarregar-enquanto-busca]")) {
+  // Revisão 2026-11-16: com a lista na tela ("Atualizar agora"), recarregar
+  // no meio da digitação abria o "Sair do site?" do navegador. Agora espera
+  // a pessoa terminar (campo com foco, valor não salvo ou janela aberta) e,
+  // depois das 12 tentativas, diz o que fazer em vez de ficar em "Buscando…".
+  var buscando = document.querySelector("[data-recarregar-enquanto-busca]");
+  if (buscando) {
     var tentativas = 0;
     try { tentativas = Number(window.sessionStorage.getItem("lodout-conta-recarga") || 0); } catch (erro) { tentativas = 12; }
+    var ocupado = function () {
+      var ativo = document.activeElement;
+      return temPendente() || !!document.querySelector("dialog[open]") ||
+        !!(ativo && ativo.matches && ativo.matches("input, select, textarea"));
+    };
+    var tentar = function () {
+      if (ocupado()) { setTimeout(tentar, 5000); return; }
+      try { window.sessionStorage.setItem("lodout-conta-recarga", String(tentativas + 1)); } catch (erro) { /* ignora */ }
+      window.location.reload();
+    };
     if (tentativas < 12) {
-      setTimeout(function () {
-        try { window.sessionStorage.setItem("lodout-conta-recarga", String(tentativas + 1)); } catch (erro) { /* ignora */ }
+      setTimeout(tentar, 5000);
+    } else {
+      buscando.classList.remove("status-inventario-buscando");
+      buscando.textContent = "A busca do seu inventário está demorando mais que o normal. ";
+      var recarregar = document.createElement("button");
+      recarregar.type = "button";
+      recarregar.className = "acao-texto";
+      recarregar.textContent = "Recarregar a página";
+      recarregar.addEventListener("click", function () {
+        try { window.sessionStorage.removeItem("lodout-conta-recarga"); } catch (erro) { /* ignora */ }
         window.location.reload();
-      }, 5000);
+      });
+      buscando.appendChild(recarregar);
     }
   } else {
     try { window.sessionStorage.removeItem("lodout-conta-recarga"); } catch (erro) { /* ignora */ }
@@ -557,14 +581,17 @@
   // Sair da página com um valor digitado e ainda não salvo (ou salvando)
   // pede confirmação ao navegador, em vez de perder o valor calado.
   var salvando = 0;
-  window.addEventListener("beforeunload", function (e) {
+  function temPendente() {
     var pendente = salvando > 0;
     Array.prototype.forEach.call(document.querySelectorAll(".form-custo.salva-sozinho"), function (form) {
       var campo = form.querySelector(".input-custo");
       var v = campo ? campo.value.trim() : "";
       if (v !== "" && v !== form.getAttribute("data-ultimo")) pendente = true;
     });
-    if (pendente) { e.preventDefault(); e.returnValue = ""; }
+    return pendente;
+  }
+  window.addEventListener("beforeunload", function (e) {
+    if (temPendente()) { e.preventDefault(); e.returnValue = ""; }
   });
 
   // Com fetch, o valor pago salva sozinho: Enter ou ao sair do campo.
