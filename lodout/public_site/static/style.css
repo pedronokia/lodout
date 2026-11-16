@@ -6769,8 +6769,13 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 /* Revisão 2026-11-16 (rodada 11). Texto do navegador maior (125%): a
    coluna "Venda por" não quebrava e a tabela passava 17px da caixa.
    Quebra só quando falta espaço; no tamanho normal nada muda. */
-@media (min-width: 641px) {
-  .tabela-conta .venda-por-linha { white-space: normal; }
+/* Correção na mesma revisão (rodada 20): o "white-space: normal" que
+   ficava aqui quebrava "Sem prejuízo" e "Lucrar 20%" em duas linhas em
+   todas as linhas a 1280px. Para texto maior, "Venda por" empilha o
+   rótulo sobre o valor com um corte medido em em (cresce junto com a
+   fonte do navegador): 64em = 1024px no tamanho normal, 1280px com 125%. */
+@media (min-width: 641px) and (max-width: 64em) {
+  .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco { grid-template-columns: auto; }
 }
 /* Alto contraste do Windows: o filtro escolhido se distinguia só pelo
    fundo, que esse modo apaga. */
@@ -6801,3 +6806,22 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .pagina-inicial > .status { margin: var(--sp-4) 0 0; }
 /* Links no meio do texto do aviso (página de excluir conta): sublinhados. */
 .card-aviso p a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Inventário grande (revisão 2026-11-16, 500 itens): o ícone de copiar
+   era um <svg> repetido em cada preço (1.000 na página); agora é desenho
+   do CSS (máscara), um só. */
+.icone-copiar {
+  width: 13px;
+  height: 13px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='13' rx='2'/%3E%3Cpath d='M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='13' rx='2'/%3E%3Cpath d='M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* Celular: cartões fora da tela não são desenhados até chegarem perto
+   (no computador a lista é tabela, que não aceita isto). */
+@media (max-width: 640px) {
+  table.tabela-conta tbody tr.linha-posicao {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 180px;
+  }
+}

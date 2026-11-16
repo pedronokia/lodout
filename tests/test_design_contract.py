@@ -303,3 +303,13 @@ def test_linhas_escondidas_somem_tambem_no_celular():
     cartao = css.index("table.tabela-cards-mobile tbody tr:not(.linha-regras) {")
     escondida = css.rindex("table.tabela-conta tbody tr[hidden] { display: none; }")
     assert escondida > cartao
+
+
+def test_rotulos_de_venda_por_nao_quebram_no_computador():
+    """A rodada 11 da revisão (16/11) pôs `white-space: normal` na linha de
+    "Venda por" a partir de 641px e "Sem prejuízo"/"Lucrar 20%" passaram a
+    quebrar em todas as linhas a 1280px. Texto maior é tratado com um
+    corte em em (empilha rótulo e valor), não com a quebra."""
+    css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
+    assert ".tabela-conta .venda-por-linha { white-space: normal; }" not in css
+    assert "@media (min-width: 641px) and (max-width: 64em)" in css

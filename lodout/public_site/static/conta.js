@@ -87,6 +87,16 @@
     return true;
   }
 
+  // Chave de "Nome (A–Z)" calculada uma vez por linha (antes, a cada
+  // comparação da ordenação: lento com centenas de itens).
+  function nomeOrdem(tr) {
+    if (tr._nomeOrdem === undefined) {
+      var link = tr.querySelector(".link-item");
+      tr._nomeOrdem = semAcento(link ? link.textContent : "").replace(/^[^a-z0-9]+/, "");
+    }
+    return tr._nomeOrdem;
+  }
+
   function aplicar() {
     if (!ferramentas || !corpo) return;
     var todas = linhas();
@@ -100,7 +110,8 @@
         Object.keys(contagem).forEach(function (f) { if (passaFiltro(tr, f)) contagem[f]++; });
       }
       var mostra = achou && passaFiltro(tr, estado.filtro);
-      tr.hidden = !mostra;
+      // Só mexe na linha que muda: com 500 itens, regravar todas pesava.
+      if (tr.hidden === mostra) tr.hidden = !mostra;
       if (mostra) visiveis++;
     });
     var chave = {
@@ -112,9 +123,7 @@
       if (estado.ordem === "nome") {
         // Sem "★" e outros símbolos no começo; lotes do mesmo item na
         // ordem original (lote 1 antes do 2).
-        var na = semAcento(a.querySelector(".link-item").textContent).replace(/^[^a-z0-9]+/, "");
-        var nb = semAcento(b.querySelector(".link-item").textContent).replace(/^[^a-z0-9]+/, "");
-        return na.localeCompare(nb, "pt-BR") || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
+        return nomeOrdem(a).localeCompare(nomeOrdem(b), "pt-BR") || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
       }
       return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
     });

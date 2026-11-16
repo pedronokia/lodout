@@ -269,8 +269,8 @@
             <span class="venda-por-bloco">
             {# Clicar no preço copia o número (ex.: "53,41") para colar na
                tela de venda da Steam (conta.js). #}
-            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.empate_fmt or '' }}, preço sem prejuízo de {{ row.name_fmt }}"><span data-campo="empate">{{ row.empate_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></span>
-            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.alvo_fmt or '' }}, preço para lucrar {{ meta_lucro }}% em {{ row.name_fmt }}"><span data-campo="alvo">{{ row.alvo_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></span>
+            <span class="venda-por-linha">Sem prejuízo <button type="button" class="copiar-preco venda-por-valor" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.empate_fmt or '' }}, preço sem prejuízo de {{ row.name_fmt }}"><span data-campo="empate">{{ row.empate_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true"></span></button></span>
+            <span class="venda-por-linha venda-por-meta"><span data-meta-rotulo>Lucrar {{ meta_lucro }}%</span> <button type="button" class="copiar-preco preco-alvo" data-copiar title="Copiar: na Steam, cole em “O comprador paga”" aria-label="Copiar {{ row.alvo_fmt or '' }}, preço para lucrar {{ meta_lucro }}% em {{ row.name_fmt }}"><span data-campo="alvo">{{ row.alvo_fmt or "—" }}</span><span class="icone-copiar" aria-hidden="true"></span></button></span>
             </span>
           </td>
         </tr>
