@@ -735,3 +735,23 @@ def test_idade_dos_precos_visivel_na_lista():
     assert account._idade_dos_precos([]) is None
     assert account._idade_dos_precos([agora - 7200, agora - 7300]) == "Preços coletados há 2 h."
     assert account._idade_dos_precos([agora - 7200, agora - 72000]) == "Preços coletados há até 20 h."
+
+
+def test_sair_limpa_mensagens_e_token(client, monkeypatch):
+    """Mensagem pendente de uma conta não aparece para a próxima pessoa
+    no mesmo navegador (achado na revisão de 16/11)."""
+    _login(client, monkeypatch, steamid="111")
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={"name": "ItemDoUm", "cost": "1", "quantity": "1", "csrf_token": token})
+    client.get("/logout")
+    with client.session_transaction() as s:
+        assert "_flashes" not in s and "csrf_token" not in s
+
+
+def test_remover_e_adicionar_confirmam(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    pagina = client.post("/conta/posicoes", data={"name": "Caixa Z", "cost": "1", "quantity": "1", "csrf_token": token}, follow_redirects=True).data.decode("utf-8")
+    assert "Caixa Z entrou na sua lista" in pagina
+    pagina = client.post("/conta/posicoes/Caixa Z/remover", data={"csrf_token": token}, follow_redirects=True).data.decode("utf-8")
+    assert "Caixa Z saiu da sua lista" in pagina

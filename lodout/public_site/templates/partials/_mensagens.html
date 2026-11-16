@@ -3,6 +3,9 @@
 {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
   {% if categoria == "success" %}
   <p class="status status-sucesso" role="status">{{ mensagem }}</p>
+  {% elif categoria == "info" %}
+  {# Aviso que não é erro (ex.: "acabou de ser atualizado"): neutro. #}
+  <p class="status status-info" role="status">{{ mensagem }}</p>
   {% else %}
   <p class="status status-erro" role="alert">{{ mensagem }}</p>
   {% endif %}

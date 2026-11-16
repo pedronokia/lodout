@@ -6765,3 +6765,22 @@ table.tabela-conta tbody tr[hidden] { display: none; }
   .form-adicionar:has(.campo-adicionar) { align-items: stretch; }
   .campo-adicionar-nome { min-width: 0; }
 }
+
+/* Revisão 2026-11-16 (rodada 11). Texto do navegador maior (125%): a
+   coluna "Venda por" não quebrava e a tabela passava 17px da caixa.
+   Quebra só quando falta espaço; no tamanho normal nada muda. */
+.tabela-conta .venda-por-linha { white-space: normal; }
+/* Alto contraste do Windows: o filtro escolhido se distinguia só pelo
+   fundo, que esse modo apaga. */
+@media (forced-colors: active) {
+  .conta-filtro[aria-pressed="true"] { border-width: 2px; font-weight: 700; text-decoration: underline; }
+  .card-progresso { border: 1px solid CanvasText; }
+}
+/* Mensagem neutra (não é erro nem sucesso): "acabou de ser atualizado". */
+.status-info {
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}

@@ -300,7 +300,13 @@ def avatar():
 
 @bp.route("/logout")
 def logout():
+    # Sair limpa o que é da conta: mensagens pendentes ("entrou na sua
+    # lista"…) não podem aparecer para a próxima pessoa que entrar no mesmo
+    # navegador, e o token de formulário recomeça (revisão 2026-11-16).
+    # O login de admin é separado e continua.
     session.pop("steamid", None)
+    session.pop("csrf_token", None)
+    session.pop("_flashes", None)
     return redirect(url_for("index"))
 
 
@@ -464,7 +470,7 @@ def juntar_lotes(name: str):
         flash("Lotes juntados numa linha só, com o valor médio que você pagou.", "success")
     elif resultado == "misto":
         flash("Para juntar, informe o valor pago de todos os lotes desse item "
-              "(ou de nenhum): juntar com um lote sem valor inventaria um preço.", "error")
+              "(ou de nenhum): sem o valor de um lote, o Lodout teria que inventar um preço.", "error")
     return redirect(url_for("account.conta"))
 
 
@@ -512,9 +518,9 @@ def atualizar_inventario():
     if est.get("em_andamento"):
         pass
     elif time.time() - float(est.get("ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S:
-        flash("Seu inventário acabou de ser atualizado. Dá para pedir de novo em alguns minutos.", "error")
+        flash("Seu inventário acabou de ser atualizado. Dá para pedir de novo em alguns minutos.", "info")
     elif steam_api.em_cooldown("inventory"):
-        flash("A Steam pediu uma pausa agora. O Lodout tenta de novo sozinho mais tarde.", "error")
+        flash("A Steam pediu uma pausa agora. O Lodout tenta de novo sozinho mais tarde.", "info")
     else:
         inventario.sincronizar_em_segundo_plano(steamid)
     return redirect(url_for("account.conta"))
@@ -558,6 +564,8 @@ def adicionar_posicao():
         return redirect(url_for("account.conta"))
 
     user_portfolio.add_position(steamid, name, cost, quantity)
+    flash(f"{localize_name(name)} entrou na sua lista. Se aparecer “sem preço”, confira se o nome "
+          "está igual ao do Mercado da Steam.", "success")
     return redirect(url_for("account.conta"))
 
 
@@ -630,6 +638,10 @@ def remover_posicao(name: str):
     steamid = session["steamid"]
     lote = (request.form.get("lote") or "").strip() or None
     user_portfolio.remove_position(steamid, name, lote=lote)
+    # Confirmação depois de remover (revisão 2026-11-16: a página só
+    # recarregava, sem dizer nada).
+    flash(f"{localize_name(name)} saiu da sua lista. "
+          "Se ainda estiver no seu inventário da Steam, volta na próxima atualização.", "success")
     return redirect(url_for("account.conta"))
 
 
