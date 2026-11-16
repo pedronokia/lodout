@@ -502,7 +502,66 @@ def test_salvar_quanto_paguei_sem_csrf_e_recusado(client, monkeypatch):
     _login(client, monkeypatch)
     resp = client.post("/conta/posicoes/Caixa X/custo", data={"cost": "1"},
                        headers={"Accept": "application/json"})
-    assert resp.status_code in (400, 403)
+    assert resp.status_code in (400, 403, 409)
+    assert resp.get_json()["ok"] is False
+
+
+def test_aba_velha_depois_de_entrar_de_novo_explica_e_nao_salva(client, monkeypatch):
+    """Revisão 16/11 (duas abas): sair e entrar de novo troca o token;
+    a aba antiga dizia "Seu login expirou" (falso) ou "Forbidden"."""
+    from lodout.public_site import user_portfolio
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "Caixa X", "cost": "", "quantity": "1", "csrf_token": token})
+    client.get("/logout")
+    _login(client, monkeypatch)
+    _csrf_token(client)  # a aba nova gera outro token
+    resp = client.post("/conta/posicoes/Caixa X/custo",
+                       data={"cost": "50", "csrf_token": token},
+                       headers={"Accept": "application/json"})
+    assert resp.status_code == 409
+    dados = resp.get_json()
+    assert dados["ok"] is False and dados["recarregar"] is True
+    assert "desatualizada" in dados["erro"] and "login" not in dados["erro"]
+    assert user_portfolio.load_positions("76561198000000000")[0].get("cost") is None
+    # Sem script: página em português, que leva de volta à página de origem.
+    resp = client.post("/conta/posicoes/Caixa X/remover",
+                       data={"csrf_token": token},
+                       headers={"Referer": "http://localhost/conta/watchlist"})
+    assert resp.status_code == 403
+    pagina = resp.data.decode("utf-8")
+    assert "Esta página ficou desatualizada" in pagina
+    assert 'href="/conta/watchlist"' in pagina and "Forbidden" not in pagina
+    assert len(user_portfolio.load_positions("76561198000000000")) == 1
+    # Referer de outro site não vira link.
+    resp = client.post("/conta/posicoes/Caixa X/remover", data={"csrf_token": token},
+                       headers={"Referer": "https://outro.example/x"})
+    assert 'href="/conta"' in resp.data.decode("utf-8")
+
+
+def test_salvar_item_que_saiu_em_outra_aba_explica(client, monkeypatch):
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    resp = client.post("/conta/posicoes/Caixa Sumida/custo",
+                       data={"cost": "50", "csrf_token": token},
+                       headers={"Accept": "application/json"})
+    assert resp.status_code == 404
+    dados = resp.get_json()
+    assert dados["erro"].startswith("Este item não está mais na sua lista")
+    assert dados["recarregar"] is True
+
+
+def test_paginas_com_login_nao_ficam_guardadas_no_navegador(client, monkeypatch):
+    """Revisão 16/11: depois de "Sair", o Voltar do navegador podia mostrar
+    a conta guardada (computador compartilhado)."""
+    resp = client.get("/privacidade")
+    assert "no-store" not in (resp.headers.get("Cache-Control") or "")
+    _login(client, monkeypatch)
+    for rota in ("/conta", "/conta/watchlist", "/privacidade"):
+        resp = client.get(rota)
+        assert resp.status_code == 200, rota
+        assert resp.headers["Cache-Control"] == "private, no-store", rota
 
 
 def test_conta_carrega_o_script_de_salvar_rapido(client, monkeypatch):

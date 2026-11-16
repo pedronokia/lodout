@@ -386,6 +386,18 @@ def create_app() -> Flask:
             latencia.registrar(request.endpoint, (time.time() - inicio) * 1000)
         return resp
 
+    @app.after_request
+    def _sem_copia_com_login(resp):
+        """Página vista com login não fica guardada no navegador: depois
+        de "Sair", o botão Voltar mostraria a conta (valores pagos, lista)
+        a quem usar o mesmo computador (revisão 2026-11-16). Só olha a
+        sessão se o cookie existe, para não marcar toda visita anônima."""
+        if ("Cache-Control" not in resp.headers and resp.mimetype == "text/html"
+                and request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+                and session.get("steamid")):
+            resp.headers["Cache-Control"] = "private, no-store"
+        return resp
+
     @app.route("/")
     def index():
         # Server-Timing (2026-11-14): a home levava ~0,6 s a mais que as
@@ -1030,6 +1042,24 @@ def create_app() -> Flask:
             return jsonify({"api_version": 1, "erro": "nao_encontrado",
                             "mensagem": "Rota não existe."}), 404
         return render_template("404.html"), 404
+
+    @app.errorhandler(403)
+    def acesso_negado(_erro):
+        """Hoje só o CSRF responde 403 com página: formulário de uma aba
+        aberta antes de sair e entrar de novo. Antes era o "Forbidden" em
+        inglês do Flask (revisão 2026-11-16)."""
+        if request.path.startswith("/api/"):
+            return jsonify({"api_version": 1, "erro": "acesso_negado",
+                            "mensagem": "Acesso negado."}), 403
+        # Volta à página de onde veio o formulário, se for deste site.
+        voltar = None
+        origem = urllib.parse.urlparse(request.referrer or "")
+        if (origem.netloc == request.host and origem.path.startswith("/")
+                and not origem.path.startswith("//")):
+            voltar = origem.path + (f"?{origem.query}" if origem.query else "")
+        if not voltar:
+            voltar = url_for("account.conta") if session.get("steamid") else url_for("index")
+        return render_template("403.html", voltar=voltar), 403
 
     @app.errorhandler(500)
     def erro_interno(erro):

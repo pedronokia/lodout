@@ -478,6 +478,19 @@
       : r.falha === "servidor"
         ? "Não deu para salvar agora. Tente de novo em instantes."
         : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
+    // Aba velha (saiu e entrou de novo) ou item que saiu em outra aba:
+    // só recarregar resolve (revisão 2026-11-16).
+    if (r.dados && r.dados.recarregar) {
+      var recarregar = document.createElement("button");
+      recarregar.type = "button";
+      recarregar.className = "acao-texto";
+      recarregar.textContent = "Recarregar a página";
+      recarregar.addEventListener("click", function () {
+        liberarSaida = true;
+        window.location.reload();
+      });
+      aviso.appendChild(recarregar);
+    }
   }
 
   // "confira: bem acima do preço": tocar mostra o porquê.
@@ -607,8 +620,11 @@
     });
     return pendente;
   }
+  // "Recarregar a página" num aviso de falha: o valor já não pode ser
+  // salvo daqui, então não pergunta "sair do site?".
+  var liberarSaida = false;
   window.addEventListener("beforeunload", function (e) {
-    if (temPendente()) { e.preventDefault(); e.returnValue = ""; }
+    if (!liberarSaida && temPendente()) { e.preventDefault(); e.returnValue = ""; }
   });
 
   // Com fetch, o valor pago salva sozinho: Enter ou ao sair do campo.
@@ -662,6 +678,7 @@
     }).then(function (resp) {
       if (resp.type === "opaqueredirect" || resp.status === 401 || resp.status === 403) return { falha: "login" };
       if (resp.status === 429) return { falha: "pressa" };
+      if (resp.status === 409) return resp.json().then(function (dados) { return { dados: dados }; }, function () { return { falha: "servidor" }; });
       return resp.json().then(function (dados) {
         return { ok: resp.ok, dados: dados };
       }, function () { return { falha: "servidor" }; });

@@ -1,4 +1,3 @@
-{% from "partials/_icons.html" import icone %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -19,15 +18,13 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Devagar aí</h1>
-      <p class="descricao-pagina">Essa requisição tem um limite por minuto, pra evitar abuso.
-      Espera um minuto e tenta de novo.</p>
+      <p class="descricao-pagina">Foram muitos pedidos em pouco tempo. Para
+      evitar abuso, cada página tem um limite por minuto. Espere um minuto e
+      tente de novo.</p>
     </header>
-
-    <div class="resumo-cards">
-      <div class="card">
-        <p class="status status-erro">Muitas tentativas em pouco tempo.</p>
-        <p><a class="botao-acao" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pro dashboard</a></p>
-      </div>
+    <div class="acoes-erro">
+      <a class="botao-acao" href="{{ request.path if request.method == 'GET' else url_for('index') }}">Tentar de novo</a>
+      <a class="acao-texto" href="{{ url_for('index') }}">Ir para a página inicial</a>
     </div>
   </main>
 

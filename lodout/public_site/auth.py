@@ -4,7 +4,12 @@ from __future__ import annotations
 import secrets
 from functools import wraps
 
-from flask import abort, redirect, request, session, url_for
+from flask import abort, jsonify, redirect, request, session, url_for
+
+# Token que não bate com a sessão de quem está logado: quase sempre é uma
+# aba aberta antes de sair e entrar de novo (o token recomeça no login).
+PAGINA_VELHA = ("Não salvou: a página ficou desatualizada porque você "
+                "entrou de novo em outra aba. ")
 
 
 def login_required(view):
@@ -47,6 +52,14 @@ def csrf_protect(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if not csrf_valid(request.form.get("csrf_token")):
+            # O script da conta mostra o aviso ao lado do campo, com
+            # "Recarregar"; sem script, o 403 vira a página explicativa
+            # (403.html). Antes, os dois diziam "login expirou" ou
+            # "Forbidden" em inglês (revisão 2026-11-16).
+            if (session.get("steamid") and "application/json"
+                    in (request.headers.get("Accept") or "")):
+                return jsonify({"ok": False, "falha": "pagina_velha",
+                                "erro": PAGINA_VELHA, "recarregar": True}), 409
             abort(403)
         return view(*args, **kwargs)
     return wrapped

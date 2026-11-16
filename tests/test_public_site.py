@@ -2105,7 +2105,10 @@ def test_429_customizado(client, monkeypatch):
         flask.abort(429)
     resp = client.get("/__limite")
     assert resp.status_code == 429
-    assert "Muitas tentativas".encode("utf-8") in resp.data
+    corpo = resp.data.decode("utf-8")
+    # Revisão de 16/11: sem "Voltar pro dashboard"; tentar de novo.
+    assert "Devagar aí" in corpo and "dashboard" not in corpo
+    assert 'href="/__limite">Tentar de novo</a>' in corpo
 
 
 # ── server: erros em /api/* devolvem JSON, não HTML ──────────
@@ -6145,3 +6148,4 @@ def test_pagina_de_erro_sem_jargao_e_com_tentar_de_novo(monkeypatch, tmp_path):
     assert r.status_code == 500
     assert 'href="/conta">Tentar de novo</a>' in corpo
     assert "dashboard" not in corpo and "Erro interno do servidor" not in corpo
+

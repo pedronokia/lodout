@@ -653,7 +653,10 @@ def editar_custo(name: str):
         linhas = [p for p in user_portfolio.load_positions(steamid)
                   if p.get("name") == name and (not lote or p.get("lote") == lote)]
         if not linhas:
-            return jsonify({"ok": False, "erro": "Item não encontrado."}), 404
+            # Tirado da lista em outra aba (ou pela sincronização) depois
+            # que esta página abriu (revisão 2026-11-16).
+            return jsonify({"ok": False, "recarregar": True, "erro":
+                            "Este item não está mais na sua lista. "}), 404
         avaliacao = _formatar_linhas(
             portfolio.evaluate_portfolio(linhas, _preco_do_dia(linhas)),
             _meta_lucro(steamid))

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Página desatualizada — Lodout</title>
+  <link rel="icon" href="{{ static_v('favicon.svg') }}">
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
+</head>
+<body>
+  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <header class="topo">
+    <div class="topo-linha">
+      <div class="titulo-logo">{% include "partials/_logo.html" %}</div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="pagina-texto">
+    {# Revisão 2026-11-16: o formulário veio de uma página aberta antes de
+       sair e entrar de novo (o código de segurança dela não vale mais).
+       Nada foi alterado; a saída é abrir a página de novo. #}
+    <header class="cabecalho-pagina">
+      <h1 class="titulo-pagina">Esta página ficou desatualizada</h1>
+      <p class="descricao-pagina">Você saiu e entrou de novo, talvez em outra
+      aba, depois de abrir a página. Por segurança, nada foi alterado. Abra a
+      página de novo e repita o que estava fazendo.</p>
+    </header>
+    <div class="acoes-erro">
+      <a class="botao-acao" href="{{ voltar }}">Abrir a página de novo</a>
+      <a class="acao-texto" href="{{ url_for('index') }}">Ir para a página inicial</a>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <p class="versao">Lodout · <a href="{{ url_for('status') }}">Status</a></p>
+    {% include "partials/_rodape_links.html" %}
+  </footer>
+</body>
+</html>
