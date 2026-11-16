@@ -789,3 +789,25 @@ def test_preencher_rapido_nao_esbarra_no_limite(client, monkeypatch):
                            headers={"Accept": "application/json"}).status_code for i in range(40)]
     assert codigos == [200] * 40
     assert CUSTO_MAX_HITS < 1000  # continua havendo limite
+
+
+def test_login_dura_30_dias(client, monkeypatch):
+    """Revisão de 16/11: o login acabava ao fechar o navegador (cookie sem
+    validade). Agora o cookie tem validade de 30 dias."""
+    resp = _login(client, monkeypatch)
+    cookie = [h for h in resp.headers.getlist("Set-Cookie") if h.startswith("session=")]
+    assert cookie and "Expires=" in cookie[-1]
+
+
+def test_admin_tem_prazo_proprio(monkeypatch):
+    import time as _t
+    from flask import Flask, session
+    from lodout.public_site import server
+    app = Flask(__name__); app.secret_key = "x"
+    with app.test_request_context():
+        session["admin"] = True  # valor antigo, sem hora
+        assert not server._admin_ativo()
+        session["admin"] = _t.time()
+        assert server._admin_ativo()
+        session["admin"] = _t.time() - 13 * 3600
+        assert not server._admin_ativo()

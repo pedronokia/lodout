@@ -23,7 +23,7 @@ import time
 # (só com time()), e a home quebrava com 500 lá.
 from time import perf_counter as _relogio
 import urllib.parse
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from functools import wraps
 from pathlib import Path
 from xml.sax.saxutils import escape as _xml_escape
@@ -225,10 +225,23 @@ def _admin_required(view):
     propósito, pra guiar o dono de volta ao login em vez de escondê-lo."""
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if not _ADMIN_PASSWORD_HASH or not session.get("admin"):
+        if not _ADMIN_PASSWORD_HASH or not _admin_ativo():
             return render_template("404.html"), 404
         return view(*args, **kwargs)
     return wrapped
+
+
+_ADMIN_SESSAO_MAX_S = 12 * 3600
+
+
+def _admin_ativo() -> bool:
+    """Sessão de admin com prazo próprio: o cookie do site dura 30 dias
+    (login da Steam), o admin não. Guarda a hora do login; valor antigo
+    (True, de antes do prazo) não vale mais."""
+    quando = session.get("admin")
+    if isinstance(quando, bool) or not isinstance(quando, (int, float)):
+        return False
+    return 0 <= time.time() - quando < _ADMIN_SESSAO_MAX_S
 
 
 def create_app() -> Flask:
@@ -260,6 +273,10 @@ def create_app() -> Flask:
     # sem cabeçalho X-Forwarded-*, não muda nada.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
+    # Login da Steam dura 30 dias ou até "Sair" (revisão 2026-11-16; antes
+    # acabava ao fechar o navegador). account.login_callback marca a sessão
+    # como permanente; o admin tem limite próprio (_admin_ativo, 12 h).
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     # "Secure" exige HTTPS -- ligar sempre quebraria o dev local (http).
@@ -1188,7 +1205,7 @@ def create_app() -> Flask:
         if request.method == "POST":
             senha = request.form.get("senha") or ""
             if check_password_hash(_ADMIN_PASSWORD_HASH, senha):
-                session["admin"] = True
+                session["admin"] = time.time()
                 return redirect(url_for("admin"))
             erro = "Senha incorreta."
         return render_template("admin_login.html", erro=erro)
@@ -1208,7 +1225,7 @@ def create_app() -> Flask:
         sempre nega (404), nunca abre "sem senha" por padrão."""
         if not _ADMIN_PASSWORD_HASH:
             return render_template("404.html"), 404
-        if not session.get("admin"):
+        if not _admin_ativo():
             return redirect(url_for("admin_login"))
         erros = []
         erros_agregados = []

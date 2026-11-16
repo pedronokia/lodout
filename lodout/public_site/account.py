@@ -289,6 +289,7 @@ def login_callback():
         avatar_url=perfil.get("avatar_url"),
     )
     session["steamid"] = steamid
+    session.permanent = True  # 30 dias ou até "Sair" (PERMANENT_SESSION_LIFETIME)
     # Inventário sincroniza sozinho a cada login (ação da própria pessoa),
     # em segundo plano pra não deixar o login lento (conta-inventario.md).
     inventario.sincronizar_em_segundo_plano(steamid)
