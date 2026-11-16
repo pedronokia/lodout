@@ -139,6 +139,9 @@
     Object.keys(contagem).forEach(function (f) {
       var el = ferramentas.querySelector('[data-conta-contagem="' + f + '"]');
       if (el) el.textContent = contagem[f];
+      // Filtro sem nenhum item: mais apagado (continua clicável).
+      var bt = el && el.closest(".conta-filtro");
+      if (bt) bt.classList.toggle("conta-filtro-vazio", contagem[f] === 0 && f !== estado.filtro);
     });
     var mostrando = ferramentas.querySelector("[data-conta-mostrando]");
     if (mostrando) {
@@ -162,6 +165,11 @@
   if (ferramentas && corpo) {
     linhas().forEach(function (tr, i) { tr.setAttribute("data-ordem", i); });
     ferramentas.hidden = false;
+    // "Como ler esta tabela" entra na barra, ao lado do "Ordenar" (no
+    // celular, uma linha a menos). Sem JavaScript fica onde está.
+    var comoLer = document.querySelector(".como-ler");
+    var mostrandoEl = ferramentas.querySelector("[data-conta-mostrando]");
+    if (comoLer) ferramentas.insertBefore(comoLer, mostrandoEl);
     var busca = ferramentas.querySelector("[data-conta-busca]");
     var ordem = ferramentas.querySelector("[data-conta-ordem]");
     limparBusca = function () { if (busca) busca.value = ""; estado.busca = ""; };

@@ -6616,3 +6616,21 @@ input, textarea { caret-color: var(--accent); }
   .resumo-cards-conta .card { padding: 12px 14px; gap: 2px; }
   table.tabela-conta .celula-item-conta-extra .form-inline { width: auto; }
 }
+
+/* Revisão 2026-11-16 (33/40). Filtro sem nenhum item agora ("No lucro
+   0"): borda tracejada e texto mais fraco, para não parecer igual aos
+   outros (continua clicável). */
+.conta-filtro.conta-filtro-vazio { border-style: dashed; color: var(--text-muted); }
+.conta-filtro.conta-filtro-vazio:hover { border-style: solid; }
+/* "Como ler" dentro da barra (conta.js o move para lá): ao lado do
+   "Ordenar"; aberto, ocupa a linha inteira. */
+.conta-ferramentas > .como-ler { margin: 0; }
+.conta-ferramentas > .como-ler[open] { flex-basis: 100%; }
+@media (max-width: 640px) {
+  /* "17 itens" já aparece em "Todos 17" logo abaixo. */
+  .resumo-cards-conta [data-total="valor_sub"] { display: none; }
+  .conta-ferramentas { column-gap: var(--sp-2); }
+  .conta-ferramentas > .como-ler > summary { font-size: var(--fs-xs); }
+}
+/* Linhas de apoio dos cartões sem palavra sozinha na última linha. */
+.resumo-cards-conta .card-sub { text-wrap: pretty; }
