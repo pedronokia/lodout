@@ -167,22 +167,25 @@
     </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
-    <table class="tabela-candidatos tabela-cards-mobile tabela-conta" data-taxa="{{ taxa_steam_pct }}" data-login-url="{{ url_for('account.login') }}">
-      <thead class="cabecalho-fixo-conta">
-        <tr>
+    {# Papéis explícitos (revisão 2026-11-16): no celular as linhas viram
+       cartões (display: grid) e o Safari pode deixar de anunciar a tabela
+       ao VoiceOver; com os papéis, continua sendo tabela. #}
+    <table role="table" class="tabela-candidatos tabela-cards-mobile tabela-conta" data-taxa="{{ taxa_steam_pct }}" data-login-url="{{ url_for('account.login') }}">
+      <thead role="rowgroup" class="cabecalho-fixo-conta">
+        <tr role="row">
           {# data-ordenar-coluna: conta.js transforma o título num botão
              que ordena a lista (só com as ferramentas, 8+ itens). #}
-          <th data-ordenar-coluna="nome">Item</th>
-          <th title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
-          <th class="col-num" data-ordenar-coluna="valor">Vale hoje</th>
-          <th class="col-num" data-ordenar-coluna="lucro" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
-          <th class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por <span class="th-sub">o comprador paga</span></th>
+          <th role="columnheader" data-ordenar-coluna="nome">Item</th>
+          <th role="columnheader" title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
+          <th role="columnheader" class="col-num" data-ordenar-coluna="valor">Vale hoje</th>
+          <th role="columnheader" class="col-num" data-ordenar-coluna="lucro" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
+          <th role="columnheader" class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por <span class="th-sub">o comprador paga</span></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody role="rowgroup">
         {% for row in avaliacao.rows %}
-        <tr class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
-          <td data-label="Item">
+        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
+          <td role="cell" data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
               <span class="icone-item-placeholder"></span>
@@ -229,7 +232,7 @@
             </span>
             </div>
           </td>
-          <td data-label="Você pagou">
+          <td role="cell" data-label="Você pagou">
             {# Salva sozinho (Enter ou ao sair do campo) quando há
                JavaScript (conta.js); sem ele, o botão "salvar" envia. #}
             <form method="post" action="{{ url_for('account.editar_custo', name=row.name) }}" class="form-inline form-custo">
@@ -250,18 +253,18 @@
           {% if row.price is not none %}
           {% if row.quantity and row.quantity > 1 %}
           {# Mais de uma unidade: o preço é de cada uma; o lucro, do total. #}
-          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}><span class="valor-unidade">{{ row.price_fmt }} <span class="valor-cada">cada</span></span><span class="valor-total"><span class="sem-quebra">{{ row.valor_total_fmt }}</span> <span class="sem-quebra">no total</span></span></td>
+          <td role="cell" data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}><span class="valor-unidade">{{ row.price_fmt }} <span class="valor-cada">cada</span></span><span class="valor-total"><span class="sem-quebra">{{ row.valor_total_fmt }}</span> <span class="sem-quebra">no total</span></span></td>
           {% else %}
-          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}>{{ row.price_fmt }}</td>
+          <td role="cell" data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}>{{ row.price_fmt }}</td>
           {% endif %}
           {% else %}
-          <td data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
+          <td role="cell" data-label="Vale hoje" class="celula-numero celula-sem-valor" title="O Lodout ainda não tem o preço deste item">sem preço</td>
           {% endif %}
-          <td data-label="Lucro hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
+          <td role="cell" data-label="Lucro hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
             <span data-campo="lucro-valor">{{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}</span>
             <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
           </td>
-          <td data-label="Venda por" class="celula-venda-por">
+          <td role="cell" data-label="Venda por" class="celula-venda-por">
             <button type="button" class="acao-texto venda-por-falta" data-ir-ao-campo aria-label="Informar quanto pagou em {{ row.name_fmt }}">informe quanto pagou</button>
             <span class="venda-por-bloco">
             {# Clicar no preço copia o número (ex.: "53,41") para colar na
@@ -275,9 +278,9 @@
       </tbody>
       {# Num corpo à parte: assim a última linha de item é mesmo a última do
          primeiro corpo (sem borda dupla no fim da tabela). #}
-      <tbody class="corpo-nenhum">
-        <tr class="linha-nenhum" data-conta-nenhum hidden>
-          <td colspan="5"><span data-nenhum-texto>Nenhum item com esse filtro.</span> <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
+      <tbody role="rowgroup" class="corpo-nenhum">
+        <tr role="row" class="linha-nenhum" data-conta-nenhum hidden>
+          <td role="cell" colspan="5"><span data-nenhum-texto>Nenhum item com esse filtro.</span> <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
         </tr>
       </tbody>
     </table>

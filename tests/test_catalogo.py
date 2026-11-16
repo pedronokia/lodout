@@ -285,7 +285,7 @@ def test_conta_usa_preco_do_catalogo(client):
         s["steamid"] = sid
     body = client.get("/conta").data.decode("utf-8")
     # A célula diz de quando é o preço (dica ao passar o mouse).
-    assert '<td data-label="Vale hoje" class="celula-numero" title="Preço coletado ' in body
+    assert '<td role="cell" data-label="Vale hoje" class="celula-numero" title="Preço coletado ' in body
     assert '>R$ 2,00</td>' in body
 
 

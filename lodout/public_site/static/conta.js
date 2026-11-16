@@ -649,9 +649,15 @@
         aviso.appendChild(desfazer);
         var marca = String(Date.now());
         aviso.setAttribute("data-marca", marca);
-        setTimeout(function () {
-          if (aviso.getAttribute("data-marca") === marca) { aviso.textContent = ""; aviso.removeAttribute("data-marca"); }
-        }, 6000);
+        // Some depois de 15 s (eram 6 s, curto para quem lê devagar ou
+        // usa leitor de tela) e nunca enquanto o mouse ou o foco estão
+        // no "desfazer" (revisão 2026-11-16).
+        var sumir = function () {
+          if (aviso.getAttribute("data-marca") !== marca) return;
+          if (aviso.matches(":hover") || aviso.contains(document.activeElement)) { setTimeout(sumir, 3000); return; }
+          aviso.textContent = ""; aviso.removeAttribute("data-marca");
+        };
+        setTimeout(sumir, 15000);
       }
       if (linha) {
         texto(linha.querySelector('[data-campo="empate"]'), d.empate_fmt || "—");
