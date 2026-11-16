@@ -257,7 +257,7 @@
                     {% if row.quantity and row.quantity > 1 %}
                     <label>Unidades <input type="number" name="quantidade" min="1" max="{{ row.quantity }}" value="{{ row.quantity }}" inputmode="numeric" class="input-compacto input-quantidade"></label>
                     {% else %}<input type="hidden" name="quantidade" value="1">{% endif %}
-                    <label>Comprador pagou R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" class="input-compacto input-venda"> cada</label>
+                    <label>Comprador pagou R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.empate * (1 + meta_lucro / 100)))|replace('.', ',') if row.empate else (('%.2f'|format(row.price))|replace('.', ',') if row.price else '') }}" class="input-compacto input-venda"> cada</label>
                     <label class="caixa-marcar"><input type="checkbox" name="confirmado" value="1" required> Confirmo que vendi</label>
                     <button type="submit" class="botao-link botao-confirmar-venda">Confirmar venda</button>
                   </form>

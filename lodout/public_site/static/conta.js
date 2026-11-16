@@ -909,7 +909,21 @@
       campoQtd.value = String(qtd);
       formVendi.querySelector("[data-janela-vendi-qtd-campo]").hidden = qtd <= 1;
       formVendi.querySelector("[data-janela-vendi-de]").textContent = "de " + qtd;
-      campoPreco.value = d.getAttribute("data-vendi-preco") || "";
+      // Preço que vem preenchido (pedido do usuário, 16/11): quem anuncia
+      // costuma usar o "Lucrar X%" recomendado na própria linha; sem valor
+      // pago, o preço de hoje.
+      var trVenda = d.closest("tr");
+      var empateVenda = trVenda ? Number(trVenda.getAttribute("data-empate") || 0) : 0;
+      var seletorMeta = document.querySelector('select[name="meta"]');
+      var metaVenda = Number((seletorMeta && seletorMeta.value) || 20);
+      var dica = formVendi.querySelector("[data-janela-vendi-dica]");
+      if (empateVenda > 0) {
+        campoPreco.value = (Math.round(empateVenda * (1 + metaVenda / 100) * 100) / 100).toFixed(2).replace(".", ",");
+        if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se anunciou por outro valor.";
+      } else {
+        campoPreco.value = d.getAttribute("data-vendi-preco") || "";
+        if (dica) dica.textContent = "Já vem o preço de hoje. Corrija se vendeu por outro valor.";
+      }
       var custo = d.getAttribute("data-vendi-custo");
       custoVendi = custo ? Number(custo) : null;
       contarVenda();
