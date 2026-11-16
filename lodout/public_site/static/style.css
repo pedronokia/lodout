@@ -6634,3 +6634,23 @@ input, textarea { caret-color: var(--accent); }
 }
 /* Linhas de apoio dos cartões sem palavra sozinha na última linha. */
 .resumo-cards-conta .card-sub { text-wrap: pretty; }
+.custo-salvo.custo-erro a { color: inherit; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+
+/* Topo no celular estreito (revisão 2026-11-16): com nome longo, ou sem
+   nome ("Conta"), o ícone de sair caía sozinho numa segunda linha. Com a
+   foto da Steam, o botão da conta mostra só a foto (o nome continua para
+   leitores de tela e aparece embaixo do título da conta); links um pouco
+   mais juntos. */
+@media (max-width: 400px) {
+  .topo-linha > .barra-acoes { column-gap: 4px; }
+  .conta-nav a { padding-left: 5px; padding-right: 5px; }
+  .conta-nome { max-width: 56px; }
+  .conta-pill:has(.conta-avatar) .conta-nome {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}

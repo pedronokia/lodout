@@ -191,6 +191,22 @@ def test_buscando_inventario_nao_fica_preso(client):
     assert "Inventário da Steam atualizado" in pagina
 
 
+def test_conta_vazia_buscando_mostra_so_uma_mensagem(client):
+    """Revisão de 16/11: "Buscando…" e "Nenhum item ainda" juntos se
+    contradiziam na primeira visita."""
+    import time
+    sid = "76561198000000004"
+    user_store.save_user_json(sid, "inventario_sync", {
+        "em_andamento": True, "iniciado_ts": time.time()})
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Buscando seu inventário" in pagina
+    assert "Nenhum item ainda" not in pagina
+    user_store.save_user_json(sid, "inventario_sync", {"status": "ok", "ts": time.time()})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Nenhum item ainda" in pagina
+
+
 # ── lotes: o mesmo item pago por valores diferentes (2026-11-15) ─────
 
 def test_separar_e_juntar_lotes():

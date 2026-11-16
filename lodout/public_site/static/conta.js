@@ -374,6 +374,27 @@
   }
 
   // Troca o texto e, se mudou, realça de leve (.acabou-de-mudar).
+  // Aviso de "não salvou" ao lado do campo. O valor digitado continua no
+  // campo (e o aviso de sair da página com valor não salvo continua valendo).
+  function avisarFalha(aviso, r) {
+    if (!aviso) return;
+    aviso.removeAttribute("data-marca");
+    aviso.classList.add("custo-erro");
+    if (r.falha === "login") {
+      aviso.textContent = "Seu login expirou. ";
+      var entrar = document.createElement("a");
+      entrar.href = aviso.closest("[data-login-url]") ? aviso.closest("[data-login-url]").getAttribute("data-login-url") : "/login";
+      entrar.textContent = "Entrar de novo";
+      aviso.appendChild(entrar);
+      return;
+    }
+    aviso.textContent = r.falha === "rede"
+      ? "Sem conexão: não salvou. Tente de novo."
+      : r.falha === "servidor"
+        ? "Não deu para salvar agora. Tente de novo em instantes."
+        : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
+  }
+
   function texto(el, valor) {
     if (!el) return;
     var mudou = el.textContent.trim() !== String(valor).trim();
@@ -529,19 +550,26 @@
     var botao = form.querySelector("button[type=submit]");
     if (botao) botao.disabled = true;
     texto(aviso, "salvando…");
+    // redirect "manual": login expirado responde com redirecionamento para
+    // entrar (que vai à Steam); seguir daria erro de rede. Revisão
+    // 2026-11-16: falha ao salvar fica na página, com o valor no campo e
+    // um aviso ao lado -- antes caía no envio normal e saía da conta.
     fetch(form.action, {
       method: "POST",
       body: dadosForm,
       headers: { "Accept": "application/json" },
-      credentials: "same-origin"
+      credentials: "same-origin",
+      redirect: "manual"
     }).then(function (resp) {
-      return resp.json().then(function (dados) { return { ok: resp.ok, dados: dados }; });
-    }).then(function (r) {
-      if (!r.ok || !r.dados.ok) {
+      if (resp.type === "opaqueredirect" || resp.status === 401 || resp.status === 403) return { falha: "login" };
+      return resp.json().then(function (dados) {
+        return { ok: resp.ok, dados: dados };
+      }, function () { return { falha: "servidor" }; });
+    }, function () { return { falha: "rede" }; }).then(function (r) {
+      if (r.falha || !r.ok || !r.dados || !r.dados.ok) {
         form.removeAttribute("data-ultimo");
-        texto(aviso, (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.");
+        avisarFalha(aviso, r);
         if (campo) campo.focus(); // o erro aparece ao lado: foco no campo para corrigir
-        if (aviso) aviso.classList.add("custo-erro");
         return;
       }
       var d = r.dados;

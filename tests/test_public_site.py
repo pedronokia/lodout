@@ -1990,7 +1990,7 @@ def test_usuario_logado_aparece_fora_de_conta(client, monkeypatch, tmp_path):
         sess["steamid"] = "123"
     body = client.get("/ranking").data.decode("utf-8")
     assert "Fulano" in body
-    assert '<span class="conta-nome">Minha conta</span>' not in body
+    assert '<span class="conta-nome">Conta</span>' not in body
     assert 'class="conta-avatar" src="/conta/avatar.jpg"' in body
     # Nunca o host da Steam direto: fora da CSP, a imagem saía quebrada.
     assert "example.com/a.jpg" not in body

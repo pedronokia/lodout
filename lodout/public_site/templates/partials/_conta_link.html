@@ -17,7 +17,7 @@
       {% if avatar_local %}
       <img class="conta-avatar" src="{{ url_for('account.avatar') }}" alt="" width="24" height="24" loading="lazy">
       {% endif %}
-      <span class="conta-nome">{{ usuario.persona_name if usuario and usuario.persona_name else "Minha conta" }}</span>
+      <span class="conta-nome">{{ usuario.persona_name if usuario and usuario.persona_name else "Conta" }}</span>
     </a>
     <a class="conta-sair" href="{{ url_for('account.logout') }}" title="Sair" aria-label="Sair">{{ icone("sair") }}</a>
   </span>

@@ -165,7 +165,7 @@
     </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
-    <table class="tabela-candidatos tabela-cards-mobile tabela-conta" data-taxa="{{ taxa_steam_pct }}">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta" data-taxa="{{ taxa_steam_pct }}" data-login-url="{{ url_for('account.login') }}">
       <thead class="cabecalho-fixo-conta">
         <tr>
           {# data-ordenar-coluna: conta.js transforma o título num botão
@@ -279,12 +279,16 @@
     </table>
     </div>
     {% else %}
-      {# Conta vazia: o que aparece aqui e o que fazer (2026-11-15). #}
+      {# Conta vazia: o que aparece aqui e o que fazer (2026-11-15).
+         Enquanto a busca do inventário roda, a linha "Buscando…" basta:
+         "Nenhum item ainda" ao mesmo tempo se contradizia (revisão 16/11). #}
+      {% if not inv.em_andamento %}
       <div class="conta-vazia">
         <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens de CS2 aparecem aqui sozinhos.</p>
         <p>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Depois é só informar quanto pagou em cada item para ver por quanto vender sem prejuízo.</p>
         <p>Não apareceu nada? Confira se o inventário está como Público na Steam (Perfil → Editar perfil → Privacidade). Se preferir, adicione um item à mão abaixo.</p>
       </div>
+      {% endif %}
     {% endif %}
 
     {# O inventário vem sozinho; adicionar à mão fica recolhido, no fim. #}

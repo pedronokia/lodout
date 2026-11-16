@@ -531,6 +531,8 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     # Revisão de 16/11 (32/40): com itens, o celular esconde a frase do
     # topo (classe no cabeçalho); "cada" fica junto do preço.
     assert 'cabecalho-pagina cabecalho-conta-com-itens' in pagina
+    # Falha ao salvar com login expirado: conta.js mostra "Entrar de novo".
+    assert 'data-login-url="/login"' in pagina
     assert 'class="conta-identidade-frase">seus itens da Steam' in pagina
 
 
