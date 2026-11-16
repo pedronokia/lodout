@@ -4184,8 +4184,8 @@ def test_icones_do_site_usam_a_marca_das_aspas(client):
     as mesmas aspas da barra -- a vela vermelha da marca antiga saiu."""
     svg = client.get("/static/favicon.svg").data.decode("utf-8")
     assert "#dc2626" not in svg                # vermelho da vela antiga
-    assert "#f97316" in svg                    # aspas no laranja da marca (16/11)
-    assert "<circle" in svg                    # ícone redondo (16/11)
+    assert "radialGradient" in svg and "<circle" in svg  # bolinha laranja (16/11)
+    assert 'fill="#161616"' in svg             # aspas em preto (16/11)
     assert "M12 12a1 1 0 0 0 1-1" in svg       # desenho das aspas
 
     from PIL import Image
@@ -4195,12 +4195,12 @@ def test_icones_do_site_usam_a_marca_das_aspas(client):
         img = Image.open(io.BytesIO(dados)).convert("RGB")
         assert img.size == (lado, lado)
         px = img.load()
-        brancos = sum(1 for y in range(lado) for x in range(lado)
-                      if px[x, y][0] > 200 and 80 < px[x, y][1] < 150 and px[x, y][2] < 80)
         escuros = sum(1 for y in range(lado) for x in range(lado)
-                      if sum(px[x, y]) < 200)
-        assert brancos > lado * lado * 0.05   # aspas laranja
-        assert escuros > lado * lado * 0.70   # fundo escuro
+                      if sum(px[x, y]) < 150)
+        laranjas = sum(1 for y in range(lado) for x in range(lado)
+                       if px[x, y][0] > 180 and px[x, y][2] < 120)
+        assert escuros > lado * lado * 0.03   # aspas pretas
+        assert laranjas > lado * lado * 0.70  # fundo laranja (16/11)
 
 
 def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
