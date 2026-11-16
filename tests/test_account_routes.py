@@ -528,6 +528,10 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     assert 'class="card card-nota-destaque"' not in pagina
     assert 'placeholder="quanto?"' in pagina
     assert 'placeholder="0,00"' not in pagina
+    # Revisão de 16/11 (32/40): com itens, o celular esconde a frase do
+    # topo (classe no cabeçalho); "cada" fica junto do preço.
+    assert 'cabecalho-pagina cabecalho-conta-com-itens' in pagina
+    assert 'class="conta-identidade-frase">seus itens da Steam' in pagina
 
 
 def test_liquido_diz_que_e_depois_da_taxa():
@@ -535,7 +539,7 @@ def test_liquido_diz_que_e_depois_da_taxa():
     tx = account._textos_totais({"positions": 2, "known_cost": 0, "unknown_cost": 2,
                                  "net_if_sold": 86.96, "market_value": 100.0})
     # "sem a taxa" dava para ler como "sem contar a taxa" (o bruto).
-    assert tx["liquido_sub"] == "você recebe R$\u00a086,96 depois da taxa da Steam"
+    assert tx["liquido_sub"] == "você recebe R$\u00a086,96 depois da taxa"
 
 
 def test_adicionar_a_mao_aceita_virgula(client, monkeypatch):

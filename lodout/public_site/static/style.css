@@ -6583,3 +6583,36 @@ input, textarea { caret-color: var(--accent); }
   table.tabela-conta tbody td[data-label="Vale hoje"],
   table.tabela-conta tbody td[data-label="Venda por"] { align-items: flex-end; text-align: right; }
 }
+
+/* Revisão 2026-11-16 (nota 32/40): ações de cada linha no mesmo tom.
+   "informe quanto pagou", "valores diferentes?" e "juntar lotes" em cinza;
+   laranja só sob o mouse ou com foco. O laranja fica para o "Preencher
+   agora" e para as ações do topo da lista. */
+.separar-lote > summary.acao-texto,
+.botao-juntar.acao-texto { color: var(--text-muted); }
+.separar-lote > summary.acao-texto:hover,
+.separar-lote > summary.acao-texto:focus-visible,
+.separar-lote[open] > summary.acao-texto,
+.botao-juntar.acao-texto:hover,
+.botao-juntar.acao-texto:focus-visible { color: var(--accent-bright); }
+/* "R$ 0,23 cada" sempre junto (no celular a célula é coluna flex e o
+   "cada" caía sozinho numa linha). */
+.valor-unidade { white-space: nowrap; }
+
+/* Celular: a lista chega mais cedo. Quem já tem itens vê o título menor,
+   sem a frase de explicação (que continua na conta vazia e no
+   computador); cartões mais baixos; ações do lote numa linha só (o
+   .form-inline ocupava a linha inteira no cartão do celular). */
+@media (max-width: 640px) {
+  .cabecalho-conta-com-itens { margin-bottom: var(--sp-3); }
+  .cabecalho-conta-com-itens .titulo-pagina { font-size: 1.5rem; margin-bottom: 2px; }
+  .cabecalho-conta-com-itens .conta-identidade-frase { display: none; }
+  .cabecalho-conta-com-itens .conta-identidade:not(:has(.conta-identidade-nome)) { display: none; }
+  .cabecalho-conta-com-itens .conta-identidade { font-size: var(--fs-sm); margin-top: 0; }
+  /* "Seus itens" não pode passar o título da página (24px). */
+  .cabecalho-conta-com-itens ~ * .secao-titulo,
+  .cabecalho-conta-com-itens ~ .secao-titulo { font-size: var(--fs-copy); }
+  .resumo-cards-conta { gap: var(--sp-2); }
+  .resumo-cards-conta .card { padding: 12px 14px; gap: 2px; }
+  table.tabela-conta .celula-item-conta-extra .form-inline { width: auto; }
+}
