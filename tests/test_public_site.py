@@ -4179,14 +4179,13 @@ def test_manifest_json_tem_icones_png(client):
         assert resp.mimetype == "image/png"
 
 
-def test_icones_do_site_usam_a_marca_das_aspas(client):
-    """Decisão de 2026-11-11: o ícone da aba e o do celular passaram a ser
-    as mesmas aspas da barra -- a vela vermelha da marca antiga saiu."""
+def test_icones_do_site_usam_o_l_da_marca(client):
+    """16/11 (escolha do usuário): o ícone da aba e o do celular são o "L"
+    de Lodout em itálico, com o degradê "fade", sobre fundo escuro."""
     svg = client.get("/static/favicon.svg").data.decode("utf-8")
     assert "#dc2626" not in svg                # vermelho da vela antiga
-    assert "radialGradient" in svg and "<circle" in svg  # bolinha laranja (16/11)
-    assert 'fill="#161616"' in svg             # aspas em preto (16/11)
-    assert "M12 12a1 1 0 0 0 1-1" in svg       # desenho das aspas
+    assert 'id="fade"' in svg and "<circle" in svg
+    assert "Fraunces" in svg                   # origem do desenho (licença OFL)
 
     from PIL import Image
     import io
@@ -4196,11 +4195,11 @@ def test_icones_do_site_usam_a_marca_das_aspas(client):
         assert img.size == (lado, lado)
         px = img.load()
         escuros = sum(1 for y in range(lado) for x in range(lado)
-                      if sum(px[x, y]) < 150)
-        laranjas = sum(1 for y in range(lado) for x in range(lado)
-                       if px[x, y][0] > 180 and px[x, y][2] < 120)
-        assert escuros > lado * lado * 0.03   # aspas pretas
-        assert laranjas > lado * lado * 0.70  # fundo laranja (16/11)
+                      if sum(px[x, y]) < 200)
+        coloridos = sum(1 for y in range(lado) for x in range(lado)
+                        if max(px[x, y]) - min(px[x, y]) > 120)
+        assert escuros > lado * lado * 0.55   # fundo escuro
+        assert coloridos > lado * lado * 0.05  # L em degradê
 
 
 def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
