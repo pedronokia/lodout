@@ -148,6 +148,8 @@
       </label>
       <p class="conta-mostrando" data-conta-mostrando role="status" aria-live="polite"></p>
     </div>
+    {# Celular com lista longa: depois de rolar, volta à busca (conta.js). #}
+    <button type="button" class="botao-topo botao-ir-busca" data-ir-busca hidden>{{ icone("lupa") }}<span>Buscar</span></button>
     {% endif %}
     {# Para iniciantes: o que cada coluna quer dizer (2026-11-15). #}
     <details class="como-ler">

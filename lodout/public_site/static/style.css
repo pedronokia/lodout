@@ -6654,3 +6654,37 @@ input, textarea { caret-color: var(--accent); }
     white-space: nowrap;
   }
 }
+
+/* Botão "Buscar" da conta (revisão 2026-11-16): mesmo desenho do "voltar
+   ao topo" da home, em pílula com texto. Só no celular. */
+.botao-ir-busca {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 0 13px;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.botao-ir-busca[hidden] { display: none; }
+.botao-ir-busca:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@media (min-width: 641px) {
+  .botao-ir-busca { display: none; }
+}
+
+/* Celular: "remover" sem os 44px de altura na linha (afastavam o
+   desgaste do nome); a área de toque cresce por um pseudo-elemento,
+   mais para baixo, para não cobrir o nome do item. */
+@media (max-width: 640px) {
+  table.tabela-conta .celula-item-conta-extra .botao-remover {
+    position: relative;
+    min-height: 0;
+  }
+  table.tabela-conta .celula-item-conta-extra .botao-remover::after {
+    content: "";
+    position: absolute;
+    inset: -4px -8px -16px;
+  }
+}

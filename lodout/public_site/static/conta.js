@@ -172,6 +172,33 @@
     if (comoLer) ferramentas.insertBefore(comoLer, mostrandoEl);
     var busca = ferramentas.querySelector("[data-conta-busca]");
     var ordem = ferramentas.querySelector("[data-conta-ordem]");
+    // Botão "Buscar" (celular, revisão 2026-11-16): com a lista longa, a
+    // busca fica lá em cima; depois de passar dela, um botão volta até ela
+    // e já põe o cursor no campo. No computador o CSS esconde (tem o "/").
+    var irBusca = document.querySelector("[data-ir-busca]");
+    if (irBusca && busca) {
+      var mostrarIrBusca = function () {
+        irBusca.hidden = ferramentas.getBoundingClientRect().bottom > 0;
+      };
+      document.addEventListener("scroll", mostrarIrBusca, { passive: true });
+      irBusca.addEventListener("click", function () {
+        var reduzir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var topo = document.querySelector("header.topo");
+        var folga = (topo ? topo.getBoundingClientRect().height : 0) + 8;
+        var destino = ferramentas.getBoundingClientRect().top + window.scrollY - folga;
+        // Muito longe (lista grande): pula direto, rolar suave levaria segundos.
+        var longe = Math.abs(window.scrollY - destino) > 3 * window.innerHeight;
+        busca.focus({ preventScroll: true });
+        // "instant" fura o scroll-behavior: smooth do CSS; navegador antigo
+        // que não conhece o valor recusa, e cai no "auto".
+        try {
+          window.scrollTo({ top: destino, behavior: reduzir || longe ? "instant" : "smooth" });
+        } catch (erro) {
+          window.scrollTo(0, destino);
+        }
+      });
+      mostrarIrBusca();
+    }
     limparBusca = function () { if (busca) busca.value = ""; estado.busca = ""; };
     escolherFiltro = function (f) {
       estado.filtro = f;

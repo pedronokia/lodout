@@ -708,3 +708,17 @@ def test_lucro_diz_de_quantos_itens_e():
     t.update(unknown_cost=0, known_cost=17, market_sem_custo=0)
     assert account._textos_totais(t)["lucro_sub"] == "−50,3% do que você pagou"
     assert account._textos_totais(t)["falta_texto"] == ""
+
+
+def test_lista_longa_tem_ferramentas_e_botao_de_voltar_a_busca(client, monkeypatch):
+    """Com 8+ itens a conta ganha busca/filtros e, no celular, o botão
+    "Buscar" que volta até eles depois de rolar (revisão de 16/11)."""
+    from lodout.public_site import user_portfolio
+    _login(client, monkeypatch)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "data-ir-busca" not in pagina
+    for i in range(8):
+        user_portfolio.add_position("76561198000000000", f"Caixa {i}", 1.0)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "data-conta-ferramentas" in pagina
+    assert 'data-ir-busca hidden' in pagina
