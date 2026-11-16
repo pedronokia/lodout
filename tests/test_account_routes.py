@@ -687,16 +687,21 @@ def test_item_mostra_na_sua_conta_so_para_quem_tem(client, monkeypatch):
     assert r.headers["Cache-Control"] == "private, no-store"
 
 
-def test_mudanca_desde_a_visita_anterior():
+def test_mudanca_desde_ontem():
+    """Revisão de 16/11: comparar com ~24 h atrás, não com o ponto anterior
+    (reabrir a conta minutos depois repetia o mesmo número)."""
     from lodout.public_site import account
-    assert account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}]) is None
-    m = account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}, {"ts": 2, "total": 103.2}])
-    assert m["texto"] == "+R$ 3,20" and m["classe"] == "valor-positivo"
-    m = account._mudanca_desde_ultima_visita([{"ts": 1, "total": 100.0}, {"ts": 2, "total": 90.0}])
-    assert m["texto"] == "−R$ 10,00"
-    # Visita com a conta vazia (R$ 0) não serve de base: era o "+ o valor
-    # inteiro desde a última vez" do print de 15/11.
-    assert account._mudanca_desde_ultima_visita([{"ts": 1, "total": 0.0}, {"ts": 2, "total": 197.43}]) is None
+    h, agora = 3600, 1_000_000.0
+    assert account._mudanca_recente([{"ts": agora, "total": 100.0}], agora) is None
+    # Ponto anterior recente demais (1 h): sem base, sem frase.
+    assert account._mudanca_recente([{"ts": agora - h, "total": 100.0}, {"ts": agora, "total": 103.2}], agora) is None
+    m = account._mudanca_recente([{"ts": agora - 30 * h, "total": 100.0}, {"ts": agora - h, "total": 101.0},
+                                  {"ts": agora, "total": 103.2}], agora)
+    assert m["texto"] == "+R$ 3,20" and m["periodo"] == "desde ontem" and m["classe"] == "valor-positivo"
+    m = account._mudanca_recente([{"ts": agora - 80 * h, "total": 100.0}, {"ts": agora, "total": 90.0}], agora)
+    assert m["texto"] == "\u2212R$ 10,00" and m["periodo"] == "nos últimos 3 dias"
+    # Conta vazia (R$ 0) não serve de base: era o "+ o valor inteiro" de 15/11.
+    assert account._mudanca_recente([{"ts": agora - 30 * h, "total": 0.0}, {"ts": agora, "total": 197.43}], agora) is None
 
 
 def test_lucro_diz_de_quantos_itens_e():

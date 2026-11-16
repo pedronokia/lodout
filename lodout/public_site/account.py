@@ -338,7 +338,7 @@ def conta():
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
     serie = user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
-    mudanca = _mudanca_desde_ultima_visita(serie)
+    mudanca = _mudanca_recente(serie)
     _marcar_lotes(avaliacao_bruta["rows"], positions)
     # Mais valioso primeiro (2026-11-15): com o inventário inteiro na
     # lista, a ordem de chegada deixava a faca no meio dos adesivos.
@@ -377,13 +377,28 @@ def conta():
     )
 
 
-def _mudanca_desde_ultima_visita(serie: "list[dict]") -> "dict | None":
-    """Quanto o total de "Tudo vale hoje" mudou desde o ponto anterior do
-    histórico da carteira (gravado a cada visita em que o valor mudou).
-    Inclui itens que entraram ou saíram, não só preço -- o título explica."""
+# Base da comparação do cartão "Vale hoje": o ponto mais recente com pelo
+# menos 20 h. Antes era o ponto anterior do histórico (só grava quando o
+# total muda), então reabrir a conta minutos depois repetia o mesmo
+# "+R$ X desde a última vez" (revisão 2026-11-16).
+_MUDANCA_IDADE_MIN_S = 20 * 3600
+
+
+def _mudanca_recente(serie: "list[dict]", agora: "float | None" = None) -> "dict | None":
+    """Quanto o total de "Vale hoje" mudou desde ontem (ou nos últimos N
+    dias, se o ponto de ~24 h atrás não existir). Inclui itens que
+    entraram ou saíram, não só preço -- o título explica."""
     if not serie or len(serie) < 2:
         return None
-    atual, antes = serie[-1], serie[-2]
+    agora = time.time() if agora is None else agora
+    atual = serie[-1]
+    antes = None
+    for ponto in reversed(serie[:-1]):
+        if agora - float(ponto.get("ts") or 0) >= _MUDANCA_IDADE_MIN_S:
+            antes = ponto
+            break
+    if antes is None:
+        return None
     # Ponto zerado = visita com a conta ainda vazia (antes do inventário
     # chegar): comparar com ele dava "+ o valor inteiro" (achado
     # 2026-11-15, print do usuário). Sem base, sem frase.
@@ -398,10 +413,14 @@ def _mudanca_desde_ultima_visita(serie: "list[dict]") -> "dict | None":
     diff = float(atual.get("total") or 0) - float(antes.get("total") or 0)
     if abs(diff) < 0.005:
         return None
+    idade = agora - float(antes.get("ts") or 0)
+    dias = int(idade // 86400)
+    periodo = "desde ontem" if idade < 48 * 3600 else f"nos últimos {dias} dias"
     return {
         "texto": ("+" if diff > 0 else "") + fmt.brl(diff),
         "classe": "valor-positivo" if diff > 0 else "valor-negativo",
-        "quando": scan_store.idade_txt(antes.get("ts") or 0),
+        "periodo": periodo,
+        "quando": scan_store.idade_txt(antes.get("ts") or 0, now=agora),
     }
 
 

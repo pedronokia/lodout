@@ -6088,7 +6088,7 @@ def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_p
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Para revender sem prejuízo" in body
     assert "<strong>R$ 115,00</strong>" in body
-    assert "cerca de 15% de cada venda" in body
+    assert "15% sobre o que você recebe" in body and "cerca de 13% do que o comprador paga" in body
 
 
 def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, tmp_path):
