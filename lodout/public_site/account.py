@@ -53,6 +53,20 @@ def _openid_return_to_matches(expected: "str | None") -> bool:
     )
 
 
+def _idade_dos_precos(quandos: "list[float]") -> "str | None":
+    """De quando são os preços da lista, visível também no celular (a dica
+    por item só aparece passando o mouse -- revisão 2026-11-16). Vale o
+    mais antigo: "Preços coletados há até 20 h".
+    """
+    if not quandos:
+        return None
+    novo = scan_store.idade_txt(max(quandos))
+    velho = scan_store.idade_txt(min(quandos))
+    if novo == velho:
+        return f"Preços coletados {velho}."
+    return f"Preços coletados {velho.replace('há ', 'há até ', 1)}."
+
+
 def _preco_do_dia(positions: "list[dict]"):
     """Preço de cada item da conta: o da coleta com nota quando existe;
     senão o do catálogo amplo (todo o Mercado, 1x por dia). Só leitura
@@ -300,9 +314,12 @@ def conta():
     # quando a Steam não respondeu).
     preco_do_dia = _preco_do_dia(positions)
     avaliacao_bruta = portfolio.evaluate_portfolio(positions, preco_do_dia)
+    quandos = []
     for row in avaliacao_bruta["rows"]:
         quando = preco_do_dia.data(row["name"]) if row.get("price") is not None else None
         row["preco_idade"] = scan_store.idade_txt(quando) if quando else None
+        if quando:
+            quandos.append(quando)
     # Grava o ponto de histórico ANTES de formatar -- precisa do valor
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
@@ -341,6 +358,7 @@ def conta():
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         mudanca_valor=mudanca,
+        idade_precos=_idade_dos_precos(quandos),
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
 

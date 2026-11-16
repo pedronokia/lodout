@@ -127,7 +127,15 @@
     var digitando = ativo && ativo.classList && ativo.classList.contains("input-custo") && corpo.contains(ativo);
     var mudou = ordenadas.some(function (tr, i) { return todas[i] !== tr; });
     if (mudou && !digitando) ordenadas.forEach(function (tr) { corpo.appendChild(tr); });
-    if (nenhum) nenhum.hidden = visiveis > 0;
+    if (nenhum) {
+      nenhum.hidden = visiveis > 0;
+      // Numa busca, a mensagem fala da busca (antes dizia "filtro").
+      var nenhumTexto = nenhum.querySelector("[data-nenhum-texto]");
+      var nenhumBotao = nenhum.querySelector("[data-conta-limpar]");
+      var termo = estado.busca.trim();
+      if (nenhumTexto) nenhumTexto.textContent = termo ? "Nenhum item com “" + termo + "”." : "Nenhum item com esse filtro.";
+      if (nenhumBotao) nenhumBotao.textContent = termo ? "Limpar a busca" : "Mostrar todos";
+    }
     // A última linha visível fecha a tabela: sem borda de baixo nem canto
     // reto (com filtro, a última do corpo pode estar escondida).
     var ultima = null;
@@ -429,6 +437,17 @@
         : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
   }
 
+  // "confira: bem acima do preço": tocar mostra o porquê.
+  document.addEventListener("click", function (e) {
+    var bt = e.target.closest && e.target.closest("button.confira");
+    if (!bt) return;
+    var explica = document.getElementById(bt.getAttribute("aria-controls"));
+    if (!explica) return;
+    var abrir = explica.hidden;
+    explica.hidden = !abrir;
+    bt.setAttribute("aria-expanded", abrir ? "true" : "false");
+  });
+
   function texto(el, valor) {
     if (!el) return;
     var mudou = el.textContent.trim() !== String(valor).trim();
@@ -649,7 +668,11 @@
         linha.setAttribute("data-empate", d.empate ? String(d.empate) : "");
         titulosVenda(linha);
         var confira = linha.querySelector('[data-campo="confira"]');
-        if (confira) confira.textContent = d.confira || "";
+        if (confira) {
+          confira.textContent = d.confira || "";
+          var explica = document.getElementById(confira.getAttribute("aria-controls"));
+          if (explica && !d.confira) { explica.hidden = true; confira.setAttribute("aria-expanded", "false"); }
+        }
         if (lucro && !d.lucro_classe) lucro.classList.add("celula-sem-valor");
         else if (lucro) lucro.classList.remove("celula-sem-valor");
       }

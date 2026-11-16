@@ -722,3 +722,13 @@ def test_lista_longa_tem_ferramentas_e_botao_de_voltar_a_busca(client, monkeypat
     pagina = client.get("/conta").data.decode("utf-8")
     assert "data-conta-ferramentas" in pagina
     assert 'data-ir-busca hidden' in pagina
+
+
+def test_idade_dos_precos_visivel_na_lista():
+    """Revisão de 16/11: a idade do preço só aparecia passando o mouse."""
+    import time
+    from lodout.public_site import account
+    agora = time.time()
+    assert account._idade_dos_precos([]) is None
+    assert account._idade_dos_precos([agora - 7200, agora - 7300]) == "Preços coletados há 2 h."
+    assert account._idade_dos_precos([agora - 7200, agora - 72000]) == "Preços coletados há até 20 h."

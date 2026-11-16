@@ -105,7 +105,7 @@
        próprio site, sem consultar a Steam) até a busca terminar. #}
     <p class="status-inventario status-inventario-buscando" data-recarregar-enquanto-busca>Buscando seu inventário da Steam… a lista aparece aqui em alguns segundos.</p>
     {% elif inv.status == "ok" %}
-    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}.{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou.{% endif %}{{ atualizar_agora() }} <a class="acao-texto" href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">Abrir na Steam<span class="visualmente-oculto"> (seu inventário, em nova aba)</span></a></p>
+    <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}.{% if idade_precos %} {{ idade_precos }}{% endif %}{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou.{% endif %}{{ atualizar_agora() }} <a class="acao-texto" href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">Abrir na Steam<span class="visualmente-oculto"> (seu inventário, em nova aba)</span></a></p>
     {% elif inv.status == "private" %}
     <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado, então o Lodout não consegue ver seus itens. Para mostrar: na Steam, abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a>{{ atualizar_agora("Já deixei público: tentar de novo") }}</p>
     {% elif inv.status == "empty" %}
@@ -243,7 +243,9 @@
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>
             </form>
-            <span class="confira" data-campo="confira" title="O valor pago está muito longe do preço de hoje. Pode estar certo (o preço mudou muito) ou ter sido digitado errado.">{{ row.confira or "" }}</span>
+            {# Toque mostra o porquê (no celular não há "passar o mouse"). #}
+            <button type="button" class="confira" data-campo="confira" aria-expanded="false" aria-controls="confira-explica-{{ loop.index }}">{{ row.confira or "" }}</button>
+            <span class="confira-explica" id="confira-explica-{{ loop.index }}" hidden>O valor pago está muito longe do preço de hoje. Pode estar certo (o preço mudou muito) ou ter sido digitado errado.</span>
           </td>
           {% if row.price is not none %}
           {% if row.quantity and row.quantity > 1 %}
@@ -275,7 +277,7 @@
          primeiro corpo (sem borda dupla no fim da tabela). #}
       <tbody class="corpo-nenhum">
         <tr class="linha-nenhum" data-conta-nenhum hidden>
-          <td colspan="5">Nenhum item com esse filtro. <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
+          <td colspan="5"><span data-nenhum-texto>Nenhum item com esse filtro.</span> <button type="button" class="botao-link" data-conta-limpar>Mostrar todos</button></td>
         </tr>
       </tbody>
     </table>

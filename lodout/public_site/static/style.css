@@ -6705,3 +6705,47 @@ input, textarea { caret-color: var(--accent); }
 @media (min-width: 700px) and (max-width: 1000px) {
   .tabela-conta .campo-reais-cada .input-custo { width: 7.8em; padding-right: 44px; }
 }
+
+/* Revisão 2026-11-16 (rodada 8). "confira" vira botão: tocar mostra o
+   porquê (antes só passando o mouse). */
+button.confira {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-2xs);
+  color: var(--warn);
+  text-align: left;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--radius-xs); }
+.confira-explica { display: block; max-width: 22em; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-2xs); line-height: 1.4; white-space: normal; }
+.confira-explica[hidden] { display: none; }
+/* "desfazer" com área de toque maior, sem mudar o desenho. */
+.botao-desfazer { position: relative; }
+.botao-desfazer::after { content: ""; position: absolute; inset: -10px -8px; }
+/* Celular: "nenhum item" ocupa o cartão inteiro, sem a linha quebrada. */
+@media (max-width: 640px) {
+  table.tabela-conta tbody tr.linha-nenhum { display: block; }
+  table.tabela-conta .corpo-nenhum .linha-nenhum td { display: block; border-top: 0; padding: var(--sp-4) 12px; text-align: center; }
+  table.tabela-conta .linha-nenhum td::before { content: none; }
+}
+/* Linhas escondidas pela busca/filtros (conta.js põe `hidden`) somem
+   também no celular: lá cada linha vira cartão com display: grid, que
+   passava por cima do `hidden` -- a busca e os filtros não escondiam
+   nada no celular (achado na revisão de 2026-11-16). Fica por último
+   para vencer as regras de cartão. */
+table.tabela-conta tbody tr[hidden] { display: none; }
+/* Linha do inventário com mais texto ("Preços coletados…"): as ações
+   ganham um sublinhado discreto, para o link não depender só da cor. */
+.status-inventario .acao-texto,
+.status-inventario a.acao-texto {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 3px;
+}
+.status-inventario .acao-texto:hover,
+.status-inventario .acao-texto:focus-visible { text-decoration-color: currentColor; }

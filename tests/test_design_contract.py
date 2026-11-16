@@ -292,3 +292,14 @@ def test_contraste_de_texto_branco_nos_fundos_cheios():
     for fd in ("--danger-fundo",):
         r = _contraste("#ffffff", t[fd])
         assert r >= 4.5, f"branco sobre {fd} {t[fd]}: {r:.2f}:1"
+
+
+def test_linhas_escondidas_somem_tambem_no_celular():
+    """No celular cada linha da conta vira cartão (display: grid), o que
+    passava por cima do atributo `hidden`: busca e filtros não escondiam
+    nada lá (achado em 2026-11-16). A regra do `hidden` precisa vir
+    depois da regra de cartão."""
+    css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
+    cartao = css.index("table.tabela-cards-mobile tbody tr:not(.linha-regras) {")
+    escondida = css.rindex("table.tabela-conta tbody tr[hidden] { display: none; }")
+    assert escondida > cartao
