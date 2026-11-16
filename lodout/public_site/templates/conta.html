@@ -248,7 +248,7 @@
           {% if row.price is not none %}
           {% if row.quantity and row.quantity > 1 %}
           {# Mais de uma unidade: o preço é de cada uma; o lucro, do total. #}
-          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}><span class="valor-unidade">{{ row.price_fmt }} <span class="valor-cada">cada</span></span><span class="valor-total">{{ row.valor_total_fmt }} no total</span></td>
+          <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}><span class="valor-unidade">{{ row.price_fmt }} <span class="valor-cada">cada</span></span><span class="valor-total"><span class="sem-quebra">{{ row.valor_total_fmt }}</span> <span class="sem-quebra">no total</span></span></td>
           {% else %}
           <td data-label="Vale hoje" class="celula-numero"{% if row.preco_idade %} title="Preço coletado {{ row.preco_idade }}"{% endif %}>{{ row.price_fmt }}</td>
           {% endif %}

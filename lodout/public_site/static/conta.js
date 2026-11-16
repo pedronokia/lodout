@@ -177,8 +177,15 @@
     // e já põe o cursor no campo. No computador o CSS esconde (tem o "/").
     var irBusca = document.querySelector("[data-ir-busca]");
     if (irBusca && busca) {
+      // Só aparece rolando para cima (sinal de quer voltar); lendo a lista
+      // para baixo some, para não cobrir preços (revisão 2026-11-16).
+      var ultimoY = window.scrollY;
       var mostrarIrBusca = function () {
-        irBusca.hidden = ferramentas.getBoundingClientRect().bottom > 0;
+        var y = window.scrollY;
+        if (ferramentas.getBoundingClientRect().bottom > 0) irBusca.hidden = true;
+        else if (y < ultimoY - 4) irBusca.hidden = false;
+        else if (y > ultimoY + 4) irBusca.hidden = true;
+        if (Math.abs(y - ultimoY) > 4) ultimoY = y;
       };
       document.addEventListener("scroll", mostrarIrBusca, { passive: true });
       irBusca.addEventListener("click", function () {

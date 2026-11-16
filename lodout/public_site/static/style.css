@@ -6688,3 +6688,20 @@ input, textarea { caret-color: var(--accent); }
     inset: -4px -8px -16px;
   }
 }
+
+/* Revisão 2026-11-16 (33/40, rodada 7). */
+.sem-quebra { white-space: nowrap; }
+/* Tela baixa (celular deitado, ~340px de altura): o cabeçalho fixo da
+   tabela comia quase um terço da tela; ali ele rola junto. */
+@media (min-width: 641px) and (max-height: 520px) {
+  .tabela-conta .cabecalho-fixo-conta th { position: static; box-shadow: none; }
+}
+/* "o comprador paga" numa linha só embaixo de "Venda por", e no tablet o
+   "cada" dentro do campo sem encostar no número ("1,21cada"). Entre 641
+   e 699px não há largura para os dois: fica como antes. */
+@media (min-width: 700px) {
+  .tabela-conta .th-sub { white-space: nowrap; }
+}
+@media (min-width: 700px) and (max-width: 1000px) {
+  .tabela-conta .campo-reais-cada .input-custo { width: 7.8em; padding-right: 44px; }
+}
