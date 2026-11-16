@@ -223,6 +223,14 @@
       });
       mostrarIrBusca();
     }
+    // Vindo de "Informar quanto pagou" na página do item (?busca=nome):
+    // mostra só esse item e põe o cursor no primeiro campo sem valor.
+    var pedida = "";
+    try { pedida = new URLSearchParams(window.location.search).get("busca") || ""; } catch (erro) { /* ignora */ }
+    if (pedida && busca) {
+      busca.value = pedida;
+      estado.busca = pedida;
+    }
     limparBusca = function () { if (busca) busca.value = ""; estado.busca = ""; };
     escolherFiltro = function (f) {
       estado.filtro = f;
@@ -741,4 +749,17 @@
       if (botao) botao.disabled = false;
     });
   });
+  // "Informar quanto pagou" na página do item (?busca=nome): cursor no
+  // campo do valor pago desse item (com 8+ itens a busca já filtrou).
+  (function () {
+    var pedida = "";
+    try { pedida = new URLSearchParams(window.location.search).get("busca") || ""; } catch (erro) { return; }
+    if (!pedida) return;
+    var alvo = semAcento(pedida);
+    var linha = Array.prototype.find.call(document.querySelectorAll("tr.linha-sem-custo"), function (tr) {
+      return !tr.hidden && semAcento(tr.getAttribute("data-busca") || "").indexOf(alvo) !== -1;
+    });
+    var campo = linha && linha.querySelector(".input-custo");
+    if (campo) { campo.focus({ preventScroll: true }); campo.scrollIntoView({ block: "center" }); }
+  })();
 })();

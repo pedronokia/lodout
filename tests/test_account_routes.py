@@ -685,6 +685,14 @@ def test_item_mostra_na_sua_conta_so_para_quem_tem(client, monkeypatch):
     assert "Na sua conta" in corpo and "Você tem <strong>3</strong> unidades" in corpo
     assert "R$ 9,20" in corpo  # 8 × 1,15
     assert r.headers["Cache-Control"] == "private, no-store"
+    # Revisão de 16/11: como está hoje (3 × 10 / 1,15 − 24 = R$ 2,09).
+    assert "lucro de R$ 2,09</strong> (+9%)" in corpo
+    # Uma unidade sem valor pago: atalho para informar, já filtrado.
+    client.post("/conta/posicoes", data={"name": "Caixa N", "cost": "", "quantity": "1",
+                                         "csrf_token": token})
+    corpo = client.get("/item/Caixa N").data.decode("utf-8")
+    assert "só das unidades com valor pago" in corpo
+    assert '/conta?busca=Caixa+N">Informar quanto pagou' in corpo
 
 
 def test_mudanca_desde_ontem():

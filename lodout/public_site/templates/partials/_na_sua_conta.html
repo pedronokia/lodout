@@ -11,7 +11,14 @@
     {% endfor %}
   </ul>
   {% endif %}
-  {% if na_conta.sem_valor %}<p class="na-sua-conta-texto">{{ na_conta.sem_valor }} {{ "unidade está" if na_conta.sem_valor == 1 else "unidades estão" }} sem o valor pago.</p>{% endif %}
+  {% if na_conta.lucro %}
+  {# Como você está com este item hoje (revisão 2026-11-16). #}
+  <p class="na-sua-conta-texto na-sua-conta-lucro">Se vender hoje: {% if na_conta.lucro.tipo == "empate" %}<strong>sem lucro nem prejuízo</strong>{% else %}<strong class="{{ na_conta.lucro.classe }}">{{ na_conta.lucro.tipo }} de {{ na_conta.lucro.valor_fmt }}</strong> ({{ na_conta.lucro.pct_fmt }}){% endif %}{% if na_conta.sem_valor %}, só das unidades com valor pago{% endif %}, já sem a taxa da Steam.</p>
+  {% endif %}
+  {% if na_conta.sem_valor %}
+  <p class="na-sua-conta-texto">{{ na_conta.sem_valor }} {{ "unidade está" if na_conta.sem_valor == 1 else "unidades estão" }} sem o valor pago. <a href="{{ url_for('account.conta', busca=na_conta.busca) }}">Informar quanto pagou →</a></p>
+  {% else %}
   <a class="na-sua-conta-link" href="{{ url_for('account.conta') }}">Abrir minha conta →</a>
+  {% endif %}
 </section>
 {% endif %}

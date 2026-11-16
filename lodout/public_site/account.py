@@ -447,7 +447,29 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
                 "alvo_fmt": fmt.brl(empate * (1 + meta / 100)),
             })
     sem_valor = unidades - sum(l["quantidade"] for l in com_valor)
-    return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta}
+    # Lucro se vender hoje (revisão 2026-11-16): o mesmo preço e a mesma
+    # conta da página "Minha conta", só dos lotes com valor pago.
+    lucro = None
+    try:
+        preco = _preco_do_dia(lotes)(name)
+    except Exception:
+        preco = None
+    if preco is not None and com_valor:
+        pnl = custo_total = 0.0
+        for p in lotes:
+            if portfolio.has_cost_basis(p) and p.get("cost"):
+                d = portfolio.position_pnl(float(p["cost"]), float(preco), int(p.get("quantity") or 1))
+                pnl += d["pnl"]
+                custo_total += d["cost_total"]
+        pct = pnl / custo_total * 100 if custo_total else None
+        lucro = {
+            "valor_fmt": fmt.brl(abs(pnl)),
+            "tipo": "lucro" if pnl > 0.005 else ("prejuízo" if pnl < -0.005 else "empate"),
+            "classe": "valor-positivo" if pnl > 0.005 else ("valor-negativo" if pnl < -0.005 else ""),
+            "pct_fmt": _pct_curto(pct) if pct is not None else "",
+        }
+    return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta,
+            "lucro": lucro, "busca": localize_name(name)}
 
 
 def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:

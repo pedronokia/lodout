@@ -6847,3 +6847,13 @@ table.tabela-conta tbody tr[hidden] { display: none; }
   table.tabela-conta-lista tbody td[data-label="Ações"]::before { display: none; }
 }
 .card-adicionar-watchlist > .secao-titulo { margin-top: 0; }
+
+/* "Na sua conta" (página do item), revisão 2026-11-16: texto alinhado à
+   esquerda (no celular saía justificado, com buracos entre as palavras). */
+.na-sua-conta,
+.na-sua-conta p,
+.na-sua-conta-lotes li { text-align: left; }
+.na-sua-conta-lucro strong.valor-positivo { color: var(--positive); }
+.na-sua-conta-lucro strong.valor-negativo { color: var(--danger); }
+.na-sua-conta a { hyphens: manual; white-space: nowrap; }
+.na-sua-conta p { hyphens: manual; }
