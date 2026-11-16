@@ -17,7 +17,8 @@
     "mainEntity": [
       {"@type": "Question", "name": "O que é o Lodout?", "acceptedAnswer": {"@type": "Answer", "text": "Um painel que dá nota de 0 a 100 pra skins de CS2, a partir de dados públicos da Steam Community Market, com o motivo escrito pra cada nota — não um palpite."}},
       {"@type": "Question", "name": "É seguro usar?", "acceptedAnswer": {"@type": "Answer", "text": "O painel principal não pede login nem senha nenhuma. O login opcional ('Entrar com Steam') usa o Steam OpenID, o mesmo mecanismo público que qualquer site usa — você loga direto no domínio da Steam, nunca digita senha aqui."}},
-      {"@type": "Question", "name": "Preciso fazer login pra usar?", "acceptedAnswer": {"@type": "Answer", "text": "Não. O painel de notas é público e não exige conta. O login só é necessário pra acompanhar portfólio, trades e watchlist pessoais."}},
+      {"@type": "Question", "name": "Preciso fazer login pra usar?", "acceptedAnswer": {"@type": "Answer", "text": "Não. O painel de notas é público e não exige conta. O login só é necessário para a sua conta (seus itens e quanto você pagou), trades e watchlist."}},
+      {"@type": "Question", "name": "O Lodout vê o meu inventário da Steam?", "acceptedAnswer": {"@type": "Answer", "text": "Só o inventário público, o mesmo que qualquer pessoa vê no seu perfil: quando você entra, quando clica em Atualizar agora e uma vez por dia. O Lodout nunca pede senha nem chave da Steam, não vê o seu histórico de compras (por isso o valor pago é você que digita) e não faz nada na sua conta da Steam."}},
       {"@type": "Question", "name": "A nota é recomendação de investimento?", "acceptedAnswer": {"@type": "Answer", "text": "Não. A nota descreve dados já medidos — nunca prevê o futuro. Desempenho passado não garante nada, e a decisão de comprar ou vender é sempre sua."}},
       {"@type": "Question", "name": "De onde vêm os preços?", "acceptedAnswer": {"@type": "Answer", "text": "Direto da Steam Community Market, de forma pública (o mesmo preço que qualquer um vê no site da Steam). O Lodout não é afiliado à Valve."}},
       {"@type": "Question", "name": "Por que às vezes os dados parecem desatualizados?", "acceptedAnswer": {"@type": "Answer", "text": "A Steam limita quantas vezes um mesmo endereço pode consultar o mercado por minuto. Quando esse limite é atingido, a próxima coleta fica temporariamente bloqueado — o site avisa com um banner quando isso acontece, em vez de esconder o problema."}},
@@ -55,8 +56,16 @@
 
     <h2 class="secao-titulo">Preciso fazer login pra usar?</h2>
     <p>Não. O painel de notas é público e não exige conta. O login
-    só é necessário pra acompanhar portfólio, trades e watchlist
-    pessoais.</p>
+    só é necessário para a sua conta (seus itens e quanto você pagou),
+    trades e watchlist.</p>
+
+    <h2 class="secao-titulo">O Lodout vê o meu inventário da Steam?</h2>
+    <p>Só o inventário <strong>público</strong>, o mesmo que qualquer
+    pessoa vê no seu perfil: quando você entra, quando clica em "Atualizar
+    agora" e uma vez por dia. O Lodout nunca pede senha nem chave da Steam,
+    não vê o seu histórico de compras (por isso o valor pago é você que
+    digita) e não faz nada na sua conta da Steam. Detalhes em
+    <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
 
     <h2 class="secao-titulo">A nota é recomendação de investimento?</h2>
     <p>Não. A nota descreve dados já medidos — nunca prevê o futuro.

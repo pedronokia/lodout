@@ -6114,3 +6114,16 @@ def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Não dá para revender na hora" in body
     assert "help.steampowered.com" in body
+
+
+def test_privacidade_diz_o_que_o_site_faz_de_verdade(client):
+    """Revisão de 16/11: a página dizia que o Lodout nunca lia o inventário
+    (lê o inventário público desde 15/11) e não falava do login de 30 dias
+    nem do webhook do Discord guardado."""
+    corpo = client.get("/privacidade").data.decode("utf-8")
+    assert "nunca acessa seu inventário" not in corpo
+    assert "<strong>inventário público</strong>" in corpo
+    assert "por até 30 dias" in corpo
+    assert "webhook do Discord" in corpo
+    faq = client.get("/faq").data.decode("utf-8")
+    assert "O Lodout vê o meu inventário da Steam?" in faq
