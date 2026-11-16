@@ -128,6 +128,26 @@ def tirar_vendidas(steamid: str, name: str, quantidade: int,
     return None
 
 
+def devolver_lote(steamid: str, pos: dict,
+                  path: "Path | str | None" = None) -> None:
+    """Põe de volta um lote tirado por "Vendi" (desfazer a venda). Se o
+    lote de onde saiu ainda existe (venda de parte das unidades), soma as
+    unidades nele; senão, volta como lote próprio."""
+    positions = load_positions(steamid, path=path)
+    lote = pos.get("lote")
+    for atual in positions:
+        if lote and atual.get("lote") == lote:
+            if (atual.get("name") == pos.get("name") and atual.get("cost") == pos.get("cost")
+                    and atual.get("fora_desde")):
+                atual["quantity"] = int(atual.get("quantity") or 1) + int(pos.get("quantity") or 1)
+                user_store.save_user_json(steamid, _KIND, positions, path=path)
+                return
+            pos = {**pos, "lote": novo_lote()}
+            break
+    positions.append(pos)
+    user_store.save_user_json(steamid, _KIND, positions, path=path)
+
+
 def remove_position(steamid: str, name: str,
                     path: "Path | str | None" = None,
                     lote: "str | None" = None) -> bool:

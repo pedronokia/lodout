@@ -381,13 +381,42 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
                 data={"csrf_token": token, "sell_price": "abc", "quantidade": "1",
                       "confirmado": "1"})
     assert len(user_vendidos.load(sid)) == 1
-    # Apagar a venda (marcada por engano).
-    client.post("/conta/historico/vendidos/0/remover", data={"csrf_token": token})
-    assert user_vendidos.load(sid) == []
     # Voltou ao inventário (anúncio cancelado): some a marca e o "anunciado".
     pos, _ = inventario.mesclar(user_portfolio.load_positions(sid), _inv("Caixa V", "Caixa N"))
     v = [p for p in pos if p["name"] == "Caixa V"][0]
     assert "fora_desde" not in v and "anunciado" not in v and v["cost"] == 10.0
+    # Marcou "Vendi" por engano (rodada 2): "desfazer venda" tira do
+    # histórico e devolve as 2 unidades ao lote, com o valor pago.
+    hist = client.get("/conta/historico").data.decode("utf-8")
+    assert ">desfazer venda</button>" in hist and "/remover" not in hist
+    r = client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
+    assert r.status_code == 302 and r.headers["Location"].endswith("/conta?filtro=fora")
+    assert user_vendidos.load(sid) == []
+    v = [p for p in user_portfolio.load_positions(sid) if p["name"] == "Caixa V"]
+    assert sum(p["quantity"] for p in v) == 3 and all(p["cost"] == 10.0 for p in v)
+    assert all(p.get("fora_desde") for p in v)
+    assert "Venda desfeita" in client.get("/conta?filtro=fora").data.decode("utf-8")
+
+
+def test_desfazer_venda_do_lote_inteiro_volta_como_estava(client):
+    import re
+    from lodout.public_site import user_vendidos
+    sid = "76561198000000041"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa W", "cost": 5.0, "quantity": 2, "source": "steam", "lote": "l1",
+         "fora_desde": 1_794_800_000.0, "anunciado": True, "anuncio_preco": 9.5}])
+    _logado(client, sid)
+    token = re.search(r'name="csrf_token" value="([^"]+)"',
+                      client.get("/conta").data.decode("utf-8")).group(1)
+    client.post("/conta/posicoes/Caixa W/vendido",
+                data={"csrf_token": token, "sell_price": "9,50", "quantidade": "2",
+                      "lote": "l1", "confirmado": "1"})
+    assert user_portfolio.load_positions(sid) == []
+    client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
+    [v] = user_portfolio.load_positions(sid)
+    assert (v["lote"], v["quantity"], v["cost"], v["fora_desde"], v["anunciado"],
+            v["anuncio_preco"]) == ("l1", 2, 5.0, 1_794_800_000.0, True, 9.5)
+    assert user_vendidos.load(sid) == []
 
 
 def test_juntar_lotes_deixa_de_fora_o_que_saiu_do_inventario():
@@ -534,6 +563,79 @@ def test_recuperar_pela_propria_conta(client):
         {"name": "Do outro", "cost": 9.0, "quantity": 1, "source": "steam"}])
     assert "Achamos" not in client.get("/conta").data.decode("utf-8")
 
+
+def _backup_com(sid, posicoes):
+    import sqlite3
+    from lodout import _paths
+    from lodout.public_site import db as site_db
+    user_store.save_user_json(sid, "portfolio", posicoes)
+    pasta = Path(_paths.DATA_DIR) / "backups"
+    pasta.mkdir(parents=True, exist_ok=True)
+    origem = site_db.connect(None)
+    destino = sqlite3.connect(str(pasta / "public_site-20261115-130000.db"))
+    origem.backup(destino)
+    origem.close(); destino.close()
+
+
+def test_recuperar_nao_oferece_vendido_removido_nem_dispensado(client):
+    """Rodada 2 (16/11): depois de "Vendi" (ou de remover de propósito) o
+    quadro oferecia o item de volta; e não havia como dispensar o quadro."""
+    import re
+    sid = "76561198000000042"
+    _backup_com(sid, [
+        {"name": "Vendida", "cost": 10.0, "quantity": 1, "source": "steam"},
+        {"name": "Removida", "cost": 20.0, "quantity": 1, "source": "steam"},
+        {"name": "Esquecida", "cost": 30.0, "quantity": 1, "source": "steam"}])
+    user_store.save_user_json(sid, "portfolio", [])
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Achamos 3 itens que sumiram da sua lista" in pagina
+    assert ">Não quero de volta</button>" in pagina
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    client.post("/conta/recuperar", data={"csrf_token": token})
+    client.post("/conta/posicoes/Vendida/vendido",
+                data={"csrf_token": token, "sell_price": "15", "quantidade": "1",
+                      "confirmado": "1"})
+    r = client.post("/conta/posicoes/Removida/remover", data={"csrf_token": token},
+                    follow_redirects=True)
+    texto = r.data.decode("utf-8")
+    assert "(anúncio cancelado), volta sem o valor pago." in texto
+    assert "saiu da sua lista. Se ainda estiver" not in texto
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Achamos" not in pagina
+    nomes = [p["name"] for p in user_portfolio.load_positions(sid)]
+    assert nomes == ["Esquecida"]
+    # Remover a última também: nada volta, e "Devolver" não traz de novo.
+    client.post("/conta/posicoes/Esquecida/remover", data={"csrf_token": token})
+    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
+    assert "Nada para devolver" in r.data.decode("utf-8")
+    assert user_portfolio.load_positions(sid) == []
+    # Desfazer a venda tira o item da lista de ignorados.
+    from lodout.public_site import recuperar_posicoes
+    assert "Vendida" in recuperar_posicoes.ignorados(sid)
+    client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
+    assert "Vendida" not in recuperar_posicoes.ignorados(sid)
+
+
+def test_recuperar_nao_quero_de_volta(client):
+    import re
+    from lodout.public_site import recuperar_posicoes
+    sid = "76561198000000043"
+    _backup_com(sid, [{"name": "Velha", "cost": 7.0, "quantity": 1, "source": "steam"}])
+    user_store.save_user_json(sid, "portfolio", [])
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Achamos 1 item" in pagina and 'data-nome="este item"' in pagina
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    r = client.post("/conta/recuperar/dispensar", data={"csrf_token": token},
+                    follow_redirects=True)
+    texto = r.data.decode("utf-8")
+    assert "o aviso não aparece mais" in texto and "Achamos" not in texto
+    assert user_portfolio.load_positions(sid) == []
+    assert recuperar_posicoes.ignorados(sid) == {"Velha"}
+    assert client.post("/conta/recuperar/dispensar", data={}).status_code in (400, 403)
+    # O comando do servidor também respeita a escolha.
+    assert recuperar_posicoes.main([sid]) == 0
 
 
 def test_preco_do_anuncio(client):

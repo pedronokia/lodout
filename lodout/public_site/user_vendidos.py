@@ -20,12 +20,21 @@ def load(steamid: str, path: "Path | str | None" = None) -> list[dict]:
     return dados if isinstance(dados, list) else []
 
 
+# Campos do lote guardados com a venda, para "Desfazer venda" devolver o
+# item como estava (revisão 16/11, rodada 2).
+_CAMPOS_LOTE = ("lote", "source", "added_ts", "fora_desde", "anunciado", "anuncio_preco")
+
+
 def adicionar(steamid: str, name: str, custo: float, preco_venda: float,
-              quantidade: int, path: "Path | str | None" = None) -> dict:
+              quantidade: int, path: "Path | str | None" = None,
+              posicao: "dict | None" = None) -> dict:
     """Registra a venda. `preco_venda` é o que o comprador pagou (por
-    unidade); o líquido desconta a taxa, como no resto do site."""
+    unidade); o líquido desconta a taxa, como no resto do site.
+    `posicao` é o lote de onde saiu (para desfazer)."""
     venda = trades_mod.build_trade(name, custo, preco_venda, quantidade,
                                    source="conta")
+    if posicao:
+        venda["posicao"] = {k: posicao[k] for k in _CAMPOS_LOTE if posicao.get(k) is not None}
     registros = load(steamid, path=path)
     registros.append(venda)
     user_store.save_user_json(steamid, _KIND, registros, path=path)
@@ -39,3 +48,17 @@ def remover(steamid: str, index: int, path: "Path | str | None" = None) -> "dict
     tirado = registros.pop(index)
     user_store.save_user_json(steamid, _KIND, registros, path=path)
     return tirado
+
+
+def posicao_de_volta(venda: dict, agora: float) -> dict:
+    """O lote que volta para a conta ao desfazer a venda: com o valor pago
+    e marcado como fora do inventário (se o item estiver no inventário, a
+    próxima sincronização tira a marca)."""
+    antes = venda.get("posicao") if isinstance(venda.get("posicao"), dict) else {}
+    pos = {k: antes[k] for k in _CAMPOS_LOTE if antes.get(k) is not None}
+    pos.update({"name": venda.get("name"), "cost": venda.get("buy_cost"),
+                "quantity": int(venda.get("quantity") or 1)})
+    pos.setdefault("source", "steam")
+    pos.setdefault("added_ts", agora)
+    pos.setdefault("fora_desde", agora)
+    return pos

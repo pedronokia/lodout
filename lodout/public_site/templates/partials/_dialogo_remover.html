@@ -2,14 +2,18 @@
    com o botão de perigo visível antes do clique). conta.js abre esta
    janela para qualquer <form class="form-remover" data-nome="...">; sem
    JavaScript ou sem <dialog>, cai no confirm() do navegador.
-   Variáveis: dialogo_titulo (antes do nome), dialogo_texto. #}
+   Variáveis: dialogo_titulo (antes do nome), dialogo_texto e, opcionais,
+   dialogo_botao / dialogo_botao_classe (padrão "Remover", botao-perigo).
+   Um form pode trocar título, texto e botão com data-dialogo-titulo,
+   data-dialogo-texto e data-dialogo-botao; data-confirmar é o texto do
+   confirm() sem <dialog>. #}
 <dialog class="dialogo-confirmar" id="dialogo-remover" aria-labelledby="dialogo-remover-titulo" aria-describedby="dialogo-remover-texto">
   <form method="dialog" class="dialogo-conteudo">
-    <h2 class="dialogo-titulo" id="dialogo-remover-titulo">{{ dialogo_titulo }} <span data-dialogo-nome translate="no"></span>?</h2>
-    <p class="dialogo-texto" id="dialogo-remover-texto">{{ dialogo_texto }}</p>
+    <h2 class="dialogo-titulo" id="dialogo-remover-titulo"><span data-dialogo-titulo>{{ dialogo_titulo }}</span> <span data-dialogo-nome translate="no"></span>?</h2>
+    <p class="dialogo-texto" id="dialogo-remover-texto" data-dialogo-texto>{{ dialogo_texto }}</p>
     <div class="dialogo-acoes">
       <button type="submit" value="cancelar" class="botao-secundario">Cancelar</button>
-      <button type="submit" value="remover" class="botao-perigo">Remover</button>
+      <button type="submit" value="remover" class="{{ dialogo_botao_classe or 'botao-perigo' }}" data-dialogo-botao>{{ dialogo_botao or "Remover" }}</button>
     </div>
   </form>
 </dialog>

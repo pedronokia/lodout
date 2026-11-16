@@ -792,11 +792,22 @@ def editar_custo(name: str):
 def remover_posicao(name: str):
     steamid = session["steamid"]
     lote = (request.form.get("lote") or "").strip() or None
-    user_portfolio.remove_position(steamid, name, lote=lote)
+    alvos = [p for p in user_portfolio.load_positions(steamid)
+             if p.get("name") == name and (not lote or p.get("lote") == lote)]
+    if not user_portfolio.remove_position(steamid, name, lote=lote):
+        return redirect(url_for("account.conta"))
+    # Removido de propósito: o quadro de recuperação não oferece de volta.
+    from lodout.public_site import recuperar_posicoes
+    recuperar_posicoes.ignorar(steamid, [name])
     # Confirmação depois de remover (revisão 2026-11-16: a página só
-    # recarregava, sem dizer nada).
-    flash(f"{localize_name(name)} saiu da sua lista. "
-          "Se ainda estiver no seu inventário da Steam, volta na próxima atualização.", "success")
+    # recarregava, sem dizer nada). Item fora do inventário não "volta na
+    # próxima atualização" (revisão 16/11, rodada 2).
+    if alvos and all(p.get("fora_desde") for p in alvos):
+        flash(f"{localize_name(name)} saiu da sua lista. Se ele voltar ao seu "
+              "inventário da Steam (anúncio cancelado), volta sem o valor pago.", "success")
+    else:
+        flash(f"{localize_name(name)} saiu da sua lista. "
+              "Se ainda estiver no seu inventário da Steam, volta na próxima atualização.", "success")
     return redirect(url_for("account.conta"))
 
 
@@ -864,7 +875,11 @@ def marcar_vendido(name: str):
         flash("Não deu para marcar como vendido: confira a quantidade e se o item "
               "tem o valor pago.", "error")
         return redirect(url_for("account.conta"))
-    venda = user_vendidos.adicionar(steamid, name, float(vendido["cost"]), preco, quantidade)
+    venda = user_vendidos.adicionar(steamid, name, float(vendido["cost"]), preco, quantidade,
+                                    posicao=vendido)
+    # Vendido não volta pelo quadro de recuperação (revisão 16/11, rodada 2).
+    from lodout.public_site import recuperar_posicoes
+    recuperar_posicoes.ignorar(steamid, [name])
     pnl = venda.get("pnl") or 0
     resultado = (f"lucro de {fmt.brl(pnl)}" if pnl > 0 else
                  f"prejuízo de {fmt.brl(-pnl)}" if pnl < 0 else "sem lucro nem prejuízo")
@@ -910,7 +925,8 @@ def recuperar_apagados():
     backups = recuperar_posicoes._backups()
     atuais = user_portfolio.load_positions(steamid)
     agora = time.time()
-    novas, relatorio = recuperar_posicoes.planejar(steamid, atuais, backups, agora)
+    novas, relatorio = recuperar_posicoes.planejar(
+        steamid, atuais, backups, agora, ignorar=recuperar_posicoes.ignorados(steamid))
     voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
     if not voltaram:
         flash("Nada para devolver: nenhum item com valor pago sumiu da sua lista "
@@ -926,6 +942,24 @@ def recuperar_apagados():
           "Eles estão na aba “Fora do inventário”: marque “Está anunciado” ou "
           "“Vendi” em cada um.", "success")
     return redirect(url_for("account.conta", filtro="fora"))
+
+
+@bp.route("/conta/recuperar/dispensar", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def dispensar_recuperar():
+    """"Não quero de volta" (revisão 16/11, rodada 2): esconde o quadro;
+    os itens dele não são mais oferecidos."""
+    from lodout.public_site import recuperar_posicoes
+    steamid = session["steamid"]
+    prev = recuperar_posicoes.previa(steamid, user_portfolio.load_positions(steamid))
+    nomes = [r["item"] for r in prev["voltam"] + prev["conferir"]]
+    if nomes:
+        recuperar_posicoes.ignorar(steamid, nomes)
+        flash("Pronto: esses itens não vão voltar para a sua lista e o aviso não aparece mais.",
+              "success")
+    return redirect(url_for("account.conta"))
 
 
 def _celula_csv(valor) -> str:

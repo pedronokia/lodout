@@ -24,6 +24,10 @@ cópia das posições atuais em `data/backups/` e então grava.
   recebe o valor do backup, se for uma linha só dos dois lados; senão,
   aparece na lista para conferir à mão.
 
+Itens que a pessoa vendeu ("Vendi"), removeu de propósito ou dispensou
+no quadro da conta ("Não quero de volta") ficam numa lista de ignorados
+(`preferencias` -> `recuperar_ignorar`) e não voltam, nem por aqui.
+
 Os backups são abertos só para leitura.
 """
 from __future__ import annotations
@@ -60,15 +64,50 @@ def _posicoes_do_backup(arquivo: Path, steamid: str) -> "list[dict]":
     return dados if isinstance(dados, list) else []
 
 
+_CHAVE_IGNORAR = "recuperar_ignorar"
+
+
+def ignorados(steamid: str) -> "set[str]":
+    """Itens que não devem voltar: vendidos ("Vendi"), removidos de
+    propósito ou dispensados no quadro (revisão 16/11: o quadro oferecia
+    de volta um item que a pessoa tinha acabado de vender)."""
+    prefs = user_store.load_user_json(steamid, "preferencias", {}) or {}
+    lista = prefs.get(_CHAVE_IGNORAR) if isinstance(prefs, dict) else None
+    return {n for n in lista if isinstance(n, str)} if isinstance(lista, list) else set()
+
+
+def _gravar_ignorados(steamid: str, nomes: "set[str]") -> None:
+    prefs = user_store.load_user_json(steamid, "preferencias", {}) or {}
+    if not isinstance(prefs, dict):
+        prefs = {}
+    prefs[_CHAVE_IGNORAR] = sorted(nomes)
+    user_store.save_user_json(steamid, "preferencias", prefs)
+    _CACHE_PREVIA.pop(steamid, None)
+
+
+def ignorar(steamid: str, nomes) -> None:
+    novos = {n for n in nomes if n}
+    atuais = ignorados(steamid)
+    if not novos <= atuais:
+        _gravar_ignorados(steamid, atuais | novos)
+
+
+def deixar_de_ignorar(steamid: str, nome: str) -> None:
+    atuais = ignorados(steamid)
+    if nome in atuais:
+        _gravar_ignorados(steamid, atuais - {nome})
+
+
 def planejar(steamid: str, atuais: "list[dict]", backups: "list[Path]",
-             agora: float) -> "tuple[list[dict], list[dict]]":
+             agora: float, ignorar: "set[str] | frozenset" = frozenset()
+             ) -> "tuple[list[dict], list[dict]]":
     """(posições novas, relatório). Para cada item, usa o backup mais
-    recente em que ele tinha valor pago."""
+    recente em que ele tinha valor pago. Itens em `ignorar` ficam de fora."""
     com_valor_hoje = {p.get("name") for p in atuais if p.get("cost") is not None}
     por_nome_hoje: dict = {}
     for p in atuais:
         por_nome_hoje.setdefault(p.get("name"), []).append(p)
-    resolvidos: set = set()
+    resolvidos: set = set(ignorar)
     novas = [dict(p) for p in atuais]
     relatorio: list = []
     for arquivo in backups:
@@ -110,12 +149,13 @@ def previa(steamid: str, atuais: "list[dict]", agora: "float | None" = None) -> 
     mudam 1x por dia; a lista da pessoa entra na chave)."""
     agora = time.time() if agora is None else agora
     backups = _backups()
+    fora = ignorados(steamid)
     chave = (json.dumps(atuais, sort_keys=True, ensure_ascii=False),
-             tuple(b.name for b in backups))
+             tuple(b.name for b in backups), tuple(sorted(fora)))
     guardado = _CACHE_PREVIA.get(steamid)
     if guardado and guardado[1] == chave and agora - guardado[0] < _PREVIA_TTL_S:
         return guardado[2]
-    _novas, relatorio = planejar(steamid, atuais, backups, agora)
+    _novas, relatorio = planejar(steamid, atuais, backups, agora, ignorar=fora)
     out = {"voltam": [r for r in relatorio if not r["acao"].startswith("conferir")],
            "conferir": [r for r in relatorio if r["acao"].startswith("conferir")]}
     _CACHE_PREVIA[steamid] = (agora, chave, out)
@@ -138,7 +178,8 @@ def _contas_nos_backups(backups: "list[Path]") -> "list[str]":
 
 def _recuperar(steamid: str, backups: "list[Path]", aplicar: bool, agora: float) -> int:
     atuais = user_portfolio.load_positions(steamid)
-    novas, relatorio = planejar(steamid, atuais, backups, agora)
+    novas, relatorio = planejar(steamid, atuais, backups, agora,
+                                ignorar=ignorados(steamid))
     if not relatorio:
         return 0
     print(f"\nConta {steamid}:")

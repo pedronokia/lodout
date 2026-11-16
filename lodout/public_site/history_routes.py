@@ -7,6 +7,8 @@ os itens que a pessoa marcou como vendidos na conta (`user_vendidos`).
 """
 from __future__ import annotations
 
+import time
+
 from flask import Blueprint, flash, redirect, render_template, session, url_for
 
 from lodout.localization import localize_name
@@ -85,13 +87,23 @@ def listar():
     )
 
 
-@bp.route("/conta/historico/vendidos/<int:index>/remover", methods=["POST"])
+@bp.route("/conta/historico/vendidos/<int:index>/desfazer", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
-def remover_vendido(index: int):
-    """Apaga o registro de uma venda (marcada por engano, por exemplo)."""
-    tirado = user_vendidos.remover(session["steamid"], index)
-    if tirado:
-        flash(f"A venda de {localize_name(tirado.get('name') or '')} saiu do histórico.", "success")
-    return redirect(url_for("history.listar"))
+def desfazer_venda(index: int):
+    """Marcou "Vendi" por engano: a venda sai do histórico e o item volta
+    para a conta com o valor pago, na aba "Fora do inventário" (revisão
+    16/11, rodada 2; antes só dava para apagar, e o item sumia de vez)."""
+    from lodout.public_site import recuperar_posicoes, user_portfolio
+    steamid = session["steamid"]
+    tirado = user_vendidos.remover(steamid, index)
+    if not tirado:
+        return redirect(url_for("history.listar"))
+    nome = tirado.get("name") or ""
+    if nome and tirado.get("buy_cost") is not None:
+        user_portfolio.devolver_lote(steamid, user_vendidos.posicao_de_volta(tirado, time.time()))
+        recuperar_posicoes.deixar_de_ignorar(steamid, nome)
+    flash(f"Venda desfeita: {localize_name(nome)} voltou para a sua conta com o valor pago, "
+          "na aba “Fora do inventário”.", "success")
+    return redirect(url_for("account.conta", filtro="fora"))

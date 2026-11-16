@@ -88,9 +88,9 @@
           <td data-label="Recebeu" class="celula-numero">{{ v.recebeu_fmt }}</td>
           <td data-label="Lucro" class="celula-numero {{ v.lucro_classe }}">{{ v.lucro_fmt }}</td>
           <td data-label="">
-            <form method="post" action="{{ url_for('history.remover_vendido', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}">
+            <form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-confirmar="Desfazer a venda de {{ v.nome }}? Ela sai do histórico e o item volta para a sua conta, com o valor pago.">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="botao-link botao-remover" aria-label="Apagar a venda de {{ v.nome }}">apagar</button>
+              <button type="submit" class="botao-link" aria-label="Desfazer a venda de {{ v.nome }}">desfazer venda</button>
             </form>
           </td>
         </tr>
@@ -107,7 +107,7 @@
     <p>Cada ponto é o valor de mercado no momento da visita — não é projeção nem recomendação de investimento.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
-  {% with dialogo_titulo="Apagar", dialogo_texto="A venda sai do seu histórico. Não dá para desfazer." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, na aba “Fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

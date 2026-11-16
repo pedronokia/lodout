@@ -619,11 +619,19 @@
       botaoDeOrigem = form.querySelector("button");
       var alvo = dialogo.querySelector("[data-dialogo-nome]");
       if (alvo) alvo.textContent = nome;
+      // Título, texto e botão próprios do form (ex.: item fora do
+      // inventário, "Não quero de volta"); sem eles, os da página.
+      ["titulo", "texto", "botao"].forEach(function (parte) {
+        var el = dialogo.querySelector("[data-dialogo-" + parte + "]");
+        if (!el) return;
+        if (!el.hasAttribute("data-padrao")) el.setAttribute("data-padrao", el.textContent);
+        el.textContent = form.getAttribute("data-dialogo-" + parte) || el.getAttribute("data-padrao");
+      });
       dialogo.returnValue = "";
       dialogo.showModal();
       return;
     }
-    if (window.confirm("Remover " + nome + " da sua lista? Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago.")) {
+    if (window.confirm(form.getAttribute("data-confirmar") || ("Remover " + nome + " da sua lista? Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago."))) {
       form.submit();
     }
   });
