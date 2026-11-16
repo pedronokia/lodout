@@ -36,6 +36,11 @@ def ligado() -> bool:
     return (ambiente("BACKTEST_DIARIO") or "").strip().lower() in ("1", "true", "sim")
 
 
+def _experimento_ligado() -> bool:
+    from lodout._ambiente import ambiente
+    return (ambiente("EXPERIMENTO_CAIXAS") or "").strip().lower() in ("1", "true", "sim")
+
+
 def montar_itens() -> "list[dict]":
     scan = scan_store.load_last_scan() or {}
     itens = []
@@ -117,10 +122,15 @@ def rodar_se_preciso() -> bool:
     if not itens:
         return False
     rel = score_backtest.relatorio(itens)
-    try:
-        rel["experimento_caixas"] = experimento_caixas(itens)
-    except Exception:  # medir não pode derrubar o backtest do dia
-        _logger.exception("Experimento das caixas falhou")
+    # O experimento das caixas saiu daqui (16/11): rodando dentro do worker,
+    # ele não terminou em mais de 2 h e segurou a coleta e o Top 20 a tarde
+    # toda (o backtest sem ele leva ~4 min). Só roda se ligado de propósito
+    # (LODOUT_EXPERIMENTO_CAIXAS=1) -- melhor fora do worker.
+    if _experimento_ligado():
+        try:
+            rel["experimento_caixas"] = experimento_caixas(itens)
+        except Exception:  # medir não pode derrubar o backtest do dia
+            _logger.exception("Experimento das caixas falhou")
     rel["ts"] = time.time()
     rel["duracao_s"] = round(time.time() - inicio, 1)
     _paths.atomic_write_text(_caminho(), json.dumps(rel, ensure_ascii=False))

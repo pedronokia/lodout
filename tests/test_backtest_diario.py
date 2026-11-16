@@ -97,3 +97,16 @@ def test_experimento_caixas_mede_variantes_e_restaura_os_fatores(monkeypatch):
     r = backtest_diario.experimento_caixas(itens)
     assert r["confirmacao"]["variante"] == "sem_nivel_de_preco"
     assert set(r["confirmacao"]) == {"variante", "atual", "sem_nivel_de_preco"}
+
+
+def test_experimento_das_caixas_nao_roda_no_worker_por_padrao(monkeypatch):
+    """16/11: dentro do worker o experimento não terminou em 2 h e segurou
+    a coleta; o backtest do dia roda sem ele, a não ser que ligado."""
+    from lodout.public_site import backtest_diario
+    chamado = []
+    monkeypatch.setattr(backtest_diario, "montar_itens", lambda: [{"x": 1}])
+    monkeypatch.setattr(backtest_diario.score_backtest, "relatorio", lambda itens: {"itens": 1})
+    monkeypatch.setattr(backtest_diario, "experimento_caixas", lambda itens: chamado.append(1) or {})
+    monkeypatch.delenv("LODOUT_EXPERIMENTO_CAIXAS", raising=False)
+    assert backtest_diario.rodar_se_preciso() is True
+    assert chamado == [] and "experimento_caixas" not in backtest_diario.ler()
