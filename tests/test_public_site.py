@@ -2095,7 +2095,7 @@ def test_500_customizado(client, monkeypatch):
     client.application.config["PROPAGATE_EXCEPTIONS"] = False
     resp = client.get("/__boom")
     assert resp.status_code == 500
-    assert "quebrou".encode("utf-8") in resp.data
+    assert "Algo deu errado do nosso lado".encode("utf-8") in resp.data
 
 
 def test_429_customizado(client, monkeypatch):
@@ -6127,3 +6127,21 @@ def test_privacidade_diz_o_que_o_site_faz_de_verdade(client):
     assert "webhook do Discord" in corpo
     faq = client.get("/faq").data.decode("utf-8")
     assert "O Lodout vê o meu inventário da Steam?" in faq
+
+
+def test_pagina_de_erro_sem_jargao_e_com_tentar_de_novo(monkeypatch, tmp_path):
+    """Revisão de 16/11: a página de erro dizia "Voltar pro dashboard" e
+    "Erro interno do servidor", sem a ação mais útil (tentar de novo)."""
+    from lodout import portfolio
+    from lodout.public_site.server import create_app
+    app = create_app()
+    app.config["PROPAGATE_EXCEPTIONS"] = False
+    c = app.test_client()
+    with c.session_transaction() as s:
+        s["steamid"] = "76561198000000000"
+    monkeypatch.setattr(portfolio, "evaluate_portfolio", lambda *a, **k: 1 / 0)
+    r = c.get("/conta")
+    corpo = r.data.decode("utf-8")
+    assert r.status_code == 500
+    assert 'href="/conta">Tentar de novo</a>' in corpo
+    assert "dashboard" not in corpo and "Erro interno do servidor" not in corpo

@@ -23,6 +23,7 @@ ENTRADAS = [
             "Watchlist e trades no mesmo padrão da conta: cada campo tem o nome em cima, os alertas falam português simples (os de vendas e anúncios ficam em “Mais opções”, explicados), o alvo escolhido ao adicionar aparece como alerta e o alerta no Discord ficou recolhido.",
             "Excluir a conta ficou separado dos links de baixar a planilha e a cópia dos dados. A página de excluir explica o que é apagado, diz que a sua conta e os seus itens na Steam não são afetados e sugere baixar uma cópia antes; depois, a página inicial confirma.",
             "A página de Privacidade foi corrigida: ela dizia que o Lodout nunca lia o seu inventário, mas a conta lê o seu inventário público da Steam (o mesmo que qualquer pessoa vê no seu perfil). Agora ela lista tudo o que é guardado e o que fica só no seu navegador. A FAQ ganhou “O Lodout vê o meu inventário da Steam?”.",
+            "Se algo der errado do nosso lado, a página de erro oferece “Tentar de novo” (volta para onde você estava), sem termos técnicos; a página de “não existe” também deixou de falar em “dashboard”.",
             "Os avisos “Para revender sem prejuízo” (página do item) e de inventário privado (conta) trocaram a faixa grossa na lateral por uma borda fina, como os outros quadros.",
         ],
     },

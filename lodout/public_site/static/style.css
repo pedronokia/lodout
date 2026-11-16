@@ -6839,3 +6839,9 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .na-sua-conta-lucro strong.valor-negativo { color: var(--danger); }
 .na-sua-conta a { hyphens: manual; white-space: nowrap; }
 .na-sua-conta p { hyphens: manual; }
+
+/* Páginas de erro (revisão 2026-11-16): ícone separado do texto nos
+   botões e uma ação principal, com as outras como links. */
+.botao-acao { gap: 8px; }
+.acoes-erro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin-top: var(--sp-4); }
+.acoes-erro .acao-texto { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }

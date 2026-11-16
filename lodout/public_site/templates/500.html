@@ -17,18 +17,18 @@
   </header>
 
   <main id="conteudo" class="pagina-texto">
+    {# Revisão 2026-11-16: sem "dashboard" e sem "erro interno do
+       servidor"; a ação principal é tentar de novo (a página em que a
+       pessoa estava, sem reenviar formulário). #}
     <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Erro — algo quebrou do nosso lado</h1>
-      <p class="descricao-pagina">Não foi você — o erro já ficou registrado.
-      Tenta de novo em alguns minutos, ou volta pro dashboard.</p>
+      <h1 class="titulo-pagina">Algo deu errado do nosso lado</h1>
+      <p class="descricao-pagina">Não foi nada que você fez, e o problema já
+      ficou registrado. Tente de novo em alguns minutos.</p>
     </header>
-
-    <div class="resumo-cards">
-      <div class="card">
-        <p class="status status-erro">Erro interno do servidor.</p>
-        <p><a class="botao-acao" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pro dashboard</a></p>
-        <p><a class="botao-acao" href="{{ url_for('status') }}">{{ icone("grafico") }} Acompanhar status da coleta</a></p>
-      </div>
+    <div class="acoes-erro">
+      <a class="botao-acao" href="{{ request.path if request.method == 'GET' else url_for('index') }}">Tentar de novo</a>
+      <a class="acao-texto" href="{{ url_for('index') }}">Ir para a página inicial</a>
+      <a class="acao-texto" href="{{ url_for('status') }}">Ver se a coleta está funcionando</a>
     </div>
   </main>
 
