@@ -6769,7 +6769,9 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 /* Revisão 2026-11-16 (rodada 11). Texto do navegador maior (125%): a
    coluna "Venda por" não quebrava e a tabela passava 17px da caixa.
    Quebra só quando falta espaço; no tamanho normal nada muda. */
-.tabela-conta .venda-por-linha { white-space: normal; }
+@media (min-width: 641px) {
+  .tabela-conta .venda-por-linha { white-space: normal; }
+}
 /* Alto contraste do Windows: o filtro escolhido se distinguia só pelo
    fundo, que esse modo apaga. */
 @media (forced-colors: active) {
@@ -6784,3 +6786,6 @@ table.tabela-conta tbody tr[hidden] { display: none; }
   background: var(--surface);
   color: var(--text);
 }
+/* Nome sem espaços (item adicionado à mão com um nome enorme): no
+   computador passava por cima das outras colunas; agora quebra. */
+.tabela-conta .link-item { overflow-wrap: anywhere; }
