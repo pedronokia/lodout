@@ -888,3 +888,17 @@ def test_excluir_conta_confirma_e_explica_sem_jargao(client, monkeypatch):
     token = _csrf_token(client)
     inicio = client.post("/conta/excluir", data={"csrf_token": token}, follow_redirects=True).data.decode("utf-8")
     assert "Sua conta no Lodout foi excluída" in inicio
+
+
+def test_conta_js_envia_um_valor_por_vez_e_sem_travar():
+    """Revisão 16/11 (internet lenta): o 2º valor podia chegar antes do
+    1º (tela "20,00 salvo ✓", guardado 10,00), igual na meta; e trocar a
+    meta com 500 itens travava ~3 s (um recálculo de layout por célula)."""
+    from pathlib import Path
+    js = (Path(__file__).resolve().parents[1]
+          / "lodout/public_site/static/conta.js").read_text(encoding="utf-8")
+    assert 'form.getAttribute("data-enviando")' in js
+    assert "metaEnviando" in js
+    realce = js[js.index("function realcar"):]
+    realce = realce[:realce.index("\n  }\n")]
+    assert "el.offsetWidth" not in realce and "requestAnimationFrame" in realce

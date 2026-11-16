@@ -21,8 +21,22 @@
 
   // "Quero lucrar X%" sem recarregar (2026-11-15): salva a preferência e
   // recalcula o preço de venda de cada linha aqui mesmo (empate × meta).
+  // Uma troca por vez: com a internet lenta, a 1ª resposta chegava por
+  // último e a conta ficava com a meta velha, embora a lista mostrasse a
+  // nova (revisão 2026-11-16). A escolha feita durante o envio sai depois.
+  var metaEnviando = false, metaDeNovo = false;
   function trocarMeta(seletor) {
     var form = seletor.form;
+    if (metaEnviando) { metaDeNovo = true; return; }
+    metaEnviando = true;
+    var enviada = seletor.value;
+    var terminar = function () {
+      metaEnviando = false;
+      if (metaDeNovo) {
+        metaDeNovo = false;
+        if (seletor.value !== enviada) trocarMeta(seletor);
+      }
+    };
     fetch(form.action, {
       method: "POST", body: new FormData(form),
       headers: { "Accept": "application/json" }, credentials: "same-origin"
@@ -43,6 +57,7 @@
         texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
         titulosVenda(tr);
       });
+      terminar();
     }).catch(function () { form.submit(); });
   }
 
@@ -511,10 +526,19 @@
     if (mudou && el.getAttribute("role") !== "status") realcar(el);
   }
 
+  // Realces juntados num só quadro: ler offsetWidth em cada célula
+  // recalculava a tabela inteira a cada linha, e trocar a meta numa conta
+  // de 500 itens travava a página ~3 s (revisão 2026-11-16). Agora é um
+  // recálculo só, para todas as células que mudaram.
+  var aRealcar = [];
   function realcar(el) {
-    el.classList.remove("acabou-de-mudar");
-    void el.offsetWidth; // reinicia a animação se mudar duas vezes
-    el.classList.add("acabou-de-mudar");
+    if (aRealcar.push(el) > 1) return;
+    window.requestAnimationFrame(function () {
+      var lote = aRealcar; aRealcar = [];
+      lote.forEach(function (e) { e.classList.remove("acabou-de-mudar"); });
+      void document.body.offsetWidth; // reinicia a animação se mudar duas vezes
+      lote.forEach(function (e) { e.classList.add("acabou-de-mudar"); });
+    });
   }
 
   // Remover pede confirmação (ação destrutiva, AGENTS.md). Sem JS o
@@ -656,6 +680,15 @@
     // Campo apagado num item que tinha valor: tira o valor pago.
     var limpar = valor === "" && anterior !== "";
     if ((valor === "" && !limpar) || valor === anterior) return;
+    // Um envio por vez em cada linha: com a internet lenta, o 2º valor
+    // podia chegar ao site antes do 1º, e a tela dizia "20,00 salvo ✓"
+    // com 10,00 guardado (revisão 2026-11-16). O valor novo espera o
+    // envio atual terminar e sai em seguida (só o último digitado).
+    if (form.getAttribute("data-enviando")) {
+      form.setAttribute("data-de-novo", "1");
+      return;
+    }
+    form.setAttribute("data-enviando", "1");
     form.setAttribute("data-ultimo", valor);
     var dadosForm = new FormData(form);
     if (limpar) dadosForm.append("limpar", "1");
@@ -690,6 +723,8 @@
         return;
       }
       var d = r.dados;
+      // Outro valor espera na fila: a resposta dele atualiza a linha.
+      if (form.getAttribute("data-de-novo")) return;
       if (aviso) aviso.classList.remove("custo-erro");
       // "20" vira "20,00", como as outras linhas.
       var numero = Number(valor.replace(",", "."));
@@ -764,6 +799,11 @@
       form.submit();
     }).then(function () {
       if (botao) botao.disabled = false;
+      form.removeAttribute("data-enviando");
+      if (form.getAttribute("data-de-novo")) {
+        form.removeAttribute("data-de-novo");
+        if (form.requestSubmit) form.requestSubmit();
+      }
     });
   });
   // "Informar quanto pagou" na página do item (?busca=nome): cursor no

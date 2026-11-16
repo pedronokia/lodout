@@ -26,6 +26,7 @@ ENTRADAS = [
             "Se algo der errado do nosso lado, a página de erro oferece “Tentar de novo” (volta para onde você estava), sem termos técnicos; a página de “não existe” também deixou de falar em “dashboard”.",
             "Os avisos “Para revender sem prejuízo” (página do item) e de inventário privado (conta) trocaram a faixa grossa na lateral por uma borda fina, como os outros quadros.",
             "Depois de “Sair”, o botão Voltar do navegador não mostra mais a sua conta (útil em computador compartilhado). Uma aba aberta antes de você sair e entrar de novo agora avisa que ficou desatualizada e oferece “Recarregar a página”, em vez de dizer que o login expirou ou mostrar um erro em inglês.",
+            "Com a internet lenta, digitar dois valores pagos seguidos (ou trocar duas vezes o “Quero lucrar”) podia guardar o primeiro, embora a tela mostrasse o segundo; agora vale sempre o último. Trocar o “Quero lucrar” numa conta grande também deixou de travar a página por alguns segundos.",
         ],
     },
     {
