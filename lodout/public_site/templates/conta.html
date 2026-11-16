@@ -58,7 +58,7 @@
         <span class="card-sub" data-total="pago_sub">{{ tx.pago_sub }}</span>
         {% if avaliacao.totals.positions %}<progress class="card-progresso" max="{{ avaliacao.totals.positions }}" value="{{ avaliacao.totals.known_cost }}" data-total-progresso aria-label="Itens com o valor pago informado"></progress>{% endif %}
       </div>
-      <div class="card card-nota-destaque">
+      <div class="card">
         <span class="card-label">Lucro hoje</span>
         <span class="card-valor {{ tx.lucro_classe }}" data-total="lucro">{{ tx.lucro }}</span>
         <span class="card-sub" data-total="lucro_sub">{{ tx.lucro_sub }}</span>
@@ -235,7 +235,7 @@
               <span class="campo-reais{{ ' campo-reais-cada' if row.quantity and row.quantity > 1 else '' }}">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
                 {% if row.quantity and row.quantity > 1 %}<span class="campo-reais-sufixo" aria-hidden="true">cada</span>{% endif %}
-                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="0,00" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
+                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="quanto?" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>

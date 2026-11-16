@@ -46,6 +46,8 @@ ENTRADAS = [
             "Topo da conta mais direto: “Vale hoje” já mostra quanto sobra vendendo tudo; “Lucro hoje” diz de quantos itens é a conta quando falta valor pago; e os itens sem valor pago ganharam um cartão próprio, com quanto valem hoje e o botão “Preencher agora” (no lugar da faixa amarela).",
             "Menos texto antes da lista: a linha do inventário ficou curta, com “Atualizar agora” e “Abrir na Steam”, e as explicações foram para “Como ler esta tabela”. A coluna “Venda por” diz embaixo “o comprador paga”, e o preço mostra um ícone de copiar ao passar o mouse.",
             "Acabamento geral: as ações secundárias da conta têm um só estilo, os lotes do mesmo item ficam ligados por uma linha tracejada, os nomes do menu de baixo no celular ficaram maiores e leitores de tela dizem o nome do item em cada botão.",
+            "Conta no celular mais curta: item sem valor pago ocupa metade do espaço (só o nome, o campo do valor pago e quanto vale hoje); “Lucro hoje” e “Venda por” aparecem assim que você informa o valor.",
+            "Na conta, “Vale hoje” diz “você recebe R$ … depois da taxa da Steam” (antes “sem a taxa”, que dava para ler ao contrário); o prejuízo do cartão “Lucro hoje” fica vermelho, como na lista; “informe quanto pagou” ficou cinza, deixando o laranja para o “Preencher agora”; e o campo vazio pergunta “quanto?” em vez de mostrar “0,00”, que parecia um valor. Os textos de exemplo dos campos ficaram mais legíveis em todo o site.",
         ],
     },
     {

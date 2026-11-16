@@ -441,6 +441,11 @@ summary:focus-visible,
 }
 
 .link-pular-conteudo:focus-visible { left: 0; }
+.link-pular-conteudo:hover { color: #1a0d03; text-decoration: underline; }
+
+/* Texto de exemplo dos campos: o cinza padrão do navegador (#757575)
+   dava 3,5:1 no fundo escuro; este dá 5:1 ou mais. */
+::placeholder { color: #949494; opacity: 1; }
 
 /* ── Cabeçalho ───────────────────────────────────────── */
 
@@ -3838,6 +3843,9 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   color: var(--text-bright);
   font-variant-numeric: tabular-nums;
 }
+/* Lucro/prejuízo no cartão com a mesma cor da lista (revisão 2026-11-16). */
+.card-valor.valor-positivo { color: var(--positive); }
+.card-valor.valor-negativo { color: var(--danger); }
 
 /* O selo de Nota dentro do card mantém o tamanho do selo (não herda o
    número grande do .card-valor). */
@@ -6508,8 +6516,11 @@ table.tabela-conta tbody tr.linha-lote:has(+ tr.linha-lote) td { border-bottom-s
 .separar-lote > summary.acao-texto { color: var(--accent-bright); }
 .separar-lote > summary.acao-texto:hover { color: var(--accent-bright); }
 .botao-juntar.acao-texto { font-size: var(--fs-xs); color: var(--accent-bright); }
-button.venda-por-falta.acao-texto { font-size: var(--fs-xs); text-decoration: none; color: var(--accent-bright); }
-button.venda-por-falta.acao-texto:hover { text-decoration: underline; }
+/* Repete em toda linha sem valor pago: cinza, laranja só sob o mouse ou
+   com foco -- o laranja fica para o "Preencher agora" (revisão 2026-11-16). */
+button.venda-por-falta.acao-texto { font-size: var(--fs-xs); text-decoration: none; color: var(--text-muted); }
+button.venda-por-falta.acao-texto:hover,
+button.venda-por-falta.acao-texto:focus-visible { text-decoration: underline; color: var(--accent-bright); }
 
 /* Cartão "Sem valor pago" (no lugar da faixa amarela). */
 .card-falta { border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); }
@@ -6550,4 +6561,25 @@ input, textarea { caret-color: var(--accent); }
   .tabela-conta .confira { white-space: normal; }
   .tabela-conta .valor-cada { display: block; }
   .tabela-conta .valor-total { white-space: normal; }
+}
+
+/* Conta no celular, mais compacta (revisão 2026-11-16): cada item
+   ocupava ~330px. Sem valor pago, "Lucro hoje" e "Venda por" não têm o
+   que mostrar (o campo já está ao lado do preço) e somem; conta.js tira
+   a classe .linha-sem-custo ao salvar, e as duas células voltam. Rótulos
+   sem caixa-alta e o preço alinhado à direita, junto do campo. */
+@media (max-width: 640px) {
+  table.tabela-conta tbody { gap: var(--sp-2); }
+  table.tabela-conta tbody tr:not(.linha-regras) { padding: 6px 4px; }
+  table.tabela-conta tbody td { padding: 4px 8px; }
+  table.tabela-conta tbody td::before {
+    margin-bottom: 2px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  table.tabela-conta tbody tr.linha-sem-custo td[data-label="Lucro hoje"],
+  table.tabela-conta tbody tr.linha-sem-custo td[data-label="Venda por"] { display: none; }
+  table.tabela-conta tbody td[data-label="Vale hoje"],
+  table.tabela-conta tbody td[data-label="Venda por"] { align-items: flex-end; text-align: right; }
 }

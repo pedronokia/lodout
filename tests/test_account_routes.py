@@ -523,6 +523,19 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     # Cartão "Sem valor pago" (no lugar da faixa amarela, crítica de 15/11).
     assert 'data-total="falta_texto">1 item<' in pagina
     assert "informe o valor pago para ver" in pagina
+    # Revisão de 16/11: cartão de lucro sem o destaque laranja, campo
+    # vazio pergunta "quanto?" em vez de "0,00" (parecia um valor pago).
+    assert 'class="card card-nota-destaque"' not in pagina
+    assert 'placeholder="quanto?"' in pagina
+    assert 'placeholder="0,00"' not in pagina
+
+
+def test_liquido_diz_que_e_depois_da_taxa():
+    from lodout.public_site import account
+    tx = account._textos_totais({"positions": 2, "known_cost": 0, "unknown_cost": 2,
+                                 "net_if_sold": 86.96, "market_value": 100.0})
+    # "sem a taxa" dava para ler como "sem contar a taxa" (o bruto).
+    assert tx["liquido_sub"] == "você recebe R$\u00a086,96 depois da taxa da Steam"
 
 
 def test_adicionar_a_mao_aceita_virgula(client, monkeypatch):
