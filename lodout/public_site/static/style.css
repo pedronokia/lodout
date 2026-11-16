@@ -6720,32 +6720,81 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
    passava por cima do `hidden` -- a busca e os filtros não escondiam
    nada no celular (achado na revisão de 2026-11-16). Fica por último
    para vencer as regras de cartão. */
-/* Item fora do inventário (anunciado no Mercado ou vendido, revisão
-   2026-11-16): pergunta em amarelo; "Está anunciado" (caixa de marcar),
-   "Vendi" (abre o preço de venda) e, se anunciado, "remover" à vista. */
+/* Item fora do inventário (pedido do usuário 16/11, polido na revisão 29):
+   etiqueta curta junto do nome; uma linha com "Anunciou ou vendeu?",
+   "Está anunciado" e "Vendi" (abre #dialogo-vendi). */
+.item-etiqueta-fora {
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--warn);
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.item-etiqueta-anunciado {
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
 .item-fora {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px var(--sp-3);
-  max-width: 52ch;
+  gap: 2px var(--sp-3);
+  margin-top: 2px;
   font-size: var(--fs-xs);
   line-height: 1.4;
 }
-.item-fora-texto { flex-basis: 100%; color: var(--warn); }
+.item-fora-pergunta { color: var(--text-muted); }
 .form-anunciado { display: inline; }
 .caixa-marcar { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; color: var(--text); cursor: pointer; }
-.caixa-marcar input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+.caixa-marcar input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .vendi { display: inline; }
-.vendi > summary { display: inline-flex; align-items: center; min-height: 24px; color: var(--text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; list-style: none; }
+.vendi > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
 .vendi > summary::-webkit-details-marker { display: none; }
+.vendi > summary:hover { text-decoration: underline; text-underline-offset: 3px; }
 .vendi[open] { flex-basis: 100%; }
 .form-vendi { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-3); margin-top: 6px; }
 .form-vendi label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); }
-.form-vendi .input-venda { width: 10ch; text-align: right; }
-.form-vendi .explica-separar { flex-basis: 100%; }
+.form-vendi .input-venda { width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
 .tabela-conta .botao-confirmar-venda { min-height: 24px; padding: 0; color: var(--accent); font-weight: 600; }
-.tabela-conta .botao-fora-remover { opacity: 1; min-height: 24px; padding: 0; }
+.item-fora .form-remover { display: inline-flex; }
+table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
+.tabela-conta .botao-fora-remover { opacity: 1; min-height: 24px; padding: 0; font-size: var(--fs-xs); }
+
+/* Janela "Vendi": dois campos empilhados, rótulo em cima, e a conta ao
+   vivo (recebe / lucro) antes dos botões. */
+.dialogo-campos { display: grid; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.dialogo-campo { display: grid; gap: 6px; }
+.dialogo-campo[hidden] { display: none; }
+.dialogo-campo-rotulo { color: var(--text-muted); font-size: var(--fs-sm); }
+.dialogo-campo-linha { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.dialogo-campo-sufixo { color: var(--text-muted); font-size: var(--fs-sm); }
+.dialogo-dica { color: var(--text-fraco); font-size: var(--fs-xs); line-height: 1.45; }
+.dialogo-vendi .input-compacto { min-height: 44px; font-variant-numeric: tabular-nums; }
+.dialogo-vendi .input-quantidade { width: 6em; }
+.dialogo-vendi .input-venda { width: 10em; padding-left: 32px; text-align: right; }
+.dialogo-conta {
+  margin: 0 0 var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+.dialogo-conta:empty { display: none; }
+.dialogo-conta strong { color: var(--text-bright); font-weight: 600; }
+.dialogo-conta .valor-positivo { color: var(--positive); }
+.dialogo-conta .valor-negativo { color: var(--danger); }
 
 table.tabela-conta tbody tr[hidden] { display: none; }
 /* Linha do inventário com mais texto ("Preços coletados…"): as ações

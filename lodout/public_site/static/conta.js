@@ -843,4 +843,72 @@
     var campo = linha && linha.querySelector(".input-custo");
     if (campo) { campo.focus({ preventScroll: true }); campo.scrollIntoView({ block: "center" }); }
   })();
+
+  // "Vendi" (revisão 29, 16/11): janela com unidades e quanto o comprador
+  // pagou (já com o preço de hoje) e a conta ao vivo. Sem <dialog>, o
+  // formulário abre na própria linha (o <details>).
+  var dialogoVendi = document.getElementById("dialogo-vendi");
+  if (dialogoVendi && typeof dialogoVendi.showModal === "function") {
+    var formVendi = dialogoVendi.querySelector("[data-janela-vendi-form]");
+    var campoQtd = formVendi.querySelector("[data-janela-vendi-qtd]");
+    var campoPreco = formVendi.querySelector("[data-janela-vendi-preco]");
+    var contaVendi = formVendi.querySelector("[data-janela-vendi-conta]");
+    var tabelaVendi = document.querySelector(".tabela-conta");
+    var taxaVendi = Number((tabelaVendi && tabelaVendi.getAttribute("data-taxa")) || 15) / 100;
+    var origemVendi = null;
+    var custoVendi = null;
+    var lerPreco = function () {
+      var v = campoPreco.value.replace(/R\$/g, "").replace(/[\s\u00a0]/g, "");
+      if (v.indexOf(",") !== -1) v = v.replace(/\./g, "").replace(",", ".");
+      return Number(v);
+    };
+    var contarVenda = function () {
+      var preco = lerPreco();
+      var qtd = Math.max(1, parseInt(campoQtd.value, 10) || 1);
+      contaVendi.textContent = "";
+      if (!isFinite(preco) || preco <= 0) return;
+      var recebe = preco / (1 + taxaVendi) * qtd;
+      contaVendi.appendChild(document.createTextNode("Você recebe ≈ "));
+      var forte = document.createElement("strong");
+      forte.textContent = reais(recebe);
+      contaVendi.appendChild(forte);
+      contaVendi.appendChild(document.createTextNode(" depois da taxa"));
+      if (custoVendi !== null) {
+        var lucro = recebe - custoVendi * qtd;
+        contaVendi.appendChild(document.createTextNode(" · " + (lucro < 0 ? "prejuízo" : "lucro") + " ≈ "));
+        var valor = document.createElement("strong");
+        valor.className = lucro > 0 ? "valor-positivo" : lucro < 0 ? "valor-negativo" : "";
+        valor.textContent = reais(Math.abs(lucro));
+        contaVendi.appendChild(valor);
+      }
+    };
+    document.addEventListener("click", function (e) {
+      var resumo = e.target.closest && e.target.closest("details[data-vendi] > summary");
+      if (!resumo) return;
+      e.preventDefault();
+      var d = resumo.parentNode;
+      origemVendi = resumo;
+      formVendi.setAttribute("action", d.getAttribute("data-vendi-acao"));
+      formVendi.querySelector("[data-janela-vendi-lote]").value = d.getAttribute("data-vendi-lote") || "";
+      dialogoVendi.querySelector("[data-janela-vendi-nome]").textContent = d.getAttribute("data-vendi-nome") || "";
+      var qtd = parseInt(d.getAttribute("data-vendi-qtd"), 10) || 1;
+      campoQtd.max = String(qtd);
+      campoQtd.value = String(qtd);
+      formVendi.querySelector("[data-janela-vendi-qtd-campo]").hidden = qtd <= 1;
+      formVendi.querySelector("[data-janela-vendi-de]").textContent = "de " + qtd;
+      campoPreco.value = d.getAttribute("data-vendi-preco") || "";
+      var custo = d.getAttribute("data-vendi-custo");
+      custoVendi = custo ? Number(custo) : null;
+      contarVenda();
+      dialogoVendi.showModal();
+      campoPreco.focus();
+      campoPreco.select();
+    });
+    campoQtd.addEventListener("input", contarVenda);
+    campoPreco.addEventListener("input", contarVenda);
+    formVendi.addEventListener("submit", function () { normalizarValor(campoPreco); });
+    formVendi.querySelector("[data-janela-vendi-cancelar]").addEventListener("click", function () { dialogoVendi.close(); });
+    dialogoVendi.addEventListener("click", function (e) { if (e.target === dialogoVendi) dialogoVendi.close(); });
+    dialogoVendi.addEventListener("close", function () { if (origemVendi) origemVendi.focus(); });
+  }
 })();

@@ -330,10 +330,11 @@ def test_conta_mostra_item_fora_do_inventario_com_vendi(client):
     _logado(client, sid)
     pagina = client.get("/conta").data.decode("utf-8")
     assert pagina.count("linha-fora") == 1
-    assert "Não está no seu inventário da Steam desde" in pagina
-    assert "Anunciou no Mercado ou vendeu?" in pagina
-    assert "Está anunciado no Mercado</label>" in pagina
+    assert "fora do inventário desde" in pagina
+    assert "Anunciou ou vendeu?" in pagina
+    assert "Está anunciado</label>" in pagina
     assert 'name="sell_price"' in pagina
+    assert 'id="dialogo-vendi"' in pagina and "data-vendi-custo=\"3.0000\"" in pagina
     assert "1 item não aparece no inventário agora" in pagina
 
 
@@ -355,7 +356,7 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
     assert not any(p.get("anunciado") for p in user_portfolio.load_positions(sid))
     client.post("/conta/posicoes/Caixa V/anunciado", data={"csrf_token": token, "anunciado": "1"})
     pagina = client.get("/conta").data.decode("utf-8")
-    assert "Anunciado no Mercado (fora do inventário desde" in pagina
+    assert ">anunciado</span>" in pagina and "Anunciou ou vendeu?" not in pagina
     assert 'data-enviar-ao-mudar checked' in pagina
     # Vendeu 2 de 3 por R$ 20 cada: 1 fica, a venda vai para o histórico.
     r = client.post("/conta/posicoes/Caixa V/vendido",

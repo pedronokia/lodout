@@ -199,6 +199,7 @@
                 {% if row.exterior_fmt %}<span class="item-exterior">{{ row.exterior_fmt }}</span>{% endif %}
                 {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
                 {% if row.lotes_total and row.lotes_total > 1 %}<span class="item-lote" title="Unidades deste item separadas por valor pago">lote {{ row.lote_numero }} de {{ row.lotes_total }}</span>{% endif %}
+                {% if row.anunciado %}<span class="item-etiqueta-fora item-etiqueta-anunciado" title="Fora do seu inventário da Steam desde {{ row.fora_quando }}">anunciado</span>{% elif row.fora_desde %}<span class="item-etiqueta-fora" title="Não aparece no seu inventário público da Steam: anunciado no Mercado ou vendido">fora do inventário desde {{ row.fora_quando }}</span>{% endif %}
                 {% if row.score is not none %}<span class="nota-texto nota-{{ row.score|nota_classe }}" title="Nota do Lodout">nota {{ row.score }}</span>{% endif %}
                 {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
                    item? Separa unidades numa linha própria; junta de novo
@@ -234,28 +235,29 @@
               {# Saiu do inventário público (revisão 16/11): anunciar no
                  Mercado também tira o item de lá até vender. #}
               {% if row.fora_desde %}
-              {# Fora do inventário (pedido do usuário, 16/11): a pessoa marca
-                 "anunciado" (fica até ela tirar) ou "Vendi" (vai para Meus
-                 trades com o preço de venda). #}
+              {# Fora do inventário (pedido do usuário, 16/11; polido na
+                 revisão 29): etiqueta curta junto do nome, e uma linha só
+                 com a pergunta e as duas respostas. "Vendi" abre a janela
+                 #dialogo-vendi (conta.js); sem JavaScript, o formulário
+                 abre aqui mesmo. #}
               <span class="item-fora">
-                <span class="item-fora-texto">{% if row.anunciado %}Anunciado no Mercado (fora do inventário desde {{ row.fora_quando }}). Quando vender, use “Vendi”.{% else %}Não está no seu inventário da Steam desde {{ row.fora_quando }}. Anunciou no Mercado ou vendeu?{% endif %}</span>
+                {% if not row.anunciado %}<span class="item-fora-pergunta">Anunciou ou vendeu?</span>{% endif %}
                 <form method="post" action="{{ url_for('account.marcar_anunciado', name=row.name) }}" class="form-anunciado">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
-                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1" data-enviar-ao-mudar{{ ' checked' if row.anunciado else '' }}> Está anunciado no Mercado</label>
+                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1" data-enviar-ao-mudar{{ ' checked' if row.anunciado else '' }}> Está anunciado</label>
                   <button type="submit" class="botao-link botao-filtrar-sem-js">salvar</button>
                 </form>
-                <details class="vendi">
+                <details class="vendi" data-vendi data-vendi-acao="{{ url_for('account.marcar_vendido', name=row.name) }}" data-vendi-lote="{{ row.lote or '' }}" data-vendi-nome="{{ row.name_fmt }}" data-vendi-qtd="{{ row.quantity or 1 }}" data-vendi-preco="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-vendi-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
                   <summary class="acao-texto">Vendi<span class="visualmente-oculto"> {{ row.name_fmt }}</span></summary>
                   <form method="post" action="{{ url_for('account.marcar_vendido', name=row.name) }}" class="form-vendi">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
                     {% if row.quantity and row.quantity > 1 %}
-                    <label>Unidades vendidas <input type="number" name="quantidade" min="1" max="{{ row.quantity }}" value="{{ row.quantity }}" inputmode="numeric" class="input-compacto input-quantidade"></label>
+                    <label>Unidades <input type="number" name="quantidade" min="1" max="{{ row.quantity }}" value="{{ row.quantity }}" inputmode="numeric" class="input-compacto input-quantidade"></label>
                     {% else %}<input type="hidden" name="quantidade" value="1">{% endif %}
-                    <label>Vendi por R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" class="input-compacto input-venda" aria-describedby="explica-vendi-{{ loop.index }}"> cada</label>
+                    <label>Comprador pagou R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" class="input-compacto input-venda"> cada</label>
                     <button type="submit" class="botao-link botao-confirmar-venda">Confirmar venda</button>
-                    <span class="explica-separar" id="explica-vendi-{{ loop.index }}">O valor que o comprador pagou (já vem o preço de hoje; corrija se foi outro). A taxa da Steam é descontada e o item vai para “Itens vendidos”, no Histórico.</span>
                   </form>
                 </details>
                 {% if row.anunciado %}
@@ -365,6 +367,7 @@
     <p>O preço é o último que o Lodout coletou da Steam. Se o item não está entre os que o Lodout acompanha, o preço pode estar desatualizado.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  {% include "partials/_dialogo_vendi.html" %}
   {% with dialogo_titulo="Remover", dialogo_texto="O item sai da sua lista junto com o valor que você informou. Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
