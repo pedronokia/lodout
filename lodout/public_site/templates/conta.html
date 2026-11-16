@@ -249,7 +249,7 @@
                   <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1" data-enviar-ao-mudar{{ ' checked' if row.anunciado else '' }}> Está anunciado</label>
                   <button type="submit" class="botao-link botao-filtrar-sem-js">salvar</button>
                 </form>
-                <details class="vendi" data-vendi data-vendi-acao="{{ url_for('account.marcar_vendido', name=row.name) }}" data-vendi-lote="{{ row.lote or '' }}" data-vendi-nome="{{ row.name_fmt }}" data-vendi-qtd="{{ row.quantity or 1 }}" data-vendi-preco="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-vendi-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
+                <details class="vendi" data-vendi data-vendi-acao="{{ url_for('account.marcar_vendido', name=row.name) }}" data-vendi-lote="{{ row.lote or '' }}" data-vendi-nome="{{ row.name_fmt }}" data-vendi-nome-curto="{{ row.nome_curto }}" data-vendi-exterior="{{ row.exterior_fmt or '' }}" data-vendi-icone="{{ row.icon_url or '' }}" data-vendi-raridade="{{ row.raridade_classe or '' }}" data-vendi-qtd="{{ row.quantity or 1 }}" data-vendi-preco="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-vendi-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
                   <summary class="acao-texto">Vendi<span class="visualmente-oculto"> {{ row.name_fmt }}</span></summary>
                   <form method="post" action="{{ url_for('account.marcar_vendido', name=row.name) }}" class="form-vendi">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

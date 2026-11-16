@@ -29,7 +29,23 @@
     </div>
     </div>
     <div data-janela-vendi-passo2 hidden>
-      <p class="dialogo-texto dialogo-resumo-venda" data-janela-vendi-resumo tabindex="-1"></p>
+      <div class="resumo-venda-cabeca">
+        <span class="icone-item-quadro icone-item-quadro-compacto" data-resumo-icone-quadro aria-hidden="true">
+          <span class="icone-item-placeholder"></span>
+          <img class="icone-item" alt="" width="40" height="40" data-resumo-icone hidden>
+        </span>
+        <span class="resumo-venda-cabeca-texto">
+          <span class="resumo-venda-item" data-resumo-item translate="no"></span>
+          <span class="resumo-venda-detalhe" data-resumo-detalhe></span>
+        </span>
+      </div>
+      <dl class="resumo-venda">
+        <div><dt data-resumo-preco-rotulo>O comprador pagou</dt><dd data-resumo-preco></dd></div>
+        <div><dt>Você recebe</dt><dd data-resumo-recebe></dd></div>
+        <div data-resumo-pagou-linha><dt>Você pagou</dt><dd data-resumo-pagou></dd></div>
+        <div class="resumo-venda-resultado" data-resumo-resultado-linha><dt data-resumo-resultado-rotulo>Lucro</dt><dd data-resumo-resultado></dd></div>
+      </dl>
+      <p class="dialogo-texto resumo-venda-nota">O que você recebe já desconta a taxa da Steam. A venda vai para “Itens vendidos”, no Histórico.</p>
       <div class="dialogo-acoes">
         <button type="button" class="botao-secundario" data-janela-vendi-voltar>Voltar</button>
         <button type="submit" class="botao-acao" data-janela-vendi-sim>Sim, vendi</button>

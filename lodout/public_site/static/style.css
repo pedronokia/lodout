@@ -6792,6 +6792,40 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   font-variant-numeric: tabular-nums;
 }
 .dialogo-conta:empty { display: none; }
+/* Segunda confirmação do "Vendi" (pedido 16/11, polido): o item com a
+   imagem, e a conta na ordem em que acontece -- o comprador pagou, você
+   recebe, você pagou, resultado (em destaque, na cor dele). */
+.resumo-venda-cabeca { display: flex; align-items: center; gap: var(--sp-3); margin: 0 0 var(--sp-4); }
+.resumo-venda-cabeca-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.resumo-venda-item { color: var(--text-bright); font-size: var(--fs-base); font-weight: 600; line-height: 1.35; }
+.resumo-venda-detalhe { color: var(--text-muted); font-size: var(--fs-sm); }
+.resumo-venda-detalhe:empty { display: none; }
+.resumo-venda {
+  margin: 0 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.resumo-venda > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-4);
+  padding: 10px var(--sp-4);
+}
+.resumo-venda > div[hidden] { display: none; }
+.resumo-venda > div:not([hidden]) ~ div:not([hidden]) { border-top: 1px solid var(--border); }
+.resumo-venda dt { color: var(--text-muted); font-size: var(--fs-sm); }
+.resumo-venda dd { margin: 0; color: var(--text); font-weight: 500; text-align: right; white-space: nowrap; }
+.resumo-venda .resumo-venda-resultado { padding-block: 12px; }
+.resumo-venda .resumo-venda-resultado dt { color: var(--text); font-weight: 600; }
+.resumo-venda .resumo-venda-resultado dd { color: var(--text-bright); font-size: var(--fs-lg); font-weight: 700; }
+.resumo-venda .resultado-positivo { background: color-mix(in srgb, var(--positive) 10%, transparent); }
+.resumo-venda .resultado-positivo dd { color: var(--positive); }
+.resumo-venda .resultado-negativo { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.resumo-venda .resultado-negativo dd { color: var(--danger); }
+.resumo-venda-nota { margin-bottom: var(--sp-5); font-size: var(--fs-sm); }
 .dialogo-conta strong { color: var(--text-bright); font-weight: 600; }
 .dialogo-conta .valor-positivo { color: var(--positive); }
 .dialogo-conta .valor-negativo { color: var(--danger); }

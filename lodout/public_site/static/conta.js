@@ -903,7 +903,7 @@
       origemVendi = resumo;
       formVendi.setAttribute("action", d.getAttribute("data-vendi-acao"));
       formVendi.querySelector("[data-janela-vendi-lote]").value = d.getAttribute("data-vendi-lote") || "";
-      dialogoVendi.querySelector("[data-janela-vendi-nome]").textContent = d.getAttribute("data-vendi-nome") || "";
+      dialogoVendi.setAttribute("data-nome-atual", d.getAttribute("data-vendi-nome") || "");
       var qtd = parseInt(d.getAttribute("data-vendi-qtd"), 10) || 1;
       campoQtd.max = String(qtd);
       campoQtd.value = String(qtd);
@@ -924,13 +924,24 @@
     // mostra o resumo; só o "Sim, vendi" envia.
     var passo1 = formVendi.querySelector("[data-janela-vendi-passo1]");
     var passo2 = formVendi.querySelector("[data-janela-vendi-passo2]");
-    var resumoVenda = formVendi.querySelector("[data-janela-vendi-resumo]");
     var confirmado = formVendi.querySelector("[data-janela-vendi-confirmado]");
-    var nomeVenda = dialogoVendi.querySelector("[data-janela-vendi-nome]");
+    var tituloVenda = dialogoVendi.querySelector(".dialogo-titulo");
+    var tituloOriginal = tituloVenda.innerHTML;
+    var nomeVenda = function () { return dialogoVendi.getAttribute("data-nome-atual") || ""; };
+    var preencher = function (sel, texto) {
+      var el = formVendi.querySelector(sel);
+      if (el) el.textContent = texto;
+      return el;
+    };
     var mostrarPasso = function (n) {
       passo1.hidden = n !== 1;
       passo2.hidden = n !== 2;
       confirmado.value = "";
+      if (n === 1) {
+        tituloVenda.innerHTML = tituloOriginal;
+        var nomeEl = tituloVenda.querySelector("[data-janela-vendi-nome]");
+        if (nomeEl) nomeEl.textContent = nomeVenda();
+      }
     };
     formVendi.addEventListener("submit", function (e) {
       if (!passo2.hidden) { confirmado.value = "1"; normalizarValor(campoPreco); return; }
@@ -938,11 +949,34 @@
       var preco = lerPreco();
       if (!isFinite(preco) || preco <= 0) { campoPreco.focus(); return; }
       var qtd = Math.max(1, parseInt(campoQtd.value, 10) || 1);
-      resumoVenda.textContent = "Confirmar: você vendeu " + (qtd > 1 ? qtd + "× " : "") +
-        nomeVenda.textContent + " por " + reais(preco) + (qtd > 1 ? " cada" : "") +
-        "? " + (qtd > 1 ? "Elas saem" : "Ele sai") + " da sua lista e " + (qtd > 1 ? "vão" : "vai") +
-        " para “Itens vendidos”. " + contaVendi.textContent;
+      var recebe = preco / (1 + taxaVendi) * qtd;
+      tituloVenda.textContent = "Confirmar a venda?";
+      var origem = origemVendi ? origemVendi.parentNode : null;
+      var attr = function (n) { return origem ? origem.getAttribute(n) || "" : ""; };
+      preencher("[data-resumo-item]", attr("data-vendi-nome-curto") || nomeVenda());
+      var detalhe = [];
+      if (attr("data-vendi-exterior")) detalhe.push(attr("data-vendi-exterior"));
+      if (qtd > 1) detalhe.push(qtd + " unidades");
+      preencher("[data-resumo-detalhe]", detalhe.join(" · "));
+      var img = formVendi.querySelector("[data-resumo-icone]");
+      var quadro = formVendi.querySelector("[data-resumo-icone-quadro]");
+      quadro.className = "icone-item-quadro icone-item-quadro-compacto" + (attr("data-vendi-icone") ? " icone-item-quadro-com-imagem" : "") + (attr("data-vendi-raridade") ? " " + attr("data-vendi-raridade") : "");
+      if (attr("data-vendi-icone")) { img.src = attr("data-vendi-icone"); img.hidden = false; } else { img.removeAttribute("src"); img.hidden = true; }
+      preencher("[data-resumo-preco-rotulo]", qtd > 1 ? "O comprador pagou (cada)" : "O comprador pagou");
+      preencher("[data-resumo-preco]", reais(preco));
+      preencher("[data-resumo-recebe]", reais(recebe));
+      formVendi.querySelector("[data-resumo-pagou-linha]").hidden = custoVendi === null;
+      var linhaRes = formVendi.querySelector("[data-resumo-resultado-linha]");
+      linhaRes.hidden = custoVendi === null;
+      if (custoVendi !== null) {
+        preencher("[data-resumo-pagou]", reais(custoVendi * qtd));
+        var lucro = recebe - custoVendi * qtd;
+        preencher("[data-resumo-resultado-rotulo]", lucro < 0 ? "Prejuízo" : "Lucro");
+        preencher("[data-resumo-resultado]", (lucro > 0 ? "+" : lucro < 0 ? "−" : "") + reais(Math.abs(lucro)));
+        linhaRes.className = "resumo-venda-resultado" + (lucro > 0 ? " resultado-positivo" : lucro < 0 ? " resultado-negativo" : "");
+      }
       mostrarPasso(2);
+      tituloVenda.textContent = "Confirmar a venda?";
       formVendi.querySelector("[data-janela-vendi-sim]").focus();
     });
     formVendi.querySelector("[data-janela-vendi-voltar]").addEventListener("click", function () {
