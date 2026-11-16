@@ -49,8 +49,13 @@ jobs:
   # a pilha de fontes é outra. Qualquer mudança de layout além da
   # tolerância por pixel falha o job; regerar a base é um commit
   # explícito (workflow_dispatch com atualizar_baselines).
+  # Sistema fixo (2026-11-16): em 16/11 o ubuntu-latest virou 26.04 e o
+  # Playwright 1.60 não instala o Chromium nele ("does not support
+  # chromium on ubuntu26.04"), o que derrubava o tests e pulava o deploy.
+  # As imagens-base foram geradas no 24.04 (fontes do sistema): trocar de
+  # versão pede regerar a base.
   visual:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
