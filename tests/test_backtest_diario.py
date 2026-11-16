@@ -75,3 +75,25 @@ def test_health_mostra_o_backtest():
     dados = app.test_client().get("/api/health").get_json()
     assert dados["backtest"]["itens"] == 3
     (_paths.DATA_DIR / "backtest_resultado.json").unlink()
+
+
+def test_experimento_caixas_mede_variantes_e_restaura_os_fatores(monkeypatch):
+    """Revisão das caixas (2026-11-16): variantes medidas só na parte de
+    calibração; os fatores da nota voltam ao que eram depois."""
+    from lodout import signals
+    antes = (signals._REVERSAL_IN_CONTAINERS, signals._PRICE_LEVEL_ENABLED,
+             signals._DRAWDOWN_AT_HIGH_ENABLED, signals._VINTAGE_BONUS_ENABLED)
+    itens = [{"name": f"Caixa {i}", "price_history": _hist(500, 0.01 * (i % 3)),
+              "is_container": True} for i in range(10)]
+    itens += [{"name": "AK-47 | Redline (Field-Tested)", "price_history": _hist(500, 0.01),
+               "is_container": False}]
+    r = backtest_diario.experimento_caixas(itens)
+    assert r["caixas_calibracao"] == 7 and r["caixas_confirmacao"] == 3
+    assert set(r["calibracao"]) == {n for n, _ in backtest_diario._CAIXAS_VARIANTES}
+    assert "confirmacao" not in r  # só depois de escolher
+    assert (signals._REVERSAL_IN_CONTAINERS, signals._PRICE_LEVEL_ENABLED,
+            signals._DRAWDOWN_AT_HIGH_ENABLED, signals._VINTAGE_BONUS_ENABLED) == antes
+    monkeypatch.setattr(backtest_diario, "_CAIXAS_CONFIRMAR", "sem_nivel_de_preco")
+    r = backtest_diario.experimento_caixas(itens)
+    assert r["confirmacao"]["variante"] == "sem_nivel_de_preco"
+    assert set(r["confirmacao"]) == {"variante", "atual", "sem_nivel_de_preco"}
