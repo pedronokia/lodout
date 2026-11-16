@@ -28,7 +28,7 @@ from lodout import (
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
 from lodout.public_site import (
-    backtest_diario, catalogo, db_backup, inventario, scan_progress,
+    backtest_diario, catalogo, db_backup, inventario, itens_extras, scan_progress,
     worker_alert,
 )
 from lodout._ambiente import ambiente
@@ -405,6 +405,13 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
     global _escaneando
     if categories is None:
         categories = categorias_padrao()
+        # Itens a mais com nota, escolhidos do catálogo (2026-11-16).
+        try:
+            ja = {n for nomes in categories.values() for n in nomes}
+            for cat, nomes in itens_extras.alvos(ja).items():
+                categories[cat] = list(categories.get(cat, [])) + nomes
+        except Exception:
+            _logger.warning("itens extras não entraram neste ciclo", exc_info=True)
     _verificar_arquivos_do_jogo()
     categories = _com_containers_novos(categories)
     agora = time.time()
