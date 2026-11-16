@@ -98,6 +98,30 @@ def planejar(steamid: str, atuais: "list[dict]", backups: "list[Path]",
     return novas, relatorio
 
 
+_CACHE_PREVIA: dict = {}
+_PREVIA_TTL_S = 600
+
+
+def previa(steamid: str, atuais: "list[dict]", agora: "float | None" = None) -> dict:
+    """O que voltaria para esta conta, sem gravar nada: {"voltam": [...],
+    "conferir": [...]}, cada um com item e valores [(qtd, custo)]. Usado
+    pela página da conta para mostrar o quadro só a quem perdeu algo
+    (revisão 16/11). Guarda o resultado 10 min por conta (os backups só
+    mudam 1x por dia; a lista da pessoa entra na chave)."""
+    agora = time.time() if agora is None else agora
+    backups = _backups()
+    chave = (json.dumps(atuais, sort_keys=True, ensure_ascii=False),
+             tuple(b.name for b in backups))
+    guardado = _CACHE_PREVIA.get(steamid)
+    if guardado and guardado[1] == chave and agora - guardado[0] < _PREVIA_TTL_S:
+        return guardado[2]
+    _novas, relatorio = planejar(steamid, atuais, backups, agora)
+    out = {"voltam": [r for r in relatorio if not r["acao"].startswith("conferir")],
+           "conferir": [r for r in relatorio if r["acao"].startswith("conferir")]}
+    _CACHE_PREVIA[steamid] = (agora, chave, out)
+    return out
+
+
 def _contas_nos_backups(backups: "list[Path]") -> "list[str]":
     contas: set = set()
     for arquivo in backups:

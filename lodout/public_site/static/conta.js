@@ -284,6 +284,14 @@
         if (aba) aba.focus({ preventScroll: true });
       });
     }
+    // ?filtro=fora (depois de "Devolver com o valor pago", revisão 16/11):
+    // abre direto na aba "Fora do inventário".
+    try {
+      var filtroPedido = new URLSearchParams(window.location.search).get("filtro");
+      if (filtroPedido && ferramentas.querySelector('[data-conta-filtro="' + filtroPedido + '"]')) {
+        window.setTimeout(function () { escolherFiltro(filtroPedido); }, 0);
+      }
+    } catch (erro) { /* ignora */ }
     escolherFiltro = function (f) {
       estado.filtro = f;
       Array.prototype.forEach.call(ferramentas.querySelectorAll("[data-conta-filtro]"), function (b) {

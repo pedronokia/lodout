@@ -35,6 +35,30 @@
       </p>
     </header>
 
+    {# Itens que a sincronização antiga apagou ao anunciar no Mercado (até
+       23/11, enquanto existem os backups): só para quem perdeu algo, com a
+       lista antes de devolver (revisão 16/11). #}
+    {% if recuperar %}
+    <section class="conta-revenda conta-recuperar" aria-labelledby="titulo-recuperar">
+      <h2 class="conta-revenda-titulo" id="titulo-recuperar">{% if not recuperar.voltam %}Confira o valor pago de {{ "um item" if recuperar.conferir|length == 1 else "alguns itens" }}{% else %}{{ "Achamos 1 item" if recuperar.voltam|length == 1 else "Achamos " ~ recuperar.voltam|length ~ " itens" }} que {{ "sumiu" if recuperar.voltam|length == 1 else "sumiram" }} da sua lista{% endif %}</h2>
+      {% if recuperar.voltam %}
+      <p class="conta-revenda-texto">Até 16/11, anunciar um item no Mercado fazia ele sair da sua conta junto com o valor pago. {{ "Este é o que" if recuperar.voltam|length == 1 else "Estes são os que" }} dá para devolver, com o valor que você tinha informado:</p>
+      <ul class="conta-recuperar-lista">
+        {% for r in recuperar.voltam[:6] %}<li><span translate="no">{{ r.nome }}</span> <span class="conta-recuperar-valor"><span class="conta-recuperar-pagou">pagou</span> {{ r.valores }}</span></li>{% endfor %}
+        {% if recuperar.voltam|length > 6 %}<li class="conta-recuperar-mais">e mais {{ recuperar.voltam|length - 6 }}</li>{% endif %}
+      </ul>
+      <form method="post" action="{{ url_for('account.recuperar_apagados') }}" class="conta-recuperar-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="botao-acao">Devolver com o valor pago</button>
+        <span class="conta-revenda-nota">{{ "Ele volta" if recuperar.voltam|length == 1 else "Eles voltam" }} marcado{{ "" if recuperar.voltam|length == 1 else "s" }} como fora do inventário; depois é só marcar “Está anunciado” ou “Vendi”.</span>
+      </form>
+      {% endif %}
+      {% if recuperar.conferir %}
+      <p class="conta-revenda-nota conta-recuperar-conferir">Confira o valor pago {{ "deste item" if recuperar.conferir|length == 1 else "destes itens" }}: hoje {{ "ele está" if recuperar.conferir|length == 1 else "eles estão" }} separado{{ "" if recuperar.conferir|length == 1 else "s" }} em lotes diferentes dos de antes, então o site não sabe em qual lote pôr cada valor. {% for r in recuperar.conferir %}<span translate="no">{{ r.nome }}</span> (antes: {{ r.valores }}){{ "; " if not loop.last else "." }}{% endfor %}</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
     {# Revisão 2026-11-15 (conta com inventário + polimento): rótulo,
        valor e uma linha de contexto por cartão. Os textos vêm de
        account._textos_totais -- o mesmo que conta.js recebe ao salvar um
@@ -364,14 +388,6 @@
 
     {# Baixar e excluir separados (revisão 2026-11-16): o "Excluir" ficava
        colado aos downloads, no mesmo cinza, só com um "·" entre eles. #}
-    {# Até 23/11 (backups de 7 dias): devolve itens com valor pago que a
-       sincronização antiga apagou ao anunciar no Mercado (pedido 16/11). #}
-    {% if mostrar_recuperar %}
-    <form method="post" action="{{ url_for('account.recuperar_apagados') }}" class="conta-recuperar">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <p>Algum item com valor pago sumiu da sua lista depois de anunciado no Mercado (até 16/11)? <button type="submit" class="acao-texto">Recuperar com o valor pago</button></p>
-    </form>
-    {% endif %}
     <div class="link-excluir-conta">
       <p class="conta-baixar">Baixar: {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a> · {% endif %}<a href="{{ url_for('account.exportar_dados') }}">uma cópia dos meus dados (arquivo .json)</a></p>
       <p class="conta-excluir"><a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta no Lodout</a></p>

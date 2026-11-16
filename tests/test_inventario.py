@@ -511,17 +511,28 @@ def test_recuperar_pela_propria_conta(client):
     user_store.save_user_json(sid, "portfolio", [])
     user_store.save_user_json(outro, "portfolio", [])
     _logado(client, sid)
+    # Quadro no topo, com a lista antes de devolver (revisão 16/11).
     pagina = client.get("/conta").data.decode("utf-8")
-    assert "Recuperar com o valor pago" in pagina
+    assert "Achamos 1 item que sumiu da sua lista" in pagina
+    assert "Anunciada" in pagina and "R$ 30,00" in pagina
+    assert ">Devolver com o valor pago</button>" in pagina
     token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
-    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
-    assert "Voltaram com o valor pago" in r.data.decode("utf-8")
+    r = client.post("/conta/recuperar", data={"csrf_token": token})
+    assert r.status_code == 302 and r.headers["Location"].endswith("/conta?filtro=fora")
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "1 item voltou com o valor pago" in pagina
+    assert "Achamos" not in pagina   # nada mais a devolver: o quadro some
     pos = user_portfolio.load_positions(sid)
     assert [(p["name"], p["cost"], bool(p.get("fora_desde"))) for p in pos] == [("Anunciada", 30.0, True)]
     assert user_portfolio.load_positions(outro) == []  # só a própria conta
     r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
-    assert "Nada para recuperar" in r.data.decode("utf-8")
+    assert "Nada para devolver" in r.data.decode("utf-8")
     assert client.post("/conta/recuperar", data={}).status_code in (400, 403)
+    # Quem não perdeu nada não vê o quadro.
+    _logado(client, outro)
+    user_store.save_user_json(outro, "portfolio", [
+        {"name": "Do outro", "cost": 9.0, "quantity": 1, "source": "steam"}])
+    assert "Achamos" not in client.get("/conta").data.decode("utf-8")
 
 
 

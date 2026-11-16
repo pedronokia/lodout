@@ -7,6 +7,7 @@ acompanhar a própria carteira.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import secrets
 import time
@@ -35,6 +36,8 @@ from lodout.public_site.profile_fetcher import (
 )
 
 bp = Blueprint("account", __name__)
+
+_logger = logging.getLogger(__name__)
 
 
 def _openid_return_to_matches(expected: "str | None") -> bool:
@@ -411,7 +414,7 @@ def conta():
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         mudanca_valor=mudanca,
-        mostrar_recuperar=time.time() < RECUPERAR_ATE_TS,
+        recuperar=_quadro_recuperar(steamid, positions),
         idade_precos=_idade_dos_precos(quandos),
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
@@ -877,6 +880,26 @@ def marcar_vendido(name: str):
 RECUPERAR_ATE_TS = 1795392000.0  # 2026-11-23 21:00 UTC
 
 
+def _quadro_recuperar(steamid: str, positions: "list[dict]") -> "dict | None":
+    """Quadro "Achamos itens que sumiram da sua lista" (revisão 16/11): só
+    para quem tem algo a devolver, com a lista antes de confirmar."""
+    if time.time() >= RECUPERAR_ATE_TS:
+        return None
+    from lodout.public_site import recuperar_posicoes
+    try:
+        prev = recuperar_posicoes.previa(steamid, positions)
+    except Exception:
+        _logger.warning("prévia da recuperação falhou", exc_info=True)
+        return None
+    if not prev["voltam"] and not prev["conferir"]:
+        return None
+    def linha(r):
+        valores = " + ".join(f"{q}× {fmt.brl(c)}" if q > 1 else fmt.brl(c) for q, c in r["valores"])
+        return {"nome": localize_name(r["item"]), "valores": valores}
+    return {"voltam": [linha(r) for r in prev["voltam"]],
+            "conferir": [linha(r) for r in prev["conferir"]]}
+
+
 @bp.route("/conta/recuperar", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
@@ -889,21 +912,20 @@ def recuperar_apagados():
     agora = time.time()
     novas, relatorio = recuperar_posicoes.planejar(steamid, atuais, backups, agora)
     voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
-    conferir = [r for r in relatorio if r["acao"].startswith("conferir")]
     if not voltaram:
-        flash("Nada para recuperar: nenhum item com valor pago sumiu da sua lista "
-              "nos últimos dias." + (" Confira à mão: " + ", ".join(
-                  localize_name(r["item"]) for r in conferir) + "." if conferir else ""), "info")
+        flash("Nada para devolver: nenhum item com valor pago sumiu da sua lista "
+              "nos últimos dias.", "info")
         return redirect(url_for("account.conta"))
     copia = Path(_paths.DATA_DIR) / "backups" / time.strftime(
         f"recuperacao-{steamid}-%Y%m%d-%H%M%S.json", time.gmtime(agora))
     _paths.atomic_write_text(copia, json.dumps(atuais, ensure_ascii=False))
     user_store.save_user_json(steamid, "portfolio", novas)
-    nomes = ", ".join(localize_name(r["item"]) for r in voltaram)
-    flash(f"Voltaram com o valor pago: {nomes}. Marque “Está anunciado” ou “Vendi” em cada um."
-          + (" Confira à mão: " + ", ".join(localize_name(r["item"]) for r in conferir) + "."
-             if conferir else ""), "success")
-    return redirect(url_for("account.conta"))
+    recuperar_posicoes._CACHE_PREVIA.pop(steamid, None)
+    n = len(voltaram)
+    flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago. "
+          "Eles estão na aba “Fora do inventário”: marque “Está anunciado” ou "
+          "“Vendi” em cada um.", "success")
+    return redirect(url_for("account.conta", filtro="fora"))
 
 
 def _celula_csv(valor) -> str:
