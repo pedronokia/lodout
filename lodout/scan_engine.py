@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import json
 import sys
+import math
 import time
 from typing import Callable
 
@@ -34,6 +35,34 @@ def _overview_da_pagina(page: "dict | None",
     median, volume = _mediana_volume_24h(page.get("price_history"))
     return {"lowest": round(ask * fator_preco, 2), "median": median,
             "volume": volume or None}
+
+
+def _encomenda(ob: "dict | None", aproximado: bool, lowest: "float | None",
+               fator_preco: "float | None") -> "dict | None":
+    """Maior encomenda (pedido de compra) do item, em reais, e quantos
+    pedidos há. O book vem na unidade da listing page: usa o fator medido
+    do ciclo ou, sem ele, a potência de 10 que leva o menor anúncio do book
+    ao menor preço já em reais. Book de outro desgaste não vale."""
+    if not ob or aproximado:
+        return None
+    lance = ob.get("best_bid")
+    if not isinstance(lance, (int, float)) or lance <= 0:
+        return None
+    fator = fator_preco
+    if not fator:
+        ask = ob.get("best_ask")
+        if isinstance(ask, (int, float)) and ask > 0 and lowest:
+            fator = 10 ** round(math.log10(float(lowest) / float(ask)))
+    if not fator:
+        return None
+    maior = round(float(lance) * fator, 2)
+    # Encomenda acima do menor anúncio seria comprada na hora: dado
+    # incoerente (unidade errada ou book velho), melhor não mostrar.
+    if lowest and maior > float(lowest) * 1.05:
+        return None
+    pedidos = ob.get("buy_count")
+    return {"maior": maior,
+            "pedidos": int(pedidos) if isinstance(pedidos, (int, float)) else None}
 
 
 def _mediana_volume_24h(price_history: "list | None") -> "tuple[float | None, int | None]":
@@ -218,6 +247,9 @@ def scan_item(name: str, category: str | None = None,
         "category": category,
         "pump_risk": pr,
         "order_book_approx": ob_approx,
+        # Encomendas (pedidos de compra) da mesma listing page, sem
+        # requisição extra (pedido do usuário, 16/11): a maior e quantas.
+        "encomenda": _encomenda(ob, ob_approx, lowest, fator_preco),
         "derived_price": derived_price,
         "variantes": _resumo_variantes(name, page),
         # "Isso já aconteceu antes?" na página do item: calculado aqui, com

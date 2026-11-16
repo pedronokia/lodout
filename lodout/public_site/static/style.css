@@ -6841,6 +6841,24 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .dialogo-conta .valor-positivo { color: var(--positive); }
 .dialogo-conta .valor-negativo { color: var(--danger); }
 
+/* Comprar por encomenda (pedido 16/11): mesmo quadro do "revender sem
+   prejuízo", com borda neutra, e o valor de destaque em linha própria. */
+.conta-revenda.encomenda { border-color: var(--border); }
+.pagina-texto .conta-revenda .encomenda-valor,
+.conta-revenda .encomenda-valor {
+  margin: 2px 0 var(--sp-1);
+  color: var(--text-bright);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.pagina-texto .encomenda .conta-revenda-texto + .conta-revenda-nota,
+.encomenda .conta-revenda-nota { margin-top: var(--sp-2); }
+.encomenda-linha { color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.encomenda-linha strong { color: var(--text); font-weight: 600; }
+.cartao-item-encomenda { margin: 4px 0 0; }
+
 /* Recuperar itens apagados (até 23/11). */
 .conta-recuperar p { margin: var(--sp-5) 0 0; color: var(--text-muted); font-size: var(--fs-sm); }
 .conta-recuperar .acao-texto { text-decoration: underline; text-underline-offset: 3px; }

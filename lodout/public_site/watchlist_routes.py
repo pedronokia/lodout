@@ -18,6 +18,7 @@ from lodout import alerts, scan_store, signals
 from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
+    encomenda,
     catalogo, discord_notify, fmt, raridade, user_watchlist, user_webhook,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
@@ -81,6 +82,10 @@ def _avaliar(items: list[dict]) -> list[dict]:
             "preco_abaixo": (it.get("rules") or {}).get("price_below") or it.get("target") or "",
             "name_fmt": localize_name(name),
             "price_fmt": fmt.brl(price),
+            # Comprar por encomenda (pedido 16/11): a watchlist é a lista do
+            # que a pessoa quer comprar.
+            "encomenda": encomenda.info(price, raw.get("encomenda") if raw else None,
+                                        encomenda.meta_do_visitante()),
             "score": score,
             # O "alvo" de quando o item foi adicionado também é um alerta
             # de preço (alerts.evaluate_item); antes a tabela dizia "sem

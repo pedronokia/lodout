@@ -49,7 +49,7 @@ from lodout._paths import DATA_DIR, atomic_write_bytes
 from lodout.localization import localize_name
 from lodout.public_site import (
     backtest_diario, buscas, catalogo, changelog, charts, db_backup,
-    discord_notify,
+    discord_notify, encomenda,
     erro_stats, fmt, icon_cache, latencia, og_cards, profile_fetcher,
     raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
@@ -374,6 +374,7 @@ def create_app() -> Flask:
     app.jinja_env.filters["liquidez_label"] = _liquidez_label
     app.jinja_env.filters["titulo_sem_pipe_orfao"] = _titulo_sem_pipe_orfao
     app.jinja_env.filters["nome_pt"] = localize_name
+    app.jinja_env.globals["encomenda_info"] = encomenda.para_template
 
     @app.before_request
     def _marcar_inicio_latencia():
@@ -668,6 +669,8 @@ def create_app() -> Flask:
             return _resposta_item(render_template(
                 "item_catalogo.html", item=item_cat,
                 preco_empate=fmt.brl(portfolio.break_even_price(item_cat["price"])),
+                encomenda=encomenda.info(item_cat.get("price"), None,
+                                         encomenda.meta_do_visitante()),
                 taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
                 na_conta=na_conta), na_conta)
         # Mesmo achado de performance do index() (2026-11-09): ícone só
@@ -743,6 +746,11 @@ def create_app() -> Flask:
             # da carteira (portfolio.break_even_price).
             preco_empate=(fmt.brl(portfolio.break_even_price(item["price"]))
                           if item.get("price") else None),
+            encomenda=encomenda.info(
+                item.get("price"),
+                next((r.get("encomenda") for r in (scan or {}).get("results") or []
+                      if r.get("name") == name), None),
+                encomenda.meta_do_visitante()),
             taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             # Preço mais recente DESTE item específico -- cada item do
             # scan é coletado em instantes diferentes dentro do ciclo de

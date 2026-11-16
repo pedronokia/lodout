@@ -83,7 +83,7 @@
           {% endif %}
             </div>
           </td>
-          <td data-label="Preço de hoje" class="celula-numero">{{ it.price_fmt }}</td>
+          <td data-label="Preço de hoje" class="celula-numero">{{ it.price_fmt }}{% if it.encomenda %}<span class="valor-total encomenda-linha" title="Até quanto pagar numa encomenda para lucrar {{ it.encomenda.meta }}% revendendo pelo preço de hoje, já com a taxa da Steam.{% if it.encomenda.maior_fmt %} Maior encomenda na Steam hoje: {{ it.encomenda.maior_fmt }}.{% endif %}">encomenda até <strong>{{ it.encomenda.ate_fmt }}</strong></span>{% endif %}</td>
           <td data-label="Alertas">{{ it.rules_resumo }}</td>
           <td data-label="Agora">
             {% if it.disparado %}

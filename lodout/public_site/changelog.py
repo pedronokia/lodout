@@ -14,6 +14,7 @@ ENTRADAS = [
         "data": "2026-11-16",
         "titulo": "Mais itens com nota, conta mais rápida e login mais longo",
         "itens": [
+            "Comprar por encomenda: a página de cada item mostra até quanto pagar numa encomenda da Steam para lucrar a sua meta (20% sem login) revendendo pelo preço de hoje, já com a taxa, e qual é a maior encomenda que já existe; os cartões do início e a watchlist mostram o “encomenda até”.",
             "Mais itens com nota: a coleta passou a avaliar também os cerca de 100 itens mais anunciados do Mercado que ainda não tinham nota (armas, facas, luvas, caixas e cápsulas, a partir de R$ 1). Se a Steam não reclamar, mais itens entram aos poucos.",
             "O login com a Steam dura 30 dias (ou até você clicar em “Sair”); antes acabava toda vez que o navegador era fechado. Em computador compartilhado, lembre de clicar em “Sair”.",
             "Conta mais rápida com inventário grande: com 500 itens, num celular intermediário, a página abre em cerca de 1 segundo (eram 5), e buscar e ordenar ficaram até 6 vezes mais rápidos.",

@@ -6149,3 +6149,21 @@ def test_pagina_de_erro_sem_jargao_e_com_tentar_de_novo(monkeypatch, tmp_path):
     assert 'href="/conta">Tentar de novo</a>' in corpo
     assert "dashboard" not in corpo and "Erro interno do servidor" not in corpo
 
+
+
+def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
+    """Pedido 16/11: até quanto encomendar para lucrar 20% revendendo pelo
+    preço de hoje (R$ 100 -> R$ 72,46) e a maior encomenda da Steam."""
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 100.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "encomenda": {"maior": 75.5, "pedidos": 1234}},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert "Comprar por encomenda" in body
+    assert '<p class="encomenda-valor">R$ 72,46</p>' in body
+    assert "Maior encomenda na Steam hoje: <strong>R$ 75,50</strong> (1.234 pedidos)" in body
+    assert "Há encomendas maiores que a sua" in body
+    assert "A meta de 20% muda em “Minha conta”" in body
+    home = client.get("/").data.decode("utf-8")
+    assert "Encomenda até <strong>R$ 72,46</strong>" in home

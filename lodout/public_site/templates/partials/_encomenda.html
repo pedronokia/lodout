@@ -1,0 +1,17 @@
+{# Comprar por encomenda (pedido do usuário, 16/11): até quanto pagar
+   para lucrar a meta revendendo pelo preço de hoje, e a maior encomenda
+   que já existe na Steam. Conta com o preço de hoje, não previsão. #}
+{% if encomenda %}
+<section class="conta-revenda encomenda" aria-labelledby="titulo-encomenda">
+  <h2 class="conta-revenda-titulo" id="titulo-encomenda">Comprar por encomenda</h2>
+  <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. Demora mais, mas o preço é você quem escolhe. Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, encomende por até</p>
+  <p class="encomenda-valor">{{ encomenda.ate_fmt }}</p>
+  {% if encomenda.maior_fmt %}
+  <p class="conta-revenda-texto">Maior encomenda na Steam hoje: <strong>{{ encomenda.maior_fmt }}</strong>{% if encomenda.pedidos %} ({{ "{:,}".format(encomenda.pedidos).replace(",", ".") }} {{ "pedido" if encomenda.pedidos == 1 else "pedidos" }}){% endif %}.
+  {%- if encomenda.situacao == "acima" %} O seu valor ficaria acima dela, e encomendas maiores são atendidas primeiro.
+  {%- elif encomenda.situacao == "igual" %} O seu valor empataria com ela; entre iguais, quem pediu antes é atendido primeiro.
+  {%- else %} Há encomendas maiores que a sua: elas são atendidas primeiro, então a sua tende a demorar mais.{% endif %}</p>
+  {% endif %}
+  <p class="conta-revenda-nota">Conta feita com o preço de hoje e a taxa da Steam; se o preço mudar, o lucro muda.{% if not session.get("steamid") %} A meta de {{ encomenda.meta }}% muda em “Minha conta”.{% endif %}</p>
+</section>
+{% endif %}

@@ -67,6 +67,7 @@
       {% include "partials/_aviso_prazo_steam.html" %}
     </section>
     {% endif %}
+    {% include "partials/_encomenda.html" %}
 
     <h2 class="secao-titulo">Por que ainda não tem nota?</h2>
     <p>O Lodout acompanha todo o Mercado de CS2 com o preço do dia, mas a nota de 0 a 100 precisa do histórico de preço de cada item, que é uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
