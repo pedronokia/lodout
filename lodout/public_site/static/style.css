@@ -528,12 +528,14 @@ header.topo h1 {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  color: var(--chrome-texto);
+  /* Laranja da marca, como as aspas do rodapé (pedido 16/11: o cinza
+     apagava a marca no cabeçalho); ao passar o mouse, clareia. */
+  color: var(--accent);
   text-decoration: none;
   transition: color var(--dur-emphasis) var(--ease-standard);
 }
 
-.logo:hover { color: var(--chrome-texto-forte); }
+.logo:hover { color: color-mix(in srgb, var(--accent) 75%, white); }
 
 .logo:focus-visible {
   outline-offset: 3px;
