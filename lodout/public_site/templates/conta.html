@@ -358,6 +358,14 @@
 
     {# Baixar e excluir separados (revisão 2026-11-16): o "Excluir" ficava
        colado aos downloads, no mesmo cinza, só com um "·" entre eles. #}
+    {# Até 23/11 (backups de 7 dias): devolve itens com valor pago que a
+       sincronização antiga apagou ao anunciar no Mercado (pedido 16/11). #}
+    {% if mostrar_recuperar %}
+    <form method="post" action="{{ url_for('account.recuperar_apagados') }}" class="conta-recuperar">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <p>Algum item com valor pago sumiu da sua lista depois de anunciado no Mercado (até 16/11)? <button type="submit" class="acao-texto">Recuperar com o valor pago</button></p>
+    </form>
+    {% endif %}
     <div class="link-excluir-conta">
       <p class="conta-baixar">Baixar: {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a> · {% endif %}<a href="{{ url_for('account.exportar_dados') }}">uma cópia dos meus dados (arquivo .json)</a></p>
       <p class="conta-excluir"><a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta no Lodout</a></p>

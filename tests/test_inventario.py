@@ -481,3 +481,37 @@ def test_faq_explica_anunciado_e_vendi(client):
     faq = client.get("/faq").data.decode("utf-8")
     assert "Anunciei um item no Mercado. O que acontece na minha conta?" in faq
     assert "não é público" in faq
+
+
+def test_recuperar_pela_propria_conta(client):
+    """Pedido 16/11: a pessoa recupera pela conta, sem entrar no servidor."""
+    import re
+    import sqlite3
+    from lodout import _paths
+    from lodout.public_site import db as site_db
+    sid = "76561198000000036"
+    outro = "76561198000000037"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Anunciada", "cost": 30.0, "quantity": 1, "source": "steam"}])
+    user_store.save_user_json(outro, "portfolio", [
+        {"name": "Do outro", "cost": 9.0, "quantity": 1, "source": "steam"}])
+    pasta = Path(_paths.DATA_DIR) / "backups"
+    pasta.mkdir(parents=True, exist_ok=True)
+    origem = site_db.connect(None)
+    destino = sqlite3.connect(str(pasta / "public_site-20261115-130000.db"))
+    origem.backup(destino)
+    origem.close(); destino.close()
+    user_store.save_user_json(sid, "portfolio", [])
+    user_store.save_user_json(outro, "portfolio", [])
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Recuperar com o valor pago" in pagina
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
+    assert "Voltaram com o valor pago" in r.data.decode("utf-8")
+    pos = user_portfolio.load_positions(sid)
+    assert [(p["name"], p["cost"], bool(p.get("fora_desde"))) for p in pos] == [("Anunciada", 30.0, True)]
+    assert user_portfolio.load_positions(outro) == []  # só a própria conta
+    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
+    assert "Nada para recuperar" in r.data.decode("utf-8")
+    assert client.post("/conta/recuperar", data={}).status_code in (400, 403)

@@ -6,17 +6,19 @@ acompanhar a própria carteira.
 """
 from __future__ import annotations
 
+import json
 import math
 import secrets
 import time
 import urllib.parse
+from pathlib import Path
 
 from flask import (
     Blueprint, flash, jsonify, make_response, redirect, render_template, request,
     send_file, session, url_for,
 )
 
-from lodout import portfolio, scan_store
+from lodout import _paths, portfolio, scan_store
 from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
@@ -409,6 +411,7 @@ def conta():
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         mudanca_valor=mudanca,
+        mostrar_recuperar=time.time() < RECUPERAR_ATE_TS,
         idade_precos=_idade_dos_precos(quandos),
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
@@ -836,6 +839,42 @@ def marcar_vendido(name: str):
                  f"prejuízo de {fmt.brl(-pnl)}" if pnl < 0 else "sem lucro nem prejuízo")
     flash(f"{localize_name(name)} foi para “Itens vendidos”, no Histórico: vendido por {fmt.brl(preco)}"
           f"{' cada' if quantidade > 1 else ''}, {resultado} depois da taxa.", "success")
+    return redirect(url_for("account.conta"))
+
+
+# Até 16/11, anunciar no Mercado apagava o item e o valor pago (a
+# sincronização achava que tinha vendido). Os backups diários guardam 7
+# dias: até lá, a própria pessoa pode recuperar os dela pela conta, sem
+# ninguém precisar entrar no servidor (pedido do usuário, 16/11).
+RECUPERAR_ATE_TS = 1795392000.0  # 2026-11-23 21:00 UTC
+
+
+@bp.route("/conta/recuperar", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def recuperar_apagados():
+    from lodout.public_site import recuperar_posicoes
+    steamid = session["steamid"]
+    backups = recuperar_posicoes._backups()
+    atuais = user_portfolio.load_positions(steamid)
+    agora = time.time()
+    novas, relatorio = recuperar_posicoes.planejar(steamid, atuais, backups, agora)
+    voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
+    conferir = [r for r in relatorio if r["acao"].startswith("conferir")]
+    if not voltaram:
+        flash("Nada para recuperar: nenhum item com valor pago sumiu da sua lista "
+              "nos últimos dias." + (" Confira à mão: " + ", ".join(
+                  localize_name(r["item"]) for r in conferir) + "." if conferir else ""), "info")
+        return redirect(url_for("account.conta"))
+    copia = Path(_paths.DATA_DIR) / "backups" / time.strftime(
+        f"recuperacao-{steamid}-%Y%m%d-%H%M%S.json", time.gmtime(agora))
+    _paths.atomic_write_text(copia, json.dumps(atuais, ensure_ascii=False))
+    user_store.save_user_json(steamid, "portfolio", novas)
+    nomes = ", ".join(localize_name(r["item"]) for r in voltaram)
+    flash(f"Voltaram com o valor pago: {nomes}. Marque “Está anunciado” ou “Vendi” em cada um."
+          + (" Confira à mão: " + ", ".join(localize_name(r["item"]) for r in conferir) + "."
+             if conferir else ""), "success")
     return redirect(url_for("account.conta"))
 
 

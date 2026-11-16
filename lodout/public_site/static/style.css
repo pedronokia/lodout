@@ -6796,6 +6796,10 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .dialogo-conta .valor-positivo { color: var(--positive); }
 .dialogo-conta .valor-negativo { color: var(--danger); }
 
+/* Recuperar itens apagados (até 23/11). */
+.conta-recuperar p { margin: var(--sp-5) 0 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.conta-recuperar .acao-texto { text-decoration: underline; text-underline-offset: 3px; }
+
 /* "Ver quais" (itens fora do inventário) nasce hidden; só o script mostra. */
 .acao-texto[hidden] { display: none; }
 
