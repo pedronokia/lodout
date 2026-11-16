@@ -3949,11 +3949,13 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 }
 
 /* Conta da revenda na página do item (2026-11-15): caixa discreta com
-   fio na cor de alerta -- é um aviso prático, não um destaque de venda. */
+   borda fina na cor de alerta -- é um aviso prático, não um destaque de
+   venda. A faixa lateral grossa (3px à esquerda) saiu em 2026-11-16,
+   como na conta. */
 .conta-revenda {
   margin: 0 0 var(--sp-5);
   padding: var(--sp-3) var(--sp-4);
-  border-left: 3px solid var(--warn);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
   border-radius: var(--radius-sm);
   background: var(--surface);
 }
@@ -4094,18 +4096,6 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   white-space: nowrap;
 }
 
-.pagina-texto .aviso-sem-custo,
-.aviso-sem-custo {
-  margin: 0 0 var(--sp-4);
-  padding: var(--sp-2) var(--sp-3);
-  border-left: 3px solid var(--warn);
-  border-radius: var(--radius-xs);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--fs-sm);
-  text-align: left;
-}
-
 .adicionar-manual { margin: 0 0 var(--sp-5); }
 
 .adicionar-manual > summary {
@@ -4234,7 +4224,7 @@ table.tabela-conta th { white-space: normal; }
 
 .status-inventario-alerta {
   padding: var(--sp-2) var(--sp-3);
-  border-left: 3px solid var(--warn);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
   border-radius: var(--radius-xs);
   background: var(--surface);
   color: var(--text);
@@ -5855,7 +5845,6 @@ a.paginacao-passo:active {
   font-variant-numeric: tabular-nums;
 }
 .resumo-cards-conta .card-valor.card-valor-texto { font-size: clamp(1.25rem, 2.2vw, 1.75rem); font-weight: 400; color: var(--text-muted); }
-.aviso-sem-custo[hidden] { display: none; }
 
 .conta-lista-cabecalho {
   display: flex;
@@ -6242,8 +6231,6 @@ table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 .card-progresso::-moz-progress-bar { background: var(--positive); border-radius: var(--radius-pill); }
 
 /* Aviso com a ação ao lado. */
-.aviso-sem-custo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-3); }
-.aviso-sem-custo[hidden] { display: none; }
 .botao-preencher {
   min-height: 32px;
   margin-left: auto;
@@ -6376,11 +6363,6 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 #explica-meta a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* ── Conta, pacote de acabamento (2026-11-15) ─────────────────────── */
-/* Aviso vira confirmação quando o último valor pago é preenchido. */
-.aviso-sem-custo.aviso-pronto {
-  border-left-color: var(--positive);
-  background: color-mix(in srgb, var(--positive) 8%, var(--surface));
-}
 /* "Buscando…" com um pontinho pulsando (sem movimento pra quem pede). */
 .status-inventario-buscando::before {
   content: "";
