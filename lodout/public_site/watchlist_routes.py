@@ -33,6 +33,13 @@ _RULE_FIELDS = (
 )
 
 
+def _regras_com_alvo(item: dict) -> dict:
+    regras = dict(item.get("rules") or {})
+    if not regras.get("price_below") and item.get("target"):
+        regras["price_below"] = item["target"]
+    return regras
+
+
 def _scan_lookup() -> dict:
     """{name: resultado bruto} do último scan público -- leitura, sem
     rede. Serve tanto pra nota (_avaliar já usava) quanto pra ícone/
@@ -71,11 +78,15 @@ def _avaliar(items: list[dict]) -> list[dict]:
         )
         out.append({
             **it,
+            "preco_abaixo": (it.get("rules") or {}).get("price_below") or it.get("target") or "",
             "name_fmt": localize_name(name),
             "price_fmt": fmt.brl(price),
             "score": score,
-            "rules_resumo": alerts.format_rules_summary(it.get("rules"))
-                            or "Sem regra configurada",
+            # O "alvo" de quando o item foi adicionado também é um alerta
+            # de preço (alerts.evaluate_item); antes a tabela dizia "sem
+            # regra" mesmo com ele (revisão 2026-11-16).
+            "rules_resumo": alerts.format_rules_summary(_regras_com_alvo(it))
+                            or "Nenhum alerta ainda",
             "alertas": alertas,
             "disparado": bool(alertas),
             **raridade.icone_raridade(imagens.get(name)),

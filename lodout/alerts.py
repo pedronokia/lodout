@@ -51,7 +51,8 @@ def evaluate_item(
     if target and current_price is not None and current_price <= target:
         alerts.append({
             "rule": "price_below",
-            "label": f"Preço atingiu alvo ({current_price:.2f} <= {target:.2f})",
+            "label": (f"Preço chegou a R$ {current_price:.2f} "
+                      f"(alerta abaixo de R$ {target:.2f})").replace(".", ","),
             "value": current_price,
             "severity": "opportunity",
         })
@@ -77,7 +78,8 @@ def evaluate_item(
         if anom.get("is_anomaly") and anom.get("direction") == "acima":
             alerts.append({
                 "rule": "volume_spike",
-                "label": f"Volume {anom['ratio']:.1f}x acima da média (gatilho {vol_factor}x)",
+                "label": (f"Vendas do dia em {anom['ratio']:.1f}x o normal "
+                          f"(alerta em {vol_factor}x)").replace(".", ","),
                 "value": anom["ratio"],
                 "severity": "info",
             })
@@ -89,7 +91,8 @@ def evaluate_item(
         if anom_s.get("is_anomaly") and anom_s.get("direction") == "abaixo":
             alerts.append({
                 "rule": "supply_drop",
-                "label": f"Oferta {anom_s['ratio']:.2f}x da média (queda)",
+                "label": (f"Anúncios à venda em {anom_s['ratio']:.2f}x o normal "
+                          "(menos gente vendendo)").replace(".", ","),
                 "value": anom_s["ratio"],
                 "severity": "opportunity",
             })
@@ -174,16 +177,22 @@ def format_rules_summary(rules: dict | None) -> str:
     """Texto curto descrevendo as regras ativas (pra coluna do table)."""
     if not rules:
         return ""
+    # Linguagem de quem usa (revisão 2026-11-16): antes "vol 3x",
+    # "oferta 2x", "score >=85" e o alvo arredondado sem centavos.
+    def _num(v) -> str:
+        return f"{float(v):g}".replace(".", ",")
+
     parts = []
     if rules.get("price_below"):
-        parts.append(f"abaixo de R$ {rules['price_below']:.0f}")
+        reais = f"{float(rules['price_below']):,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+        parts.append(f"preço abaixo de R$ {reais}")
     if rules.get("price_drop_pct"):
         # price_drop_pct usa pontos percentuais, na escala de 0 a 100.
-        parts.append(f"queda {rules['price_drop_pct']:g}%")
+        parts.append(f"queda de {_num(rules['price_drop_pct'])}%")
     if rules.get("volume_spike"):
-        parts.append(f"vol {rules['volume_spike']:g}x")
+        parts.append(f"vendas {_num(rules['volume_spike'])}x o normal")
     if rules.get("supply_drop"):
-        parts.append(f"oferta {rules['supply_drop']:g}x")
+        parts.append(f"anúncios {_num(rules['supply_drop'])}x abaixo do normal")
     if rules.get("score_above"):
-        parts.append(f"score >={int(rules['score_above'])}")
+        parts.append(f"nota a partir de {int(rules['score_above'])}")
     return ", ".join(parts)

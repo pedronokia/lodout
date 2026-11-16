@@ -30,7 +30,7 @@
       {# Mesma classe que elevou a Nota na página do item e o Lucro em
          "Minha conta" (revisão de direção visual 2026-11-08) -- o
          resultado líquido é o número central desta tela. #}
-      <div class="card card-nota-destaque">
+      <div class="card">
         <span class="card-label">Lucro total (líquido)</span>
         <span class="card-valor {{ 'valor-positivo' if stats.pnl_total > 0 else ('valor-negativo' if stats.pnl_total < 0 else '') }}">{{ stats.pnl_total_fmt }}</span>
       </div>
@@ -43,11 +43,17 @@
         <h2 class="secao-titulo">Registrar trade encerrado</h2>
         <form class="form-adicionar" method="post" action="{{ url_for('trades.adicionar') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="Nome exato do item…" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" aria-label="Nome exato do item" maxlength="200" required>
-          <input type="text" name="buy_cost" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Comprou por, ex.: 25,00…" title="Valor em reais, por exemplo 25,00" aria-label="Valor de compra, em reais" required>
-          <input type="text" name="sell_price" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="Vendeu por, ex.: 31,50…" title="Valor em reais, por exemplo 31,50" aria-label="Valor de venda, em reais" required>
-          <input type="number" name="quantity" min="1" value="1" placeholder="Qtd" aria-label="Quantidade">
-          <input type="text" name="notes" autocomplete="off" placeholder="Notas (opcional)…" aria-label="Notas, opcional">
+          {# Rótulos visíveis (revisão 2026-11-16), como na conta. #}
+          <label class="campo-adicionar campo-adicionar-nome"><span>Nome exato no Mercado da Steam</span>
+            <input type="text" name="name" autocomplete="off" spellcheck="false" placeholder="ex.: AK-47 | Redline (Field-Tested)" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" maxlength="200" required></label>
+          <label class="campo-adicionar"><span>Comprou por (R$, cada)</span>
+            <input type="text" name="buy_cost" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="ex.: 25,00" title="Valor em reais, por exemplo 25,00" required></label>
+          <label class="campo-adicionar"><span>Vendeu por (R$, cada)</span>
+            <input type="text" name="sell_price" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="ex.: 31,50" title="Valor em reais, por exemplo 31,50" required></label>
+          <label class="campo-adicionar"><span>Quantidade</span>
+            <input type="number" name="quantity" min="1" value="1"></label>
+          <label class="campo-adicionar"><span>Notas (opcional)</span>
+            <input type="text" name="notes" autocomplete="off"></label>
           <button type="submit" class="botao-acao">+ Registrar</button>
         </form>
       </div>

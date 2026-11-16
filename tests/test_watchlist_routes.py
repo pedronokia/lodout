@@ -85,7 +85,7 @@ def test_adicionar_item(client, monkeypatch):
     assert "AK-47" in pagina
     assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
     assert 'class="linha-watchlist"' in pagina
-    assert 'data-label="Regras"' in pagina
+    assert 'data-label="Alertas"' in pagina
 
 
 def test_item_mostra_icone_raridade_e_nota_do_scan_atual(
@@ -142,8 +142,8 @@ def test_item_sem_regra_mostra_sem_gatilho(client, monkeypatch):
         "name": "AK-47", "target": "0", "csrf_token": token,
     })
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "sem gatilho agora" in pagina
-    assert "dispararia agora" not in pagina
+    assert "nenhum alerta disparado" in pagina
+    assert 'class="badge-disparado"' not in pagina
 
 
 def test_price_below_dispara(client, monkeypatch):
@@ -154,7 +154,7 @@ def test_price_below_dispara(client, monkeypatch):
         "name": "AK-47", "target": "15.00", "csrf_token": token,
     })
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "dispararia agora" in pagina
+    assert 'class="badge-disparado"' in pagina
 
 
 def test_price_below_nao_dispara_quando_preco_acima(client, monkeypatch):
@@ -165,7 +165,7 @@ def test_price_below_nao_dispara_quando_preco_acima(client, monkeypatch):
         "name": "M4A4", "target": "5.00", "csrf_token": token,
     })
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "sem gatilho agora" in pagina
+    assert "nenhum alerta disparado" in pagina
 
 
 def test_alvo_invalido_nao_cria_item_e_mostra_erro(client, monkeypatch):
@@ -189,7 +189,7 @@ def test_editar_regras(client, monkeypatch):
         "price_drop_pct": "10", "baseline_price": "20", "csrf_token": token,
     })
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "queda 10%" in pagina
+    assert "queda de 10%" in pagina
 
 
 def test_regra_invalida_preserva_regras_existentes(client, monkeypatch):
@@ -208,7 +208,7 @@ def test_regra_invalida_preserva_regras_existentes(client, monkeypatch):
     })
     pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
     assert "As regras não foram salvas" in pagina
-    assert "queda 10%" in pagina
+    assert "queda de 10%" in pagina
 
 
 def test_remover_item(client, monkeypatch):
@@ -226,12 +226,14 @@ def test_itens_isolados_entre_contas(client, monkeypatch):
     _login(client, monkeypatch, steamid="111")
     token = _csrf_token(client)
     client.post("/conta/watchlist", data={
-        "name": "AK-47", "csrf_token": token,
+        "name": "ItemDoUmNaWatchlist", "csrf_token": token,
     })
     client.get("/logout")
     _login(client, monkeypatch, steamid="222")
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "AK-47" not in pagina
+    # Nome único: o exemplo do campo ("ex.: AK-47 | Redline…") não
+    # pode ser confundido com um item de outra conta.
+    assert "ItemDoUmNaWatchlist" not in pagina
 
 
 # ── webhook Discord ──────────────────────────────────────────
@@ -365,3 +367,14 @@ def test_watchlist_usa_preco_e_imagem_do_catalogo(client, monkeypatch):
     assert "R$ 42,20" in pagina
     assert "hash-w" in pagina
     assert 'class="form-inline form-remover" data-nome="Caixa W"' in pagina
+
+
+def test_alvo_ao_adicionar_aparece_como_alerta(client, monkeypatch):
+    """O "alvo" do formulário de adicionar já é um alerta de preço; antes a
+    tabela dizia "sem regra" e o formulário de editar vinha vazio (16/11)."""
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/watchlist", data={"name": "Caixa Alvo", "target": "35,10", "csrf_token": token})
+    pagina = client.get("/conta/watchlist").data.decode("utf-8")
+    assert "preço abaixo de R$ 35,10" in pagina
+    assert 'name="price_below" step="0.01" min="0.01" value="35.10"' in pagina

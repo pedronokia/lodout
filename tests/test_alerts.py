@@ -9,7 +9,7 @@ def test_evaluate_price_below_target():
     fired = alerts.evaluate_item(item, current_price=95.0)
     assert len(fired) == 1
     assert fired[0]["rule"] == "price_below"
-    assert "atingiu alvo" in fired[0]["label"]
+    assert "Preço chegou a R$" in fired[0]["label"]
 
 
 def test_evaluate_price_below_not_reached():
@@ -145,11 +145,11 @@ def test_format_rules_summary_multi():
         "supply_drop": 2.0,
         "score_above": 85,
     })
-    assert "abaixo de R$ 120" in s
-    assert "queda 15%" in s
-    assert "vol 3x" in s
-    assert "oferta 2x" in s
-    assert "score >=85" in s
+    assert "preço abaixo de R$ 120,00" in s
+    assert "queda de 15%" in s
+    assert "vendas 3x o normal" in s
+    assert "anúncios 2x abaixo do normal" in s
+    assert "nota a partir de 85" in s
 
 
 def test_evaluate_score_above_dispara():
