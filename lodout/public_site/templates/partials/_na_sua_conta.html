@@ -4,7 +4,7 @@
 <section class="na-sua-conta" aria-labelledby="titulo-na-conta">
   <h2 class="na-sua-conta-titulo" id="titulo-na-conta">Na sua conta</h2>
   {% if na_conta.unidades %}
-  <p class="na-sua-conta-texto">Você tem <strong>{{ na_conta.unidades }}</strong> {{ "unidade" if na_conta.unidades == 1 else "unidades" }} deste item.{% if na_conta.anunciado_unid %} {% if na_conta.anunciado_unid == na_conta.unidades %}{{ "Ela está anunciada" if na_conta.unidades == 1 else "As " ~ na_conta.unidades ~ " estão anunciadas" }}{% else %}{{ "1 está anunciada" if na_conta.anunciado_unid == 1 else na_conta.anunciado_unid ~ " estão anunciadas" }}{% endif %} no Mercado.{% endif %}</p>
+  <p class="na-sua-conta-texto">Você tem <strong>{{ na_conta.unidades }}</strong> {{ "unidade" if na_conta.unidades == 1 else "unidades" }} deste item.{% if na_conta.anunciado_unid %} {% if na_conta.anunciado_unid == na_conta.unidades %}{{ "Ela está anunciada" if na_conta.unidades == 1 else "As " ~ na_conta.unidades ~ " estão anunciadas" }}{% else %}{{ "1 está anunciada" if na_conta.anunciado_unid == 1 else na_conta.anunciado_unid ~ " estão anunciadas" }}{% endif %} no Mercado{% if na_conta.anuncio_fmt %} por {{ na_conta.anuncio_fmt }}{{ " cada" if na_conta.anunciado_unid > 1 else "" }}{% endif %}.{% endif %}</p>
   {# Fora do inventário sem resposta (revisão 30): leva à conta para
      marcar "anunciado" ou "Vendi". #}
   {% if na_conta.fora_unid > na_conta.anunciado_unid %}

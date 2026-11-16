@@ -1,0 +1,21 @@
+{# "Anunciado por quanto?" (pedido do usuário, 16/11): ao marcar "Está
+   anunciado" (ou "mudar preço"), conta.js abre esta janela; o preço vai
+   para o formulário da linha. Sem JavaScript, o campo fica na linha. #}
+<dialog class="dialogo-confirmar dialogo-vendi" id="dialogo-anuncio" aria-labelledby="dialogo-anuncio-titulo">
+  <form method="dialog" class="dialogo-conteudo" data-janela-anuncio-form>
+    <h2 class="dialogo-titulo" id="dialogo-anuncio-titulo">Anunciado por quanto?</h2>
+    <p class="resumo-venda-item" data-janela-anuncio-nome translate="no"></p>
+    <div class="dialogo-campos">
+      <label class="dialogo-campo">
+        <span class="dialogo-campo-rotulo">O comprador paga</span>
+        <span class="dialogo-campo-linha"><span class="campo-reais"><span class="campo-reais-prefixo" aria-hidden="true">R$</span><input type="text" inputmode="decimal" maxlength="12" autocomplete="off" class="input-compacto input-venda" aria-describedby="dialogo-anuncio-dica" data-janela-anuncio-preco></span> <span class="dialogo-campo-sufixo">cada</span></span>
+        <span class="dialogo-dica" id="dialogo-anuncio-dica" data-janela-anuncio-dica></span>
+      </label>
+    </div>
+    <p class="dialogo-conta" data-janela-anuncio-conta aria-live="polite"></p>
+    <div class="dialogo-acoes">
+      <button type="button" class="botao-secundario" data-janela-anuncio-cancelar>Cancelar</button>
+      <button type="submit" class="botao-acao">Salvar</button>
+    </div>
+  </form>
+</dialog>

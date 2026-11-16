@@ -917,7 +917,11 @@
       var seletorMeta = document.querySelector('select[name="meta"]');
       var metaVenda = Number((seletorMeta && seletorMeta.value) || 20);
       var dica = formVendi.querySelector("[data-janela-vendi-dica]");
-      if (empateVenda > 0) {
+      var anuncioVenda = d.getAttribute("data-vendi-anuncio");
+      if (anuncioVenda) {
+        campoPreco.value = anuncioVenda;
+        if (dica) dica.textContent = "Já vem o preço do seu anúncio. Corrija se vendeu por outro valor.";
+      } else if (empateVenda > 0) {
         campoPreco.value = (Math.round(empateVenda * (1 + metaVenda / 100) * 100) / 100).toFixed(2).replace(".", ",");
         if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se anunciou por outro valor.";
       } else {
@@ -1000,5 +1004,104 @@
     formVendi.querySelector("[data-janela-vendi-cancelar]").addEventListener("click", function () { dialogoVendi.close(); });
     dialogoVendi.addEventListener("click", function (e) { if (e.target === dialogoVendi) dialogoVendi.close(); });
     dialogoVendi.addEventListener("close", function () { if (origemVendi) origemVendi.focus(); });
+  }
+
+  // "Anunciado por quanto?" (pedido do usuário, 16/11): marcar "Está
+  // anunciado" ou "mudar preço" abre a janela, já com o preço "Lucrar X%"
+  // da linha (ou o anunciado antes); "Salvar" envia o formulário da linha.
+  // Desmarcar envia direto. Sem <dialog>, o campo aparece na linha.
+  var dialogoAnuncio = document.getElementById("dialogo-anuncio");
+  if (dialogoAnuncio && typeof dialogoAnuncio.showModal === "function") {
+    var formJanela = dialogoAnuncio.querySelector("[data-janela-anuncio-form]");
+    var campoAnuncio = formJanela.querySelector("[data-janela-anuncio-preco]");
+    var contaAnuncio = formJanela.querySelector("[data-janela-anuncio-conta]");
+    var dicaAnuncio = formJanela.querySelector("[data-janela-anuncio-dica]");
+    var tabelaAnuncio = document.querySelector(".tabela-conta");
+    var taxaAnuncio = Number((tabelaAnuncio && tabelaAnuncio.getAttribute("data-taxa")) || 15) / 100;
+    var formLinha = null;
+    var origemAnuncio = null;
+    var lerAnuncio = function () {
+      var v = campoAnuncio.value.replace(/R\$/g, "").replace(/[\s\u00a0]/g, "");
+      if (v.indexOf(",") !== -1) v = v.replace(/\./g, "").replace(",", ".");
+      return Number(v);
+    };
+    var contarAnuncio = function () {
+      contaAnuncio.textContent = "";
+      var preco = lerAnuncio();
+      if (!formLinha || !isFinite(preco) || preco <= 0) return;
+      var recebe = preco / (1 + taxaAnuncio);
+      contaAnuncio.appendChild(document.createTextNode("Se vender por esse preço, você recebe ≈ "));
+      var forte = document.createElement("strong");
+      forte.textContent = reais(recebe);
+      contaAnuncio.appendChild(forte);
+      var custo = formLinha.getAttribute("data-anuncio-custo");
+      if (custo) {
+        var lucro = recebe - Number(custo);
+        contaAnuncio.appendChild(document.createTextNode(" cada · " + (lucro < 0 ? "prejuízo" : "lucro") + " ≈ "));
+        var valor = document.createElement("strong");
+        valor.className = lucro > 0 ? "valor-positivo" : lucro < 0 ? "valor-negativo" : "";
+        valor.textContent = reais(Math.abs(lucro));
+        contaAnuncio.appendChild(valor);
+        contaAnuncio.appendChild(document.createTextNode(" cada"));
+      } else {
+        contaAnuncio.appendChild(document.createTextNode(" cada."));
+      }
+    };
+    var abrirAnuncio = function (form, origem) {
+      formLinha = form;
+      origemAnuncio = origem;
+      formJanela.querySelector("[data-janela-anuncio-nome]").textContent = form.getAttribute("data-anuncio-nome") || "";
+      var atual = form.getAttribute("data-anuncio-atual");
+      var tr = form.closest("tr");
+      var empate = tr ? Number(tr.getAttribute("data-empate") || 0) : 0;
+      var seletor = document.querySelector('select[name="meta"]');
+      var meta = Number((seletor && seletor.value) || 20);
+      if (atual) {
+        campoAnuncio.value = atual;
+        dicaAnuncio.textContent = "O preço que você informou antes. Mude se alterou o anúncio.";
+      } else if (empate > 0) {
+        campoAnuncio.value = (Math.round(empate * (1 + meta / 100) * 100) / 100).toFixed(2).replace(".", ",");
+        dicaAnuncio.textContent = "Já vem o preço para lucrar " + meta + "%, o recomendado na sua conta. Corrija se anunciou por outro valor.";
+      } else {
+        campoAnuncio.value = form.getAttribute("data-anuncio-preco-hoje") || "";
+        dicaAnuncio.textContent = "Já vem o preço de hoje. Corrija se anunciou por outro valor.";
+      }
+      contarAnuncio();
+      dialogoAnuncio.showModal();
+      campoAnuncio.focus();
+      campoAnuncio.select();
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("form[data-anuncio]"), function (form) {
+      var caixa = form.querySelector('input[name="anunciado"]');
+      var mudar = form.querySelector("[data-mudar-anuncio]");
+      if (mudar) {
+        mudar.hidden = false;
+        mudar.addEventListener("click", function () { abrirAnuncio(form, mudar); });
+      }
+      if (!caixa) return;
+      caixa.addEventListener("click", function (e) {
+        if (caixa.checked) {
+          // Ia marcar: fica desmarcada até "Salvar".
+          e.preventDefault();
+          abrirAnuncio(form, caixa);
+        } else {
+          form.submit();
+        }
+      });
+    });
+    campoAnuncio.addEventListener("input", contarAnuncio);
+    formJanela.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var preco = lerAnuncio();
+      if (!formLinha || !isFinite(preco) || preco <= 0) { campoAnuncio.focus(); return; }
+      formLinha.querySelector('input[name="anuncio_preco"]').value = preco.toFixed(2).replace(".", ",");
+      formLinha.querySelector('input[name="anunciado"]').checked = true;
+      origemAnuncio = null;
+      dialogoAnuncio.close();
+      formLinha.submit();
+    });
+    formJanela.querySelector("[data-janela-anuncio-cancelar]").addEventListener("click", function () { dialogoAnuncio.close(); });
+    dialogoAnuncio.addEventListener("click", function (e) { if (e.target === dialogoAnuncio) dialogoAnuncio.close(); });
+    dialogoAnuncio.addEventListener("close", function () { if (origemAnuncio) origemAnuncio.focus(); });
   }
 })();

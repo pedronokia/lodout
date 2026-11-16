@@ -503,6 +503,9 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     fora = [p for p in lotes if p.get("fora_desde")]
     fora_unid = sum(int(p.get("quantity") or 1) for p in fora)
     anunciado_unid = sum(int(p.get("quantity") or 1) for p in fora if p.get("anunciado"))
+    precos_anuncio = sorted({float(p["anuncio_preco"]) for p in fora
+                             if p.get("anunciado") and p.get("anuncio_preco")})
+    anuncio_fmt = fmt.brl(precos_anuncio[0]) if len(precos_anuncio) == 1 else None
     fora_quando = fmt.dia_mes_br(min(float(p["fora_desde"]) for p in fora)) if fora else None
     meta = _meta_lucro(steamid)
     unidades = sum(int(p.get("quantity") or 1) for p in lotes)
@@ -542,7 +545,7 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta,
             "lucro": lucro, "busca": localize_name(name),
             "fora_unid": fora_unid, "anunciado_unid": anunciado_unid,
-            "fora_quando": fora_quando, "vendas": vendas}
+            "fora_quando": fora_quando, "vendas": vendas, "anuncio_fmt": anuncio_fmt}
 
 
 def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
@@ -569,6 +572,11 @@ def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
         row["fora_desde"] = fora
         row["fora_quando"] = fmt.dia_mes_br(float(fora)) if fora else None
         row["anunciado"] = bool(fora and pos.get("anunciado"))
+        preco_anuncio = pos.get("anuncio_preco") if row["anunciado"] else None
+        row["anuncio_preco"] = preco_anuncio
+        row["anuncio_preco_fmt"] = fmt.brl(preco_anuncio) if preco_anuncio else None
+        row["anuncio_preco_campo"] = (f"{preco_anuncio:.2f}".replace(".", ",")
+                                      if preco_anuncio else None)
         row["origem"] = pos.get("source")
         # "juntar lotes" na 1ª linha no inventário, com 2+ lotes no inventário.
         row["mostra_juntar"] = bool(
@@ -800,10 +808,25 @@ def marcar_anunciado(name: str):
     steamid = session["steamid"]
     lote = (request.form.get("lote") or "").strip() or None
     anunciado = request.form.get("anunciado") == "1"
-    if user_portfolio.marcar_anunciado(steamid, name, anunciado, lote=lote):
-        flash(f"{localize_name(name)}: " + (
-            "marcado como anunciado no Mercado. Quando vender, marque “Vendi”."
-            if anunciado else "não está mais marcado como anunciado."), "success")
+    # Preço do anúncio (pedido do usuário, 16/11): opcional; inválido é
+    # recusado em vez de ignorado, pra pessoa não achar que salvou.
+    preco = None
+    bruto = (request.form.get("anuncio_preco") or "").strip()
+    if anunciado and bruto:
+        try:
+            preco = fmt.ler_reais(bruto)
+        except ValueError:
+            preco = None
+        if preco is None or not math.isfinite(preco) or preco <= 0:
+            flash("Confira o preço do anúncio (o que o comprador paga, ex.: 35,10).", "error")
+            return redirect(url_for("account.conta"))
+    if user_portfolio.marcar_anunciado(steamid, name, anunciado, lote=lote, preco=preco):
+        if anunciado:
+            flash(f"{localize_name(name)}: anunciado no Mercado"
+                  + (f" por {fmt.brl(preco)}" if preco else "")
+                  + ". Quando vender, marque “Vendi”.", "success")
+        else:
+            flash(f"{localize_name(name)}: não está mais marcado como anunciado.", "success")
     return redirect(url_for("account.conta"))
 
 
@@ -930,7 +953,8 @@ def exportar_tabela():
             _num_csv(r.get("pnl_pct") if custo else None),
             _num_csv(empate), _num_csv(empate * (1 + meta / 100) if empate else None),
             # Revisão 30 (16/11): anunciado / fora do inventário.
-            ("anunciado no Mercado" if r.get("anunciado") else
+            (("anunciado no Mercado" + (f" por {r['anuncio_preco_fmt']}" if r.get("anuncio_preco_fmt") else ""))
+             if r.get("anunciado") else
              f"fora do inventário desde {r['fora_quando']}" if r.get("fora_desde") else
              "no inventário" if r.get("origem") == inventario.SOURCE_STEAM else
              "adicionado à mão"),

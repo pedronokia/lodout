@@ -80,18 +80,25 @@ def _fora_alvo(pos: dict, name: str, lote: "str | None") -> bool:
 
 def marcar_anunciado(steamid: str, name: str, anunciado: bool,
                      lote: "str | None" = None,
-                     path: "Path | str | None" = None) -> bool:
+                     path: "Path | str | None" = None,
+                     preco: "float | None" = None) -> bool:
     """Item fora do inventário: a pessoa diz que está anunciado no Mercado
-    (ou desmarca). True se algo mudou (revisão 16/11)."""
+    (ou desmarca), e por quanto (`anuncio_preco`, o que o comprador paga
+    por unidade; o "Vendi" já vem com ele). True se algo mudou (16/11)."""
     positions = load_positions(steamid, path=path)
     mudou = False
     for pos in positions:
-        if _fora_alvo(pos, name, lote) and bool(pos.get("anunciado")) != anunciado:
-            if anunciado:
-                pos["anunciado"] = True
-            else:
-                pos.pop("anunciado", None)
-            mudou = True
+        if not _fora_alvo(pos, name, lote):
+            continue
+        antes = (bool(pos.get("anunciado")), pos.get("anuncio_preco"))
+        if anunciado:
+            pos["anunciado"] = True
+            if preco is not None:
+                pos["anuncio_preco"] = round(float(preco), 2)
+        else:
+            pos.pop("anunciado", None)
+            pos.pop("anuncio_preco", None)
+        mudou = mudou or antes != (bool(pos.get("anunciado")), pos.get("anuncio_preco"))
     if mudou:
         user_store.save_user_json(steamid, _KIND, positions, path=path)
     return mudou

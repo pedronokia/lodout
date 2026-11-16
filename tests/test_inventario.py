@@ -357,7 +357,7 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
     client.post("/conta/posicoes/Caixa V/anunciado", data={"csrf_token": token, "anunciado": "1"})
     pagina = client.get("/conta").data.decode("utf-8")
     assert ">anunciado</span>" in pagina and "Anunciou ou vendeu?" not in pagina
-    assert 'data-enviar-ao-mudar checked' in pagina
+    assert 'name="anunciado" value="1" checked' in pagina
     # Sem a segunda confirmação, nada muda (pedido 16/11).
     client.post("/conta/posicoes/Caixa V/vendido",
                 data={"csrf_token": token, "sell_price": "20,00", "quantidade": "2"})
@@ -522,3 +522,43 @@ def test_recuperar_pela_propria_conta(client):
     r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
     assert "Nada para recuperar" in r.data.decode("utf-8")
     assert client.post("/conta/recuperar", data={}).status_code in (400, 403)
+
+
+
+def test_preco_do_anuncio(client):
+    """Pedido 16/11: "Anunciado por quanto?" -- guarda o preço, mostra na
+    etiqueta, no item e na planilha, e o "Vendi" já vem com ele."""
+    import re
+    sid = "76561198000000038"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa A", "cost": 10.0, "quantity": 2, "source": "steam",
+         "fora_desde": 1_794_800_000.0}])
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    # A sugestão é o "Lucrar 20%": 10 × 1,15 × 1,2 = 13,80.
+    assert 'name="anuncio_preco" inputmode="decimal" maxlength="12" autocomplete="off" value="13,80"' in pagina
+    assert 'id="dialogo-anuncio"' in pagina
+    r = client.post("/conta/posicoes/Caixa A/anunciado",
+                    data={"csrf_token": token, "anunciado": "1", "anuncio_preco": "abc"},
+                    follow_redirects=True)
+    assert "Confira o preço do anúncio" in r.data.decode("utf-8")
+    assert not user_portfolio.load_positions(sid)[0].get("anunciado")
+    client.post("/conta/posicoes/Caixa A/anunciado",
+                data={"csrf_token": token, "anunciado": "1", "anuncio_preco": "R$ 14,50"})
+    pos = user_portfolio.load_positions(sid)[0]
+    assert pos["anunciado"] is True and pos["anuncio_preco"] == 14.5
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "anunciado por R$ 14,50</span>" in pagina
+    assert 'data-vendi-anuncio="14,50"' in pagina
+    assert "mudar preço</button>" in pagina
+    csv = client.get("/conta/tabela.csv").data.decode("utf-8-sig")
+    assert csv.splitlines()[1].endswith(";anunciado no Mercado por R$ 14,50")
+    # Mudar o preço com a caixa já marcada.
+    client.post("/conta/posicoes/Caixa A/anunciado",
+                data={"csrf_token": token, "anunciado": "1", "anuncio_preco": "15"})
+    assert user_portfolio.load_positions(sid)[0]["anuncio_preco"] == 15.0
+    # Desmarcar apaga o preço.
+    client.post("/conta/posicoes/Caixa A/anunciado", data={"csrf_token": token})
+    pos = user_portfolio.load_positions(sid)[0]
+    assert "anunciado" not in pos and "anuncio_preco" not in pos

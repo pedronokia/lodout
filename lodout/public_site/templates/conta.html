@@ -200,7 +200,7 @@
                 {% if row.exterior_fmt %}<span class="item-exterior">{{ row.exterior_fmt }}</span>{% endif %}
                 {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
                 {% if row.lotes_total and row.lotes_total > 1 %}<span class="item-lote" title="Unidades deste item separadas por valor pago">lote {{ row.lote_numero }} de {{ row.lotes_total }}</span>{% endif %}
-                {% if row.anunciado %}<span class="item-etiqueta-fora item-etiqueta-anunciado" title="Fora do seu inventário da Steam desde {{ row.fora_quando }}">anunciado</span>{% elif row.fora_desde %}<span class="item-etiqueta-fora" title="Não aparece no seu inventário público da Steam: anunciado no Mercado ou vendido">fora do inventário desde {{ row.fora_quando }}</span>{% endif %}
+                {% if row.anunciado %}<span class="item-etiqueta-fora item-etiqueta-anunciado" title="Fora do seu inventário da Steam desde {{ row.fora_quando }}">anunciado{% if row.anuncio_preco_fmt %} por {{ row.anuncio_preco_fmt }}{% endif %}</span>{% elif row.fora_desde %}<span class="item-etiqueta-fora" title="Não aparece no seu inventário público da Steam: anunciado no Mercado ou vendido">fora do inventário desde {{ row.fora_quando }}</span>{% endif %}
                 {% if row.score is not none %}<span class="nota-texto nota-{{ row.score|nota_classe }}" title="Nota do Lodout">nota {{ row.score }}</span>{% endif %}
                 {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
                    item? Separa unidades numa linha própria; junta de novo
@@ -243,13 +243,18 @@
                  abre aqui mesmo. #}
               <span class="item-fora">
                 {% if not row.anunciado %}<span class="item-fora-pergunta">Anunciou ou vendeu?</span>{% endif %}
-                <form method="post" action="{{ url_for('account.marcar_anunciado', name=row.name) }}" class="form-anunciado">
+                {# Preço do anúncio (pedido 16/11): com JavaScript, marcar a caixa
+                   abre #dialogo-anuncio; sem, o campo fica ao lado. #}
+                {% set sugestao = row.anuncio_preco_campo or (('%.2f'|format(row.empate * (1 + meta_lucro / 100)))|replace('.', ',') if row.empate else (('%.2f'|format(row.price))|replace('.', ',') if row.price else '')) %}
+                <form method="post" action="{{ url_for('account.marcar_anunciado', name=row.name) }}" class="form-anunciado" data-anuncio data-anuncio-nome="{{ row.name_fmt }}" data-anuncio-atual="{{ row.anuncio_preco_campo or '' }}" data-anuncio-preco-hoje="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-anuncio-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
-                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1" data-enviar-ao-mudar{{ ' checked' if row.anunciado else '' }}> Está anunciado</label>
+                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1"{{ ' checked' if row.anunciado else '' }}> Está anunciado</label>
+                  <label class="anuncio-preco-sem-js">por R$ <input type="text" name="anuncio_preco" inputmode="decimal" maxlength="12" autocomplete="off" value="{{ sugestao }}" class="input-compacto input-venda"></label>
                   <button type="submit" class="botao-link botao-filtrar-sem-js">salvar</button>
+                  {% if row.anunciado %}<button type="button" class="acao-texto botao-mudar-anuncio" data-mudar-anuncio hidden>{{ "mudar preço" if row.anuncio_preco_fmt else "informar preço" }}</button>{% endif %}
                 </form>
-                <details class="vendi" data-vendi data-vendi-acao="{{ url_for('account.marcar_vendido', name=row.name) }}" data-vendi-lote="{{ row.lote or '' }}" data-vendi-nome="{{ row.name_fmt }}" data-vendi-nome-curto="{{ row.nome_curto }}" data-vendi-exterior="{{ row.exterior_fmt or '' }}" data-vendi-icone="{{ row.icon_url or '' }}" data-vendi-raridade="{{ row.raridade_classe or '' }}" data-vendi-qtd="{{ row.quantity or 1 }}" data-vendi-preco="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-vendi-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
+                <details class="vendi" data-vendi data-vendi-acao="{{ url_for('account.marcar_vendido', name=row.name) }}" data-vendi-lote="{{ row.lote or '' }}" data-vendi-nome="{{ row.name_fmt }}" data-vendi-nome-curto="{{ row.nome_curto }}" data-vendi-exterior="{{ row.exterior_fmt or '' }}" data-vendi-icone="{{ row.icon_url or '' }}" data-vendi-raridade="{{ row.raridade_classe or '' }}" data-vendi-anuncio="{{ row.anuncio_preco_campo or '' }}" data-vendi-qtd="{{ row.quantity or 1 }}" data-vendi-preco="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-vendi-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
                   <summary class="acao-texto">Vendi<span class="visualmente-oculto"> {{ row.name_fmt }}</span></summary>
                   <form method="post" action="{{ url_for('account.marcar_vendido', name=row.name) }}" class="form-vendi">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -257,7 +262,7 @@
                     {% if row.quantity and row.quantity > 1 %}
                     <label>Unidades <input type="number" name="quantidade" min="1" max="{{ row.quantity }}" value="{{ row.quantity }}" inputmode="numeric" class="input-compacto input-quantidade"></label>
                     {% else %}<input type="hidden" name="quantidade" value="1">{% endif %}
-                    <label>Comprador pagou R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.empate * (1 + meta_lucro / 100)))|replace('.', ',') if row.empate else (('%.2f'|format(row.price))|replace('.', ',') if row.price else '') }}" class="input-compacto input-venda"> cada</label>
+                    <label>Comprador pagou R$ <input type="text" name="sell_price" inputmode="decimal" required maxlength="12" autocomplete="off" value="{{ sugestao }}" class="input-compacto input-venda"> cada</label>
                     <label class="caixa-marcar"><input type="checkbox" name="confirmado" value="1" required> Confirmo que vendi</label>
                     <button type="submit" class="botao-link botao-confirmar-venda">Confirmar venda</button>
                   </form>
@@ -378,6 +383,7 @@
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% include "partials/_dialogo_vendi.html" %}
+  {% include "partials/_dialogo_anuncio.html" %}
   {% with dialogo_titulo="Remover", dialogo_texto="O item sai da sua lista junto com o valor que você informou. Se ele ainda estiver no seu inventário da Steam, volta na próxima atualização, sem o valor pago." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>

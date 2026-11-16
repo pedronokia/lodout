@@ -4926,7 +4926,10 @@ table.tabela-conta th { white-space: normal; }
 
 .js-ativo .form-filtros .botao-filtrar-sem-js,
 .js-ativo .form-meta-lucro .botao-filtrar-sem-js,
-.js-ativo .form-anunciado .botao-filtrar-sem-js { display: none; }
+.js-ativo .form-anunciado .botao-filtrar-sem-js,
+.js-ativo .anuncio-preco-sem-js { display: none; }
+.anuncio-preco-sem-js { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); }
+.anuncio-preco-sem-js .input-venda { width: 9ch; text-align: right; }
 
 /* Ações da linha só no hover/foco em telas com mouse; em toque ficam
    sempre visíveis. Ficam visíveis também quando estão em uso. */
@@ -6746,7 +6749,6 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
   line-height: 1.4;
 }
 .item-fora-pergunta { color: var(--text-muted); }
-.form-anunciado { display: inline; }
 .caixa-marcar { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; color: var(--text); cursor: pointer; }
 .caixa-marcar input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .vendi { display: inline; }
@@ -6767,6 +6769,8 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
 .form-vendi .input-venda { width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
 .tabela-conta .botao-confirmar-venda { min-height: 24px; padding: 0; color: var(--accent); font-weight: 600; }
 .item-fora .form-remover { display: inline-flex; }
+.form-anunciado { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.botao-mudar-anuncio { min-height: 24px; color: var(--text-muted); font-size: var(--fs-xs); text-decoration: underline; text-underline-offset: 3px; }
 table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .tabela-conta .botao-fora-remover { opacity: 1; min-height: 24px; padding: 0; font-size: var(--fs-xs); }
 
