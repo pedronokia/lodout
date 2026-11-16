@@ -771,6 +771,48 @@ def test_mudanca_desde_ontem():
     assert account._mudanca_recente([{"ts": agora - 30 * h, "total": 0.0}, {"ts": agora, "total": 197.43}], agora) is None
 
 
+def test_desde_ontem_avisa_quando_itens_entraram_ou_sairam():
+    """Revisão 16/11: "+R$ 237,75 desde ontem" era a caixa recém-adicionada,
+    não o mercado; o aviso só existia no title (celular não mostra)."""
+    from lodout.public_site import account, user_history
+    h, agora = 3600, 1_000_000.0
+    ontem = {"ts": agora - 30 * h, "total": 100.0, **user_history.composicao({"A": 1})}
+    def hoje(itens, total):
+        return {"ts": agora, "total": total, **user_history.composicao(itens)}
+    assert account._mudanca_recente([ontem, hoje({"A": 1}, 103.0)], agora)["nota"] == ""
+    assert account._mudanca_recente([ontem, hoje({"A": 1, "B": 1}, 130.0)], agora)["nota"] == \
+        "contando itens que entraram"
+    assert account._mudanca_recente([ontem, hoje({"A": 2}, 190.0)], agora)["nota"] == \
+        "contando itens que entraram"
+    assert account._mudanca_recente([ontem, hoje({"C": 1}, 90.0)], agora)["nota"] == \
+        "contando itens que entraram e saíram"
+    # Ponto antigo, sem composição: sem nota (não dá para saber).
+    assert account._mudanca_recente([{"ts": agora - 30 * h, "total": 100.0},
+                                     hoje({"A": 1, "B": 1}, 130.0)], agora)["nota"] == ""
+    # Mesma soma com outros itens também vira ponto novo.
+    sid = "76561198000000077"
+    user_history.record_if_changed(sid, 50.0, now=1.0, itens={"A": 1})
+    serie = user_history.record_if_changed(sid, 50.0, now=2.0, itens={"B": 1})
+    assert len(serie) == 2
+    assert len(user_history.record_if_changed(sid, 50.0, now=3.0, itens={"B": 1})) == 2
+
+
+def test_separar_em_lotes_nao_muda_quantos_itens(client, monkeypatch):
+    """Revisão 16/11: separar em lotes fazia "500 itens" virar "501 itens"."""
+    from lodout import portfolio
+    from lodout.public_site import account
+    pos = [{"name": "Caixa L", "cost": 10.0, "quantity": 3, "lote": "a"},
+           {"name": "Caixa L", "cost": None, "quantity": 2, "lote": "b"},
+           {"name": "Caixa M", "cost": 5.0, "quantity": 1}]
+    t = portfolio.evaluate_portfolio(pos, lambda n: 12.0)["totals"]
+    assert (t["positions"], t["itens"], t["itens_com_custo"], t["itens_sem_custo"],
+            t["itens_no_lucro"]) == (3, 2, 1, 1, 2)
+    textos = account._textos_totais(t)
+    assert textos["valor_sub"] == "2 itens"
+    assert textos["pago_sub"] == "em 1 de 2 itens"
+    assert textos["falta_texto"] == "1 item"
+
+
 def test_lucro_diz_de_quantos_itens_e():
     # Crítica de 15/11 (P1): "−50%" era só de parte da carteira.
     from lodout.public_site import account

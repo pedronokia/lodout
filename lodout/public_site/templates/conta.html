@@ -51,7 +51,7 @@
         <span class="card-valor" data-total="valor">{{ tx.valor }}</span>
         <span class="card-sub" data-total="valor_sub">{{ tx.valor_sub }}</span>
         <span class="card-sub" data-total="liquido_sub" title="A Steam cobra uma taxa em cada venda; este é o valor que sobra para você se vender tudo pelo preço de hoje.">{{ tx.liquido_sub }}</span>
-        {% if mudanca_valor %}<span class="card-sub card-mudanca" title="Comparado com o valor da sua conta {{ mudanca_valor.quando }}. Inclui preços que mudaram e itens que entraram ou saíram."><span class="{{ mudanca_valor.classe }}">{{ mudanca_valor.texto }}</span> {{ mudanca_valor.periodo }}</span>{% endif %}
+        {% if mudanca_valor %}<span class="card-sub card-mudanca" title="Comparado com o valor da sua conta {{ mudanca_valor.quando }}. Inclui preços que mudaram e itens que entraram ou saíram."><span class="{{ mudanca_valor.classe }}">{{ mudanca_valor.texto }}</span> {{ mudanca_valor.periodo }}{% if mudanca_valor.nota %}, {{ mudanca_valor.nota }}{% endif %}</span>{% endif %}
       </div>
       <div class="card">
         <span class="card-label">Você pagou</span>

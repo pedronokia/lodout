@@ -212,8 +212,11 @@ def _textos_totais(t: dict) -> dict:
     """Textos dos cartões do topo e do aviso de itens sem valor pago.
     A página e a resposta JSON de "salvar valor pago" usam os mesmos,
     pra o topo atualizar sem recarregar e sem divergir do servidor."""
-    n, com = t.get("positions") or 0, t.get("known_cost") or 0
-    sem = t.get("unknown_cost") or 0
+    # Itens, não linhas: lotes do mesmo item contam uma vez (revisão 16/11
+    # -- separar em lotes fazia "500 itens" virar "501 itens").
+    n = t.get("itens", t.get("positions")) or 0
+    com = t.get("itens_com_custo", t.get("known_cost")) or 0
+    sem = t.get("itens_sem_custo", t.get("unknown_cost")) or 0
     pnl, pct = t.get("pnl"), t.get("pnl_pct")
     if pnl is None:
         lucro_sub = "informe o valor pago para ver"
@@ -225,7 +228,7 @@ def _textos_totais(t: dict) -> dict:
         # de quantos (crítica de 15/11, problema P1). Conta os que entraram
         # na conta de verdade: item com valor pago mas sem preço hoje fica
         # de fora (revisão 16/11 -- dizia "10 itens" com a conta feita em 9).
-        no_lucro = t.get("pnl_positions", com)
+        no_lucro = t.get("itens_no_lucro", t.get("pnl_positions", com))
         sem_preco = max(0, com - no_lucro)
         if (sem or sem_preco) and pct is not None:
             quantos = "de 1 item" if no_lucro == 1 else f"dos {no_lucro} itens"
@@ -338,7 +341,11 @@ def conta():
     # Grava o ponto de histórico ANTES de formatar -- precisa do valor
     # numérico (totals.market), não do "_fmt" em string. Dedup embutido:
     # visitar /conta duas vezes seguidas sem nada mudar não dobra a série.
-    serie = user_history.record_if_changed(steamid, avaliacao_bruta["totals"]["market"])
+    itens_agora: dict = {}
+    for pos in positions:
+        itens_agora[pos["name"]] = itens_agora.get(pos["name"], 0) + int(pos.get("quantity") or 1)
+    serie = user_history.record_if_changed(
+        steamid, avaliacao_bruta["totals"]["market"], itens=itens_agora)
     mudanca = _mudanca_recente(serie)
     _marcar_lotes(avaliacao_bruta["rows"], positions)
     # Mais valioso primeiro (2026-11-15): com o inventário inteiro na
@@ -417,7 +424,17 @@ def _mudanca_recente(serie: "list[dict]", agora: "float | None" = None) -> "dict
     idade = agora - float(antes.get("ts") or 0)
     dias = int(idade // 86400)
     periodo = "desde ontem" if idade < 48 * 3600 else f"nos últimos {dias} dias"
+    # Itens entraram ou saíram desde a base: a diferença não é só preço,
+    # e a frase diz isso (revisão 16/11; antes só o title, que celular e
+    # teclado não mostram). Pontos antigos, sem `comp`, ficam sem nota.
+    nota = ""
+    if antes.get("comp") and atual.get("comp") and antes["comp"] != atual["comp"]:
+        ua, ub = int(atual.get("unid") or 0), int(antes.get("unid") or 0)
+        nota = ("contando itens que entraram" if ua > ub else
+                "contando itens que saíram" if ua < ub else
+                "contando itens que entraram e saíram")
     return {
+        "nota": nota,
         "texto": ("+" if diff > 0 else "") + fmt.brl(diff),
         "classe": "valor-positivo" if diff > 0 else "valor-negativo",
         "periodo": periodo,

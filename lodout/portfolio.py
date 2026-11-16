@@ -169,8 +169,14 @@ def evaluate_portfolio(positions: list[dict], price_fn,
     t_net_conhecido = 0.0
     sem_custo = 0
     com_custo = 0
+    # Por item (nome), não por linha: separar um item em lotes ("valores
+    # diferentes?") não pode mudar "N itens" nos cartões (revisão 16/11).
+    nomes: set = set()
+    nomes_sem_custo: set = set()
+    nomes_no_lucro: set = set()
     for pos in positions:
         name = pos["name"]
+        nomes.add(name)
         conhecido = has_cost_basis(pos)
         cost = float(pos.get("cost") or 0.0)
         qty = int(pos.get("quantity", 1))
@@ -183,6 +189,7 @@ def evaluate_portfolio(positions: list[dict], price_fn,
             t_cost_known += cost * qty
         else:
             sem_custo += 1
+            nomes_sem_custo.add(name)
         price = price_fn(name)
         icon = pos.get("icon")
         if price is None:
@@ -205,6 +212,7 @@ def evaluate_portfolio(positions: list[dict], price_fn,
         t_net += d["net_if_sold"]
         if conhecido:
             com_custo += 1
+            nomes_no_lucro.add(name)
             t_cost += d["cost_total"]
             t_net_conhecido += d["net_if_sold"]
     # O gatilho e' EXISTIR posicao com custo conhecido, nao o custo somar
@@ -223,6 +231,12 @@ def evaluate_portfolio(positions: list[dict], price_fn,
         # known_cost quando algum item com custo está sem preço.
         "pnl_positions": com_custo,
         "positions": len(positions),
+        # Contagens por item (lotes do mesmo nome contam uma vez): um item
+        # com algum lote sem valor pago conta como "sem valor pago".
+        "itens": len(nomes),
+        "itens_sem_custo": len(nomes_sem_custo),
+        "itens_com_custo": len(nomes - nomes_sem_custo),
+        "itens_no_lucro": len(nomes_no_lucro),
     }
     return {"rows": rows, "totals": totals}
 
