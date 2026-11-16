@@ -219,6 +219,9 @@ def evaluate_portfolio(positions: list[dict], price_fn,
         "pnl_pct": (pnl / t_cost * 100) if (pnl is not None and t_cost) else None,
         "unknown_cost": sem_custo,
         "known_cost": len(positions) - sem_custo,
+        # Quantas entraram no P&L (custo conhecido E preço hoje): menor que
+        # known_cost quando algum item com custo está sem preço.
+        "pnl_positions": com_custo,
         "positions": len(positions),
     }
     return {"rows": rows, "totals": totals}

@@ -755,3 +755,17 @@ def test_remover_e_adicionar_confirmam(client, monkeypatch):
     assert "Caixa Z entrou na sua lista" in pagina
     pagina = client.post("/conta/posicoes/Caixa Z/remover", data={"csrf_token": token}, follow_redirects=True).data.decode("utf-8")
     assert "Caixa Z saiu da sua lista" in pagina
+
+
+def test_lucro_conta_so_os_itens_que_entraram_na_conta():
+    """Item com valor pago mas sem preço hoje não entra no lucro: o texto
+    diz de quantos itens a conta é de verdade (revisão de 16/11)."""
+    from lodout import portfolio
+    from lodout.public_site import account
+    pos = [{"name": "A", "cost": 10.0, "quantity": 1},
+           {"name": "B", "cost": 5.0, "quantity": 1},
+           {"name": "C", "cost": None, "quantity": 1}]
+    precos = {"A": 11.5, "C": 3.0}
+    t = portfolio.evaluate_portfolio(pos, precos.get)["totals"]
+    assert t["known_cost"] == 2 and t["pnl_positions"] == 1
+    assert account._textos_totais(t)["lucro_sub"].endswith("só de 1 item com valor pago e preço hoje")

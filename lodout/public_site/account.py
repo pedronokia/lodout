@@ -222,9 +222,17 @@ def _textos_totais(t: dict) -> dict:
         base = (f"{sinal}{fmt.pct(abs(pct))}% do que você pagou" if pct is not None
                 else "dos itens com o valor pago")
         # Com itens sem valor pago, o lucro é só de parte da carteira: diz
-        # de quantos (crítica de 15/11, problema P1).
-        lucro_sub = (f"{sinal}{fmt.pct(abs(pct))}% · só dos {com} {'item' if com == 1 else 'itens'} com valor pago"
-                     if sem and pct is not None else base)
+        # de quantos (crítica de 15/11, problema P1). Conta os que entraram
+        # na conta de verdade: item com valor pago mas sem preço hoje fica
+        # de fora (revisão 16/11 -- dizia "10 itens" com a conta feita em 9).
+        no_lucro = t.get("pnl_positions", com)
+        sem_preco = max(0, com - no_lucro)
+        if (sem or sem_preco) and pct is not None:
+            quantos = "de 1 item" if no_lucro == 1 else f"dos {no_lucro} itens"
+            lucro_sub = (f"{sinal}{fmt.pct(abs(pct))}% · só {quantos} com valor pago"
+                         + (" e preço hoje" if sem_preco else ""))
+        else:
+            lucro_sub = base
     if sem:
         aviso = (f"{sem} {'item está' if sem == 1 else 'itens estão'} sem o "
                  "valor pago. Preencha para ver por quanto vender e para "
