@@ -4925,7 +4925,8 @@ table.tabela-conta th { white-space: normal; }
 /* ── Ajustes de comportamento ────────────────────────── */
 
 .js-ativo .form-filtros .botao-filtrar-sem-js,
-.js-ativo .form-meta-lucro .botao-filtrar-sem-js { display: none; }
+.js-ativo .form-meta-lucro .botao-filtrar-sem-js,
+.js-ativo .form-anunciado .botao-filtrar-sem-js { display: none; }
 
 /* Ações da linha só no hover/foco em telas com mouse; em toque ficam
    sempre visíveis. Ficam visíveis também quando estão em uso. */
@@ -6720,18 +6721,31 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
    nada no celular (achado na revisão de 2026-11-16). Fica por último
    para vencer as regras de cartão. */
 /* Item fora do inventário (anunciado no Mercado ou vendido, revisão
-   2026-11-16): aviso em amarelo e "Vendi, tirar da lista" sempre à vista
-   (o "remover" comum só aparece sob o mouse). */
+   2026-11-16): pergunta em amarelo; "Está anunciado" (caixa de marcar),
+   "Vendi" (abre o preço de venda) e, se anunciado, "remover" à vista. */
 .item-fora {
-  color: var(--warn);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--sp-3);
+  max-width: 52ch;
   font-size: var(--fs-xs);
   line-height: 1.4;
-  max-width: 46ch;
 }
-.item-fora .form-remover { display: block; margin-top: 2px; }
-.item-fora .botao-vendi { min-height: 24px; padding: 0; }
-.tabela-conta .botao-vendi,
-.tabela-conta tr .botao-vendi { opacity: 1; color: var(--text); font-size: var(--fs-xs); text-decoration: underline; text-underline-offset: 3px; }
+.item-fora-texto { flex-basis: 100%; color: var(--warn); }
+.form-anunciado { display: inline; }
+.caixa-marcar { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; color: var(--text); cursor: pointer; }
+.caixa-marcar input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+.vendi { display: inline; }
+.vendi > summary { display: inline-flex; align-items: center; min-height: 24px; color: var(--text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; list-style: none; }
+.vendi > summary::-webkit-details-marker { display: none; }
+.vendi[open] { flex-basis: 100%; }
+.form-vendi { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-3); margin-top: 6px; }
+.form-vendi label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); }
+.form-vendi .input-venda { width: 10ch; text-align: right; }
+.form-vendi .explica-separar { flex-basis: 100%; }
+.tabela-conta .botao-confirmar-venda { min-height: 24px; padding: 0; color: var(--accent); font-weight: 600; }
+.tabela-conta .botao-fora-remover { opacity: 1; min-height: 24px; padding: 0; }
 
 table.tabela-conta tbody tr[hidden] { display: none; }
 /* Linha do inventário com mais texto ("Preços coletados…"): as ações

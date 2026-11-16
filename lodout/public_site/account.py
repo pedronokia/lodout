@@ -21,7 +21,7 @@ from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
     catalogo, fmt, inventario, raridade, steam_openid, user_history, user_portfolio,
-    user_store, user_trades, user_watchlist,
+    user_store, user_trades, user_vendidos, user_watchlist,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
 from lodout.public_site.rate_limit import (
@@ -541,6 +541,7 @@ def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
         fora = pos.get("fora_desde")
         row["fora_desde"] = fora
         row["fora_quando"] = fmt.dia_mes_br(float(fora)) if fora else None
+        row["anunciado"] = bool(fora and pos.get("anunciado"))
         # "juntar lotes" na 1ª linha no inventário, com 2+ lotes no inventário.
         row["mostra_juntar"] = bool(
             not fora and dentro.get(pos.get("name"), 0) > 1
@@ -760,6 +761,59 @@ def remover_posicao(name: str):
     return redirect(url_for("account.conta"))
 
 
+@bp.route("/conta/posicoes/<name>/anunciado", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def marcar_anunciado(name: str):
+    """Item fora do inventário: "Está anunciado no Mercado" (caixa de
+    marcar). Fica na conta até a pessoa marcar "Vendi" ou remover
+    (pedido do usuário, 16/11)."""
+    steamid = session["steamid"]
+    lote = (request.form.get("lote") or "").strip() or None
+    anunciado = request.form.get("anunciado") == "1"
+    if user_portfolio.marcar_anunciado(steamid, name, anunciado, lote=lote):
+        flash(f"{localize_name(name)}: " + (
+            "marcado como anunciado no Mercado. Quando vender, marque “Vendi”."
+            if anunciado else "não está mais marcado como anunciado."), "success")
+    return redirect(url_for("account.conta"))
+
+
+@bp.route("/conta/posicoes/<name>/vendido", methods=["POST"])
+@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@login_required
+@csrf_protect
+def marcar_vendido(name: str):
+    """"Vendi": o item vai para "Itens vendidos", na página Histórico, com
+    quanto a pessoa pagou e por quanto vendeu, e sai da lista (pedido do
+    usuário, 16/11; "Meus trades" são as trocas)."""
+    steamid = session["steamid"]
+    lote = (request.form.get("lote") or "").strip() or None
+    try:
+        preco = fmt.ler_reais(request.form.get("sell_price"))
+    except ValueError:
+        preco = None
+    try:
+        quantidade = int((request.form.get("quantidade") or "1").strip())
+    except ValueError:
+        quantidade = 0
+    if preco is None or not math.isfinite(preco) or preco <= 0:
+        flash("Informe por quanto vendeu (o valor que o comprador pagou, ex.: 35,10).", "error")
+        return redirect(url_for("account.conta"))
+    vendido = user_portfolio.tirar_vendidas(steamid, name, quantidade, lote=lote)
+    if vendido is None:
+        flash("Não deu para marcar como vendido: confira a quantidade e se o item "
+              "tem o valor pago.", "error")
+        return redirect(url_for("account.conta"))
+    venda = user_vendidos.adicionar(steamid, name, float(vendido["cost"]), preco, quantidade)
+    pnl = venda.get("pnl") or 0
+    resultado = (f"lucro de {fmt.brl(pnl)}" if pnl > 0 else
+                 f"prejuízo de {fmt.brl(-pnl)}" if pnl < 0 else "sem lucro nem prejuízo")
+    flash(f"{localize_name(name)} foi para “Itens vendidos”, no Histórico: vendido por {fmt.brl(preco)}"
+          f"{' cada' if quantidade > 1 else ''}, {resultado} depois da taxa.", "success")
+    return redirect(url_for("account.conta"))
+
+
 def _celula_csv(valor) -> str:
     """Texto seguro pra planilha: nome que começa com = + - @ viraria
     fórmula no Excel (injeção de CSV), então ganha um apóstrofo."""
@@ -829,6 +883,7 @@ def exportar_dados():
         "trades": user_trades.load_trades(steamid),
         "watchlist": user_watchlist.load_items(steamid),
         "historico_valor": user_history.load_history(steamid),
+        "vendidos": user_vendidos.load(steamid),
         "preferencias": user_store.load_user_json(steamid, "preferencias", {}),
     })
     resp.headers["Content-Disposition"] = (

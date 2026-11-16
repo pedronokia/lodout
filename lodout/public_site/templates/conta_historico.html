@@ -18,9 +18,11 @@
   </header>
 
   <main id="conteudo">
+    {% include "partials/_mensagens.html" %}
+
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Meu histórico</h1>
-      <p class="descricao-pagina">Quanto seus itens valiam a cada vez que você abriu “Minha conta”. Um ponto novo só quando o valor muda.</p>
+      <p class="descricao-pagina">Quanto seus itens valiam a cada vez que você abriu “Minha conta” e, <a href="#vendidos">mais abaixo</a>, os itens que você marcou como vendidos.</p>
     </header>
 
     {# Um quadro só (antes havia um quadro dentro do outro: borda dupla
@@ -56,11 +58,56 @@
     {% else %}
       <p class="status status-vazio">Nenhum ponto registrado ainda.</p>
     {% endif %}
+
+    {# Itens vendidos (pedido do usuário, 16/11): marcados com "Vendi" na
+       conta. A Steam não mostra vendas publicamente, então é a pessoa
+       quem marca. #}
+    <h2 class="secao-titulo" id="vendidos">Itens vendidos</h2>
+    {% if vendidos %}
+    <p class="status-muted">Lucro somado das vendas: <strong class="{{ vendidos_total_classe }}">{{ vendidos_total_fmt }}</strong>, já sem a taxa da Steam.</p>
+    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de itens vendidos, com rolagem lateral">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista tabela-vendidos">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Vendido em</th>
+          <th class="col-num">Pagou (cada)</th>
+          <th class="col-num">Vendeu (cada)</th>
+          <th class="col-num">Recebeu</th>
+          <th class="col-num">Lucro</th>
+          <th><span class="visualmente-oculto">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vendidos %}
+        <tr>
+          <td data-label="Item" translate="no">{{ v.nome }}{% if v.quantidade > 1 %} <span class="item-quantidade">×{{ v.quantidade }}</span>{% endif %}</td>
+          <td data-label="Vendido em" class="celula-data">{{ v.data }}</td>
+          <td data-label="Pagou (cada)" class="celula-numero">{{ v.pagou_fmt }}</td>
+          <td data-label="Vendeu (cada)" class="celula-numero">{{ v.vendeu_fmt }}</td>
+          <td data-label="Recebeu" class="celula-numero">{{ v.recebeu_fmt }}</td>
+          <td data-label="Lucro" class="celula-numero {{ v.lucro_classe }}">{{ v.lucro_fmt }}</td>
+          <td data-label="">
+            <form method="post" action="{{ url_for('history.remover_vendido', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="botao-link botao-remover" aria-label="Apagar a venda de {{ v.nome }}">apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+      <p class="status status-vazio">Nenhum item vendido ainda. Quando um item sair do seu inventário, marque “Vendi” na sua conta e ele aparece aqui, com o lucro.</p>
+    {% endif %}
   </main>
 
   <footer class="rodape">
     <p>Cada ponto é o valor de mercado no momento da visita — não é projeção nem recomendação de investimento.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  {% with dialogo_titulo="Apagar", dialogo_texto="A venda sai do seu histórico. Não dá para desfazer." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

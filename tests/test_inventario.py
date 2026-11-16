@@ -331,9 +331,55 @@ def test_conta_mostra_item_fora_do_inventario_com_vendi(client):
     pagina = client.get("/conta").data.decode("utf-8")
     assert pagina.count("linha-fora") == 1
     assert "Não está no seu inventário da Steam desde" in pagina
-    assert "anunciado no Mercado ou vendido?" in pagina
-    assert ">Vendi, tirar da lista</button>" in pagina
+    assert "Anunciou no Mercado ou vendeu?" in pagina
+    assert "Está anunciado no Mercado</label>" in pagina
+    assert 'name="sell_price"' in pagina
     assert "1 item não aparece no inventário agora" in pagina
+
+
+def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
+    """Pedido do usuário (16/11): uma caixa "anunciado" (fica até a pessoa
+    tirar) e "Vendi" (não apaga: vai para o Histórico, com o lucro)."""
+    import re
+    from lodout.public_site import user_vendidos
+    sid = "76561198000000034"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa V", "cost": 10.0, "quantity": 3, "source": "steam",
+         "fora_desde": 1_794_800_000.0},
+        {"name": "Caixa N", "cost": 1.0, "quantity": 1, "source": "steam"}])
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
+    # Item que está no inventário não pode ser marcado.
+    client.post("/conta/posicoes/Caixa N/anunciado", data={"csrf_token": token, "anunciado": "1"})
+    assert not any(p.get("anunciado") for p in user_portfolio.load_positions(sid))
+    client.post("/conta/posicoes/Caixa V/anunciado", data={"csrf_token": token, "anunciado": "1"})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "Anunciado no Mercado (fora do inventário desde" in pagina
+    assert 'data-enviar-ao-mudar checked' in pagina
+    # Vendeu 2 de 3 por R$ 20 cada: 1 fica, a venda vai para o histórico.
+    r = client.post("/conta/posicoes/Caixa V/vendido",
+                    data={"csrf_token": token, "sell_price": "20,00", "quantidade": "2"})
+    assert r.status_code == 302
+    v = [p for p in user_portfolio.load_positions(sid) if p["name"] == "Caixa V"]
+    assert len(v) == 1 and v[0]["quantity"] == 1 and v[0]["anunciado"] is True
+    vendas = user_vendidos.load(sid)
+    assert len(vendas) == 1 and vendas[0]["quantity"] == 2 and vendas[0]["buy_cost"] == 10.0
+    assert vendas[0]["pnl"] == round(2 * (20 / 1.15) - 20, 2)
+    assert not __import__("lodout.public_site.user_trades", fromlist=["x"]).load_trades(sid)
+    hist = client.get("/conta/historico").data.decode("utf-8")
+    assert "Itens vendidos" in hist and "Caixa V" in hist and "+R$ 14,78" in hist
+    # Preço inválido não vende nada.
+    client.post("/conta/posicoes/Caixa V/vendido",
+                data={"csrf_token": token, "sell_price": "abc", "quantidade": "1"})
+    assert len(user_vendidos.load(sid)) == 1
+    # Apagar a venda (marcada por engano).
+    client.post("/conta/historico/vendidos/0/remover", data={"csrf_token": token})
+    assert user_vendidos.load(sid) == []
+    # Voltou ao inventário (anúncio cancelado): some a marca e o "anunciado".
+    pos, _ = inventario.mesclar(user_portfolio.load_positions(sid), _inv("Caixa V", "Caixa N"))
+    v = [p for p in pos if p["name"] == "Caixa V"][0]
+    assert "fora_desde" not in v and "anunciado" not in v and v["cost"] == 10.0
 
 
 def test_juntar_lotes_deixa_de_fora_o_que_saiu_do_inventario():

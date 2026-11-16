@@ -72,6 +72,55 @@ def update_position_cost(steamid: str, name: str, cost: float,
     return positions
 
 
+def _fora_alvo(pos: dict, name: str, lote: "str | None") -> bool:
+    """Lote fora do inventário que a pessoa marcou (sem `lote`, só os
+    marcados fora desse nome -- nunca os que ainda estão no inventário)."""
+    return _alvo(pos, name, lote) and bool(pos.get("fora_desde"))
+
+
+def marcar_anunciado(steamid: str, name: str, anunciado: bool,
+                     lote: "str | None" = None,
+                     path: "Path | str | None" = None) -> bool:
+    """Item fora do inventário: a pessoa diz que está anunciado no Mercado
+    (ou desmarca). True se algo mudou (revisão 16/11)."""
+    positions = load_positions(steamid, path=path)
+    mudou = False
+    for pos in positions:
+        if _fora_alvo(pos, name, lote) and bool(pos.get("anunciado")) != anunciado:
+            if anunciado:
+                pos["anunciado"] = True
+            else:
+                pos.pop("anunciado", None)
+            mudou = True
+    if mudou:
+        user_store.save_user_json(steamid, _KIND, positions, path=path)
+    return mudou
+
+
+def tirar_vendidas(steamid: str, name: str, quantidade: int,
+                   lote: "str | None" = None,
+                   path: "Path | str | None" = None) -> "dict | None":
+    """Tira `quantidade` unidades de um lote fora do inventário que a
+    pessoa vendeu. Devolve o lote como estava (para registrar a venda) ou
+    None se não achou, se o lote não tem valor pago ou se a quantidade
+    não cabe."""
+    positions = load_positions(steamid, path=path)
+    for i, pos in enumerate(positions):
+        if not _fora_alvo(pos, name, lote):
+            continue
+        qtd = int(pos.get("quantity") or 1)
+        if pos.get("cost") is None or not 1 <= quantidade <= qtd:
+            return None
+        antes = dict(pos)
+        if quantidade == qtd:
+            positions.pop(i)
+        else:
+            pos["quantity"] = qtd - quantidade
+        user_store.save_user_json(steamid, _KIND, positions, path=path)
+        return antes
+    return None
+
+
 def remove_position(steamid: str, name: str,
                     path: "Path | str | None" = None,
                     lote: "str | None" = None) -> bool:

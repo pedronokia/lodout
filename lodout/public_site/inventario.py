@@ -147,6 +147,7 @@ def _acertar_lotes(lotes: "list[dict]", it: dict, agora: float) -> "list[dict]":
     def sem_marca(l):
         l = dict(l)
         l.pop("fora_desde", None)
+        l.pop("anunciado", None)
         return l
 
     if len(lotes) == 1:

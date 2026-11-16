@@ -29,7 +29,7 @@ ENTRADAS = [
             "Com a internet lenta, digitar dois valores pagos seguidos (ou trocar duas vezes o “Quero lucrar”) podia guardar o primeiro, embora a tela mostrasse o segundo; agora vale sempre o último. Trocar o “Quero lucrar” numa conta grande também deixou de travar a página por alguns segundos.",
             "No cartão “Vale hoje”, a variação “desde ontem” agora avisa quando inclui itens que entraram ou saíram da sua conta (“contando itens que entraram”), para não parecer que o mercado subiu. E separar um item em lotes (“valores diferentes?”) não muda mais a contagem de itens nos cartões.",
             "Na lista da conta, os lotes do mesmo item ficam juntos em qualquer ordem, “Nome (A–Z)” põe “2” antes de “10”, e a busca acha o tipo do item em português (“cápsula”, “caixa”, “faca”, “luva”) mesmo quando a Steam só tem o nome em inglês.",
-            "Corrigido: anunciar um item no Mercado da Steam fazia ele sumir da sua conta junto com o valor pago (a Steam tira do inventário público o que está anunciado). Agora o item com valor pago fica na conta com o aviso “anunciado no Mercado ou vendido?” e o botão “Vendi, tirar da lista”; se o anúncio for cancelado, o aviso some sozinho.",
+            "Corrigido: anunciar um item no Mercado da Steam fazia ele sumir da sua conta junto com o valor pago (a Steam tira do inventário público o que está anunciado). Agora o item com valor pago fica na conta e pergunta o que aconteceu: marque “Está anunciado no Mercado” (ele fica até você tirar) ou “Vendi”, informando por quanto vendeu; a venda vai para “Itens vendidos”, na página Histórico, com o lucro já sem a taxa. Se o anúncio for cancelado, o item volta ao normal sozinho.",
         ],
     },
     {
