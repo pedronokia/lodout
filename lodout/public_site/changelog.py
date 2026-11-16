@@ -28,6 +28,7 @@ ENTRADAS = [
             "Depois de “Sair”, o botão Voltar do navegador não mostra mais a sua conta (útil em computador compartilhado). Uma aba aberta antes de você sair e entrar de novo agora avisa que ficou desatualizada e oferece “Recarregar a página”, em vez de dizer que o login expirou ou mostrar um erro em inglês.",
             "Com a internet lenta, digitar dois valores pagos seguidos (ou trocar duas vezes o “Quero lucrar”) podia guardar o primeiro, embora a tela mostrasse o segundo; agora vale sempre o último. Trocar o “Quero lucrar” numa conta grande também deixou de travar a página por alguns segundos.",
             "No cartão “Vale hoje”, a variação “desde ontem” agora avisa quando inclui itens que entraram ou saíram da sua conta (“contando itens que entraram”), para não parecer que o mercado subiu. E separar um item em lotes (“valores diferentes?”) não muda mais a contagem de itens nos cartões.",
+            "Na lista da conta, os lotes do mesmo item ficam juntos em qualquer ordem, “Nome (A–Z)” põe “2” antes de “10”, e a busca acha o tipo do item em português (“cápsula”, “caixa”, “faca”, “luva”) mesmo quando a Steam só tem o nome em inglês.",
         ],
     },
     {

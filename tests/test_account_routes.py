@@ -944,3 +944,35 @@ def test_conta_js_envia_um_valor_por_vez_e_sem_travar():
     realce = js[js.index("function realcar"):]
     realce = realce[:realce.index("\n  }\n")]
     assert "el.offsetWidth" not in realce and "requestAnimationFrame" in realce
+
+
+def test_busca_da_conta_acha_o_tipo_em_portugues(client, monkeypatch):
+    """Revisão 16/11: "cápsula" não achava "Sticker Capsule" nem "luva"
+    achava "Sport Gloves" (nomes que a Steam só tem em inglês)."""
+    from lodout.public_site.account import _palavras_busca as f
+    assert "cápsula" in f("Paris 2023 Legends Sticker Capsule")
+    assert f("EMS Katowice 2014 Legends") == "cápsula"
+    assert f("Kilowatt Case") == "caixa"
+    assert f("★ Karambit | Fade (Factory New)") == "faca"
+    assert "luva" in f("★ Sport Gloves | Vice (Field-Tested)")
+    assert f("AK-47 | Redline (Field-Tested)") == ""
+    assert f("Sticker | Team Spirit | Paris 2023") == ""
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "Paris 2023 Legends Sticker Capsule", "cost": "", "quantity": "1",
+        "csrf_token": token})
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'data-item="Paris 2023 Legends Sticker Capsule"' in pagina
+    assert "sticker capsule cápsula" in pagina
+
+
+def test_conta_js_lotes_juntos_e_ordem_natural():
+    """Revisão 16/11: ordenar separava os lotes do mesmo item; "Teste 10"
+    vinha antes de "Teste 2"; "Mostrando N de M" contava linhas."""
+    from pathlib import Path
+    js = (Path(__file__).resolve().parents[1]
+          / "lodout/public_site/static/conta.js").read_text(encoding="utf-8")
+    assert "grupos[itemDe(tr)]" in js
+    assert '{ numeric: true }' in js
+    assert "nVisiveis" in js

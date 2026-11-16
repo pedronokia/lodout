@@ -104,6 +104,10 @@
 
   // Chave de "Nome (A–Z)" calculada uma vez por linha (antes, a cada
   // comparação da ordenação: lento com centenas de itens).
+  function itemDe(tr) {
+    return tr.getAttribute("data-item") || tr.getAttribute("data-busca") || "";
+  }
+
   function nomeOrdem(tr) {
     if (tr._nomeOrdem === undefined) {
       var link = tr.querySelector(".link-item");
@@ -129,18 +133,31 @@
       if (tr.hidden === mostra) tr.hidden = !mostra;
       if (mostra) visiveis++;
     });
+    // Lotes do mesmo item ficam juntos: a ordem usa o item inteiro (soma
+    // dos lotes), como o servidor. Antes cada lote ia para um lado e
+    // "lote 1 de 3" aparecia longe do 2 (revisão 2026-11-16).
+    var grupos = {};
+    todas.forEach(function (tr) {
+      var g = grupos[itemDe(tr)] || (grupos[itemDe(tr)] = { valor: 0, lucro: null });
+      g.valor += Number(tr.getAttribute("data-valor") || 0);
+      var l = lucroDe(tr);
+      if (l !== null) g.lucro = (g.lucro || 0) + l;
+    });
     var chave = {
-      valor: function (tr) { return -Number(tr.getAttribute("data-valor") || 0); },
-      prejuizo: function (tr) { var l = lucroDe(tr); return l === null ? Infinity : l; },
-      lucro: function (tr) { var l = lucroDe(tr); return l === null ? Infinity : -l; },
+      valor: function (g) { return -g.valor; },
+      prejuizo: function (g) { return g.lucro === null ? Infinity : g.lucro; },
+      lucro: function (g) { return g.lucro === null ? Infinity : -g.lucro; },
     }[estado.ordem];
     var ordenadas = todas.slice().sort(function (a, b) {
+      var ia = itemDe(a), ib = itemDe(b);
+      var porOrdem = Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
       if (estado.ordem === "nome") {
-        // Sem "★" e outros símbolos no começo; lotes do mesmo item na
-        // ordem original (lote 1 antes do 2).
-        return nomeOrdem(a).localeCompare(nomeOrdem(b), "pt-BR") || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
+        // Sem "★" e outros símbolos no começo; números em ordem natural
+        // ("Teste 2" antes de "Teste 10"); lotes na ordem original.
+        return nomeOrdem(a).localeCompare(nomeOrdem(b), "pt-BR", { numeric: true }) ||
+          (ia < ib ? -1 : ia > ib ? 1 : 0) || porOrdem;
       }
-      return chave(a) - chave(b) || Number(a.getAttribute("data-ordem")) - Number(b.getAttribute("data-ordem"));
+      return (chave(grupos[ia]) - chave(grupos[ib])) || (ia < ib ? -1 : ia > ib ? 1 : 0) || porOrdem;
     });
     var nenhum = document.querySelector("[data-conta-nenhum]");
     // Mover uma linha tira o cursor do campo que está nela (e o "change"
@@ -177,11 +194,18 @@
     });
     var mostrando = ferramentas.querySelector("[data-conta-mostrando]");
     if (mostrando) {
-      var soma = 0;
-      todas.forEach(function (tr) { if (!tr.hidden) soma += Number(tr.getAttribute("data-valor") || 0); });
+      // Conta itens, não linhas (lotes do mesmo item contam uma vez), como
+      // os cartões do topo (revisão 2026-11-16).
+      var soma = 0, itensVisiveis = {}, nVisiveis = 0;
+      todas.forEach(function (tr) {
+        if (tr.hidden) return;
+        soma += Number(tr.getAttribute("data-valor") || 0);
+        if (!itensVisiveis[itemDe(tr)]) { itensVisiveis[itemDe(tr)] = true; nVisiveis++; }
+      });
+      var nTotal = Object.keys(grupos).length;
       mostrando.textContent = visiveis === todas.length || visiveis === 0 ? "" :
-        "Mostrando " + visiveis + " de " + todas.length + " " + (todas.length === 1 ? "item" : "itens") +
-        " · " + (visiveis === 1 ? "vale " : "valem ") + reais(soma) + " hoje";
+        "Mostrando " + nVisiveis + " de " + nTotal + " " + (nTotal === 1 ? "item" : "itens") +
+        " · " + (nVisiveis === 1 ? "vale " : "valem ") + reais(soma) + " hoje";
     }
     // Títulos de coluna: qual está ordenando (leitor de tela e seta).
     Array.prototype.forEach.call(document.querySelectorAll(".tabela-conta th[data-ordenar-coluna]"), function (th) {

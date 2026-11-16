@@ -184,7 +184,7 @@
       </thead>
       <tbody role="rowgroup">
         {% for row in avaliacao.rows %}
-        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name)|lower }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
+        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
           <td role="cell" data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>

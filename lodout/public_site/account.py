@@ -157,6 +157,7 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
             if row["name_fmt"].endswith(sufixo):
                 row["nome_curto"] = row["name_fmt"][:-len(sufixo)]
                 row["exterior_fmt"] = rotulo
+        row["busca_extra"] = _palavras_busca(row["name"])
         row["price_fmt"] = fmt.brl(row.get("price"))
         if row.get("price") is not None:
             row["valor_total_fmt"] = fmt.brl(row["price"] * (row.get("quantity") or 1))
@@ -183,6 +184,33 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
     avaliacao["textos"] = _textos_totais(t)
     return avaliacao
+
+
+# Palavras em português para a busca da conta achar o tipo do item cujo
+# nome a Steam só tem em inglês: "cápsula" não achava "Sticker Capsule",
+# nem "luva" achava "Sport Gloves" (revisão 2026-11-16).
+_PALAVRAS_TIPO = (
+    ("Autograph Capsule", "cápsula de autógrafo"),
+    ("Capsule", "cápsula"),
+    (" Case", "caixa"),
+    ("Gloves", "luva luvas"),
+    ("Hand Wraps", "luva luvas faixas"),
+    ("Souvenir", "lembrança"),
+)
+# Cápsulas antigas sem "Capsule" no nome ("EMS Katowice 2014 Legends",
+# "2020 RMR Challengers").
+_CAPSULA_SEM_NOME = ("Legends", "Challengers", "Contenders")
+
+
+def _palavras_busca(nome: str) -> str:
+    if nome.startswith("Sticker |"):
+        return ""  # o nome já aparece como "Adesivo | …"
+    extra = [pt for en, pt in _PALAVRAS_TIPO if en in nome]
+    if nome.startswith("★") and "Gloves" not in nome and "Hand Wraps" not in nome:
+        extra.append("faca")
+    if not extra and "|" not in nome and any(p in nome for p in _CAPSULA_SEM_NOME):
+        extra.append("cápsula")
+    return " ".join(extra)
 
 
 def _confira(custo: "float | None", preco: "float | None") -> str:
