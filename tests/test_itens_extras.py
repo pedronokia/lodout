@@ -52,3 +52,28 @@ def test_desligado_ou_sem_catalogo(monkeypatch):
     itens_extras._caminho().unlink(missing_ok=True)
     monkeypatch.setenv("LODOUT_ITENS_EXTRAS", "0")
     assert itens_extras.alvos(set()) == {}
+
+
+def test_baratos_no_topo_nao_tomam_o_lugar_dos_que_valem(monkeypatch):
+    """1º ciclo real (16/11): os mais anunciados são quase todos de
+    centavos; com o piso aplicado depois do corte, vieram 46 de 100."""
+    itens_extras._caminho().unlink(missing_ok=True)
+    monkeypatch.setenv("LODOUT_ITENS_EXTRAS", "3")
+    baratos = [_item(f"P250 | Barato {i} (Battle-Scarred)", 0.05, 9000 - i)
+               for i in range(100)]
+    caros = [_item(f"AK-47 | Caro {i} (Field-Tested)", 5.0, 100 - i)
+             for i in range(3)]
+    _catalogo({"Rifles": caros, "Pistolas": baratos})
+    r = itens_extras.alvos(set(), agora=1000.0)
+    assert r == {"Rifles": [f"AK-47 | Caro {i} (Field-Tested)" for i in range(3)]}
+
+
+def test_lista_salva_com_criterio_antigo_e_refeita(monkeypatch):
+    import json
+    from lodout import _paths
+    monkeypatch.setenv("LODOUT_ITENS_EXTRAS", "1")
+    _paths.atomic_write_text(itens_extras._caminho(), json.dumps(
+        {"ts": 1000.0, "quantidade": 1,
+         "itens": [{"nome": "Velho | Sem Criterio", "categoria": "Rifles"}]}))
+    _catalogo({"Rifles": [_item("A | Novo (Field-Tested)", 5.0, 900)]})
+    assert itens_extras.alvos(set(), agora=1100.0) == {"Rifles": ["A | Novo (Field-Tested)"]}

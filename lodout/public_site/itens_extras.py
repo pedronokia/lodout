@@ -34,6 +34,9 @@ QUANTIDADE_PADRAO = 100
 _QUANTIDADE_MAX = 400
 _RENOVA_S = 24 * 3600
 _PRECO_MIN_BRL = 1.0
+# Muda quando o jeito de escolher muda: a lista salva é refeita na hora,
+# sem esperar as 24 h (2: piso de preço antes do corte, 16/11).
+_CRITERIO = 2
 # As mesmas abas da coleta (`scan_targets`, sem adesivos). Escopetas e
 # metralhadoras ficam de fora: virariam abas novas na home.
 _CATEGORIAS = ("Rifles", "Pistolas", "Facas", "Luvas", "SMGs", "Caixas",
@@ -65,23 +68,21 @@ def _candidatos(ja: "set[str]", limite: int) -> "list[tuple[str, str]]":
         return []
     taxa = catalogo.cambio()
     marcas = ",".join("?" for _ in _CATEGORIAS)
+    # O piso de preço vai no SQL, antes do LIMIT: os mais anunciados do
+    # mercado são quase todos skins de centavos, e filtrar depois do corte
+    # deixou só 46 dos 100 no primeiro ciclo (16/11). O banco guarda dólar
+    # (AGENTS.md): o piso em reais vira dólar. Sem cotação, sem piso.
+    piso = " AND preco >= ?" if taxa else ""
+    args = (*_CATEGORIAS, *((_PRECO_MIN_BRL / taxa,) if taxa else ()),
+            limite + len(ja))
     try:
         linhas = conn.execute(
-            f"SELECT nome, categoria, preco FROM itens WHERE categoria IN ({marcas})"
-            " AND a_venda > 0 ORDER BY a_venda DESC, nome LIMIT ?",
-            (*_CATEGORIAS, limite + len(ja) + 50)).fetchall()
+            f"SELECT nome, categoria FROM itens WHERE categoria IN ({marcas})"
+            f" AND a_venda > 0{piso} ORDER BY a_venda DESC, nome LIMIT ?",
+            args).fetchall()
     finally:
         conn.close()
-    out = []
-    for nome, categoria, preco_usd in linhas:
-        if nome in ja:
-            continue
-        # O banco do catálogo guarda dólar (AGENTS.md): converte antes de
-        # comparar com o piso em reais. Sem cotação, não filtra por preço.
-        if taxa and (preco_usd is None or preco_usd * taxa < _PRECO_MIN_BRL):
-            continue
-        out.append((nome, categoria))
-    return out
+    return [(nome, categoria) for nome, categoria in linhas if nome not in ja]
 
 
 def alvos(ja: "set[str]", agora: "float | None" = None) -> "dict[str, list[str]]":
@@ -94,7 +95,8 @@ def alvos(ja: "set[str]", agora: "float | None" = None) -> "dict[str, list[str]]
     salvo = ler()
     itens = salvo.get("itens") if isinstance(salvo.get("itens"), list) else []
     fresco = (agora - float(salvo.get("ts") or 0) < _RENOVA_S
-              and salvo.get("quantidade") == n)
+              and salvo.get("quantidade") == n
+              and salvo.get("criterio") == _CRITERIO)
     if not fresco:
         try:
             top = _candidatos(ja, 2 * n)
@@ -116,7 +118,8 @@ def alvos(ja: "set[str]", agora: "float | None" = None) -> "dict[str, list[str]]
                     nomes.add(nome)
             itens = mantidos[:n]
             _paths.atomic_write_text(_caminho(), json.dumps(
-                {"ts": agora, "quantidade": n, "itens": itens}, ensure_ascii=False))
+                {"ts": agora, "quantidade": n, "criterio": _CRITERIO,
+                 "itens": itens}, ensure_ascii=False))
     out: "dict[str, list[str]]" = {}
     for i in itens:
         if not isinstance(i, dict) or i.get("nome") in ja:
