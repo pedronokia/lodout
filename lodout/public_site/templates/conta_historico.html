@@ -81,7 +81,7 @@
       <tbody>
         {% for v in vendidos %}
         <tr>
-          <td data-label="Item" translate="no">{{ v.nome }}{% if v.quantidade > 1 %} <span class="item-quantidade">×{{ v.quantidade }}</span>{% endif %}</td>
+          <td data-label="Item" translate="no"><a class="link-item" href="{{ url_for('item_detail', name=v.nome_steam) }}">{{ v.nome }}</a>{% if v.quantidade > 1 %} <span class="item-quantidade">×{{ v.quantidade }}</span>{% endif %}</td>
           <td data-label="Vendido em" class="celula-data">{{ v.data }}</td>
           <td data-label="Pagou (cada)" class="celula-numero">{{ v.pagou_fmt }}</td>
           <td data-label="Vendeu (cada)" class="celula-numero">{{ v.vendeu_fmt }}</td>

@@ -477,8 +477,30 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     if not steamid:
         return None
     lotes = [p for p in user_portfolio.load_positions(steamid) if p.get("name") == name]
-    if not lotes:
+    # Vendas deste item, marcadas com "Vendi" (revisão 30, 16/11): a
+    # página do item mostra também o que a pessoa já vendeu dele.
+    vendas = []
+    for v in user_vendidos.load(steamid):
+        if v.get("name") != name:
+            continue
+        pnl_v = float(v.get("pnl") or 0)
+        vendas.append({
+            "quantidade": int(v.get("quantity") or 1),
+            "preco_fmt": fmt.brl(v.get("sell_price")),
+            "data": fmt.dia_mes_br(float(v.get("sell_ts") or 0)),
+            "valor_fmt": fmt.brl(abs(pnl_v)),
+            "tipo": "lucro" if pnl_v > 0.005 else ("prejuízo" if pnl_v < -0.005 else "empate"),
+            "classe": "valor-positivo" if pnl_v > 0.005 else ("valor-negativo" if pnl_v < -0.005 else ""),
+            "ts": float(v.get("sell_ts") or 0),
+        })
+    vendas.sort(key=lambda v: -v["ts"])
+    if not lotes and not vendas:
         return None
+    # Fora do inventário (anunciado no Mercado ou vendido, revisão 30).
+    fora = [p for p in lotes if p.get("fora_desde")]
+    fora_unid = sum(int(p.get("quantity") or 1) for p in fora)
+    anunciado_unid = sum(int(p.get("quantity") or 1) for p in fora if p.get("anunciado"))
+    fora_quando = fmt.dia_mes_br(min(float(p["fora_desde"]) for p in fora)) if fora else None
     meta = _meta_lucro(steamid)
     unidades = sum(int(p.get("quantity") or 1) for p in lotes)
     com_valor = []
@@ -515,7 +537,9 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
             "pct_fmt": _pct_curto(pct) if pct is not None else "",
         }
     return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta,
-            "lucro": lucro, "busca": localize_name(name)}
+            "lucro": lucro, "busca": localize_name(name),
+            "fora_unid": fora_unid, "anunciado_unid": anunciado_unid,
+            "fora_quando": fora_quando, "vendas": vendas}
 
 
 def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
@@ -542,6 +566,7 @@ def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
         row["fora_desde"] = fora
         row["fora_quando"] = fmt.dia_mes_br(float(fora)) if fora else None
         row["anunciado"] = bool(fora and pos.get("anunciado"))
+        row["origem"] = pos.get("source")
         # "juntar lotes" na 1ª linha no inventário, com 2+ lotes no inventário.
         row["mostra_juntar"] = bool(
             not fora and dentro.get(pos.get("name"), 0) > 1
@@ -846,7 +871,8 @@ def exportar_tabela():
         "Item", "Nome na Steam", "Quantidade", "Lote",
         "Você pagou (cada)", "Vale hoje (cada)", "Vale hoje (total)",
         "Lucro se vender hoje", "Lucro (%)",
-        "Venda sem prejuízo (cada)", f"Venda para lucrar {meta}% (cada)"])
+        "Venda sem prejuízo (cada)", f"Venda para lucrar {meta}% (cada)",
+        "Situação"])
     for r in avaliacao["rows"]:
         custo = r.get("cost") if r.get("has_cost") else None
         empate = portfolio.break_even_price(custo) if custo else None
@@ -859,6 +885,11 @@ def exportar_tabela():
             _num_csv(r.get("pnl") if custo is not None else None),
             _num_csv(r.get("pnl_pct") if custo else None),
             _num_csv(empate), _num_csv(empate * (1 + meta / 100) if empate else None),
+            # Revisão 30 (16/11): anunciado / fora do inventário.
+            ("anunciado no Mercado" if r.get("anunciado") else
+             f"fora do inventário desde {r['fora_quando']}" if r.get("fora_desde") else
+             "no inventário" if r.get("origem") == inventario.SOURCE_STEAM else
+             "adicionado à mão"),
         ])
     nome = time.strftime("lodout-conta-%Y-%m-%d.csv", time.gmtime())
     resp = make_response("\ufeff" + saida.getvalue())

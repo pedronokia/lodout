@@ -58,6 +58,7 @@ def listar():
         vendidos.append({
             "index": i,
             "nome": localize_name(v.get("name") or ""),
+            "nome_steam": v.get("name") or "",
             "quantidade": int(v.get("quantity") or 1),
             "data": fmt.data_hora_br(v.get("sell_ts") or 0)[:10],
             "pagou_fmt": fmt.brl(v.get("buy_cost")),

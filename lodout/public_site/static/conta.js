@@ -97,6 +97,7 @@
   function passaFiltro(tr, filtro) {
     var lucro = lucroDe(tr);
     if (filtro === "sem-valor") return tr.classList.contains("linha-sem-custo");
+    if (filtro === "fora") return tr.classList.contains("linha-fora");
     if (filtro === "lucro") return lucro !== null && lucro > 0;
     if (filtro === "prejuizo") return lucro !== null && lucro < 0;
     return true;
@@ -120,7 +121,7 @@
     if (!ferramentas || !corpo) return;
     var todas = linhas();
     var palavras = semAcento(estado.busca).split(/\s+/).filter(Boolean);
-    var contagem = { todos: 0, "sem-valor": 0, lucro: 0, prejuizo: 0 };
+    var contagem = { todos: 0, "sem-valor": 0, lucro: 0, prejuizo: 0, fora: 0 };
     var visiveis = 0;
     todas.forEach(function (tr) {
       var texto = semAcento(tr.getAttribute("data-busca"));
@@ -271,6 +272,18 @@
       estado.busca = pedida;
     }
     limparBusca = function () { if (busca) busca.value = ""; estado.busca = ""; };
+    // "Ver quais" no aviso de itens fora do inventário (revisão 30): abre
+    // a aba "Fora do inventário" e leva até a lista.
+    var irFora = document.querySelector("[data-ir-fora]");
+    if (irFora && ferramentas.querySelector('[data-conta-filtro="fora"]')) {
+      irFora.hidden = false;
+      irFora.addEventListener("click", function () {
+        escolherFiltro("fora");
+        ferramentas.scrollIntoView({ block: "start", behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        var aba = ferramentas.querySelector('[data-conta-filtro="fora"]');
+        if (aba) aba.focus({ preventScroll: true });
+      });
+    }
     escolherFiltro = function (f) {
       estado.filtro = f;
       Array.prototype.forEach.call(ferramentas.querySelectorAll("[data-conta-filtro]"), function (b) {

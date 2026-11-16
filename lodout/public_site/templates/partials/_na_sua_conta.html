@@ -3,7 +3,17 @@
 {% if na_conta %}
 <section class="na-sua-conta" aria-labelledby="titulo-na-conta">
   <h2 class="na-sua-conta-titulo" id="titulo-na-conta">Na sua conta</h2>
-  <p class="na-sua-conta-texto">Você tem <strong>{{ na_conta.unidades }}</strong> {{ "unidade" if na_conta.unidades == 1 else "unidades" }} deste item.</p>
+  {% if na_conta.unidades %}
+  <p class="na-sua-conta-texto">Você tem <strong>{{ na_conta.unidades }}</strong> {{ "unidade" if na_conta.unidades == 1 else "unidades" }} deste item.{% if na_conta.anunciado_unid %} {% if na_conta.anunciado_unid == na_conta.unidades %}{{ "Ela está anunciada" if na_conta.unidades == 1 else "As " ~ na_conta.unidades ~ " estão anunciadas" }}{% else %}{{ "1 está anunciada" if na_conta.anunciado_unid == 1 else na_conta.anunciado_unid ~ " estão anunciadas" }}{% endif %} no Mercado.{% endif %}</p>
+  {# Fora do inventário sem resposta (revisão 30): leva à conta para
+     marcar "anunciado" ou "Vendi". #}
+  {% if na_conta.fora_unid > na_conta.anunciado_unid %}
+  {% set falta = na_conta.fora_unid - na_conta.anunciado_unid %}
+  <p class="na-sua-conta-texto na-sua-conta-fora">{% if falta == na_conta.unidades %}{{ "Ela não aparece" if falta == 1 else "Nenhuma aparece" }}{% else %}{{ "1 unidade não aparece" if falta == 1 else falta ~ " unidades não aparecem" }}{% endif %} no seu inventário da Steam desde {{ na_conta.fora_quando }}. <a href="{{ url_for('account.conta', busca=na_conta.busca) }}">Anunciou ou vendeu? Responder na conta →</a></p>
+  {% endif %}
+  {% else %}
+  <p class="na-sua-conta-texto">Você não tem mais este item na sua lista.</p>
+  {% endif %}
   {% if na_conta.lotes %}
   <ul class="na-sua-conta-lotes">
     {% for l in na_conta.lotes %}
@@ -15,7 +25,18 @@
   {# Como você está com este item hoje (revisão 2026-11-16). #}
   <p class="na-sua-conta-texto na-sua-conta-lucro">Se vender hoje: {% if na_conta.lucro.tipo == "empate" %}<strong>sem lucro nem prejuízo</strong>{% else %}<strong class="{{ na_conta.lucro.classe }}">{{ na_conta.lucro.tipo }} de {{ na_conta.lucro.valor_fmt }}</strong> ({{ na_conta.lucro.pct_fmt }}){% endif %}{% if na_conta.sem_valor %}, só das unidades com valor pago{% endif %}, já sem a taxa da Steam.</p>
   {% endif %}
-  {% if na_conta.sem_valor %}
+  {% if na_conta.vendas %}
+  {# Vendas marcadas com "Vendi" (revisão 30, 16/11). #}
+  <p class="na-sua-conta-texto na-sua-conta-vendas-titulo">{{ "Você vendeu" if na_conta.vendas|length == 1 else "Suas vendas" }}:</p>
+  <ul class="na-sua-conta-lotes">
+    {% for v in na_conta.vendas[:3] %}
+    <li><span class="na-sua-conta-qtd">{{ v.quantidade }}×</span> por <strong>{{ v.preco_fmt }}</strong>{{ " cada" if v.quantidade > 1 else "" }} em {{ v.data }} · {% if v.tipo == "empate" %}sem lucro nem prejuízo{% else %}<strong class="{{ v.classe }}">{{ v.tipo }} de {{ v.valor_fmt }}</strong>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if not na_conta.unidades %}
+  <a class="na-sua-conta-link" href="{{ url_for('history.listar') }}#vendidos">Ver no meu histórico →</a>
+  {% elif na_conta.sem_valor %}
   <p class="na-sua-conta-texto">{{ na_conta.sem_valor }} {{ "unidade está" if na_conta.sem_valor == 1 else "unidades estão" }} sem o valor pago. <a href="{{ url_for('account.conta', busca=na_conta.busca) }}">Informar quanto pagou →</a></p>
   {% else %}
   <a class="na-sua-conta-link" href="{{ url_for('account.conta') }}">Abrir minha conta →</a>

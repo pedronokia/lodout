@@ -431,3 +431,53 @@ def test_recuperar_posicoes_do_backup(capsys):
     assert len(user_portfolio.load_positions(sid)) == 3
     assert recuperar_posicoes.main(["--todos"]) == 0
     assert "Nada a recuperar" in capsys.readouterr().out
+
+
+def test_item_csv_e_filtro_sabem_do_fora_e_das_vendas(client):
+    """Revisão 30 (16/11): página do item, planilha e aba de filtro."""
+    import re
+    import time
+    from lodout.public_site import catalogo, user_vendidos
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Caixas e cápsulas", [
+        {"hash_name": n, "price": 20.0, "listings": 5, "name_color": "4b69ff", "icon": "h"}
+        for n in ("Caixa P", "Caixa Q", "Caixa Z")])
+    conn.close()
+    sid = "76561198000000035"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa P", "cost": 10.0, "quantity": 2, "source": "steam",
+         "fora_desde": 1_794_800_000.0, "anunciado": True},
+        {"name": "Caixa Q", "cost": 4.0, "quantity": 1, "source": "steam",
+         "fora_desde": 1_794_800_000.0},
+        {"name": "Caixa M", "cost": 4.0, "quantity": 1, "source": "manual"}]
+        + [{"name": f"Caixa {i}", "cost": None, "quantity": 1, "source": "steam"} for i in range(6)])
+    user_vendidos.adicionar(sid, "Caixa P", 10.0, 23.0, 1)
+    user_vendidos.adicionar(sid, "Caixa Z", 10.0, 5.75, 1)
+    inventario._gravar_estado(sid, {"status": steam_api.INV_OK, "ts": time.time()})
+    _logado(client, sid)
+    item = client.get("/item/Caixa P").data.decode("utf-8")
+    assert "As 2 estão anunciadas no Mercado" in item
+    assert "Você vendeu" in item and "lucro de R$ 10,00" in item
+    item = client.get("/item/Caixa Q").data.decode("utf-8")
+    assert "Ela não aparece no seu inventário da Steam desde" in item
+    assert "Responder na conta" in item
+    # Só vendido: a página do item ainda mostra a venda e leva ao histórico.
+    item = client.get("/item/Caixa Z").data.decode("utf-8")
+    assert "Você não tem mais este item" in item and "prejuízo de R$ 5,00" in item
+    assert "#vendidos" in item
+    csv = client.get("/conta/tabela.csv").data.decode("utf-8-sig")
+    assert csv.splitlines()[0].endswith(";Situação")
+    situacoes = {l.split(";")[1]: l.split(";")[-1] for l in csv.splitlines()[1:]}
+    assert situacoes["Caixa P"] == "anunciado no Mercado"
+    assert situacoes["Caixa Q"].startswith("fora do inventário desde")
+    assert situacoes["Caixa M"] == "adicionado à mão"
+    conta = client.get("/conta").data.decode("utf-8")
+    assert 'data-conta-filtro="fora"' in conta and "data-ir-fora hidden" in conta
+    hist = client.get("/conta/historico").data.decode("utf-8")
+    assert 'href="/item/Caixa%20P"' in hist
+
+
+def test_faq_explica_anunciado_e_vendi(client):
+    faq = client.get("/faq").data.decode("utf-8")
+    assert "Anunciei um item no Mercado. O que acontece na minha conta?" in faq
+    assert "não é público" in faq

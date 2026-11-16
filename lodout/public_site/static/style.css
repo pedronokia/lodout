@@ -6796,6 +6796,9 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .dialogo-conta .valor-positivo { color: var(--positive); }
 .dialogo-conta .valor-negativo { color: var(--danger); }
 
+/* "Ver quais" (itens fora do inventário) nasce hidden; só o script mostra. */
+.acao-texto[hidden] { display: none; }
+
 table.tabela-conta tbody tr[hidden] { display: none; }
 /* Linha do inventário com mais texto ("Preços coletados…"): as ações
    ganham um sublinhado discreto, para o link não depender só da cor. */
@@ -6914,6 +6917,11 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .na-sua-conta-lotes li { text-align: left; }
 .na-sua-conta-lucro strong.valor-positivo { color: var(--positive); }
 .na-sua-conta-lucro strong.valor-negativo { color: var(--danger); }
+.na-sua-conta-lotes strong.valor-positivo { color: var(--positive); }
+.na-sua-conta-lotes strong.valor-negativo { color: var(--danger); }
+.na-sua-conta-fora { color: var(--warn); }
+.na-sua-conta .na-sua-conta-fora a { color: var(--text); white-space: normal; }
+.na-sua-conta-vendas-titulo { margin-bottom: 0; }
 .na-sua-conta a { hyphens: manual; white-space: nowrap; }
 .na-sua-conta p { hyphens: manual; }
 
