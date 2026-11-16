@@ -828,6 +828,11 @@ def marcar_vendido(name: str):
     if preco is None or not math.isfinite(preco) or preco <= 0:
         flash("Informe por quanto vendeu (o valor que o comprador pagou, ex.: 35,10).", "error")
         return redirect(url_for("account.conta"))
+    # Segunda confirmação (pedido do usuário, 16/11): a janela só envia
+    # depois do "Sim, vendi"; sem JavaScript, a caixa "Confirmo que vendi".
+    if request.form.get("confirmado") != "1":
+        flash("Confirme que vendeu: nada foi alterado.", "error")
+        return redirect(url_for("account.conta"))
     vendido = user_portfolio.tirar_vendidas(steamid, name, quantidade, lote=lote)
     if vendido is None:
         flash("Não deu para marcar como vendido: confira a quantidade e se o item "

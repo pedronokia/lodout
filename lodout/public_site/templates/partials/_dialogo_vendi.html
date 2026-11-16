@@ -5,7 +5,11 @@
   <form method="post" class="dialogo-conteudo" data-janela-vendi-form>
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="lote" value="" data-janela-vendi-lote>
+    <input type="hidden" name="confirmado" value="" data-janela-vendi-confirmado>
     <h2 class="dialogo-titulo" id="dialogo-vendi-titulo">Vendeu <span data-janela-vendi-nome translate="no"></span>?</h2>
+    {# Duas confirmações (pedido do usuário, 16/11): o 1º "Confirmar venda"
+       mostra o resumo; só o "Sim, vendi" grava. #}
+    <div data-janela-vendi-passo1>
     <p class="dialogo-texto" id="dialogo-vendi-texto">Ele sai da sua lista e vai para “Itens vendidos”, no Histórico, com o lucro.</p>
     <div class="dialogo-campos">
       <label class="dialogo-campo" data-janela-vendi-qtd-campo>
@@ -22,6 +26,14 @@
     <div class="dialogo-acoes">
       <button type="button" class="botao-secundario" data-janela-vendi-cancelar>Cancelar</button>
       <button type="submit" class="botao-acao">Confirmar venda</button>
+    </div>
+    </div>
+    <div data-janela-vendi-passo2 hidden>
+      <p class="dialogo-texto dialogo-resumo-venda" data-janela-vendi-resumo tabindex="-1"></p>
+      <div class="dialogo-acoes">
+        <button type="button" class="botao-secundario" data-janela-vendi-voltar>Voltar</button>
+        <button type="submit" class="botao-acao" data-janela-vendi-sim>Sim, vendi</button>
+      </div>
     </div>
   </form>
 </dialog>

@@ -358,9 +358,15 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
     pagina = client.get("/conta").data.decode("utf-8")
     assert ">anunciado</span>" in pagina and "Anunciou ou vendeu?" not in pagina
     assert 'data-enviar-ao-mudar checked' in pagina
+    # Sem a segunda confirmação, nada muda (pedido 16/11).
+    client.post("/conta/posicoes/Caixa V/vendido",
+                data={"csrf_token": token, "sell_price": "20,00", "quantidade": "2"})
+    assert user_vendidos.load(sid) == []
+    assert [p["quantity"] for p in user_portfolio.load_positions(sid) if p["name"] == "Caixa V"] == [3]
     # Vendeu 2 de 3 por R$ 20 cada: 1 fica, a venda vai para o histórico.
     r = client.post("/conta/posicoes/Caixa V/vendido",
-                    data={"csrf_token": token, "sell_price": "20,00", "quantidade": "2"})
+                    data={"csrf_token": token, "sell_price": "20,00", "quantidade": "2",
+                          "confirmado": "1"})
     assert r.status_code == 302
     v = [p for p in user_portfolio.load_positions(sid) if p["name"] == "Caixa V"]
     assert len(v) == 1 and v[0]["quantity"] == 1 and v[0]["anunciado"] is True
@@ -372,7 +378,8 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
     assert "Itens vendidos" in hist and "Caixa V" in hist and "+R$ 14,78" in hist
     # Preço inválido não vende nada.
     client.post("/conta/posicoes/Caixa V/vendido",
-                data={"csrf_token": token, "sell_price": "abc", "quantidade": "1"})
+                data={"csrf_token": token, "sell_price": "abc", "quantidade": "1",
+                      "confirmado": "1"})
     assert len(user_vendidos.load(sid)) == 1
     # Apagar a venda (marcada por engano).
     client.post("/conta/historico/vendidos/0/remover", data={"csrf_token": token})

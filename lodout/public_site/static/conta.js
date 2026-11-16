@@ -913,13 +913,42 @@
       var custo = d.getAttribute("data-vendi-custo");
       custoVendi = custo ? Number(custo) : null;
       contarVenda();
+      mostrarPasso(1);
       dialogoVendi.showModal();
       campoPreco.focus();
       campoPreco.select();
     });
     campoQtd.addEventListener("input", contarVenda);
     campoPreco.addEventListener("input", contarVenda);
-    formVendi.addEventListener("submit", function () { normalizarValor(campoPreco); });
+    // Duas confirmações (pedido do usuário, 16/11): "Confirmar venda"
+    // mostra o resumo; só o "Sim, vendi" envia.
+    var passo1 = formVendi.querySelector("[data-janela-vendi-passo1]");
+    var passo2 = formVendi.querySelector("[data-janela-vendi-passo2]");
+    var resumoVenda = formVendi.querySelector("[data-janela-vendi-resumo]");
+    var confirmado = formVendi.querySelector("[data-janela-vendi-confirmado]");
+    var nomeVenda = dialogoVendi.querySelector("[data-janela-vendi-nome]");
+    var mostrarPasso = function (n) {
+      passo1.hidden = n !== 1;
+      passo2.hidden = n !== 2;
+      confirmado.value = "";
+    };
+    formVendi.addEventListener("submit", function (e) {
+      if (!passo2.hidden) { confirmado.value = "1"; normalizarValor(campoPreco); return; }
+      e.preventDefault();
+      var preco = lerPreco();
+      if (!isFinite(preco) || preco <= 0) { campoPreco.focus(); return; }
+      var qtd = Math.max(1, parseInt(campoQtd.value, 10) || 1);
+      resumoVenda.textContent = "Confirmar: você vendeu " + (qtd > 1 ? qtd + "× " : "") +
+        nomeVenda.textContent + " por " + reais(preco) + (qtd > 1 ? " cada" : "") +
+        "? " + (qtd > 1 ? "Elas saem" : "Ele sai") + " da sua lista e " + (qtd > 1 ? "vão" : "vai") +
+        " para “Itens vendidos”. " + contaVendi.textContent;
+      mostrarPasso(2);
+      formVendi.querySelector("[data-janela-vendi-sim]").focus();
+    });
+    formVendi.querySelector("[data-janela-vendi-voltar]").addEventListener("click", function () {
+      mostrarPasso(1);
+      campoPreco.focus();
+    });
     formVendi.querySelector("[data-janela-vendi-cancelar]").addEventListener("click", function () { dialogoVendi.close(); });
     dialogoVendi.addEventListener("click", function (e) { if (e.target === dialogoVendi) dialogoVendi.close(); });
     dialogoVendi.addEventListener("close", function () { if (origemVendi) origemVendi.focus(); });
