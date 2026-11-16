@@ -117,7 +117,10 @@ def juntar(steamid: str, name: str,
     "misto" (algum lote com valor e outro sem: juntar inventaria um
     preço, então não junta)."""
     positions = load_positions(steamid, path=path)
-    lotes = [p for p in positions if p.get("name") == name]
+    # Lotes fora do inventário (anunciados ou vendidos) ficam como estão:
+    # juntar com eles misturaria o que a pessoa ainda tem com o que talvez
+    # já tenha vendido (revisão 16/11).
+    lotes = [p for p in positions if p.get("name") == name and not p.get("fora_desde")]
     if len(lotes) < 2:
         return "nada"
     com_valor = [p for p in lotes if p.get("cost") is not None]
@@ -130,7 +133,7 @@ def juntar(steamid: str, name: str,
     primeiro = positions.index(lotes[0])
     unido = {**lotes[0], "quantity": unidades, "cost": custo}
     unido.pop("lote", None)
-    restantes = [p for p in positions if p.get("name") != name]
+    restantes = [p for p in positions if not any(p is l for l in lotes)]
     restantes.insert(min(primeiro, len(restantes)), unido)
     user_store.save_user_json(steamid, _KIND, restantes, path=path)
     return "ok"

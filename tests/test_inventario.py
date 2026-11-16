@@ -2,6 +2,8 @@
 Sem rede: `steam_api.fetch_inventory` é sempre substituído."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from lodout import steam_api
@@ -21,7 +23,7 @@ def test_mesclar_novo_entra_sem_preco_pago():
     assert pos == [{"name": "AK-47 | Redline (Field-Tested)", "cost": None,
                     "quantity": 1, "added_ts": 1.0, "source": "steam",
                     "icon": "h-AK-47 | Redline (Field-Tested)"}]
-    assert resumo == {"novos": 1, "atualizados": 0, "removidos": 0}
+    assert resumo == {"novos": 1, "atualizados": 0, "removidos": 0, "fora": 0}
 
 
 def test_mesclar_atualiza_quantidade_e_mantem_preco_pago():
@@ -31,13 +33,26 @@ def test_mesclar_atualiza_quantidade_e_mantem_preco_pago():
     assert resumo["atualizados"] == 1
 
 
-def test_mesclar_item_vendido_sai_junto_com_o_preco_pago():
-    # Decisão do usuário (2026-11-15): "se vendeu, apaga os dados".
-    antes = [{"name": "Vendido", "cost": 100.0, "quantity": 1, "source": "steam"},
+def test_mesclar_item_que_sumiu_fica_se_tem_valor_pago():
+    """Relato de 16/11: anunciar no Mercado tira o item do inventário
+    público, e a sincronização apagava o valor pago (regra de 15/11,
+    "sumiu = vendeu"). Agora o item com valor pago fica, marcado; o sem
+    valor pago sai (não perde nada e volta sozinho)."""
+    antes = [{"name": "Anunciado", "cost": 100.0, "quantity": 1, "source": "steam"},
+             {"name": "Sem valor", "cost": None, "quantity": 1, "source": "steam"},
              {"name": "Fica", "cost": 5.0, "quantity": 1, "source": "steam"}]
-    pos, resumo = inventario.mesclar(antes, _inv("Fica"))
-    assert [p["name"] for p in pos] == ["Fica"]
-    assert resumo["removidos"] == 1
+    pos, resumo = inventario.mesclar(antes, _inv("Fica"), agora=50.0)
+    assert [(p["name"], p.get("fora_desde")) for p in pos] == [
+        ("Anunciado", 50.0), ("Fica", None)]
+    assert pos[0]["cost"] == 100.0
+    assert resumo["removidos"] == 1 and resumo["fora"] == 1
+    # Dia seguinte, ainda fora: a data de quando saiu não muda.
+    pos, _ = inventario.mesclar(pos, _inv("Fica"), agora=90.0)
+    assert pos[0]["fora_desde"] == 50.0
+    # Anúncio cancelado: o item volta com o valor pago e sem a marca.
+    pos, resumo = inventario.mesclar(pos, _inv("Fica", "Anunciado"), agora=99.0)
+    volta = [p for p in pos if p["name"] == "Anunciado"]
+    assert len(volta) == 1 and volta[0]["cost"] == 100.0 and "fora_desde" not in volta[0]
 
 
 def test_mesclar_item_a_mao():
@@ -251,16 +266,27 @@ def test_mesclar_respeita_lotes():
     pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=7))
     assert [(p["quantity"], p["cost"]) for p in pos] == [(3, 2.0), (2, 5.0), (2, None)]
     # Vendeu 4: saem primeiro as mais antigas (3 do lote a, 1 do b).
-    pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=1))
-    assert [(p["lote"], p["quantity"]) for p in pos] == [("b", 1)]
+    # As 4 que saíram (anunciadas ou vendidas) ficam fora do inventário,
+    # com o valor pago (revisão 16/11).
+    pos, _ = inventario.mesclar(lotes, _inv("Caixa X", qtd=1), agora=60.0)
+    assert [(p["quantity"], p["cost"], p.get("fora_desde")) for p in pos] == [
+        (1, 5.0, None), (3, 2.0, 60.0), (1, 5.0, 60.0)]
+    assert pos[0]["lote"] == "b"
+    # Anúncio cancelado: voltam primeiro as que estavam fora, com o valor.
+    pos, _ = inventario.mesclar(pos, _inv("Caixa X", qtd=5), agora=70.0)
+    assert sorted((p["quantity"], p["cost"]) for p in pos if not p.get("fora_desde")) == [
+        (1, 5.0), (1, 5.0), (3, 2.0)]
+    assert not [p for p in pos if p.get("fora_desde")]
     # Lote sem valor sai antes dos com valor.
     com_sem = lotes + [{"name": "Caixa X", "cost": None, "quantity": 1,
                         "source": "steam", "lote": "c", "added_ts": 3}]
     pos, _ = inventario.mesclar(com_sem, _inv("Caixa X", qtd=5))
     assert [p["lote"] for p in pos] == ["a", "b"]
-    # Vendeu tudo: todos os lotes saem.
-    pos, resumo = inventario.mesclar(lotes, [])
-    assert pos == [] and resumo["removidos"] == 2
+    # Saiu tudo: os lotes com valor pago ficam, marcados.
+    pos, resumo = inventario.mesclar(lotes, [], agora=80.0)
+    assert [p.get("fora_desde") for p in pos] == [80.0, 80.0] and resumo["fora"] == 2
+    pos, resumo = inventario.mesclar(com_sem, [], agora=80.0)
+    assert [p["lote"] for p in pos] == ["a", "b"] and resumo["removidos"] == 1
 
 
 def test_conta_separa_e_salva_valor_por_lote(client):
@@ -288,3 +314,73 @@ def test_conta_separa_e_salva_valor_por_lote(client):
     assert [p["cost"] for p in user_portfolio.load_positions(sid)] == [2.0, 7.0]
     client.post("/conta/posicoes/Caixa L/remover", data={"lote": lote2, "csrf_token": token})
     assert [p["quantity"] for p in user_portfolio.load_positions(sid)] == [3]
+
+
+# ── Item fora do inventário (revisão 16/11) ───────────────────────────
+
+def test_conta_mostra_item_fora_do_inventario_com_vendi(client):
+    sid = "76561198000000031"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa F", "cost": 3.0, "quantity": 1, "source": "steam",
+         "fora_desde": 1_794_800_000.0},
+        {"name": "Caixa G", "cost": 3.0, "quantity": 1, "source": "steam"}])
+    import time
+    inventario._gravar_estado(sid, {"status": steam_api.INV_OK, "ts": time.time(),
+                                    "ultimo_ok_ts": time.time()})
+    _logado(client, sid)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert pagina.count("linha-fora") == 1
+    assert "Não está no seu inventário da Steam desde" in pagina
+    assert "anunciado no Mercado ou vendido?" in pagina
+    assert ">Vendi, tirar da lista</button>" in pagina
+    assert "1 item não aparece no inventário agora" in pagina
+
+
+def test_juntar_lotes_deixa_de_fora_o_que_saiu_do_inventario():
+    sid = "76561198000000032"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Caixa J", "cost": 2.0, "quantity": 1, "source": "steam", "lote": "a"},
+        {"name": "Caixa J", "cost": 4.0, "quantity": 1, "source": "steam", "lote": "b"},
+        {"name": "Caixa J", "cost": 9.0, "quantity": 1, "source": "steam", "lote": "c",
+         "fora_desde": 5.0}])
+    assert user_portfolio.juntar(sid, "Caixa J") == "ok"
+    pos = user_portfolio.load_positions(sid)
+    assert sorted((p["quantity"], p["cost"], bool(p.get("fora_desde"))) for p in pos) == [
+        (1, 9.0, True), (2, 3.0, False)]
+
+
+def test_recuperar_posicoes_do_backup(capsys):
+    """Os valores apagados antes da correção voltam do backup diário."""
+    import sqlite3
+    from lodout import _paths
+    from lodout.public_site import db as site_db, recuperar_posicoes
+    sid = "76561198000000033"
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Anunciado", "cost": 50.0, "quantity": 2, "source": "steam"},
+        {"name": "Voltou sem valor", "cost": 7.0, "quantity": 1, "source": "steam"},
+        {"name": "Fica", "cost": 1.0, "quantity": 1, "source": "steam"}])
+    pasta = Path(_paths.DATA_DIR) / "backups"
+    pasta.mkdir(parents=True, exist_ok=True)
+    origem = site_db.connect(None)
+    destino = sqlite3.connect(str(pasta / "public_site-20261115-120000.db"))
+    origem.backup(destino)
+    origem.close(); destino.close()
+    # A sincronização antiga apagou "Anunciado"; "Voltou sem valor" voltou sem o valor.
+    user_store.save_user_json(sid, "portfolio", [
+        {"name": "Voltou sem valor", "cost": None, "quantity": 1, "source": "steam"},
+        {"name": "Fica", "cost": 1.0, "quantity": 1, "source": "steam"}])
+    assert recuperar_posicoes.main([sid]) == 0
+    assert "Nada foi gravado" in capsys.readouterr().out
+    assert len(user_portfolio.load_positions(sid)) == 2
+    assert recuperar_posicoes.main([sid, "--aplicar"]) == 0
+    pos = {p["name"]: p for p in user_portfolio.load_positions(sid)}
+    assert pos["Anunciado"]["cost"] == 50.0 and pos["Anunciado"]["quantity"] == 2
+    assert pos["Anunciado"].get("fora_desde")
+    assert pos["Voltou sem valor"]["cost"] == 7.0
+    assert pos["Fica"]["cost"] == 1.0
+    assert list(pasta.glob(f"recuperacao-{sid}-*.json"))
+    # Rodar de novo não duplica.
+    assert recuperar_posicoes.main([sid, "--aplicar"]) == 0
+    assert len(user_portfolio.load_positions(sid)) == 3
+    assert recuperar_posicoes.main(["--todos"]) == 0
+    assert "Nada a recuperar" in capsys.readouterr().out

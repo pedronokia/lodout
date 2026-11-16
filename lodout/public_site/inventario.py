@@ -48,8 +48,13 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
     - Item novo do inventário entra sem preço pago (a Steam não informa).
     - Item que já veio do inventário tem quantidade e imagem atualizadas;
       o preço pago digitado fica.
-    - Item que veio do inventário e SAIU dele (vendido/trocado) é apagado
-      junto com o preço pago (decisão do usuário, 2026-11-15).
+    - Item que veio do inventário e SAIU dele: anunciado no Mercado (a
+      Steam tira do inventário público até vender) ou vendido/trocado --
+      daqui não dá para saber qual. Com valor pago, fica na conta marcado
+      `fora_desde` e a pessoa diz se vendeu ("Vendi, tirar da lista"); se
+      o anúncio for cancelado e o item voltar, a marca some. Sem valor
+      pago, sai (não perde nada e volta sozinho). Antes (15/11) saía
+      sempre, e anunciar apagava o valor pago (relato de 16/11).
     - Item adicionado à mão continua como está. Se ele aparece no
       inventário (uma linha só desse nome), passa a ser acompanhado pelo
       inventário, mantendo o preço pago.
@@ -75,7 +80,7 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
 
     saida: list[dict] = []
     vistos: set = set()
-    novos = atualizados = removidos = 0
+    novos = atualizados = removidos = fora = 0
     for p in posicoes:
         nome = p.get("name")
         if p.get("source") == SOURCE_STEAM:
@@ -86,7 +91,12 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
                 vistos.add(nome)
                 atualizados += 1
             else:
-                removidos += len(lotes_steam[nome])
+                for lote in lotes_steam[nome]:
+                    if lote.get("cost") is None:
+                        removidos += 1
+                    else:
+                        saida.append({**lote, "fora_desde": lote.get("fora_desde") or agora})
+                        fora += 1
                 vistos.add(nome)
             continue
         if nome in inv and manuais_por_nome.get(nome) == 1 and nome not in vistos:
@@ -109,49 +119,80 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
                       "icon": it.get("icon")})
         novos += 1
     return saida, {"novos": novos, "atualizados": atualizados,
-                   "removidos": removidos}
+                   "removidos": removidos, "fora": fora}
 
 
 def _acertar_lotes(lotes: "list[dict]", it: dict, agora: float) -> "list[dict]":
     """Ajusta os lotes de um item à quantidade que o inventário tem hoje.
 
     - Um lote só: a quantidade acompanha o inventário e o valor pago
-      fica (como sempre foi).
+      fica (como sempre foi); se estava marcado fora do inventário, a
+      marca some (o anúncio foi cancelado).
     - Vários lotes (a pessoa separou por valor pago):
-      * chegaram unidades: entram no lote sem valor pago, ou num lote
-        novo sem valor, pra pessoa informar quanto pagou;
-      * saíram unidades (vendeu/trocou): saem primeiro as sem valor pago
-        e depois as mais antigas (a primeira compra é a primeira venda).
+      * chegaram unidades: primeiro voltam as que estavam fora do
+        inventário (anúncio cancelado), com o valor pago; o resto entra no
+        lote sem valor pago, ou num lote novo sem valor;
+      * saíram unidades (anunciou, vendeu ou trocou): saem primeiro as sem
+        valor pago, e depois as mais antigas. As que têm valor pago não
+        somem: viram um lote marcado `fora_desde` (revisão 16/11).
     """
     from lodout.public_site import user_portfolio
     qtd_inv = int(it.get("quantity") or 1)
     icone = it.get("icon")
     lotes = [{**l, "icon": icone or l.get("icon")} for l in lotes]
+
+    def qtd(l):
+        return int(l.get("quantity") or 1)
+
+    def sem_marca(l):
+        l = dict(l)
+        l.pop("fora_desde", None)
+        return l
+
     if len(lotes) == 1:
-        return [{**lotes[0], "quantity": qtd_inv}]
-    total = sum(int(l.get("quantity") or 1) for l in lotes)
+        return [{**sem_marca(lotes[0]), "quantity": qtd_inv}]
+    dentro = [l for l in lotes if not l.get("fora_desde")]
+    fora = [l for l in lotes if l.get("fora_desde")]
+    total = sum(qtd(l) for l in dentro)
     if qtd_inv > total:
-        sem_valor = next((l for l in lotes if l.get("cost") is None), None)
-        if sem_valor is not None:
-            sem_valor["quantity"] = int(sem_valor.get("quantity") or 1) + qtd_inv - total
-        else:
-            lotes.append({"name": lotes[0].get("name"), "cost": None,
-                          "quantity": qtd_inv - total, "added_ts": agora,
-                          "source": SOURCE_STEAM, "icon": icone,
-                          "lote": user_portfolio.novo_lote()})
+        falta = qtd_inv - total
+        for l in sorted(fora, key=lambda l: (l.get("fora_desde") or 0)):
+            if falta <= 0:
+                break
+            volta = min(qtd(l), falta)
+            if volta == qtd(l):
+                fora.remove(l)
+                dentro.append(sem_marca(l))
+            else:
+                l["quantity"] = qtd(l) - volta
+                dentro.append({**sem_marca(l), "quantity": volta,
+                               "lote": user_portfolio.novo_lote()})
+            falta -= volta
+        if falta > 0:
+            sem_valor = next((l for l in dentro if l.get("cost") is None), None)
+            if sem_valor is not None:
+                sem_valor["quantity"] = qtd(sem_valor) + falta
+            else:
+                dentro.append({"name": lotes[0].get("name"), "cost": None,
+                               "quantity": falta, "added_ts": agora,
+                               "source": SOURCE_STEAM, "icon": icone,
+                               "lote": user_portfolio.novo_lote()})
     elif qtd_inv < total:
         sobra = total - qtd_inv
-        ordem = sorted(range(len(lotes)), key=lambda i: (
-            lotes[i].get("cost") is not None, lotes[i].get("added_ts") or 0, i))
+        ordem = sorted(range(len(dentro)), key=lambda i: (
+            dentro[i].get("cost") is not None, dentro[i].get("added_ts") or 0, i))
         for i in ordem:
             if sobra <= 0:
                 break
-            q = int(lotes[i].get("quantity") or 1)
+            q = qtd(dentro[i])
             tira = min(q, sobra)
-            lotes[i]["quantity"] = q - tira
+            dentro[i]["quantity"] = q - tira
             sobra -= tira
-        lotes = [l for l in lotes if int(l.get("quantity") or 0) > 0]
-    return lotes
+            if dentro[i].get("cost") is not None:
+                fora.append({**dentro[i], "quantity": tira, "fora_desde": agora,
+                             "lote": user_portfolio.novo_lote()})
+        dentro = [l for l in dentro if int(l.get("quantity") or 0) > 0]
+    return dentro + fora
 
 
 def estado(steamid: str) -> dict:

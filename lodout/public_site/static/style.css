@@ -6719,6 +6719,20 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
    passava por cima do `hidden` -- a busca e os filtros não escondiam
    nada no celular (achado na revisão de 2026-11-16). Fica por último
    para vencer as regras de cartão. */
+/* Item fora do inventário (anunciado no Mercado ou vendido, revisão
+   2026-11-16): aviso em amarelo e "Vendi, tirar da lista" sempre à vista
+   (o "remover" comum só aparece sob o mouse). */
+.item-fora {
+  color: var(--warn);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  max-width: 46ch;
+}
+.item-fora .form-remover { display: block; margin-top: 2px; }
+.item-fora .botao-vendi { min-height: 24px; padding: 0; }
+.tabela-conta .botao-vendi,
+.tabela-conta tr .botao-vendi { opacity: 1; color: var(--text); font-size: var(--fs-xs); text-decoration: underline; text-underline-offset: 3px; }
+
 table.tabela-conta tbody tr[hidden] { display: none; }
 /* Linha do inventário com mais texto ("Preços coletados…"): as ações
    ganham um sublinhado discreto, para o link não depender só da cor. */

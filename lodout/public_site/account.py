@@ -393,6 +393,7 @@ def conta():
             time.time() - float(estado_inv.get("iniciado_ts") or 0) > 300:
         estado_inv["em_andamento"] = False
     avaliacao = _formatar_linhas(avaliacao_bruta, meta)
+    avaliacao["fora_n"] = len({r["name"] for r in avaliacao["rows"] if r.get("fora_desde")})
     # `usuario` NÃO é passado aqui de propósito (2026-10-27): o context
     # processor `_inject_usuario` (server.py) já busca o mesmo
     # `user_store.get_user(steamid)` pra TODO template com sessão ativa
@@ -523,13 +524,29 @@ def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
     total: dict = {}
     for pos in positions:
         total[pos.get("name")] = total.get(pos.get("name"), 0) + 1
+    dentro: dict = {}
+    for pos in positions:
+        if not pos.get("fora_desde"):
+            dentro[pos.get("name")] = dentro.get(pos.get("name"), 0) + 1
     visto: dict = {}
+    juntar_mostrado: set = set()
     for row, pos in zip(rows, positions):
         row["lote"] = pos.get("lote")
         n = total.get(pos.get("name"), 1)
         visto[pos.get("name")] = visto.get(pos.get("name"), 0) + 1
         row["lotes_total"] = n
         row["lote_numero"] = visto[pos.get("name")]
+        # Fora do inventário (anunciado no Mercado ou vendido, revisão
+        # 16/11): a pessoa diz se vendeu. Sem "separar"/"juntar" nela.
+        fora = pos.get("fora_desde")
+        row["fora_desde"] = fora
+        row["fora_quando"] = fmt.dia_mes_br(float(fora)) if fora else None
+        # "juntar lotes" na 1ª linha no inventário, com 2+ lotes no inventário.
+        row["mostra_juntar"] = bool(
+            not fora and dentro.get(pos.get("name"), 0) > 1
+            and pos.get("name") not in juntar_mostrado)
+        if row["mostra_juntar"]:
+            juntar_mostrado.add(pos.get("name"))
 
 
 @bp.route("/conta/posicoes/<name>/separar", methods=["POST"])

@@ -32,6 +32,11 @@ def data_hora_br(ts: float) -> str:
         "%d/%m/%Y %H:%M")
 
 
+def dia_mes_br(ts: float) -> str:
+    """'DD/MM' no horário de Brasília."""
+    return datetime.datetime.fromtimestamp(ts, tz=FUSO_BR).strftime("%d/%m")
+
+
 def ler_reais(texto: "str | None") -> float:
     """Valor em reais digitado ou colado: aceita "35,10", "35.10",
     "R$ 35,10" e "1.234,56" (ponto de milhar). ValueError se não for um

@@ -41,6 +41,13 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   (`inventario._acertar_lotes`) trata os lotes do mesmo nome juntos. Mudou
   a mesclagem? O worker também sincroniza: publique com `[restart-worker]`,
   senão o worker antigo apaga os lotes extras.
+  Anunciar no Mercado tira o item do inventário público até vender, então
+  "sumiu" não prova venda (relato de 2026-11-16: a sincronização apagava o
+  valor pago). Item com valor pago que some fica na conta com `fora_desde`
+  ("Vendi, tirar da lista"); volta sem a marca se reaparecer. Só o sem
+  valor pago sai sozinho. Valores apagados antes disso:
+  `python -m lodout.public_site.recuperar_posicoes STEAMID|--todos
+  [--aplicar]`, lendo os backups diários (7 dias).
 - O site descreve dados observados; não promete retorno nem faz previsão.
 - Mantenha validação, CSRF, limites de tentativas e codificação de saída nas
   rotas que recebem dados.
