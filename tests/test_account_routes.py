@@ -769,3 +769,18 @@ def test_lucro_conta_so_os_itens_que_entraram_na_conta():
     t = portfolio.evaluate_portfolio(pos, precos.get)["totals"]
     assert t["known_cost"] == 2 and t["pnl_positions"] == 1
     assert account._textos_totais(t)["lucro_sub"].endswith("só de 1 item com valor pago e preço hoje")
+
+
+def test_preencher_rapido_nao_esbarra_no_limite(client, monkeypatch):
+    """Quem preenche um inventário grande com Enter passa de 30 valores
+    por minuto; o salvar do valor pago tem limite próprio (revisão 16/11)."""
+    from lodout.public_site import user_portfolio
+    from lodout.public_site.rate_limit import CUSTO_MAX_HITS
+    _login(client, monkeypatch)
+    for i in range(40):
+        user_portfolio.add_position("76561198000000000", f"Caixa {i}", None, 1)
+    token = _csrf_token(client)
+    codigos = [client.post(f"/conta/posicoes/Caixa {i}/custo", data={"cost": "1,00", "csrf_token": token},
+                           headers={"Accept": "application/json"}).status_code for i in range(40)]
+    assert codigos == [200] * 40
+    assert CUSTO_MAX_HITS < 1000  # continua havendo limite

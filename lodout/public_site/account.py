@@ -25,8 +25,8 @@ from lodout.public_site import (
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
 from lodout.public_site.rate_limit import (
-    LOGIN_MAX_HITS, LOGIN_WINDOW_S, MUTATION_MAX_HITS, MUTATION_WINDOW_S,
-    rate_limited,
+    CUSTO_MAX_HITS, CUSTO_WINDOW_S, LOGIN_MAX_HITS, LOGIN_WINDOW_S,
+    MUTATION_MAX_HITS, MUTATION_WINDOW_S, rate_limited,
 )
 from lodout.public_site.profile_fetcher import (
     apagar_perfil_cache, caminho_avatar, fetch_public_profile,
@@ -578,7 +578,7 @@ def adicionar_posicao():
 
 
 @bp.route("/conta/posicoes/<name>/custo", methods=["POST"])
-@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
+@rate_limited(CUSTO_MAX_HITS, CUSTO_WINDOW_S)
 @login_required
 @csrf_protect
 def editar_custo(name: str):

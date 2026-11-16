@@ -27,6 +27,11 @@ _trava = threading.Lock()
 # ajustar o número sem procurar em cada arquivo de rota.
 LOGIN_MAX_HITS, LOGIN_WINDOW_S = 10, 60.0
 MUTATION_MAX_HITS, MUTATION_WINDOW_S = 30, 60.0
+# Salvar o valor pago na conta (Enter salva e vai ao próximo): quem
+# preenche um inventário grande passa de 30 por minuto (1 a cada 2 s) e
+# era barrado no 31º (revisão 2026-11-16). Exige login e CSRF e só mexe
+# nos dados da própria pessoa; o limite segue valendo contra script.
+CUSTO_MAX_HITS, CUSTO_WINDOW_S = 120, 60.0
 
 # `/api/recommendations` é pública de propósito (pensada pra consumo
 # programático -- ver api_docs.html) e mais generosa que os presets de

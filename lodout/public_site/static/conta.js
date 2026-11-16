@@ -432,6 +432,8 @@
     }
     aviso.textContent = r.falha === "rede"
       ? "Sem conexão: não salvou. Tente de novo."
+      : r.falha === "pressa"
+        ? "Muitos valores em pouco tempo: espere alguns segundos e aperte Enter de novo."
       : r.falha === "servidor"
         ? "Não deu para salvar agora. Tente de novo em instantes."
         : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
@@ -615,6 +617,7 @@
       redirect: "manual"
     }).then(function (resp) {
       if (resp.type === "opaqueredirect" || resp.status === 401 || resp.status === 403) return { falha: "login" };
+      if (resp.status === 429) return { falha: "pressa" };
       return resp.json().then(function (dados) {
         return { ok: resp.ok, dados: dados };
       }, function () { return { falha: "servidor" }; });
