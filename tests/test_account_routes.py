@@ -811,3 +811,13 @@ def test_admin_tem_prazo_proprio(monkeypatch):
         assert server._admin_ativo()
         session["admin"] = _t.time() - 13 * 3600
         assert not server._admin_ativo()
+
+
+def test_excluir_conta_confirma_e_explica_sem_jargao(client, monkeypatch):
+    _login(client, monkeypatch)
+    pagina = client.get("/conta/excluir").data.decode("utf-8")
+    assert "Sua conta da Steam e os seus itens lá <strong>não</strong> são afetados" in pagina
+    assert "portfólio" not in pagina and "dashboard" not in pagina
+    token = _csrf_token(client)
+    inicio = client.post("/conta/excluir", data={"csrf_token": token}, follow_redirects=True).data.decode("utf-8")
+    assert "Sua conta no Lodout foi excluída" in inicio

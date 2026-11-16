@@ -6789,3 +6789,15 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 /* Nome sem espaços (item adicionado à mão com um nome enorme): no
    computador passava por cima das outras colunas; agora quebra. */
 .tabela-conta .link-item { overflow-wrap: anywhere; }
+
+/* Fim da conta (revisão 2026-11-16): baixar e excluir em linhas
+   separadas; os links são sublinhados (antes só cinza) e o "Excluir"
+   fica afastado e em vermelho discreto. */
+.link-excluir-conta p { margin: 0; }
+.link-excluir-conta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
+.link-excluir-conta .conta-excluir { margin-top: var(--sp-4); }
+.link-excluir-conta .conta-excluir a { color: var(--danger); }
+.link-excluir-conta .conta-excluir a:hover { text-decoration-color: currentColor; }
+.pagina-inicial > .status { margin: var(--sp-4) 0 0; }
+/* Links no meio do texto do aviso (página de excluir conta): sublinhados. */
+.card-aviso p a { text-decoration: underline; text-underline-offset: 3px; }

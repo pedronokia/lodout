@@ -769,4 +769,6 @@ def excluir():
     user_store.delete_user(steamid)
     apagar_perfil_cache(steamid)
     session.clear()
+    # Confirmação na página inicial (antes não dizia nada).
+    flash("Sua conta no Lodout foi excluída, com todos os seus dados.", "success")
     return redirect(url_for("index"))
