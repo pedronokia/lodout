@@ -19,6 +19,8 @@ estável se TODOS os insumos forem fixos. Então o script:
    `date.today()` em `_tempo_desde_aposentadoria` e variaria com o dia.
 3. Sobe o Flask em thread própria (`werkzeug.make_server` na porta 0) e
    captura com Playwright: 3 páginas x 2 viewports (1280x900 e 390x844),
+   mais a conta de exemplo (`_semear_conta`, entrada `/__entrar_visual`
+   que só existe aqui) e as janelas "Vendi" e "Está anunciado",
    contexto novo por captura (sem cookies/localStorage de uma captura
    anterior), `reduced_motion=reduce`, `device_scale_factor=1` e rota
    Playwright que ABORTA qualquer request fora do localhost -- se a
@@ -239,6 +241,16 @@ def _semear(data_dir: Path) -> None:
     }
     (data_dir / "scanner_last.json").write_text(
         json.dumps(scanner, ensure_ascii=False), encoding="utf-8")
+    # O rodapé ("Preços atualizados há 1 h") usa a data do ARQUIVO da
+    # coleta: sem fixá-la, dizia "Preços atrasados: há 47 dias" e mudava
+    # a cada dia (achado 2026-11-17).
+    os.utime(data_dir / "scanner_last.json",
+             (AGORA_FIXO - 3600, AGORA_FIXO - 3600))
+    # Preço de cada item para a conta de exemplo (cache de preços, o que
+    # a /conta lê), coletado há 1 h.
+    (data_dir / "prices.json").write_text(json.dumps({
+        it["name"]: {"price": it["price"], "ts": AGORA_FIXO - 3600}
+        for it in itens}), encoding="utf-8")
 
     # Histórico por item (item_history.json: {name: [{ts, price}]}).
     historico = {
@@ -301,6 +313,51 @@ def _semear(data_dir: Path) -> None:
                 origem, cache_dir / f"{hash_icone}.v3.{tamanho}.webp")
 
 
+# Conta de exemplo (2026-11-17): itens com e sem valor pago, um fora do
+# inventário, um anunciado e um que sumiu (está só no backup), para o
+# quadro de recuperação. Gravada no banco do site, então precisa rodar
+# DEPOIS de apontar LODOUT_DATA_DIR (importa lodout).
+STEAMID_VISUAL = "76561198000000077"
+
+
+def _semear_conta() -> None:
+    import sqlite3
+
+    from lodout import _paths
+    from lodout.public_site import db as site_db
+    from lodout.public_site import user_store
+
+    dia = 86400
+    atuais = [
+        {"name": "AK-47 | Redline (Field-Tested)", "cost": 38.90, "quantity": 2,
+         "source": "steam", "lote": "v1", "added_ts": AGORA_FIXO - 30 * dia},
+        {"name": "Kilowatt Case", "cost": 1.95, "quantity": 10,
+         "source": "steam", "lote": "v2", "added_ts": AGORA_FIXO - 30 * dia},
+        {"name": "Clutch Case", "cost": None, "quantity": 3,
+         "source": "steam", "lote": "v3", "added_ts": AGORA_FIXO - 5 * dia},
+        {"name": "USP-S | Neo-Noir (Factory New)", "cost": 21.00, "quantity": 1,
+         "source": "steam", "lote": "v4", "added_ts": AGORA_FIXO - 20 * dia,
+         "fora_desde": AGORA_FIXO - 2 * dia},
+        {"name": "Glock-18 | Water Elemental (Minimal Wear)", "cost": 8.50,
+         "quantity": 2, "source": "steam", "lote": "v5",
+         "added_ts": AGORA_FIXO - 20 * dia, "fora_desde": AGORA_FIXO - 3 * dia,
+         "anunciado": True, "anuncio_preco": 11.90},
+    ]
+    sumiu = {"name": "AWP | Asiimov (Field-Tested)", "cost": 102.40, "quantity": 1,
+             "source": "steam", "lote": "v6", "added_ts": AGORA_FIXO - 40 * dia}
+    user_store.save_user_json(STEAMID_VISUAL, "portfolio", atuais + [sumiu])
+    pasta = Path(_paths.DATA_DIR) / "backups"
+    pasta.mkdir(parents=True, exist_ok=True)
+    origem = site_db.connect(None)
+    destino = sqlite3.connect(str(pasta / "public_site-20270103-030000.db"))
+    try:
+        origem.backup(destino)
+    finally:
+        origem.close()
+        destino.close()
+    user_store.save_user_json(STEAMID_VISUAL, "portfolio", atuais)
+
+
 # ---------------------------------------------------------- determinismo
 
 def _congelar_relogio():
@@ -330,6 +387,26 @@ def _congelar_relogio():
     visits.dia_local = lambda ts=None: DIA_FIXO
     visits.registrar = lambda *args, **kwargs: 0
 
+    # Conta: "há X", o prazo do quadro de recuperação e a idade dos preços
+    # saem do relógio de account.py; o resto do módulo time segue real.
+    import time as _time_real
+
+    import lodout.public_site.account as account
+
+    class _TempoContaFixo:
+        def __getattr__(self, nome):
+            return getattr(_time_real, nome)
+
+        @staticmethod
+        def time():
+            return AGORA_FIXO
+
+    account.time = _TempoContaFixo()
+    # Validade do cache de preços (6 h) contada do mesmo relógio.
+    import lodout.prices as prices
+    prices.time = _TempoContaFixo()
+    account.RECUPERAR_ATE_TS = AGORA_FIXO + 86400
+
 
 def _subir_servidor():
     """Flask em thread (porta aleatória); devolve (servidor, porta)."""
@@ -338,6 +415,16 @@ def _subir_servidor():
     import lodout.public_site.server as server
 
     app = server.create_app()
+
+    # Entrada só deste script (não existe no site): abre a sessão da conta
+    # de exemplo e vai para /conta.
+    from flask import redirect, session
+
+    @app.route("/__entrar_visual")
+    def _entrar_visual():
+        session["steamid"] = STEAMID_VISUAL
+        return redirect("/conta")
+
     servidor = make_server("127.0.0.1", 0, app, threaded=True)
     thread = threading.Thread(
         target=servidor.serve_forever, daemon=True)
@@ -357,7 +444,40 @@ CAPTURAS = [
     ("ranking-celular", "/ranking", 390, 844),
     ("item-celular", "/item/" + urllib.parse.quote(_ITEM_HERO, safe=""),
      390, 844),
+    # Conta (2026-11-17): a página inteira e as janelas do "Vendi" e do
+    # "Está anunciado" -- antes só conferidas à mão a cada mudança.
+    ("conta-desktop", "/__entrar_visual", 1280, 900),
+    ("conta-celular", "/__entrar_visual", 390, 844),
+    ("conta-vendi-celular", "/__entrar_visual", 390, 844),
+    ("conta-vendi-confirmar-celular", "/__entrar_visual", 390, 844),
+    ("conta-anuncio-celular", "/__entrar_visual", 390, 844),
 ]
+
+_FORA_SEM_ANUNCIO = 'tr.linha-fora:has(input[name="anunciado"]:not(:checked))'
+
+
+def _abrir_vendi(pagina):
+    pagina.locator(f"{_FORA_SEM_ANUNCIO} details[data-vendi] > summary").click()
+
+
+def _confirmar_vendi(pagina):
+    _abrir_vendi(pagina)
+    pagina.wait_for_timeout(200)
+    pagina.locator("dialog[open] button[type=submit]:visible").last.click()
+
+
+def _abrir_anuncio(pagina):
+    pagina.locator(f'{_FORA_SEM_ANUNCIO} input[name="anunciado"]').click()
+
+
+# nome -> (ação antes da foto, seletor do elemento ou None, página inteira)
+ACOES = {
+    "conta-desktop": (None, None, True),
+    "conta-celular": (None, None, True),
+    "conta-vendi-celular": (_abrir_vendi, "dialog[open]", False),
+    "conta-vendi-confirmar-celular": (_confirmar_vendi, "dialog[open]", False),
+    "conta-anuncio-celular": (_abrir_anuncio, "dialog[open]", False),
+}
 
 
 def _capturar(porta: int, destino: Path) -> None:
@@ -392,7 +512,15 @@ def _capturar(porta: int, destino: Path) -> None:
                 url = f"http://127.0.0.1:{porta}{caminho}"
                 pagina.goto(url, wait_until="networkidle", timeout=30000)
                 pagina.wait_for_timeout(300)
-                pagina.screenshot(path=str(destino / f"{nome}.png"))
+                acao, seletor, inteira = ACOES.get(nome, (None, None, False))
+                if acao:
+                    acao(pagina)
+                    pagina.wait_for_timeout(300)
+                arquivo = str(destino / f"{nome}.png")
+                if seletor:
+                    pagina.locator(seletor).screenshot(path=arquivo)
+                else:
+                    pagina.screenshot(path=arquivo, full_page=inteira)
                 contexto.close()
         finally:
             navegador.close()
@@ -530,6 +658,7 @@ def main() -> int:
         _semear(temp)
         os.environ["LODOUT_DATA_DIR"] = str(temp)
         os.environ.pop("SKINVAULT_DATA_DIR", None)  # fallback nunca vaza
+        _semear_conta()
 
         _congelar_relogio()
         servidor, porta = _subir_servidor()

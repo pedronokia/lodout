@@ -179,6 +179,12 @@ python -m pip install -r requirements-public-site.txt pytest
 python -m pytest -q
 ```
 
+O CI mede a cobertura (`pytest-cov`, mínimo 90% de `lodout/`; estava em
+92% em 2026-11-17) e roda a regressão visual (`tests/visual/`): home,
+ranking e item, mais a `/conta` de uma conta de exemplo e as janelas
+"Vendi" e "Está anunciado". Mudou o visual de propósito? Regere a base com
+o workflow `tests` (input `atualizar_baselines`) e commite os PNGs.
+
 Para validar a página no navegador, use o preview local e confira desktop,
 celular, console e fluxo de teclado. O deploy automático atualiza `web` depois
 que o workflow de testes passa. O `worker` não recarrega código sozinho: só
