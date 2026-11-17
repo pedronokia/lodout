@@ -1602,374 +1602,96 @@ def test_metodo_page(client):
     assert "O que a nota é".encode("utf-8") in resp.data
 
 
-def test_ranking_page_sem_snapshots(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots", lambda: [])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    resp = client.get("/ranking")
-    assert resp.status_code == 200
-    assert "Ainda não há ranking".encode("utf-8") in resp.data
+def _historico_notas(pontos):
+    """Grava fotos no notas_historico: [(ts, [(nome, nota, posição)]),
+    ...], todas completas (com todos os itens)."""
+    from lodout.public_site import notas_historico
+    for ts, itens in pontos:
+        notas_historico.gravar_snapshot(
+            {"ts": ts, "items": [{"name": n, "score": sc, "position": pos}
+                                 for n, sc, pos in itens]}, agora=ts)
 
 
-def test_ranking_page_com_snapshots_marca_novo(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-        ]}])
-    # Snapshot anterior EXISTE mas nao tem o item X -- e' isso que gera
-    # "NOVO" (previous=None geraria label vazio, nao NOVO).
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: {"ts": 900.0, "items": [{"name": "Y", "score": 1, "position": 1}]})
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: None)
-    body = client.get("/ranking?periodo=scan").data.decode("utf-8")
-    assert "selo-novo" in body
-
-
-def test_ranking_page_tem_popover_legenda_raridade(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot", lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
+def test_ranking_sem_nada_guardado(client, monkeypatch):
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: [])
     body = client.get("/ranking").data.decode("utf-8")
-    assert 'class="popover-legenda"' in body
-    assert "Cores da borda" in body
+    assert "Ainda não há notas guardadas para esse período" in body
 
 
-def test_ranking_page_item_linka_pra_pagina_de_detalhe(client, monkeypatch):
-    """O nome do item no Ranking precisa ser link pro /item/<nome> --
-    sem isso, quem via o Top 20 e queria o histórico/motivo completo
-    tinha que voltar pra home e buscar manualmente."""
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot", lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    body = client.get("/ranking").data.decode("utf-8")
-    assert 'href="/item/AK-47%20%7C%20Redline%20(Field-Tested)"' in body
-
-
-def test_ranking_page_mostra_icone_e_raridade_do_scan_atual(
-        client, monkeypatch, tmp_path):
-    """achado 2026-11-07: o snapshot de ranking.py grava só
-    name/score/position (formato estável pro histórico) -- ícone e
-    raridade vêm de cruzar o nome com o scan atual (_icone_raridade),
-    mesma fonte que já alimenta a home."""
+def test_ranking_ordena_pela_nota_media_e_nao_pelo_pico(client, monkeypatch, tmp_path):
+    """Pedido 17/11: quem quer comprar procura o que SE MANTÉM bem
+    avaliado. "Pico" bateu 100 numa coleta e ficou em 40 nas outras;
+    "Firme" ficou sempre em 85: Firme vem primeiro."""
     _salva_scan(tmp_path, monkeypatch, [
-        {"name": "AK-47 | Redline (Field-Tested)", "score": 80,
-         "price": 50.0, "icon": "skin-icon-hash", "case_label": "",
-         "pump_risk": {"level": "low"}, "breakdown": [],
-         "name_color": "EB4B4B"},
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 84, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
+         "icon": "skin-icon-hash", "name_color": "EB4B4B"},
     ])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot", lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    body = client.get("/ranking?ver=lista").data.decode("utf-8")
-    assert "icone-item-quadro-compacto" in body
-    assert "icone-item-quadro-com-imagem" in body
-    assert "raridade-covert" in body
-    assert 'title="Raridade: Oculto (vermelho)"' in body
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: [])
+    agora = time.time()
+    fotos = []
+    for d in range(9, -1, -1):
+        pico = 100 if d == 0 else 40
+        fotos.append((agora - d * 86400 - 60, [
+            ("AK-47 | Redline (Field-Tested)", 85, 1 if pico < 85 else 2),
+            ("Pico", pico, 1 if pico >= 85 else 3),
+            ("Recem", 99, 1) if d == 0 else ("Outro", 60, 4)]))
+    _historico_notas(fotos)
+    body = client.get("/ranking").data.decode("utf-8")
+    assert 'aria-current="true">7 dias<' in body
+    assert "Nota média" in body and "Média de" in body
+    linhas = body.split('<tbody>', 1)[1]
+    assert linhas.index("AK-47 | Redline") < linhas.index("Pico")
+    assert "Recem" not in linhas          # 1 coleta só: menos da metade
+    # Ícone e raridade vêm do scan atual; o nome leva à página do item.
+    assert 'href="/item/AK-47%20%7C%20Redline%20(Field-Tested)"' in body
+    assert "raridade-covert" in body and 'class="popover-legenda"' in body
+    for chave in ("30d", "90d", "365d"):
+        assert f'href="/ranking?periodo={chave}"' in body
+    assert client.get("/ranking?periodo=xyz").status_code == 200
 
 
-def test_ranking_page_item_fora_do_scan_atual_sem_icone(client, monkeypatch):
-    """Item do snapshot que não está mais no scan atual (saiu do top, ou
-    nenhum scan rodou ainda) cai pro placeholder sem ícone/raridade, em
-    vez de quebrar a página -- sem scan salvo neste teste de propósito."""
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "Item sumido do scan", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot", lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    resp = client.get("/ranking?ver=lista")
-    assert resp.status_code == 200
-    body = resp.data.decode("utf-8")
-    # "raridade-" aparece em algum lugar da página por causa do popover
-    # de legenda (item #4 da lista de melhorias, sempre presente perto
-    # da tabela) -- o que este teste garante é que a CÉLULA do item vem
-    # sem raridade/imagem, não a página inteira.
-    celula = body.split('class="celula-item-ranking"', 1)[1].split("</td>", 1)[0]
-    assert "raridade-" not in celula
-    assert "icone-item-quadro-com-imagem" not in celula
+def test_ranking_sem_historico_completo_usa_presenca_no_top20(client, monkeypatch):
+    """Antes de 7 dias de notas de todos os itens, a ordem é por quantas
+    vezes o item esteve no Top 20 (dado que existe desde o lançamento)."""
+    agora = time.time()
+    snaps = [{"ts": agora - h * 3600, "items": [
+        {"name": "Sempre", "score": 80, "position": 1},
+        {"name": "As vezes" if h % 12 == 0 else "Outro", "score": 90, "position": 2}]}
+        for h in range(48, -1, -6)]
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda *a, **k: snaps)
+    body = client.get("/ranking").data.decode("utf-8")
+    assert "Até completar 7 dias" in body and "das coletas" in body
+    linhas = body.split('<tbody>', 1)[1]
+    assert linhas.index("Sempre") < linhas.index("As vezes")
+    assert "<strong>100%</strong>" in linhas
 
 
-def test_ranking_page_mostra_subiu_e_desceu(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-            {"name": "Y", "score": 70, "position": 2},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: {"ts": 900.0, "items": [
-            {"name": "X", "score": 75, "position": 3},
-            {"name": "Y", "score": 70, "position": 1},
-        ]})
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: None)
-    body = client.get("/ranking?periodo=scan").data.decode("utf-8")
-    assert "tendencia-alta" in body
-    assert "tendencia-baixa" in body
-
-
-def _ranking_com_historico(monkeypatch, agora=1_000_000.0):
-    """Atual + snapshots de ~6h, ~1 dia e ~7 dias atrás, com
-    `latest_before` de verdade (mais recente com ts < limite)."""
+def test_ranking_mostra_o_que_mudou_desde_ontem(client, monkeypatch):
+    agora = time.time()
     h = 3600.0
     snaps = [
-        {"ts": agora - 7 * 24 * h, "items": [
-            {"name": "X", "score": 50, "position": 5},
-            {"name": "Y", "score": 90, "position": 1}]},
-        {"ts": agora - 24 * h, "items": [
+        {"ts": agora - 25 * h, "items": [
             {"name": "X", "score": 70, "position": 3},
-            {"name": "Y", "score": 72, "position": 1}]},
-        {"ts": agora - 6 * h, "items": [
-            {"name": "X", "score": 80, "position": 1},
-            {"name": "Y", "score": 70, "position": 2}]},
+            {"name": "Y", "score": 72, "position": 1},
+            {"name": "Sumiu", "score": 60, "position": 2}]},
         {"ts": agora, "items": [
             {"name": "X", "score": 80, "position": 1},
-            {"name": "Y", "score": 70, "position": 2}]},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots", lambda: snaps)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: snaps[-2])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
-    return snaps
-
-
-def test_ranking_padrao_compara_com_24h_nas_setas_e_no_resumo(
-        client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?ver=lista").data.decode("utf-8")
-    # Contra 24h: X subiu de 3 pra 1 (+2) e ganhou 10 de nota; Y caiu 2.
-    assert 'aria-current="true">24 horas<' in body
-    assert "2 posições" in body
-    assert "+10 na nota" in body
-    assert "−2 na nota" in body
-    # A frase usa a mesma base: maior alta é X (70 -> 80).
-    assert "maior alta de nota foi" in body
-
-
-def test_ranking_periodo_scan_compara_com_o_scan_anterior(
-        client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?periodo=scan&ver=lista").data.decode("utf-8")
-    assert 'aria-current="true">Anterior<' in body
-    # Sem mudança entre os dois últimos scans.
-    assert "tendencia-alta" not in body
-    assert "nota igual" in body
-    assert "maior alta de nota foi" not in body
-
-
-def test_ranking_periodo_7d_usa_snapshot_de_uma_semana(client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?periodo=7d&ver=lista").data.decode("utf-8")
-    assert "+30 na nota" in body
-    assert "−20 na nota" in body
-
-
-def test_ranking_periodo_sem_historico_avisa_em_vez_de_comparar(
-        client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?periodo=30d").data.decode("utf-8")
-    assert "Ainda não há ranking salvo de 30 dias atrás" in body
-    assert "na nota" not in body
-    assert "Comparado com o Top 20" not in body
-
-
-def test_ranking_periodo_invalido_cai_no_padrao(client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?periodo=<x>").data.decode("utf-8")
-    assert 'aria-current="true">24 horas<' in body
-    assert "<x>" not in body
-
-
-def test_ranking_links_preservam_periodo_e_visao(client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
-    body = client.get("/ranking?periodo=7d&ver=lista").data.decode("utf-8")
-    assert 'href="/ranking?periodo=30d&amp;ver=lista"' in body
-    assert 'href="/ranking?ver=vitrine&amp;periodo=7d"' in body
-
-
-def test_ranking_page_resumo_do_dia_sem_snapshot_antigo(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: None)
-    body = client.get("/ranking").data.decode("utf-8")
-    assert "resumo-do-dia" not in body
-
-
-def test_ranking_page_resumo_do_dia_com_snapshot_antigo(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 90, "position": 1},
             {"name": "Y", "score": 70, "position": 2},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: {"ts": 900.0, "items": [
-            {"name": "X", "score": 60, "position": 2},
-        ]})
+            {"name": "Novo", "score": 65, "position": 3}]},
+    ]
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: snaps)
+    monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
+                        lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
-    assert "resumo-do-dia" in body
-    assert "1 item novo no Top 20" in body
-    assert "X" in body
-
-
-def test_ranking_page_resumo_do_dia_sem_alta_nenhuma(client, monkeypatch):
-    # Unico item em comum caiu de nota -- "maior alta" nao deve aparecer,
-    # so' a contagem de novos (0, aqui).
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 40, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before",
-        lambda ts: {"ts": 900.0, "items": [
-            {"name": "X", "score": 90, "position": 1},
-        ]})
-    body = client.get("/ranking").data.decode("utf-8")
-    assert "resumo-do-dia" in body
-    assert "0 itens novos no Top 20" in body.replace("\n", " ")
-    assert "maior alta" not in body
-
-
-def test_ranking_page_vitrine_mostra_cards_com_posicao_e_nota(
-        client, monkeypatch):
-    # Vitrine (rodada 3) é o padrão, igual a home -- o snapshot do
-    # ranking só tem name/score/position, então o card aqui é mais
-    # enxuto que o da home (sem preço/motivo).
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "AK-47 | Redline (Field-Tested)", "score": 85,
-             "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    body = client.get("/ranking").data.decode("utf-8")
-    assert '<ul class="grade-cards"' in body
-    assert 'class="cartao-item cartao-item-ranking' in body
-    assert "#1" in body
-    assert 'href="/item/AK-47%20%7C%20Redline%20(Field-Tested)"' in body
-    assert '<table class="tabela-candidatos">' not in body
-
-
-def test_ranking_page_vitrine_so_os_6_primeiros_cards_carregam_eager(
-        client, monkeypatch, tmp_path):
-    # Mesmo achado de performance de index.html, aplicado ao Ranking
-    # (também abre na Vitrine por padrão).
-    nomes = [f"Item {i}" for i in range(8)]
-    _salva_scan(tmp_path, monkeypatch, [
-        {"name": nome, "score": 100 - i, "price": 1.0, "icon": f"hash{i}",
-         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []}
-        for i, nome in enumerate(nomes)
-    ])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": nome, "score": 100 - i, "position": i + 1}
-            for i, nome in enumerate(nomes)
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    body = client.get("/ranking").data.decode("utf-8")
-    partes = body.split('class="cartao-item-icon"')[1:]
-    assert len(partes) == 8
-    for i, parte in enumerate(partes):
-        esperado = "eager" if i < 6 else "lazy"
-        assert f'loading="{esperado}"' in parte[:200], (
-            f"card {i}: esperava loading={esperado!r}")
-
-
-def test_ranking_page_cookie_pref_ver_lista_mantem_tabela(
-        client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    resp = client.get("/ranking?ver=lista")
-    cookie = resp.headers.get("Set-Cookie", "")
-    assert "pref_ver=lista" in cookie
-    # Sem ?ver na URL, o cookie decide -- mesmo cookie da home, então
-    # quem escolheu Lista lá não volta pra Vitrine aqui sem pedir.
-    body = client.get("/ranking").data.decode("utf-8")
-    assert '<table class="tabela-candidatos">' in body
-    assert '<ul class="grade-cards"' not in body
-
-
-def test_ranking_page_ver_invalido_cai_na_vitrine(client, monkeypatch):
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots",
-        lambda: [{"ts": 1000.0, "items": [
-            {"name": "X", "score": 80, "position": 1},
-        ]}])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.previous_snapshot",
-        lambda: None)
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.latest_before", lambda ts: None)
-    body = client.get("/ranking?ver=tabela").data.decode("utf-8")
-    assert '<ul class="grade-cards"' in body
-    assert '<table class="tabela-candidatos">' not in body
-
+    mudou = body.split("O que mudou no Top 20 desde ontem", 1)[1]
+    entraram = mudou.split('id="titulo-entraram"', 1)[1].split("</section>", 1)[0]
+    subiram = mudou.split('id="titulo-subiram"', 1)[1].split("</section>", 1)[0]
+    cairam = mudou.split('id="titulo-cairam"', 1)[1].split("</section>", 1)[0]
+    assert ">Novo<" in entraram
+    assert ">X<" in subiram and "#3" in subiram and "<strong>#1</strong>" in subiram
+    assert ">Y<" in cairam
+    assert "Saíram do Top 20" in mudou and "era #2 com nota 60" in mudou
 
 def test_usuario_logado_aparece_fora_de_conta(client, monkeypatch, tmp_path):
     """O context processor `_inject_usuario` deve disponibilizar
@@ -3229,8 +2951,10 @@ def test_item_detail_sem_historico_nao_mostra_seletor(client, monkeypatch, tmp_p
         "lodout.public_site.server.signals.load_item_history",
         lambda name: [])
     body = client.get("/item/Item X").data.decode("utf-8")
-    assert "seletor-periodo" not in body
+    assert 'aria-label="Período do gráfico"' not in body
     assert "Histórico de preço" not in body
+    # O da nota aparece sempre, com o aviso de quando começou (17/11).
+    assert "A nota deste item começou a ser guardada em 17/11" in body
 
 
 def test_item_detail_itens_parecidos_exclui_o_proprio(client, monkeypatch, tmp_path):
@@ -5220,13 +4944,14 @@ def test_ranking_mostra_quem_saiu_do_top(client, monkeypatch, tmp_path):
         {"name": "Z", "score": 41, "price": 1.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []},
     ])
+    agora = time.time()
     h = 3600.0
     snaps = [
-        {"ts": 1000 * h - 24 * h, "items": [
+        {"ts": agora - 25 * h, "items": [
             {"name": "X", "score": 70, "position": 1},
             {"name": "Z", "score": 60, "position": 2},
             {"name": "Sumiu", "score": 55, "position": 3}]},
-        {"ts": 1000 * h, "items": [{"name": "X", "score": 80, "position": 1}]},
+        {"ts": agora, "items": [{"name": "X", "score": 80, "position": 1}]},
     ]
     monkeypatch.setattr(
         "lodout.public_site.server.ranking.load_snapshots", lambda: snaps)
@@ -5243,10 +4968,14 @@ def test_ranking_mostra_quem_saiu_do_top(client, monkeypatch, tmp_path):
 
 
 def test_ranking_sem_saidas_nao_mostra_secao(client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
+    agora = time.time()
+    snaps = [{"ts": agora - 25 * 3600, "items": [{"name": "X", "score": 70, "position": 1}]},
+             {"ts": agora, "items": [{"name": "X", "score": 80, "position": 1}]}]
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: snaps)
+    monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
+                        lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
     assert "Saíram do Top 20" not in body
-
 
 def test_item_mostra_historico_no_ranking_e_eventos(
         client, monkeypatch, tmp_path):
@@ -5597,9 +5326,14 @@ def test_css_acabamento_toque_e_tipografia():
 # ── textos em linguagem simples (2026-11-13) ────────────────────
 
 def test_textos_sem_jargao_e_sem_promessa(client, monkeypatch):
-    _ranking_com_historico(monkeypatch)
+    agora = time.time()
+    snaps = [{"ts": agora - 25 * 3600, "items": [{"name": "X", "score": 70, "position": 1}]},
+             {"ts": agora, "items": [{"name": "X", "score": 80, "position": 1}]}]
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: snaps)
+    monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
+                        lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     ranking = client.get("/ranking").data.decode("utf-8")
-    assert "Comparado com o Top 20 de " in ranking
+    assert "O que mudou no Top 20 desde ontem" in ranking
     assert "Snapshot" not in ranking
     status = client.get("/status").data.decode("utf-8")
     assert "worker" not in status.lower()
@@ -6218,7 +5952,7 @@ def test_pessoas_no_site_agora(client):
     assert client.post("/api/online", json={"id": a}).get_json() == {"agora": 1}
     assert client.post("/api/online", json={"id": b}).get_json() == {"agora": 2}
     rodape = client.get("/").data.decode("utf-8")
-    assert "<strong data-online-n>2</strong>" in rodape and ">pessoas online<" in rodape
+    assert "<strong data-online-n>2</strong>" in rodape and ">online</span>" in rodape
     # Código inválido não grava; sinal velho deixa de contar e some.
     assert client.post("/api/online", json={"id": "<script>"}).status_code == 400
     assert client.post("/api/online", data="x").status_code == 400
@@ -6259,3 +5993,40 @@ def test_icone_da_aba_em_png_encaixado_nos_pixels(client):
         # Nitidez: a maioria dos pixels desenhados é cheia, não meio-tom.
         alfas = [px[x, y][3] for y in range(lado) for x in range(lado) if px[x, y][3]]
         assert sum(1 for a in alfas if a > 230) / len(alfas) >= 0.55  # o antigo, sem encaixe: 0,51; este: 0,60
+
+
+def test_historico_da_nota_compacta_e_apaga_o_velho():
+    """notas_historico (17/11): 35 dias completos; mais velho, 1 foto por
+    dia; mais de 400 dias, apagado."""
+    from lodout.public_site import notas_historico as nh
+    agora = time.time()
+    for d in (500, 100, 50, 10, 0):
+        for h in (1, 7, 13, 19):
+            ts = agora - d * 86400 - h * 3600
+            nh.gravar_snapshot({"ts": ts, "items": [{"name": "A", "score": 50 + h, "position": 1}]},
+                               agora=agora)
+    pontos = nh.serie("A", 600, agora=agora)
+    assert all(agora - p["ts"] < 401 * 86400 for p in pontos)   # >400 dias: apagado
+    # Mais velho que 35 dias: no máximo 1 foto por dia do calendário (Brasília).
+    velhos = [p for p in pontos if agora - p["ts"] > 36 * 86400]
+    dias_cal = [int((p["ts"] - 3 * 3600) // 86400) for p in velhos]
+    assert len(dias_cal) == len(set(dias_cal)) and len(velhos) >= 2
+    recentes = [p for p in pontos if agora - p["ts"] < 11 * 86400]
+    assert len(recentes) == 8                                     # recentes: todas
+    # A comparação do Ranking acha a foto de 100 dias atrás.
+    assert nh.snapshot_ate(agora - 99 * 86400)["items"][0]["name"] == "A"
+
+
+def test_item_mostra_grafico_da_nota(client, monkeypatch, tmp_path):
+    from lodout.public_site import notas_historico as nh
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "Item N", "score": 70, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []}])
+    agora = time.time()
+    for i, nota in enumerate((60, 90, 70)):
+        nh.gravar_snapshot({"ts": agora - (3 - i) * 21600, "items": [
+            {"name": "Item N", "score": nota, "position": 1}]}, agora=agora)
+    body = client.get("/item/Item N?nota=7d").data.decode("utf-8")
+    assert 'id="historico-nota"' in body and "grafico-nota" in body
+    assert "Nota de 60 a 90 no período, média 73" in body
+    assert 'href="/item/Item%20N?nota=1a#historico-nota"' in body

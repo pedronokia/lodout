@@ -173,8 +173,10 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   com dados públicos da Steam e mostra o porquê, sem prometer lucro.
   Público: iniciantes em skins de CS2 (tom baixo-médio, termos explicados).
 - Função de cada página: Home = ver as notas de hoje e achar um item;
-  Item = entender a nota daquele item; Ranking = quem subiu/caiu no Top
-  20; Método = a explicação completa da nota (única fonte; as outras
+  Item = entender a nota daquele item; Ranking = os melhores de forma
+  CONSISTENTE (nota média em 7d/30d/90d/1 ano, `notas_historico.
+  ranking_consistente`, desde 17/11; antes repetia a home na mesma ordem)
+  e, embaixo, o que mudou no Top 20 desde ontem; Método = a explicação completa da nota (única fonte; as outras
   páginas resumem e linkam); Glossário = termos pra iniciante; Status =
   transparência da coleta; Mudanças = o que mudou no site, na linguagem
   de quem usa (sem jargão técnico interno).
@@ -182,6 +184,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   da nota leva a "Como a nota é calculada" (Método) e ao Glossário. O
   "Por quê" do item também leva ao Método.
 - Marca no texto visível é "Lodout"; minúsculo só em URLs e domínios.
+- Histórico da nota (`public_site/notas_historico.py`, 2026-11-17): o
+  worker grava a nota de TODOS os itens a cada coleta (`completo=1`);
+  35 dias inteiros, depois 1 foto por dia, até 400 dias. As fotos do
+  `rankings.json` (só Top 20) entram como `completo=0`: servem para a
+  comparação do Ranking, nunca para o gráfico de um item.
 
 ## Testes e comandos
 

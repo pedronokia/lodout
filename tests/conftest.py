@@ -106,3 +106,16 @@ def _sem_catalogo_de_outro_teste():
         p = paths.DATA_DIR / nome
         if p.exists():
             p.unlink()
+
+
+@pytest.fixture(autouse=True)
+def _sem_historico_de_notas_nem_online_de_outro_teste():
+    """notas_historico.sqlite3 e online.sqlite3 (17/11) nascem no DATA_DIR
+    compartilhado: sem isto vazavam de um teste para o outro."""
+    yield
+    import lodout._paths as paths
+    for base in ("notas_historico.sqlite3", "online.sqlite3"):
+        for extra in ("", "-wal", "-shm"):
+            p = paths.DATA_DIR / (base + extra)
+            if p.exists():
+                p.unlink()

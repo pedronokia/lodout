@@ -174,6 +174,25 @@
       </div>
     {% endif %}
 
+    {# Histórico da nota (pedido 17/11): a nota muda a cada coleta; o
+       gráfico mostra se ela se mantém ou oscila. Guardado desde 17/11. #}
+    <div class="faixa faixa-grafico" id="historico-nota">
+      <div class="faixa-dentro">
+    <h2 class="secao-titulo">Histórico da nota</h2>
+    <div class="seletor-periodo" role="group" aria-label="Período do gráfico da nota">
+      {% for chave, (_dias, rotulo) in periodos_nota.items() %}
+      <a href="{{ url_for('item_detail', name=item.name, nota=chave, periodo=periodo_sel) }}#historico-nota"{% if periodo_nota == chave %} aria-current="true"{% endif %}>{{ rotulo }}</a>
+      {% endfor %}
+    </div>
+    {% if grafico_nota %}
+    <div class="card grafico-card grafico-nota">{{ grafico_nota|safe }}</div>
+    {% if legenda_nota %}<p class="status-muted">{{ legenda_nota }}</p>{% endif %}
+    {% else %}
+    <p class="texto-sem-dado">A nota deste item começou a ser guardada em 17/11, com um ponto a cada coleta (4 por dia). O gráfico aparece a partir da segunda coleta.</p>
+    {% endif %}
+      </div>
+    </div>
+
     {% if variantes %}
     <h2 class="secao-titulo">Outras versões desta skin</h2>
     <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam (não é o menor anúncio). Vêm na mesma consulta deste item, sem custo extra.</p>

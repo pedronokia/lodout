@@ -28,7 +28,8 @@ from lodout import (
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
 from lodout.public_site import (
-    backtest_diario, catalogo, db_backup, inventario, itens_extras, scan_progress,
+    backtest_diario, catalogo, db_backup, inventario, itens_extras, notas_historico,
+    scan_progress,
     worker_alert,
 )
 from lodout._ambiente import ambiente
@@ -519,10 +520,15 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         # nota bruta (antes do clamp em 100) também aqui -- sem isso,
         # o corte em 20 podia excluir por acaso um item com nota bruta
         # maior que um dos 20 escolhidos, só por ordem de chegada.
-        ranking.save_snapshot(sorted(
+        ordenados = sorted(
             resultados, key=lambda r: (
-                -r.get("score", 0), -signals.raw_score(r.get("breakdown"))),
-        )[:_TOP_RANKING])
+                -r.get("score", 0), -signals.raw_score(r.get("breakdown"))))
+        ranking.save_snapshot(ordenados[:_TOP_RANKING])
+        # Nota de TODOS os itens, para o gráfico da nota (até 1 ano) e o
+        # Ranking de 90 dias / 1 ano (notas_historico.py, pedido 17/11).
+        notas_historico.gravar_snapshot({"ts": time.time(), "items": [
+            {"name": r["name"], "score": int(r.get("score") or 0), "position": i + 1}
+            for i, r in enumerate(ordenados) if r.get("name")]})
     _apagar_checkpoint()
     # Termômetro da extração de miniatura (sem requisição extra): se o
     # número ficar igual ao total, o HTML da Steam mudou de formato.

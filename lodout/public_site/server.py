@@ -50,7 +50,8 @@ from lodout.localization import localize_name
 from lodout.public_site import (
     backtest_diario, buscas, catalogo, changelog, charts, db_backup,
     discord_notify, encomenda,
-    erro_stats, fmt, icon_cache, latencia, og_cards, online, profile_fetcher,
+    erro_stats, fmt, icon_cache, latencia, notas_historico, og_cards, online,
+    profile_fetcher,
     raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
 )
@@ -734,6 +735,25 @@ def create_app() -> Flask:
         # continua aparecendo nesse caso -- só o gráfico some, pra deixar
         # claro que é falta de dado NESSE recorte, não no item.
         tem_historico = sum(1 for p in hist if p.get("price")) >= 2
+        # Histórico da NOTA (pedido 17/11): 7 dias a 1 ano, de
+        # notas_historico (guardado a cada coleta, desde 17/11).
+        periodo_nota = request.args.get("nota") or "30d"
+        if periodo_nota not in _PERIODOS_NOTA:
+            periodo_nota = "30d"
+        dias_nota = _PERIODOS_NOTA[periodo_nota][0]
+        agora_nota = time.time()
+        serie_nota = notas_historico.serie(name, dias_nota, agora=agora_nota)
+        grafico_nota = charts.line_chart_svg(
+            [{"total": p["score"]} for p in serie_nota], area_fill=True,
+            rotulos=[f"{fmt.data_hora_br(p['ts'])} — nota {p['score']}" for p in serie_nota])
+        legenda_nota = None
+        if len(serie_nota) >= 2:
+            notas_v = [p["score"] for p in serie_nota]
+            legenda_nota = (f"Nota de {min(notas_v)} a {max(notas_v)} no período, "
+                            f"média {round(sum(notas_v) / len(notas_v))}")
+            if serie_nota[0]["ts"] > agora_nota - (dias_nota - 1) * 86400:
+                legenda_nota += f" (guardada desde {fmt.dia_mes_br(serie_nota[0]['ts'])})"
+            legenda_nota += "."
         na_conta = _na_sua_conta(name)
         return _resposta_item(render_template(
             "item.html",
@@ -745,6 +765,10 @@ def create_app() -> Flask:
             tem_historico=tem_historico,
             periodo_sel=periodo,
             periodo_opcoes=list(_PERIODOS_GRAFICO),
+            grafico_nota=grafico_nota,
+            legenda_nota=legenda_nota,
+            periodo_nota=periodo_nota,
+            periodos_nota=_PERIODOS_NOTA,
             parecidos=parecidos,
             tempo_aposentadoria=_tempo_desde_aposentadoria(item.get("case_retired_at")),
             historico_ranking=ranking.historico_do_item(
@@ -1240,66 +1264,71 @@ def create_app() -> Flask:
 
     @app.route("/ranking")
     def ranking_page():
-        snaps = ranking.load_snapshots()
-        atual = snaps[-1] if snaps else None
-        periodo = request.args.get("periodo") or _PERIODO_RANKING_PADRAO
-        if periodo not in _PERIODOS_RANKING:
-            periodo = _PERIODO_RANKING_PADRAO
-        # Setas, variação de nota e a frase-resumo usam a MESMA base de
-        # comparação (antes as setas iam contra o scan anterior, ~6h, e a
-        # frase contra ~1 dia -- dois "desde quando" na mesma tela).
-        anterior = _snapshot_de_comparacao(atual, periodo)
-        itens_antigos = {it["name"]: it
-                         for it in (anterior or {}).get("items") or []}
-        # Ícone + raridade não vêm do snapshot (ranking.py grava só
-        # name/score/position, ver _icone_raridade) -- cruza pelo nome
-        # com o scan atual, que já tem icon/name_color/rarity_id.
+        """Os melhores de forma consistente (pedido do usuário, 17/11): quem
+        quer comprar procura o que se mantém bem avaliado, não o que bateu
+        100 numa coleta. Ordem pela nota média no período; embaixo, o que
+        mudou no Top 20 desde ontem."""
+        periodo = request.args.get("periodo") or _PERIODO_CONSISTENCIA_PADRAO
+        if periodo not in _PERIODOS_CONSISTENCIA:
+            periodo = _PERIODO_CONSISTENCIA_PADRAO
+        dias = _PERIODOS_CONSISTENCIA[periodo][0]
+        agora = time.time()
+        consistente = notas_historico.ranking_consistente(dias, agora=agora)
         scan = scan_store.load_last_scan()
         por_nome_scan = {r["name"]: r for r in (scan or {}).get("results") or []}
+        com_pagina = _nomes_com_pagina(scan)
+        lista = []
+        for pos, it in enumerate(consistente["itens"], start=1):
+            atual_scan = por_nome_scan.get(it["name"])
+            lista.append({
+                **it,
+                "position": pos,
+                "name_fmt": localize_name(it["name"]),
+                "media_int": int(round(it["media"])),
+                "nota_hoje": atual_scan.get("score") if atual_scan else None,
+                "tem_pagina": it["name"] in com_pagina,
+                **_icone_raridade(atual_scan),
+            })
+        # O que mudou desde ontem (24 h), como antes, numa seção menor.
+        snaps = ranking.load_snapshots()
+        atual = snaps[-1] if snaps else None
+        anterior = _snapshot_de_comparacao(atual, "24h")
+        itens_antigos = {it["name"]: it for it in (anterior or {}).get("items") or []}
         itens = []
         if atual:
             for it in atual["items"]:
-                delta = ranking.position_delta(
-                    it["name"], it["position"], anterior)
+                delta = ranking.position_delta(it["name"], it["position"], anterior)
                 velho = itens_antigos.get(it["name"])
-                nota_diff = (it.get("score", 0) - velho.get("score", 0)
-                             if velho else None)
                 itens.append({
-                    "name": it["name"],
-                    "name_fmt": localize_name(it["name"]),
-                    "position": it["position"],
-                    "score": it["score"],
-                    "nota_diff": nota_diff,
-                    **delta,
-                    **_icone_raridade(por_nome_scan.get(it["name"])),
+                    "name": it["name"], "name_fmt": localize_name(it["name"]),
+                    "position": it["position"], "score": it["score"],
+                    "nota_diff": (it.get("score", 0) - velho.get("score", 0)) if velho else None,
+                    **delta, **_icone_raridade(por_nome_scan.get(it["name"])),
                 })
-        # Mesmo seletor Vitrine/Lista da home (revisão de direção visual
-        # 2026-11-08) -- mesmo cookie `pref_ver`, pra uma escolha só valer
-        # pro site inteiro: quem prefere Lista na home não quer vitrine de
-        # novo aqui. O Top 20 não tem preço/motivo no snapshot (só name/
-        # score/position), então o card da vitrine aqui é mais enxuto que
-        # o da home -- ver cartao_candidato_ranking em ranking.html.
-        ver = (request.args.get("ver") if "ver" in request.args
-               else request.cookies.get("pref_ver")) or "vitrine"
-        if ver not in ("vitrine", "lista"):
-            ver = "vitrine"
-        resp = make_response(render_template(
+        movimento = None
+        if anterior is not None:
+            movimento = {
+                "entraram": [it for it in itens if it.get("label") == "NOVO"],
+                "subiram": sorted([it for it in itens if it.get("delta", 0) > 0],
+                                  key=lambda it: (-it["delta"], it["position"]))[:5],
+                "cairam": sorted([it for it in itens if it.get("delta", 0) < 0],
+                                 key=lambda it: (it["delta"], it["position"]))[:5],
+            }
+        return render_template(
             "ranking.html",
-            itens=itens,
+            lista=lista,
+            modo=consistente["modo"],
+            coletas=consistente["coletas"],
+            desde=fmt.dia_mes_br(consistente["desde"]) if consistente.get("desde") else None,
+            dias_minimos=notas_historico.MIN_DIAS_COMPLETOS,
             quando=scan_store.idade_txt(atual["ts"]) if atual else None,
-            tem_anterior=anterior is not None,
-            resumo_do_dia=_resumo_entre(atual, anterior),
-            ver_sel=ver,
             periodo_sel=periodo,
-            periodos=_PERIODOS_RANKING,
+            periodos=_PERIODOS_CONSISTENCIA,
+            movimento=movimento,
+            anterior_quando=(fmt.data_hora_br(anterior["ts"])[:5] if anterior else None),
             saidas=_saidas_do_top(atual, anterior, por_nome_scan,
-                                  _nomes_com_pagina(scan) if anterior else set()),
-        ))
-        if "ver" in request.args:
-            resp.set_cookie("pref_ver", ver, max_age=365 * 24 * 3600,
-                            samesite="Lax",
-                            secure=app.config["SESSION_COOKIE_SECURE"])
-        return resp
+                                  com_pagina if anterior else set()),
+        )
 
     @app.route("/admin/login", methods=["GET", "POST"])
     @rate_limit.rate_limited(rate_limit.LOGIN_MAX_HITS, rate_limit.LOGIN_WINDOW_S)
@@ -1894,6 +1923,15 @@ _PERIODOS_RANKING = {
     "30d": (30 * 24, "30 dias"),
 }
 _PERIODO_RANKING_PADRAO = "24h"
+# /ranking = os melhores de forma consistente (pedido 17/11): nota média no
+# período (notas_historico.ranking_consistente). chave -> (dias, rótulo).
+_PERIODOS_CONSISTENCIA = {
+    "7d": (7, "7 dias"),
+    "30d": (30, "30 dias"),
+    "90d": (90, "90 dias"),
+    "365d": (365, "1 ano"),
+}
+_PERIODO_CONSISTENCIA_PADRAO = "7d"
 # Janela do "histórico no ranking" da página do item.
 _DIAS_HISTORICO_RANKING = 30
 # Folga pra um ciclo que terminou um pouco mais cedo ainda contar como
@@ -1911,8 +1949,16 @@ def _snapshot_de_comparacao(atual: "dict | None",
     horas = _PERIODOS_RANKING[periodo][0]
     if horas is None:
         return ranking.previous_snapshot()
-    return ranking.latest_before(
-        atual["ts"] - (horas - _FOLGA_PERIODO_H) * 3600)
+    alvo = atual["ts"] - (horas - _FOLGA_PERIODO_H) * 3600
+    antigo = ranking.latest_before(alvo)
+    if antigo is None:
+        # Mais velho que o rankings.json guarda: a foto do dia no histórico
+        # da nota, cortada no Top 20 (a base de comparação de sempre).
+        antigo = notas_historico.snapshot_ate(alvo)
+        if antigo:
+            antigo = {"ts": antigo["ts"], "items": [
+                it for it in antigo["items"] if (it.get("position") or 99) <= 20]}
+    return antigo
 
 
 def _resumo_do_dia(atual: "dict | None") -> "dict | None":
@@ -2193,6 +2239,9 @@ def _sparkline_do_historico(hist: list) -> str:
 # ruído de curto prazo). "tudo" (sem entrada aqui) mantém o recorte
 # padrão de sempre, pra não mudar o comportamento de quem não escolhe nada.
 _PERIODOS_GRAFICO = {"7d": 7, "30d": 30, "90d": 90}
+# Gráfico da nota na página do item (17/11): chave da URL -> (dias, rótulo).
+_PERIODOS_NOTA = {"7d": (7, "7 dias"), "30d": (30, "30 dias"),
+                  "90d": (90, "90 dias"), "1a": (365, "1 ano")}
 
 
 def _filtra_historico_por_periodo(hist: list, periodo: "str | None") -> list:

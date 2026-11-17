@@ -36,9 +36,10 @@
 	# Deploy sem página de erro (17/11): o `web` é recriado a cada
 	# publicação e fica ~20 s fora; sem isto o Caddy devolvia 502 a quem
 	# chegasse nessa janela. Agora ele segura o pedido e tenta de novo até
-	# o novo container responder (máx. 30 s).
+	# o novo container responder (máx. 60 s; com 30 s ainda escapou 1 erro
+	# em 17/11: o container levou ~45 s para subir).
 	reverse_proxy web:8000 {
-		lb_try_duration 30s
+		lb_try_duration 60s
 		lb_try_interval 250ms
 	}
 }

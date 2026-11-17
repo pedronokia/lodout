@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ranking — Lodout</title>
-  <meta name="description" content="Top 20 da última coleta de preços, com a mudança de posição e de nota em 24 horas, 7 dias ou 30 dias.">
+  <meta name="description" content="Os itens com as melhores notas de forma consistente no Lodout: a nota média em 7 dias, 30 dias, 90 dias ou 1 ano, e o que mudou no Top 20 desde ontem.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -56,90 +56,63 @@
     {% endif %}
   {% endmacro %}
 
-  {# Card do Top 20 (revisão de direção visual 2026-11-08, rodada 3) --
-     mesma linguagem visual da vitrine da home (.cartao-item, brilho,
-     corte de canto), mas mais enxuto: o snapshot do ranking só guarda
-     name/score/position (ver ranking.py), sem preço nem motivo, então
-     não dá (nem faz sentido) reusar cartao_candidato da home aqui. #}
-  {% macro cartao_candidato_ranking(it, indice=0) %}
-  <li class="cartao-item cartao-item-ranking{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" data-nome="{{ it.name }}" data-nota="{{ it.score }}">
-    <span class="cartao-item-brilho"></span>
-    <span class="cartao-item-posicao" aria-hidden="true">#{{ it.position }}</span>
-    <div class="cartao-item-imagem">
-      <a class="cartao-item-imagem-link" href="{{ url_for('item_detail', name=it.name) }}" aria-label="Abrir detalhes e histórico de {{ it.name_fmt }}">
-        {% if it.icon_url %}
-        {# mesmo achado de performance de index.html (2026-11-09): os 6
-           primeiros cobrem a primeira fileira em qualquer largura --
-           loading="lazy" neles atrasava o LCP. #}
-        <img class="cartao-item-icon" src="{{ it.icon_url }}" srcset="{{ it.icon_url }} 1x, {{ it.icon_url_2x }} 2x" alt="" aria-hidden="true" loading="{{ 'eager' if indice < 6 else 'lazy' }}" width="192" height="192">
-        {% else %}
-        <span class="icone-item-placeholder" aria-hidden="true"></span>
-        {% endif %}
-      </a>
-      <div class="cartao-item-nota-area">
-        <span class="cartao-item-nota nota-{{ it.score|nota_classe }}" role="img" title="Nota {{ it.score }} de 100" aria-label="Nota {{ it.score }} de 100">{{ it.score|nota_anel|safe }}<span class="cartao-item-nota-numero" aria-hidden="true">{{ it.score }}</span></span>
-      </div>
-    </div>
-    <div class="cartao-item-corpo">
-      <a class="cartao-item-nome" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>
-      <div class="cartao-item-rodape">{{ posicao_candidato(it) }}{{ variacao_nota(it) }}</div>
-    </div>
+  {# Linha de um bloco de movimento (Ranking = "o que mudou", 17/11):
+     ícone, nome, posição antes -> agora e nota antes -> agora. #}
+  {% macro linha_movimento(it) %}
+  <li class="movimento-linha">
+    <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}><span class="icone-item-placeholder"></span>{% if it.icon_url %}<img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">{% endif %}</span>
+    <span class="movimento-linha-texto">
+      <a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>
+      <span class="movimento-linha-numeros">
+        <span>{% if it.prev_pos %}#{{ it.prev_pos }} {{ icone("seta-direita") }} {% endif %}<strong>#{{ it.position }}</strong></span>
+        <span>nota {% if it.nota_diff is not none %}{{ it.score - it.nota_diff }} {{ icone("seta-direita") }} {% endif %}<strong>{{ it.score }}</strong></span>
+      </span>
+    </span>
   </li>
   {% endmacro %}
 
+  {# Ranking = os melhores de FORMA CONSISTENTE (pedido do usuário, 17/11):
+     quem quer comprar procura o que se mantém bem avaliado, não o que
+     bateu 100 numa coleta. Ordem pela nota média no período; o que mudou
+     no Top 20 desde ontem vem embaixo, menor. #}
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Ranking</h1>
-      <p class="descricao-pagina">As 20 maiores notas da última coleta: quem subiu, caiu ou é novidade.</p>
-      {% if itens %}<p class="cabecalho-meta">Atualizado {{ quando }}.</p>{% endif %}
+      <p class="descricao-pagina">Os itens que se mantêm com as melhores notas, pela nota média no período, e não só pela nota de hoje.</p>
+      {% if quando %}<p class="cabecalho-meta">Última coleta {{ quando }}.</p>{% endif %}
     </header>
-    {% if itens %}
-      <nav class="barra-periodo-ranking" aria-label="Período da comparação">
-        <span class="barra-periodo-ranking-rotulo" id="rotulo-periodo-ranking">Comparar com:</span>
-        <div class="seletor-periodo" role="group" aria-labelledby="rotulo-periodo-ranking">
-          {% for chave, (_horas, rotulo) in periodos.items() %}
-          <a href="{{ url_for('ranking_page', periodo=chave, ver=ver_sel) }}"{% if periodo_sel == chave %} aria-current="true"{% endif %}>{{ rotulo }}</a>
-          {% endfor %}
-        </div>
-      </nav>
-      {% if not tem_anterior %}
-      <p class="aviso-periodo-ranking status-muted">{% if periodo_sel == 'scan' %}Ainda não há uma coleta anterior pra comparar posição.{% else %}Ainda não há ranking salvo de {{ periodos[periodo_sel][1] }} atrás pra comparar. O histórico cresce a cada scan.{% endif %}</p>
-      {% endif %}
-      {% if resumo_do_dia %}
-      <p class="resumo-do-dia">
-        Comparado com o Top 20 de {{ resumo_do_dia.dia_ref }}:
-        {{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }} no Top 20{% if resumo_do_dia.maior_alta %}; maior alta de nota foi
-        <strong translate="no">{{ resumo_do_dia.maior_alta.name_fmt }}</strong>
-        ({{ resumo_do_dia.maior_alta.de }} {{ icone("seta-direita") }} {{ resumo_do_dia.maior_alta.para }}){% endif %}.
-      </p>
-      {% endif %}
-      {# Mesmo seletor Vitrine/Lista da home, mesmo cookie pref_ver. #}
-      <nav class="barra-visao" aria-label="Como mostrar os itens">
-        <div class="seletor-visao" role="group" aria-label="Modo de exibição">
-          <a href="{{ url_for('ranking_page', ver='vitrine', periodo=periodo_sel) }}"{% if ver_sel == 'vitrine' %} aria-current="page"{% endif %}>{{ icone("vitrine") }} Vitrine</a>
-          <a href="{{ url_for('ranking_page', ver='lista', periodo=periodo_sel) }}"{% if ver_sel == 'lista' %} aria-current="page"{% endif %}>{{ icone("lista") }} Lista</a>
-        </div>
-        {# "Cores da borda" no fim da barra, como link discreto (2026-11-14):
-           antes era uma pílula sozinha numa linha, igual à da home. #}
+    <nav class="barra-periodo-ranking" aria-label="Período da nota média">
+      <span class="barra-periodo-ranking-rotulo" id="rotulo-periodo-ranking">Nota média em:</span>
+      <div class="seletor-periodo" role="group" aria-labelledby="rotulo-periodo-ranking">
+        {% for chave, (_dias, rotulo) in periodos.items() %}
+        <a href="{{ url_for('ranking_page', periodo=chave) }}"{% if periodo_sel == chave %} aria-current="true"{% endif %}>{{ rotulo }}</a>
+        {% endfor %}
+      </div>
+    </nav>
+    {% if modo == "presenca" %}
+    <p class="aviso-periodo-ranking status-muted">A nota de todos os itens começou a ser guardada em 17/11. Até completar {{ dias_minimos }} dias, a ordem é por quantas vezes cada item esteve no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
+    {% elif modo == "media" and desde %}
+    <p class="status-muted ranking-base">Média de {{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }} desde {{ desde }}. Só entram itens que apareceram em pelo menos metade delas.</p>
+    {% endif %}
+    {% if lista %}
+    <section class="ranking-top20" aria-labelledby="titulo-top20">
+      <div class="ranking-top20-cabecalho">
+        <h2 class="visualmente-oculto" id="titulo-top20">Os 20 melhores no período</h2>
         {% include "partials/_legenda_raridade.html" %}
-      </nav>
-      {% if ver_sel == 'lista' %}
-      <div class="faixa faixa-lista">
-        <div class="faixa-dentro">
-      <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
-      <div class="tabela-wrap" role="region" tabindex="0" aria-label="Tabela de ranking, com rolagem lateral">
-      <table class="tabela-candidatos">
+      </div>
+      <div class="tabela-wrap" role="region" tabindex="0" aria-label="Ranking pela nota média, com rolagem lateral">
+      <table class="tabela-candidatos tabela-top20">
         <thead>
           <tr>
             <th>#</th>
             <th>Item</th>
-            <th>Nota</th>
-            <th title="Mudança de posição no período escolhido">Posição</th>
-            <th title="Mudança de nota no período escolhido">Variação</th>
+            <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "No Top 20" }}</th>
+            <th title="Nota na última coleta">Hoje</th>
+            <th title="Em quantos dias do período o item esteve no Top 20">Dias no Top 20</th>
           </tr>
         </thead>
         <tbody>
-          {% for it in itens %}
+          {% for it in lista %}
           <tr>
             <td>{{ it.position }}</td>
             <td class="celula-item-ranking">
@@ -149,46 +122,54 @@
                 <img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
               {% endif %}
               </span>
-              <a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>
+              {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
-            <td><span class="nota nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span></td>
-            <td>{{ posicao_candidato(it) }}</td>
-            <td>{% if it.nota_diff is none %}<span class="status-muted">—</span>{% else %}{{ variacao_nota(it) }}{% endif %}</td>
+            <td>{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<strong>{{ it.presenca_pct }}%</strong> <span class="status-muted">das coletas</span>{% endif %}</td>
+            <td>{% if it.nota_hoje is not none %}{{ it.nota_hoje }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td>{{ it.dias_no_top }}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       </div>
-        </div>
-      </div>
-      {% else %}
-      <div class="faixa faixa-vitrine">
-      <ul class="grade-cards" aria-label="Vitrine do Top 20">
-        {% for it in itens %}{{ cartao_candidato_ranking(it, loop.index0) }}{% endfor %}
-      </ul>
-      </div>
-      {% endif %}
-      {% if saidas %}
-      <section class="saidas-do-top" aria-labelledby="titulo-saidas">
-        <h2 class="secao-titulo" id="titulo-saidas">Saíram do Top 20</h2>
-        <p class="status-muted">{% if resumo_do_dia %}Estavam no Top 20 de {{ resumo_do_dia.dia_ref }} e não estão no atual.{% else %}Estavam no ranking anterior e não estão no atual.{% endif %}</p>
-        <ul class="lista-saidas">
-          {% for s in saidas %}
-          <li>
-            {% if s.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=s.name) }}" translate="no">{{ s.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ s.name_fmt }}</span>{% endif %}
-            <span class="status-muted">era #{{ s.prev_pos }} com nota {{ s.prev_score }}{% if s.score is not none %}; agora nota {{ s.score }}{% endif %}</span>
-          </li>
-          {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
+    </section>
     {% else %}
-      <p class="status status-vazio">Ainda não há ranking salvo. Volte em breve.</p>
+      <p class="status status-vazio">Ainda não há notas guardadas para esse período. Volte em breve.</p>
+    {% endif %}
+
+    {% if movimento %}
+    <h2 class="secao-titulo ranking-mudou-titulo">O que mudou no Top 20 desde ontem</h2>
+    <p class="status-muted ranking-base">Comparando o Top 20 da última coleta com o de {{ anterior_quando }}. A nota de um item pode mudar bastante de um dia para o outro; a lista acima, pela média, é mais estável.</p>
+    <div class="ranking-movimento">
+      {% for chave, titulo, vazio in (("entraram", "Entraram", "Ninguém entrou."), ("subiram", "Mais subiram", "Ninguém subiu de posição."), ("cairam", "Mais caíram", "Ninguém caiu de posição.")) %}
+      <section class="card ranking-bloco ranking-bloco-{{ chave }}" aria-labelledby="titulo-{{ chave }}">
+        <h3 class="ranking-bloco-titulo" id="titulo-{{ chave }}">{{ titulo }}{% if movimento[chave] %} <span class="ranking-bloco-n">{{ movimento[chave]|length }}</span>{% endif %}</h3>
+        {% if movimento[chave] %}
+        <ul class="movimento-lista">{% for it in movimento[chave] %}{{ linha_movimento(it) }}{% endfor %}</ul>
+        {% else %}
+        <p class="status-muted">{{ vazio }}</p>
+        {% endif %}
+      </section>
+      {% endfor %}
+    </div>
+    {% if saidas %}
+    <section class="saidas-do-top" aria-labelledby="titulo-saidas">
+      <h3 class="ranking-bloco-titulo" id="titulo-saidas">Saíram do Top 20</h3>
+      <ul class="lista-saidas">
+        {% for s in saidas %}
+        <li>
+          {% if s.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=s.name) }}" translate="no">{{ s.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ s.name_fmt }}</span>{% endif %}
+          <span class="status-muted">era #{{ s.prev_pos }} com nota {{ s.prev_score }}{% if s.score is not none %}; agora nota {{ s.score }}{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
     {% endif %}
   </main>
 
   <footer class="rodape">
-    <p>O Top 20 é salvo a cada coleta de preços que dá certo.</p>
+    <p>A nota de cada item é guardada a cada coleta de preços que dá certo.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
 </body>

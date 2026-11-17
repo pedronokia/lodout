@@ -19,19 +19,15 @@
     if (!el) return;
     if (!(n >= 1)) { el.hidden = true; return; }
     var num = el.querySelector("[data-online-n]");
-    var rotulo = el.querySelector("[data-online-rotulo]");
-    // n inclui esta aba (ela acabou de avisar): 1 = só você.
-    var so = n === 1;
     if (num) {
       var antes = num.textContent;
-      num.textContent = so ? "Só você" : n.toLocaleString("pt-BR");
+      num.textContent = n.toLocaleString("pt-BR");
       if (antes && antes !== num.textContent && !el.hidden) {
         el.classList.remove("rodape-online-mudou");
         void el.offsetWidth; // reinicia a animação
         el.classList.add("rodape-online-mudou");
       }
     }
-    if (rotulo) rotulo.textContent = so ? "online agora" : "pessoas online";
     el.hidden = false;
   }
   function avisar() {
