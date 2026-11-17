@@ -4179,13 +4179,15 @@ def test_manifest_json_tem_icones_png(client):
         assert resp.mimetype == "image/png"
 
 
-def test_icones_do_site_usam_o_l_da_marca(client):
-    """16/11 (escolha do usuário): o ícone da aba e o do celular são o "L"
-    de Lodout em itálico, com o degradê "fade", sobre fundo escuro."""
+def test_icones_do_site_usam_as_aspas_da_marca(client):
+    """17/11 (escolha do usuário): o ícone da aba são as aspas laranja do
+    topo do site, sem fundo (o "L" com degradê ficava borrado em 16 px);
+    o do celular, as mesmas aspas sobre fundo escuro."""
+    import xml.dom.minidom
     svg = client.get("/static/favicon.svg").data.decode("utf-8")
-    assert "#dc2626" not in svg                # vermelho da vela antiga
-    assert 'id="fade"' in svg and "<circle" in svg
-    assert "Fraunces" in svg                   # origem do desenho (licença OFL)
+    xml.dom.minidom.parseString(svg)           # SVG válido (sem "--" em comentário)
+    assert 'fill="#f97316"' in svg
+    assert 'id="fade"' not in svg and "<circle" not in svg
 
     from PIL import Image
     import io
@@ -4199,7 +4201,7 @@ def test_icones_do_site_usam_o_l_da_marca(client):
         coloridos = sum(1 for y in range(lado) for x in range(lado)
                         if max(px[x, y]) - min(px[x, y]) > 120)
         assert escuros > lado * lado * 0.55   # fundo escuro
-        assert coloridos > lado * lado * 0.05  # L em degradê
+        assert coloridos > lado * lado * 0.05  # aspas laranja
 
 
 def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
