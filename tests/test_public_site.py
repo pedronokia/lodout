@@ -1671,6 +1671,7 @@ def test_ranking_encomenda_ate_copiavel(client, monkeypatch, tmp_path):
     assert 'src="/static/ranking.js' in body or "ranking.js" in body
     assert "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
+    assert '<span class="encomenda-preco-hoje">hoje R$ 1.500,00</span>' in body
     # Barra "Quero lucrar" (17/11): sem login, só neste navegador -- o
     # formulário só aparece com JS e não tem botão de enviar.
     form = body.split("data-meta-lucro", 1)[1].split("</form>", 1)[0]

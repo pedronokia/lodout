@@ -1297,6 +1297,7 @@ def create_app() -> Flask:
             lista.append({
                 "encomenda": enc,
                 "preco_hoje": (atual_scan or {}).get("price"),
+                "preco_hoje_fmt": fmt.brl((atual_scan or {}).get("price")),
                 "encomenda_copiar": f"{enc['ate']:.2f}".replace(".", ",") if enc else None,
                 **it,
                 "position": pos,

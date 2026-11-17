@@ -6984,6 +6984,12 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .frequencia-cheio { fill: var(--accent); }
 /* "Encomenda até" copiável: a dica "copiado" sai para a esquerda. */
 .tabela-top20 .celula-encomenda { white-space: nowrap; }
+/* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar
+   fica sempre à vista (antes só aparecia com o mouse em cima). */
+.encomenda-preco-hoje { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.tabela-top20 .celula-encomenda .icone-copiar { opacity: 0.45; }
+.tabela-top20 .celula-encomenda .copiar-preco:hover .icone-copiar,
+.tabela-top20 .celula-encomenda .copiar-preco:focus-visible .icone-copiar { opacity: 0.9; }
 .tabela-top20 .celula-encomenda .copiar-preco { font-weight: 600; color: var(--text-bright); }
 .tabela-top20 .celula-encomenda .copiar-preco.copiado { color: var(--positive); }
 .tabela-top20 .celula-encomenda .copiar-preco[data-dica]::after { top: auto; right: auto; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }

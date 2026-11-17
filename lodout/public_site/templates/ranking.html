@@ -95,7 +95,7 @@
     </header>
     <div class="ranking-controles">
     <nav class="barra-periodo-ranking" aria-label="Período da nota média">
-      <span class="barra-periodo-ranking-rotulo" id="rotulo-periodo-ranking">Nota média em:</span>
+      <span class="barra-periodo-ranking-rotulo" id="rotulo-periodo-ranking">Período:</span>
       <div class="seletor-periodo" role="group" aria-labelledby="rotulo-periodo-ranking">
         {% for chave, (_dias, rotulo) in periodos.items() %}
         <a href="{{ url_for('ranking_page', periodo=chave) }}"{% if periodo_sel == chave %} aria-current="true"{% endif %}>{{ rotulo }}</a>
@@ -124,7 +124,7 @@
             <th>#</th>
             <th>Item</th>
             <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
-            <th title="Nota na última coleta">Hoje</th>
+            <th title="Nota na última coleta">Nota hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
             <th class="th-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Pagando até esse valor, revender pelo preço de hoje dá {{ meta_encomenda }}% de lucro, já com a taxa. Clique no valor para copiar.">Encomenda até<span class="th-sub">lucro de <span data-meta-num>{{ meta_encomenda }}</span>%</span></th>
           </tr>
@@ -144,9 +144,9 @@
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
             <td class="celula-valor-ranking" data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
-            <td class="celula-hoje" data-label="Hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td class="celula-hoje" data-label="Nota hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td class="celula-no-top" data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
-            <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" data-preco-hoje="{{ it.preco_hoje }}" data-nome="{{ it.name_fmt }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}"><span data-encomenda-valor>{{ it.encomenda.ate_fmt }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button>{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" data-preco-hoje="{{ it.preco_hoje }}" data-nome="{{ it.name_fmt }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}"><span data-encomenda-valor>{{ it.encomenda.ate_fmt }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button><span class="encomenda-preco-hoje">hoje {{ it.preco_hoje_fmt }}</span>{% else %}<span class="status-muted">—</span>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>
