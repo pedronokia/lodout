@@ -25,6 +25,10 @@ bp = Blueprint("history", __name__)
 @login_required
 def listar():
     steamid = session["steamid"]
+    # Registros antigos de compra e venda de "Meus trades" (até 17/11)
+    # vêm para "Itens vendidos" (user_trocas.migrar_trades_antigos).
+    from lodout.public_site import user_trocas
+    user_trocas.migrar_trades_antigos(steamid)
     # Em ordem de data (o arquivo é gravado na ordem das visitas, que
     # normalmente já é essa; ordenar deixa a tabela e o gráfico certos
     # mesmo se não for).
@@ -69,6 +73,9 @@ def listar():
             "lucro_fmt": ("+" if pnl > 0 else "") + fmt.brl(pnl),
             "lucro_classe": "valor-positivo" if pnl > 0 else "valor-negativo" if pnl < 0 else "",
             "ts": v.get("sell_ts") or 0,
+            # Venda marcada na conta ("Vendi") volta para a conta ao desfazer;
+            # a registrada à mão em "Meus trades" (até 17/11) só é apagada.
+            "da_conta": v.get("source") == "conta",
         })
     vendidos.sort(key=lambda v: -v["ts"])
     total_vendidos = sum(v.get("pnl") or 0 for v in user_vendidos.load(steamid))
@@ -101,6 +108,9 @@ def desfazer_venda(index: int):
     if not tirado:
         return redirect(url_for("history.listar"))
     nome = tirado.get("name") or ""
+    if tirado.get("source") != "conta":
+        flash(f"A venda de {localize_name(nome)} saiu do histórico.", "success")
+        return redirect(url_for("history.listar"))
     if nome and tirado.get("buy_cost") is not None:
         user_portfolio.devolver_lote(steamid, user_vendidos.posicao_de_volta(tirado, time.time()))
         recuperar_posicoes.deixar_de_ignorar(steamid, nome)

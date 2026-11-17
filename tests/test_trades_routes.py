@@ -46,117 +46,110 @@ def _csrf_token(client):
     return m.group(1)
 
 
+def _troca(client, token, deu=(("AK-47 | Redline (Field-Tested)", "1", "50,00"),),
+           recebeu=(("AWP | Asiimov (Field-Tested)", "1", "60,00"),), **extra):
+    data = {"csrf_token": token, "deu_nome": [], "deu_qtd": [], "deu_valor": [],
+            "recebeu_nome": [], "recebeu_qtd": [], "recebeu_valor": []}
+    for lado, itens in (("deu", deu), ("recebeu", recebeu)):
+        for nome, qtd, valor in itens:
+            data[f"{lado}_nome"].append(nome)
+            data[f"{lado}_qtd"].append(qtd)
+            data[f"{lado}_valor"].append(valor)
+    data.update(extra)
+    return client.post("/conta/trades", data=data)
+
+
 def test_listar_sem_login_redireciona(client):
     resp = client.get("/conta/trades")
     assert resp.status_code == 302
-    assert "/login" in resp.headers["Location"]
 
 
-def test_listar_vazio_mostra_empty_state(client, monkeypatch):
+def test_pagina_explica_que_sao_trocas(client, monkeypatch):
     _login(client, monkeypatch)
-    resp = client.get("/conta/trades")
-    assert resp.status_code == 200
-    assert "Nenhum trade registrado".encode("utf-8") in resp.data
+    pagina = client.get("/conta/trades").data.decode("utf-8")
+    assert "Nenhuma troca registrada ainda" in pagina
+    assert "Você deu" in pagina and "Você recebeu" in pagina
+    assert "Itens vendidos" in pagina and "não paga a taxa da Steam" in pagina
 
 
-def test_adicionar_trade(client, monkeypatch):
+def test_registrar_troca_mostra_os_dois_lados_e_o_saldo(client, monkeypatch):
     _login(client, monkeypatch)
     token = _csrf_token(client)
-    resp = client.post("/conta/trades", data={
-        "name": "AK-47 | Redline (Field-Tested)", "buy_cost": "50.00",
-        "sell_price": "80.00", "quantity": "1", "notes": "teste",
-        "csrf_token": token,
-    })
+    resp = _troca(client, token,
+                  deu=(("AK-47 | Redline (Field-Tested)", "2", "25,00"), ("", "1", "")),
+                  recebeu=(("AWP | Asiimov (Field-Tested)", "1", "R$ 60,00"),),
+                  notas="com o João", data="2026-11-10")
     assert resp.status_code == 302
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "Testada em Campo" in pagina
-    assert "teste" in pagina
-    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
-    assert 'data-label="Comprou"' in pagina
-    assert 'data-label="Ações"' in pagina
+    assert "Troca registrada: você recebeu R$ 10,00 a mais em valor" in pagina
+    assert "10/11/2026" in pagina and "com o João" in pagina
+    assert "AK-47 | Redline (Testada em Campo)" in pagina and "×2" in pagina
+    assert "+R$ 10,00" in pagina
 
 
-def test_item_mostra_icone_e_raridade_do_scan_atual(client, monkeypatch):
-    """achado 2026-11-07: trades não mostrava ícone nenhum, só o nome em
-    texto puro -- a conta não passava pelo enriquecimento de
-    _candidatos_filtrados (home/ranking/comparar/item/watchlist). Sem
-    nota aqui de propósito: trade já fechado é histórico (ver
-    raridade.py e trades_routes._scan_lookup)."""
-    monkeypatch.setattr(
-        "lodout.scan_store.load_last_scan", lambda: {
-            "ts": 0.0, "category": "Facas", "results": [
-                {"name": "AK-47 | Redline (Field-Tested)", "score": 77,
-                 "icon": "hash-ak", "name_color": "EB4B4B"},
-            ]})
+def test_troca_invalida_nao_grava(client, monkeypatch):
+    from lodout.public_site import user_trocas
     _login(client, monkeypatch)
     token = _csrf_token(client)
-    client.post("/conta/trades", data={
-        "name": "AK-47 | Redline (Field-Tested)", "buy_cost": "50.00",
-        "sell_price": "80.00", "quantity": "1", "notes": "teste",
-        "csrf_token": token,
-    })
-    pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "icone-item-quadro-compacto" in pagina
-    assert "icone-item-quadro-com-imagem" in pagina
-    assert "raridade-covert" in pagina
-    assert "nota-numero" not in pagina  # de propósito, trade já fechado
+    for kwargs in (
+        {"recebeu": ()},                                             # um lado vazio
+        {"deu": (("AK-47", "0", "10"),)},                            # quantidade 0
+        {"deu": (("AK-47", "1", "abc"),)},                           # valor inválido
+        {"deu": (("AK-47", "1", "0"),)},                             # valor zero
+        {"data": "2999-01-01"},                                      # data no futuro
+    ):
+        r = _troca(client, token, **kwargs)
+        assert r.status_code == 302
+    assert user_trocas.load("76561198000000000") == []
+    assert "Nada foi registrado" in client.get("/conta/trades").data.decode("utf-8")
 
 
-def test_adicionar_trade_sem_csrf_falha(client, monkeypatch):
+def test_troca_sem_csrf_falha(client, monkeypatch):
     _login(client, monkeypatch)
-    resp = client.post("/conta/trades", data={
-        "name": "X", "buy_cost": "1", "sell_price": "2",
-    })
-    assert resp.status_code == 403
+    _csrf_token(client)
+    resp = _troca(client, "errado")
+    assert resp.status_code in (400, 403)
 
 
-def test_adicionar_trade_custo_invalido_nao_grava(client, monkeypatch):
-    _login(client, monkeypatch)
-    token = _csrf_token(client)
-    resp = client.post("/conta/trades", data={
-        "name": "X", "buy_cost": "abc", "sell_price": "2",
-        "csrf_token": token,
-    })
-    pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
-    assert "Confira os valores" in pagina
-    assert "Nenhum trade registrado".encode("utf-8") in pagina.encode("utf-8")
-
-
-def test_adicionar_trade_rejeita_quantidade_zero(client, monkeypatch):
+def test_apagar_troca(client, monkeypatch):
     _login(client, monkeypatch)
     token = _csrf_token(client)
-    resp = client.post("/conta/trades", data={
-        "name": "X", "buy_cost": "1", "sell_price": "2", "quantity": "0",
-        "csrf_token": token,
-    })
-    pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
-    assert "A quantidade precisa ser um número inteiro maior que zero" in pagina
-    assert "Nenhum trade registrado" in pagina
-
-
-def test_remover_trade(client, monkeypatch):
-    _login(client, monkeypatch)
-    token = _csrf_token(client)
-    client.post("/conta/trades", data={
-        "name": "X", "buy_cost": "1", "sell_price": "2",
-        "csrf_token": token,
-    })
+    _troca(client, token)
     client.post("/conta/trades/0/remover", data={"csrf_token": token})
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "Nenhum trade registrado".encode("utf-8") in pagina.encode("utf-8")
+    assert "A troca saiu da sua lista" in pagina
+    assert "Nenhuma troca registrada ainda" in pagina
 
 
-def test_trades_isolados_entre_contas(client, monkeypatch):
-    _login(client, monkeypatch, steamid="111")
-    token = _csrf_token(client)
-    client.post("/conta/trades", data={
-        "name": "TradeDoUm", "buy_cost": "1", "sell_price": "2",
-        "csrf_token": token,
-    })
-    client.get("/logout")
-    _login(client, monkeypatch, steamid="222")
+def test_trocas_isoladas_entre_contas(client, monkeypatch):
+    _login(client, monkeypatch, steamid="76561198000000001")
+    _troca(client, _csrf_token(client))
+    _login(client, monkeypatch, steamid="76561198000000002")
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "TradeDoUm" not in pagina
+    assert "Nenhuma troca registrada ainda" in pagina
+
+
+def test_compra_e_venda_antigas_vao_para_itens_vendidos(client, monkeypatch):
+    """17/11: "Meus trades" registrava compra e venda; isso agora vive em
+    "Itens vendidos". Os registros antigos mudam de lugar na 1ª visita."""
+    from lodout import trades as trades_mod
+    from lodout.public_site import user_store, user_vendidos
+    sid = "76561198000000003"
+    user_store.save_user_json(sid, "trades", [
+        trades_mod.build_trade("Caixa Z", 10.0, 15.0, 2)])
+    _login(client, monkeypatch, steamid=sid)
+    pagina = client.get("/conta/trades").data.decode("utf-8")
+    assert "1 registro de compra e venda que estava aqui foi para “Itens vendidos”" in pagina
+    vendas = user_vendidos.load(sid)
+    assert len(vendas) == 1 and vendas[0]["source"] == "trades" and vendas[0]["quantity"] == 2
+    assert user_store.load_user_json(sid, "trades", None) == []
+    hist = client.get("/conta/historico").data.decode("utf-8")
+    assert "Caixa Z" in hist and ">apagar</button>" in hist and "desfazer venda" not in hist
+    # Apagar uma venda vinda dos trades não põe nada na conta.
+    token = re.search(r'name="csrf_token" value="([^"]+)"', hist).group(1)
+    client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
+    from lodout.public_site import user_portfolio
+    assert user_vendidos.load(sid) == [] and user_portfolio.load_positions(sid) == []
 
 
 def test_link_trades_aparece_no_dashboard_logado(client, monkeypatch):
@@ -165,22 +158,17 @@ def test_link_trades_aparece_no_dashboard_logado(client, monkeypatch):
     assert "/conta/trades" in pagina
 
 
-def test_registrar_trade_aceita_virgula_e_imagem_do_catalogo(client, monkeypatch):
-    # 2026-11-15: campos de valor aceitam "25,00" (teclado brasileiro) e
-    # o item fora da coleta pega a imagem do catálogo do Mercado.
+def test_troca_mostra_imagem_do_catalogo_e_saldo_de_hoje(client, monkeypatch):
     from lodout.public_site import catalogo
+    monkeypatch.setattr(catalogo, "CAMBIO_FIXO", 1.0)
     conn = catalogo.conectar()
-    catalogo.gravar(conn, "Rifles", [{"hash_name": "Caixa Z", "price": 1.0,
-                                      "listings": 5, "name_color": "4b69ff",
-                                      "icon": "hash-z"}])
+    catalogo.gravar(conn, "Rifles", [
+        {"hash_name": "Caixa Z", "price": 1.0, "listings": 5, "name_color": "4b69ff", "icon": "hash-z"},
+        {"hash_name": "Caixa Y", "price": 3.0, "listings": 5, "name_color": "4b69ff", "icon": "hash-y"}])
     conn.close()
     _login(client, monkeypatch)
     token = _csrf_token(client)
-    resp = client.post("/conta/trades", data={
-        "name": "Caixa Z", "buy_cost": "25,00", "sell_price": "31,50",
-        "quantity": "1", "csrf_token": token})
-    assert resp.status_code == 302
+    _troca(client, token, deu=(("Caixa Z", "1", "2,00"),), recebeu=(("Caixa Y", "1", "2,50"),))
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "R$ 25,00" in pagina and "R$ 31,50" in pagina
-    assert "hash-z" in pagina
-    assert 'id="dialogo-remover"' in pagina
+    assert "hash-z" in pagina and "hash-y" in pagina
+    assert "Hoje: <strong" in pagina and 'id="dialogo-remover"' in pagina

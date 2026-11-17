@@ -980,6 +980,39 @@ def create_app() -> Flask:
             f"google-site-verification: {_GOOGLE_VERIFICACAO}.html",
             mimetype="text/html")
 
+    @app.route("/api/sugestoes")
+    @rate_limit.rate_limited(rate_limit.SUGESTAO_MAX_HITS, rate_limit.SUGESTAO_WINDOW_S)
+    def sugestoes_de_nome():
+        """Nomes exatos do Mercado enquanto a pessoa digita (formulários de
+        Watchlist, Trades e "Adicionar um item à mão", pedido 17/11), em
+        português ou inglês, com o preço de hoje. Só o banco local: o
+        catálogo e a última coleta; nunca a Steam."""
+        q = (request.args.get("q") or "").strip()[:80]
+        if len(q) < 2:
+            return jsonify([])
+        palavras = catalogo.texto_busca(q).split()
+        out: list = []
+        vistos: set = set()
+        scan = scan_store.load_last_scan() or {}
+        for r in scan.get("results") or []:
+            nome = r.get("name") or ""
+            texto = catalogo.texto_busca(catalogo.nome_para_busca(nome, localize_name(nome)))
+            if nome and all(p in texto for p in palavras):
+                out.append({"nome": nome, "nome_pt": localize_name(nome),
+                            "preco": r.get("price") if isinstance(r.get("price"), (int, float)) else None})
+                vistos.add(nome)
+            if len(out) >= 8:
+                break
+        if len(out) < 8:
+            _total, linhas = catalogo.consultar({"busca": q}, list(vistos),
+                                                limite=8 - len(out), contar=False)
+            for linha in linhas:
+                out.append({"nome": linha["nome"], "nome_pt": localize_name(linha["nome"]),
+                            "preco": linha.get("preco")})
+        resp = jsonify(out)
+        resp.headers["Cache-Control"] = "private, max-age=300"
+        return resp
+
     @app.route("/api/online", methods=["POST"])
     @rate_limit.rate_limited(rate_limit.ONLINE_MAX_HITS, rate_limit.ONLINE_WINDOW_S)
     def online_agora():

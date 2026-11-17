@@ -32,9 +32,12 @@ MUTATION_MAX_HITS, MUTATION_WINDOW_S = 30, 60.0
 # era barrado no 31º (revisão 2026-11-16). Exige login e CSRF e só mexe
 # nos dados da própria pessoa; o limite segue valendo contra script.
 CUSTO_MAX_HITS, CUSTO_WINDOW_S = 120, 60.0
-# "Estou aqui" das abas abertas (online.py): 1 por minuto por aba; folga
+# "Estou aqui" das abas abertas (online.py): 1 por minuto por aba e 1 a cada página aberta; folga
 # para algumas abas atrás do mesmo IP, sem deixar um script inflar a conta.
-ONLINE_MAX_HITS, ONLINE_WINDOW_S = 12, 60.0
+ONLINE_MAX_HITS, ONLINE_WINDOW_S = 30, 60.0
+# Sugestões de nome ao digitar (formulários da conta, 17/11): uma consulta
+# a cada ~250 ms de digitação; o limite só barra script.
+SUGESTAO_MAX_HITS, SUGESTAO_WINDOW_S = 90, 60.0
 
 # `/api/recommendations` é pública de propósito (pensada pra consumo
 # programático -- ver api_docs.html) e mais generosa que os presets de

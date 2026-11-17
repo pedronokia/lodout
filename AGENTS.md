@@ -46,7 +46,10 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   valor pago). Item com valor pago que some fica na conta com `fora_desde`;
   a pessoa marca "Está anunciado" (`anunciado`, fica até ela tirar) ou
   "Vendi" (sai da lista e vai para `user_vendidos`, mostrado no Histórico;
-  "Meus trades" são as trocas, outra coisa). Volta sem as marcas se
+  "Meus trades" são as TROCAS entre jogadores, `user_trocas.py`, desde
+  2026-11-17: deu x recebeu, valor de cada lado no dia; os registros
+  antigos de compra e venda migram para `user_vendidos` com source
+  "trades" e no Histórico só podem ser apagados, não "desfeitos"). Volta sem as marcas se
   reaparecer no inventário. Só o sem valor pago sai sozinho. Vendas e
   trocas da Steam não são públicas: o site não tem como saber sozinho. Valores apagados antes disso:
   `python -m lodout.public_site.recuperar_posicoes STEAMID|--todos

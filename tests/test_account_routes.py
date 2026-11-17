@@ -592,7 +592,7 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     assert 'cabecalho-pagina cabecalho-conta-com-itens' in pagina
     # Adicionar à mão com rótulos visíveis (revisão de 16/11).
     assert "<span>Quantidade</span>" in pagina
-    assert "<span>Nome exato no Mercado da Steam</span>" in pagina
+    assert "<span>Item (comece a digitar o nome)</span>" in pagina
     # Falha ao salvar com login expirado: conta.js mostra "Entrar de novo".
     assert 'data-login-url="/login"' in pagina
     assert 'class="conta-identidade-frase">seus itens da Steam' in pagina

@@ -24,7 +24,7 @@ from lodout.localization import localize_name
 from lodout.prices import PriceCache
 from lodout.public_site import (
     catalogo, fmt, inventario, raridade, steam_openid, user_history, user_portfolio,
-    user_store, user_trades, user_vendidos, user_watchlist,
+    user_store, user_trocas, user_vendidos, user_watchlist,
 )
 from lodout.public_site.auth import csrf_protect, csrf_token, login_required
 from lodout.public_site.rate_limit import (
@@ -1035,7 +1035,7 @@ def exportar_dados():
         "exportado_em": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "usuario": usuario,
         "portfolio": user_portfolio.load_positions(steamid),
-        "trades": user_trades.load_trades(steamid),
+        "trocas": user_trocas.load(steamid),
         "watchlist": user_watchlist.load_items(steamid),
         "historico_valor": user_history.load_history(steamid),
         "vendidos": user_vendidos.load(steamid),

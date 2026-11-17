@@ -6891,6 +6891,40 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .pagina-inicial .home-tese-texto { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
 .hero-destaque-desde { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
 
+/* "Meus trades" = trocas (17/11): dois lados, várias linhas por lado. */
+.form-troca { display: grid; gap: var(--sp-3); }
+.troca-lados { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.troca-lado { display: grid; gap: var(--sp-2); margin: 0; padding: var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); min-width: 0; }
+.troca-lado legend { padding: 0 6px; color: var(--text-bright); font-weight: 600; }
+.troca-linha { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 7.5rem; gap: var(--sp-2); align-items: end; }
+.troca-linha input { width: 100%; min-width: 0; height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
+.troca-linha input:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28); }
+.troca-linha .campo-adicionar-nome { min-width: 0; }
+.troca-mais { justify-self: start; min-height: 32px; }
+.troca-mais[hidden],
+.botao-link[hidden] { display: none; }
+.troca-ajuda { margin: 0; }
+.troca-rodape { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: flex-end; }
+.troca-rodape input { height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
+.lista-trocas { display: grid; gap: var(--sp-3); margin: 0; padding: 0; list-style: none; }
+.troca-card { display: grid; gap: var(--sp-2); }
+.troca-data { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.troca-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.troca-coluna-titulo { display: flex; justify-content: space-between; gap: var(--sp-2); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); color: var(--text-muted); font-weight: 600; }
+.troca-coluna-total { color: var(--text-bright); font-variant-numeric: tabular-nums; }
+.troca-itens { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.troca-itens li { display: flex; align-items: center; gap: var(--sp-2); }
+.troca-item-texto { display: flex; flex-wrap: wrap; gap: 2px 6px; min-width: 0; }
+.troca-item-valor { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.troca-saldo { margin: 0; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.troca-card .form-remover { justify-self: end; }
+@media (max-width: 640px) {
+  .troca-lados, .troca-colunas { grid-template-columns: 1fr; }
+  .troca-linha { grid-template-columns: 5rem minmax(0, 1fr); }
+  .troca-linha .campo-adicionar-nome { grid-column: 1 / -1; }
+  .troca-rodape { align-items: stretch; flex-direction: column; }
+}
+
 /* "N pessoas no site agora" no rodapé (17/11): nasce hidden quando zero. */
 .rodape-online[hidden] { display: none; }
 

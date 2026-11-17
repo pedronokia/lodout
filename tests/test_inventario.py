@@ -390,7 +390,7 @@ def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
     vendas = user_vendidos.load(sid)
     assert len(vendas) == 1 and vendas[0]["quantity"] == 2 and vendas[0]["buy_cost"] == 10.0
     assert vendas[0]["pnl"] == round(2 * (20 / 1.15) - 20, 2)
-    assert not __import__("lodout.public_site.user_trades", fromlist=["x"]).load_trades(sid)
+    assert not __import__("lodout.public_site.user_trocas", fromlist=["x"]).load(sid)
     hist = client.get("/conta/historico").data.decode("utf-8")
     assert "Itens vendidos" in hist and "Caixa V" in hist and "+R$ 14,78" in hist
     # Preço inválido não vende nada.

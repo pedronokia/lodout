@@ -15,6 +15,8 @@ ENTRADAS = [
         "titulo": "Página inicial mais clara, textos revisados e ícone novo",
         "itens": [
             "A página inicial diz logo no topo o que é o Lodout (notas de 0 a 100 para skins de CS2, com o porquê de cada uma) e leva a “Como funciona”. O resumo do Top 20 ficou mais simples (“3 itens entraram no Top 20 desde ontem”) e o preço do destaque diz desde quando mudou.",
+            "“Meus trades” agora guarda as suas trocas com outros jogadores: o que você deu, o que recebeu e quanto valia cada lado, com o saldo no dia da troca e com os preços de hoje. Vendas ficam em “Itens vendidos”, no Histórico; os registros de compra e venda que estavam em “Meus trades” foram para lá.",
+            "Ao digitar o nome de um item (Watchlist, trocas e “Adicionar um item à mão”), aparecem sugestões em português ou inglês com o preço de hoje; não é mais preciso saber o nome exato do Mercado.",
             "O rodapé mostra quantas pessoas estão no site agora. A contagem usa só um código aleatório de cada aba aberta, sem cookie e sem ligação com a sua conta, apagado em minutos (detalhes em Privacidade).",
             "A página “Como funciona a nota” lista os fatores que mais pesam (inclusive a facilidade de comprar e vender), explica por que, nas skins, uma queda em todos os períodos soma pontos, e corrige que o nível do preço só conta para caixas e cápsulas.",
             "Abriu um item que não existe (nome digitado errado ou link antigo)? A página diz qual item não foi achado, sugere os de nome parecido e já deixa o nome na busca.",
