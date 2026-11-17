@@ -2250,7 +2250,9 @@ def _cartao_do_catalogo(r: dict) -> dict:
     return {
         "catalogo": True,
         "name": r["nome"],
-        "name_fmt": r.get("nome_pt") or localize_name(r["nome"]),
+        # Tradução atual, não a gravada na varredura (17/11: "Bastante
+        # Usada" virou "Bem Desgastada", o nome da Steam).
+        "name_fmt": localize_name(r["nome"]),
         "price": r.get("preco"),
         "price_fmt": fmt.brl(r.get("preco")),
         "a_venda": f"{int(r.get('a_venda') or 0):,}".replace(",", "."),

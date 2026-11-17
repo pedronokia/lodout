@@ -36,7 +36,7 @@ EXTERIORES = {
     "fn": ("(Factory New)", "Nova de Fábrica"),
     "mw": ("(Minimal Wear)", "Pouco Usada"),
     "ft": ("(Field-Tested)", "Testada em Campo"),
-    "ww": ("(Well-Worn)", "Bastante Usada"),
+    "ww": ("(Well-Worn)", "Bem Desgastada"),
     "bs": ("(Battle-Scarred)", "Veterana de Guerra"),
 }
 VERSOES = {

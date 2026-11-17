@@ -24,7 +24,7 @@ _WEARS = [
     ("(Factory New)", "(Nova de Fábrica)"),
     ("(Minimal Wear)", "(Pouco Usada)"),
     ("(Field-Tested)", "(Testada em Campo)"),
-    ("(Well-Worn)", "(Bastante Usada)"),
+    ("(Well-Worn)", "(Bem Desgastada)"),  # nome da Steam em pt-BR (era "Bastante Usada" até 17/11)
     ("(Battle-Scarred)", "(Veterana de Guerra)"),
 ]
 

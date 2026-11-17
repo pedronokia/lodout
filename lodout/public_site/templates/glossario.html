@@ -25,12 +25,14 @@
       {"@type": "DefinedTerm", "name": "Sem nota ainda", "description": "Item do Mercado que o Lodout mostra só com o preço do dia: a nota precisa do histórico de preço, que ainda não foi coletado para ele."},
       {"@type": "DefinedTerm", "name": "Preço típico", "description": "A mediana dos preços recentes do item — o preço normal dele, usado como referência pra saber se o preço atual está caro ou barato."},
       {"@type": "DefinedTerm", "name": "Caixa descontinuada", "description": "Caixa que parou de ser sorteada no jogo (saiu do drop pool). No histórico medido, caixas assim valorizaram mais que as ainda ativas, o que não garante o que vai acontecer."},
-      {"@type": "DefinedTerm", "name": "Risco", "description": "No Lodout, mede só uma coisa: chance de o preço ter subido rápido e artificialmente recentemente."},
+      {"@type": "DefinedTerm", "name": "Risco", "description": "No Lodout, mede só uma coisa: a chance de uma alta recente do preço ter sido rápida demais e possivelmente artificial."},
       {"@type": "DefinedTerm", "name": "Liquidez", "description": "Quanto tempo o estoque à venda levaria pra esvaziar no ritmo de negociação recente (estoque dividido pelo volume médio diário). Quanto menos dias, mais fácil comprar ou vender rápido pelo preço de mercado."},
       {"@type": "DefinedTerm", "name": "Trade-up", "description": "Mecânica do próprio CS2: trocar 10 skins da mesma raridade por uma skin de raridade superior (aleatória, dentro de um conjunto possível)."},
       {"@type": "DefinedTerm", "name": "Oculto", "description": "Uma das raridades de skin no CS2 (Covert, em inglês): a mais alta entre as comuns, antes das facas/luvas. Aparece com borda vermelha no jogo."},
       {"@type": "DefinedTerm", "name": "Raridade", "description": "Categoria fixa de cada skin no CS2, mostrada pela cor da borda no ícone (Lodout) e no próprio jogo: cinza (Nível Consumidor), azul claro (Nível Industrial), azul (Nível Militar), roxo (Restrito), rosa (Secreto), vermelho (Oculto) e dourado (facas, luvas e itens contrabandeados). Não muda com o tempo nem com o desgaste."},
-      {"@type": "DefinedTerm", "name": "Procura × Oferta", "description": "Quantos itens são vendidos por dia comparado a quantos estão à venda agora. Abaixo de 1 significa mais gente vendendo do que comprando — um dos fatores que compõem a nota."}
+      {"@type": "DefinedTerm", "name": "Procura × Oferta", "description": "Quantos itens são vendidos por dia comparado a quantos estão à venda agora. Abaixo de 1 significa mais gente vendendo do que comprando — um dos fatores que compõem a nota."},
+      {"@type": "DefinedTerm", "name": "Taxa da Steam", "description": "O que a Steam desconta de cada venda no Mercado: 15% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o comprador paga. Por isso um item precisa subir uns 15% só para revender sem prejuízo."},
+      {"@type": "DefinedTerm", "name": "Encomenda", "description": "Um pedido de compra no Mercado da Steam: você diz quanto paga e espera alguém vender por esse preço. Demora mais que comprar o menor anúncio, mas o preço é você quem escolhe."}
     ]
   }
   </script>
@@ -65,6 +67,8 @@
       <a href="#termo-oculto">Oculto</a>
       <a href="#termo-raridade">Raridade</a>
       <a href="#termo-procura-oferta">Procura × Oferta</a>
+      <a href="#termo-taxa">Taxa da Steam</a>
+      <a href="#termo-encomenda">Encomenda</a>
     </nav>
     {# Cada par dt/dd fica num <div> (agrupamento válido em HTML5 dentro de
        <dl>) pra virar UM item de grid -- sem o wrapper, dt e dd são irmãos
@@ -142,9 +146,9 @@
 
       <div class="termo-glossario">
       <dt id="termo-risco"><strong>Risco</strong></dt>
-      <dd>No Lodout, mede só uma coisa: a chance de o preço ter subido
-      rápido e possivelmente artificialmente recentemente. Não cobre outros
-      tipos de risco.</dd>
+      <dd>No Lodout, mede só uma coisa: a chance de uma alta recente do
+      preço ter sido rápida demais e possivelmente artificial. Não cobre
+      outros tipos de risco.</dd>
       </div>
 
       <div class="termo-glossario">
@@ -191,6 +195,25 @@
       <dd>Quantos itens são vendidos por dia comparado a quantos estão à
       venda agora. Abaixo de 1 significa mais gente vendendo do que
       comprando — um dos fatores que compõem a nota.</dd>
+      </div>
+
+      <div class="termo-glossario">
+      <dt id="termo-taxa"><strong>Taxa da Steam</strong></dt>
+      <dd>O que a Steam desconta de cada venda no Mercado: 15% sobre o que
+      você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o
+      comprador paga. Por isso um item precisa subir uns 15% só para você
+      revender sem prejuízo. Todo lucro mostrado no Lodout já desconta
+      essa taxa.</dd>
+      </div>
+
+      <div class="termo-glossario">
+      <dt id="termo-encomenda"><strong>Encomenda</strong></dt>
+      <dd>Um pedido de compra no Mercado: você diz quanto paga e espera
+      alguém vender por esse preço. Demora mais que comprar o menor
+      anúncio, mas o preço é você quem escolhe. A página de cada item
+      mostra até quanto encomendar para lucrar a sua meta revendendo pelo
+      preço de hoje, e a maior encomenda que já existe (as maiores são
+      atendidas primeiro).</dd>
       </div>
     </dl>
   </main>

@@ -24,7 +24,7 @@ def test_field_tested():
 
 def test_well_worn():
     assert localize_name("Glock-18 | Fade (Well-Worn)") == \
-        "Glock-18 | Fade (Bastante Usada)"
+        "Glock-18 | Fade (Bem Desgastada)"
 
 
 def test_battle_scarred():
