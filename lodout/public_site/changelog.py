@@ -12,16 +12,16 @@ ENTRADAS = [
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
         "data": "2026-11-17",
-        "titulo": "Busca mais rápida e ajuda quando um item não é encontrado",
+        "titulo": "Página inicial mais clara, textos revisados e ícone novo",
         "itens": [
-            "Abriu um item que não existe (nome digitado errado ou link antigo)? A página diz qual item não foi achado, sugere os de nome parecido e já deixa o nome na busca.",
-            "Filtrar o catálogo inteiro do Mercado (desgaste, preço) ficou de 4 a 6 vezes mais rápido.",
-            "No celular, as listas pesam menos: os ícones pequenos (conta, watchlist, trades, ranking e “itens parecidos”) não baixam mais a versão grande da imagem, sem perder nitidez.",
             "A página inicial diz logo no topo o que é o Lodout (notas de 0 a 100 para skins de CS2, com o porquê de cada uma) e leva a “Como funciona”. O resumo do Top 20 ficou mais simples (“3 itens entraram no Top 20 desde ontem”) e o preço do destaque diz desde quando mudou.",
             "A página “Como funciona a nota” lista os fatores que mais pesam (inclusive a facilidade de comprar e vender), explica por que, nas skins, uma queda em todos os períodos soma pontos, e corrige que o nível do preço só conta para caixas e cápsulas.",
+            "Abriu um item que não existe (nome digitado errado ou link antigo)? A página diz qual item não foi achado, sugere os de nome parecido e já deixa o nome na busca.",
             "O desgaste “Well-Worn” aparece com o nome da Steam em português, “Bem Desgastada” (era “Bastante Usada”). O Glossário ganhou “Taxa da Steam” e “Encomenda”.",
-            "A página de Privacidade conta que o banco tem uma cópia de segurança por dia, guardada por 7 dias: depois de excluir a conta, os dados ainda ficam nessas cópias por até uma semana e então somem sozinhos.",
             "O ícone do site (na aba do navegador e ao instalar no celular) voltou a ser as aspas laranja do topo da página, mais nítidas em tamanho pequeno.",
+            "A página de Privacidade conta que o banco tem uma cópia de segurança por dia, guardada por 7 dias: depois de excluir a conta, os dados ainda ficam nessas cópias por até uma semana e então somem sozinhos.",
+            "Filtrar o catálogo inteiro do Mercado (desgaste, preço) ficou de 4 a 6 vezes mais rápido.",
+            "No celular, as listas pesam menos: os ícones pequenos (conta, watchlist, trades, ranking e “itens parecidos”) não baixam mais a versão grande da imagem, sem perder nitidez.",
             "No Ranking, “Comparado com o ranking salvo há 1 dia” virou “Comparado com o Top 20 de ontem”; no Status, “Visitas ao dashboard” virou “Visitas ao site”.",
             "Links no meio do texto (Glossário e Histórico) ficaram sublinhados, para quem não distingue bem as cores, e a lista do Glossário ficou mais fácil para leitores de tela.",
         ],
