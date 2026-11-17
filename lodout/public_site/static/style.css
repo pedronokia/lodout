@@ -7010,7 +7010,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   /* Colunas do tamanho do rótulo ("FREQUÊNCIA" quebrava no meio). */
   table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "item item item hoje" "valor top enc enc"; }
   table.tabela-top20.tabela-cards-mobile tbody td::before { white-space: nowrap; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-item-ranking { grid-area: item; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-item-top { grid-area: item; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { grid-area: hoje; justify-content: center; align-items: flex-end; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje::before { display: none; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking { grid-area: valor; }
@@ -7019,8 +7019,9 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   .tabela-top20 .frequencia { flex-direction: column; align-items: flex-start; gap: 6px; }
   .tabela-top20 .frequencia strong { min-width: 0; text-align: left; }
   table.tabela-top20 tbody td.ranking-pos { display: none; }
-  table.tabela-top20 tbody td.celula-item-ranking { flex-direction: row; align-items: center; gap: var(--sp-2); }
-  table.tabela-top20 tbody td.celula-item-ranking::before { display: none; }
+  table.tabela-top20 tbody td.celula-item-top { justify-content: center; }
+  table.tabela-top20 tbody td.celula-item-top .celula-item-ranking { gap: var(--sp-2); }
+  table.tabela-top20 tbody td.celula-item-top::before { display: none; }
   .ranking-pos-celular { display: inline; min-width: 2.2em; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 }
 /* Celular estreito (SE): a encomenda desce para uma linha própria. */

@@ -133,7 +133,7 @@
           {% for it in lista %}
           <tr>
             <td class="ranking-pos" data-label="#">{{ it.position }}</td>
-            <td class="celula-item-ranking" data-label="Item">
+            <td class="celula-item-top" data-label="Item"><div class="celula-item-ranking">
               <span class="ranking-pos-celular" aria-hidden="true">#{{ it.position }}</span>
               <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}>
                 <span class="icone-item-placeholder"></span>
@@ -142,7 +142,7 @@
               {% endif %}
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
-            </td>
+            </div></td>
             <td class="celula-valor-ranking" data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
             <td class="celula-hoje" data-label="Nota hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td class="celula-no-top" data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
