@@ -1677,7 +1677,7 @@ def test_ranking_sugere_encomenda_da_frente_da_fila(client, monkeypatch, tmp_pat
     assert 'class="encomenda-steam" href="https://steamcommunity.com/market/listings/730/Faca%20Cara"' in faca
     assert 'target="_blank" rel="noopener"' in faca
     sem_fila = body.split(">Sem Fila<", 1)[1].split("</tr>", 1)[0]
-    assert "data-copiar-preco" not in sem_fila and "Sem dado da fila" in sem_fila
+    assert "data-copiar-preco" not in sem_fila and ">sem dado<" in sem_fila
     assert "copiar_preco.js" in body and "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
     # Não promete lucro, e a barra de meta não fica no Ranking.

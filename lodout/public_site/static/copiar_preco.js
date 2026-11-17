@@ -8,16 +8,39 @@
     var botao = e.target.closest && e.target.closest("[data-copiar-preco]");
     if (!botao) return;
     var numero = botao.getAttribute("data-copiar-preco");
-    if (!numero || !navigator.clipboard) return;
-    navigator.clipboard.writeText(numero).then(function () {
-      botao.classList.add("copiado");
-      botao.setAttribute("data-dica", "copiado");
-      if (aviso) aviso.textContent = "Copiado: " + numero + ". Na Steam, cole no preço da encomenda.";
+    if (!numero) return;
+    var avisar = function (ok) {
+      botao.classList.toggle("copiado", ok);
+      botao.setAttribute("data-dica", ok ? "copiado" : "não deu: copie à mão");
+      if (aviso) aviso.textContent = ok
+        ? "Copiado: " + numero + ". Na Steam, cole no preço da encomenda."
+        : "Não deu para copiar. O valor é " + numero + ".";
       clearTimeout(botao._copiadoT);
       botao._copiadoT = setTimeout(function () {
         botao.classList.remove("copiado");
         botao.removeAttribute("data-dica");
-      }, 2000);
-    }, function () {});
+      }, ok ? 2000 : 3500);
+    };
+    // Sem a API moderna (navegador antigo, página sem HTTPS) ou com ela
+    // bloqueada: tenta o jeito antigo antes de desistir (polimento 17/11:
+    // antes, nada acontecia e a pessoa não sabia por quê).
+    var antigo = function () {
+      var campo = document.createElement("textarea");
+      campo.value = numero;
+      campo.setAttribute("readonly", "");
+      campo.className = "visualmente-oculto";
+      document.body.appendChild(campo);
+      campo.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+      document.body.removeChild(campo);
+      botao.focus();
+      avisar(ok);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(numero).then(function () { avisar(true); }, antigo);
+    } else {
+      antigo();
+    }
   });
 })();

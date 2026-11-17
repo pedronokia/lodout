@@ -73,10 +73,12 @@
       <span class="hero-item-glow" aria-hidden="true"></span>
       <div class="hero-item-grade">
         <div class="hero-item-corpo">
+          <h1 class="titulo-item" translate="no">{{ item.name_fmt|titulo_sem_pipe_orfao }}</h1>
+          {# Raridade logo abaixo do nome, não em cima como etiqueta
+             (polimento 17/11): o título vem primeiro. #}
           {% if item.raridade_titulo %}
           <p class="hero-item-tag">{{ item.raridade_titulo }}</p>
           {% endif %}
-          <h1 class="titulo-item" translate="no">{{ item.name_fmt|titulo_sem_pipe_orfao }}</h1>
           <p class="hero-item-acoes">
             <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
