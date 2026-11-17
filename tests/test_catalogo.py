@@ -475,5 +475,5 @@ def test_busca_conta_o_catalogo_uma_vez_so(client, monkeypatch):
 
 def test_favicon_ico(client):
     r = client.get("/favicon.ico")
-    assert r.status_code == 200 and r.mimetype == "image/png"
+    assert r.status_code == 200 and r.mimetype == "image/x-icon"
     assert "max-age=86400" in r.headers["Cache-Control"]

@@ -6237,3 +6237,25 @@ def test_pessoas_no_site_agora_tem_limite_por_ip(client):
     status = [client.post("/api/online", json={"id": c}).status_code for c in codigos]
     assert status.count(429) == 3
     rate_limit._hits.clear()
+
+
+def test_icone_da_aba_em_png_encaixado_nos_pixels(client):
+    """17/11 (escolha do usuário): na aba vão PNGs de 16 e 32 px desenhados
+    na grade de pixels (bordas retas nítidas); o SVG ficou só no manifesto."""
+    import io
+
+    from PIL import Image
+    body = client.get("/faq").data.decode("utf-8")
+    assert 'rel="icon" type="image/png" sizes="16x16"' in body
+    assert 'rel="icon" type="image/png" sizes="32x32"' in body
+    assert 'rel="icon" href="/static/favicon.svg' not in body
+    for lado in (16, 32):
+        img = Image.open(io.BytesIO(client.get(f"/static/favicon-{lado}.png").data)).convert("RGBA")
+        assert img.size == (lado, lado)
+        px = img.load()
+        # Bordas: nenhum pixel desenhado encostado na borda (há respiro).
+        assert all(px[x, 0][3] == 0 and px[x, lado - 1][3] == 0 for x in range(lado))
+        assert all(px[0, y][3] == 0 and px[lado - 1, y][3] == 0 for y in range(lado))
+        # Nitidez: a maioria dos pixels desenhados é cheia, não meio-tom.
+        alfas = [px[x, y][3] for y in range(lado) for x in range(lado) if px[x, y][3]]
+        assert sum(1 for a in alfas if a > 230) / len(alfas) >= 0.55  # o antigo, sem encaixe: 0,51; este: 0,60

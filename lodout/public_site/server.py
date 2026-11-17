@@ -1034,9 +1034,9 @@ def create_app() -> Flask:
     def favicon_ico():
         """Navegadores antigos, leitores de feed e alguns apps pedem o
         ícone neste endereço fixo, sem ler o <link rel="icon"> (revisão
-        17/11: dava "página não encontrada"). Vai o PNG do app."""
-        resp = send_from_directory(_STATIC_DIR, "icon-192.png",
-                                   mimetype="image/png")
+        17/11: dava "página não encontrada"). Vai o .ico com 16, 32 e 48 px."""
+        resp = send_from_directory(_STATIC_DIR, "favicon.ico",
+                                   mimetype="image/x-icon")
         resp.cache_control.public = True
         resp.cache_control.max_age = 86400
         return resp
