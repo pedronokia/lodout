@@ -12,6 +12,18 @@ from lodout.public_site import inventario, user_portfolio, user_store, worker
 SID = "76561198000000001"
 
 
+@pytest.fixture(autouse=True)
+def _prazo_da_recuperacao_aberto(monkeypatch):
+    """O quadro de recuperação só aparece até 23/11/2026
+    (`account.RECUPERAR_ATE_TS`). Sem isto, os testes dele falhariam
+    sozinhos a partir de 24/11 e travariam todo deploy (achado de
+    2026-11-17). O fim do prazo tem teste próprio."""
+    import time
+
+    from lodout.public_site import account
+    monkeypatch.setattr(account, "RECUPERAR_ATE_TS", time.time() + 86400)
+
+
 def _inv(*nomes, qtd=1):
     return [{"name": n, "quantity": qtd, "icon": f"h-{n}"} for n in nomes]
 
@@ -641,6 +653,18 @@ def test_recuperar_nao_quero_de_volta(client):
     assert client.post("/conta/recuperar/dispensar", data={}).status_code in (400, 403)
     # O comando do servidor também respeita a escolha.
     assert recuperar_posicoes.main([sid]) == 0
+
+
+def test_recuperar_some_depois_do_prazo(client, monkeypatch):
+    """Depois do prazo (backups de 7 dias) o quadro não aparece mais."""
+    from lodout.public_site import account
+    sid = "76561198000000044"
+    _backup_com(sid, [{"name": "Antiga", "cost": 5.0, "quantity": 1, "source": "steam"}])
+    user_store.save_user_json(sid, "portfolio", [])
+    _logado(client, sid)
+    assert "Achamos 1 item" in client.get("/conta").data.decode("utf-8")
+    monkeypatch.setattr(account, "RECUPERAR_ATE_TS", 0.0)
+    assert "Achamos" not in client.get("/conta").data.decode("utf-8")
 
 
 def test_preco_do_anuncio(client):
