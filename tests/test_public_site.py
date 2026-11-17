@@ -1673,9 +1673,12 @@ def test_ranking_sugere_encomenda_da_frente_da_fila(client, monkeypatch, tmp_pat
     assert 'data-copiar-preco="1440,01"' in faca and "R$ 1.440,01" in faca
     assert "4% abaixo de hoje" in faca and "Preço de hoje: R$ 1.500,00" in faca
     assert "Maior encomenda hoje: R$ 1.440,00 (3 pedidos)" in faca
+    # Abrir o item na Steam ao lado do valor: copiar e já ir colar.
+    assert 'class="encomenda-steam" href="https://steamcommunity.com/market/listings/730/Faca%20Cara"' in faca
+    assert 'target="_blank" rel="noopener"' in faca
     sem_fila = body.split(">Sem Fila<", 1)[1].split("</tr>", 1)[0]
     assert "data-copiar-preco" not in sem_fila and "Sem dado da fila" in sem_fila
-    assert "ranking.js" in body and "data-copiado" in body
+    assert "copiar_preco.js" in body and "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
     # Não promete lucro, e a barra de meta não fica no Ranking.
     assert "Não é previsão de lucro" in body
@@ -5989,10 +5992,17 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Comprar por encomenda" in body
-    assert '<p class="encomenda-valor">R$ 72,46</p>' in body
-    assert "Maior encomenda na Steam hoje: <strong>R$ 75,50</strong> (1.234 pedidos)" in body
-    assert "Há encomendas maiores que a sua" in body
+    # 17/11: em destaque, a mesma sugestão do Ranking (frente da fila),
+    # copiável; a conta "para lucrar 20%" fica como referência.
+    assert 'data-copiar-preco="75,51"' in body and "R$ 75,51" in body
+    assert "Um centavo acima da maior encomenda" in body and "R$ 75,50 (1.234 pedidos)" in body
+    assert "24% abaixo do preço de hoje" in body
+    assert "o máximo seria <strong>R$ 72,46</strong>" in body
+    assert "Esse valor fica atrás da fila" in body
+    assert "copiar_preco.js" in body and "data-copiado" in body
     assert "A meta de 20% muda em “Minha conta”" in body
+    # Sem a fila da coleta (item só do catálogo, ou sem dado), o destaque
+    # continua sendo o valor para lucrar a meta.
     home = client.get("/").data.decode("utf-8")
     assert "Encomenda até <strong>R$ 72,46</strong>" in home
 

@@ -755,6 +755,8 @@ def create_app() -> Flask:
                 legenda_nota += f" (guardada desde {fmt.dia_mes_br(serie_nota[0]['ts'])})"
             legenda_nota += "."
         na_conta = _na_sua_conta(name)
+        fila_encomenda = next((r.get("encomenda") for r in (scan or {}).get("results") or []
+                               if r.get("name") == name), None)
         return _resposta_item(render_template(
             "item.html",
             item=item,
@@ -783,11 +785,12 @@ def create_app() -> Flask:
             # da carteira (portfolio.break_even_price).
             preco_empate=(fmt.brl(portfolio.break_even_price(item["price"]))
                           if item.get("price") else None),
-            encomenda=encomenda.info(
-                item.get("price"),
-                next((r.get("encomenda") for r in (scan or {}).get("results") or []
-                      if r.get("name") == name), None),
-                encomenda.meta_do_visitante()),
+            encomenda=encomenda.info(item.get("price"), fila_encomenda,
+                                     encomenda.meta_do_visitante()),
+            # A mesma sugestão do Ranking (frente da fila), copiável (17/11).
+            encomenda_sugestao=encomenda.sugestao(item.get("price"), fila_encomenda),
+            quando_fila=(scan_store.idade_txt(scan["ts"])
+                         if fila_encomenda and (scan or {}).get("ts") else None),
             taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             # Preço mais recente DESTE item específico -- cada item do
             # scan é coletado em instantes diferentes dentro do ciclo de
@@ -1296,6 +1299,8 @@ def create_app() -> Flask:
                 "encomenda": encomenda.sugestao((atual_scan or {}).get("price"),
                                                 (atual_scan or {}).get("encomenda")),
                 "preco_hoje_fmt": fmt.brl((atual_scan or {}).get("price")),
+                "market_url": _MARKET_LISTING_URL.format(
+                    name=urllib.parse.quote(it["name"], safe="")),
                 **it,
                 "position": pos,
                 "name_fmt": localize_name(it["name"]),

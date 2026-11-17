@@ -1,9 +1,22 @@
-{# Comprar por encomenda (pedido do usuário, 16/11): até quanto pagar
-   para lucrar a meta revendendo pelo preço de hoje, e a maior encomenda
-   que já existe na Steam. Conta com o preço de hoje, não previsão. #}
+{# Comprar por encomenda (pedido do usuário, 16/11; sugestão da frente da
+   fila desde 17/11, a mesma do Ranking). Com a fila de encomendas da
+   coleta, o valor em destaque é um centavo acima da maior encomenda (as
+   maiores são atendidas primeiro) e um clique copia; a conta "para lucrar
+   X%" fica embaixo, como referência. Sem a fila (item do catálogo ou sem
+   dado), o destaque é o valor para lucrar a meta. Conta com o preço de
+   hoje, não previsão. #}
 {% if encomenda %}
 <section class="conta-revenda encomenda" aria-labelledby="titulo-encomenda">
   <h2 class="conta-revenda-titulo" id="titulo-encomenda">Comprar por encomenda</h2>
+  {% if encomenda_sugestao %}
+  {% set sug = encomenda_sugestao %}
+  <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. As encomendas maiores são atendidas primeiro. Para ficar na frente da fila, encomende por</p>
+  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida">{{ sug.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
+  <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
+  <p class="conta-revenda-texto">Um centavo acima da maior encomenda{% if quando_fila %} da última coleta ({{ quando_fila }}){% endif %}, {{ sug.maior_fmt }}{% if sug.pedidos %} ({{ "{:,}".format(sug.pedidos).replace(",", ".") }} {{ "pedido" if sug.pedidos == 1 else "pedidos" }}){% endif %}, e {{ sug.abaixo_pct }}% abaixo do preço de hoje. Clique para copiar e cole na Steam; mudar o valor fica a seu critério.</p>
+  <p class="conta-revenda-texto">Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, o máximo seria <strong>{{ encomenda.ate_fmt }}</strong>.
+  {%- if encomenda.situacao == "abaixo" %} Esse valor fica atrás da fila, então tende a demorar ou não ser atendido.{% endif %}</p>
+  {% else %}
   <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. Demora mais, mas o preço é você quem escolhe. Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, encomende por até</p>
   <p class="encomenda-valor">{{ encomenda.ate_fmt }}</p>
   {% if encomenda.maior_fmt %}
@@ -12,6 +25,7 @@
   {%- elif encomenda.situacao == "igual" %} O seu valor empataria com ela; entre iguais, quem pediu antes é atendido primeiro.
   {%- else %} Há encomendas maiores que a sua: elas são atendidas primeiro, então a sua tende a demorar mais.{% endif %}</p>
   {% endif %}
-  <p class="conta-revenda-nota">Conta feita com o preço de hoje e a taxa da Steam; se o preço mudar, o lucro muda.{% if not session.get("steamid") %} A meta de {{ encomenda.meta }}% muda em “Minha conta”.{% endif %}</p>
+  {% endif %}
+  <p class="conta-revenda-nota">Conta feita com o preço de hoje e a taxa da Steam; se o preço mudar, o lucro muda. Não é previsão de lucro.{% if not session.get("steamid") %} A meta de {{ encomenda.meta }}% muda em “Minha conta”.{% endif %}</p>
 </section>
 {% endif %}

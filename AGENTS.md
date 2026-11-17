@@ -177,7 +177,7 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   CONSISTENTE (nota média em 7d/30d/90d/1 ano, `notas_historico.
   ranking_consistente`, desde 17/11; antes repetia a home na mesma ordem)
   e, embaixo, o que mudou no Top 20 desde ontem (4 blocos, 5 linhas
-  cada + "Ver mais"; `static/ranking.js` só copia a "Encomenda sugerida" = maior encomenda + R$ 0,01, `encomenda.sugestao`; a barra de meta fica só na conta); Método = a explicação completa da nota (única fonte; as outras
+  cada + "Ver mais"; `static/copiar_preco.js` (Ranking e item) só copia a "Encomenda sugerida" = maior encomenda + R$ 0,01, `encomenda.sugestao`; a barra de meta fica só na conta); Método = a explicação completa da nota (única fonte; as outras
   páginas resumem e linkam); Glossário = termos pra iniciante; Status =
   transparência da coleta; Mudanças = o que mudou no site, na linguagem
   de quem usa (sem jargão técnico interno).

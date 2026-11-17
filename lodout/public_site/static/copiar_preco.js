@@ -1,6 +1,6 @@
-// Ranking: clicar na "Encomenda sugerida" copia o número ("53,41") para
-// colar no preço da encomenda na Steam (pedido do usuário, 17/11). Sem
-// JS, o valor continua visível para copiar à mão.
+// Encomenda sugerida (Ranking e página do item): clicar no valor copia o
+// número ("53,41") para colar no preço da encomenda na Steam (pedido do
+// usuário, 17/11). Sem JS, o valor continua visível para copiar à mão.
 (function () {
   "use strict";
   var aviso = document.querySelector("[data-copiado]");
