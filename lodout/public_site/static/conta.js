@@ -13,11 +13,53 @@
     var campo = e.target;
     if (!campo.matches || !campo.matches("[data-enviar-ao-mudar]") || !campo.form) return;
     if (campo.form.classList.contains("form-meta-lucro") && window.fetch) {
-      trocarMeta(campo);
+      // Barra de arrastar (17/11): com as setas do teclado cada passo
+      // dispara "change"; salva só quando a pessoa para.
+      clearTimeout(metaEspera);
+      metaEspera = setTimeout(function () { trocarMeta(campo); }, 400);
       return;
     }
     campo.form.submit();
   });
+
+  // Enquanto arrasta: número ao lado da barra e preços da lista mudam na
+  // hora; salvar fica para quando soltar ("change", acima).
+  var metaEspera = null;
+  document.addEventListener("input", function (e) {
+    var barra = e.target;
+    if (!barra.matches || !barra.matches(".form-meta-lucro [name=\"meta\"]")) return;
+    aplicarMeta(Number(barra.value));
+  });
+
+  // Trecho preenchido da barra (--pct no CSS; o atributo style é
+  // bloqueado pela CSP, a propriedade via JS não).
+  function pintarBarra(barra) {
+    var min = Number(barra.min) || 1, max = Number(barra.max) || 100;
+    barra.style.setProperty("--pct", ((Number(barra.value) - min) / (max - min) * 100) + "%");
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.form-meta-lucro [name="meta"]'), pintarBarra);
+
+  function aplicarMeta(meta) {
+    Array.prototype.forEach.call(document.querySelectorAll('.form-meta-lucro input[name="meta"]'), pintarBarra);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-meta-lucro-valor]"), function (el) {
+      el.textContent = meta + "%";
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.form-meta-lucro [name="meta"]'), function (el) {
+      el.setAttribute("aria-valuetext", meta + "%");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-meta-rotulo]"), function (el) {
+      el.textContent = "Lucrar " + meta + "%";
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-meta-num]"), function (el) {
+      el.textContent = String(meta);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("tr.linha-posicao"), function (tr) {
+      var empate = Number(tr.getAttribute("data-empate") || 0);
+      if (!empate) return;
+      texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
+      titulosVenda(tr);
+    });
+  }
 
   // "Quero lucrar X%" sem recarregar (2026-11-15): salva a preferência e
   // recalcula o preço de venda de cada linha aqui mesmo (empate × meta).
@@ -44,19 +86,7 @@
       return resp.ok ? resp.json() : Promise.reject();
     }).then(function (d) {
       if (!d || !d.ok) return Promise.reject();
-      var meta = Number(d.meta);
-      Array.prototype.forEach.call(document.querySelectorAll("[data-meta-rotulo]"), function (el) {
-        el.textContent = "Lucrar " + meta + "%";
-      });
-      Array.prototype.forEach.call(document.querySelectorAll("[data-meta-num]"), function (el) {
-        el.textContent = String(meta);
-      });
-      Array.prototype.forEach.call(document.querySelectorAll("tr.linha-posicao"), function (tr) {
-        var empate = Number(tr.getAttribute("data-empate") || 0);
-        if (!empate) return;
-        texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
-        titulosVenda(tr);
-      });
+      aplicarMeta(Number(d.meta));
       terminar();
     }).catch(function () { form.submit(); });
   }
@@ -395,7 +425,7 @@
   function titulosVenda(tr) {
     var tabela = tr.closest("table");
     var taxa = Number((tabela && tabela.getAttribute("data-taxa")) || 15) / 100;
-    var seletor = document.querySelector('select[name="meta"]');
+    var seletor = document.querySelector('.form-meta-lucro [name="meta"]');
     var meta = Number((seletor && seletor.value) || 20) / 100;
     var empate = Number(tr.getAttribute("data-empate") || 0);
     if (!empate) return;
@@ -952,7 +982,7 @@
       // pago, o preço de hoje.
       var trVenda = d.closest("tr");
       var empateVenda = trVenda ? Number(trVenda.getAttribute("data-empate") || 0) : 0;
-      var seletorMeta = document.querySelector('select[name="meta"]');
+      var seletorMeta = document.querySelector('.form-meta-lucro [name="meta"]');
       var metaVenda = Number((seletorMeta && seletorMeta.value) || 20);
       var dica = formVendi.querySelector("[data-janela-vendi-dica]");
       var anuncioVenda = d.getAttribute("data-vendi-anuncio");
@@ -1094,7 +1124,7 @@
       var atual = form.getAttribute("data-anuncio-atual");
       var tr = form.closest("tr");
       var empate = tr ? Number(tr.getAttribute("data-empate") || 0) : 0;
-      var seletor = document.querySelector('select[name="meta"]');
+      var seletor = document.querySelector('.form-meta-lucro [name="meta"]');
       var meta = Number((seletor && seletor.value) || 20);
       if (atual) {
         campoAnuncio.value = atual;

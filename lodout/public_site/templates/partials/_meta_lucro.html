@@ -1,0 +1,13 @@
+{#- Meta de lucro com barra de arrastar (pedido do usuário, 17/11), na
+    conta e no Ranking. Quem entrou: salva na conta (vale nos dois
+    lugares). No Ranking sem login: só neste navegador (ranking.js), e o
+    formulário só aparece com JavaScript. Variáveis: meta_lucro,
+    meta_voltar ("conta"|"ranking"), meta_logado, meta_descricao (id). -#}
+{% set meta_id = "meta-lucro-" ~ meta_voltar %}
+<form class="form-meta-lucro" method="post" action="{{ url_for('account.definir_meta') }}" data-meta-lucro{% if not meta_logado %} data-meta-local hidden{% endif %}>
+  {% if meta_logado %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="voltar" value="{{ meta_voltar }}">{% endif %}
+  <label class="form-meta-lucro-rotulo">Quero lucrar
+  <input class="meta-lucro-barra" type="range" id="{{ meta_id }}" name="meta" min="1" max="100" step="1" value="{{ [meta_lucro, 100]|min }}" aria-valuetext="{{ meta_lucro }}%"{% if meta_descricao %} aria-describedby="{{ meta_descricao }}"{% endif %}{% if meta_logado %} data-enviar-ao-mudar{% endif %}></label>
+  <output class="meta-lucro-valor" for="{{ meta_id }}" data-meta-lucro-valor>{{ meta_lucro }}%</output>
+  {% if meta_logado %}<button type="submit" class="botao-link botao-filtrar-sem-js">aplicar</button>{% endif %}
+</form>

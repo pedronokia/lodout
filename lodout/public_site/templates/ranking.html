@@ -58,7 +58,7 @@
 
   {# A nota sempre na figurinha (anel colorido), como no resto do site
      (pedido do usuário, 17/11). #}
-  {% macro nota_figurinha(n, mini=False, rotulo="Nota") %}<span class="nota{{ ' nota-mini' if mini else '' }} nota-{{ n|nota_classe }}" role="img" title="{{ rotulo }}: {{ n }} de 100" aria-label="{{ rotulo }} {{ n }} de 100">{{ n|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ n }}</span></span>{% endmacro %}
+  {% macro nota_figurinha(n, mini=False, rotulo="Nota") %}<span class="nota{{ ' nota-mini' if mini else '' }}{{ ' nota-tres-digitos' if n >= 100 else '' }} nota-{{ n|nota_classe }}" role="img" title="{{ rotulo }}: {{ n }} de 100" aria-label="{{ rotulo }} {{ n }} de 100">{{ n|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ n }}</span></span>{% endmacro %}
 
   {# Linha de um bloco de movimento (Ranking = "o que mudou", 17/11):
      ícone, nome, posição antes -> agora e nota antes -> agora. Quem saiu
@@ -91,8 +91,9 @@
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Ranking</h1>
       <p class="descricao-pagina">Os itens que se mantêm com as melhores notas, pela nota média no período, e não só pela nota de hoje.</p>
-      {% if quando %}<p class="cabecalho-meta">Última coleta {{ quando }}.</p>{% endif %}
+      {% if quando %}<p class="cabecalho-meta">Última coleta completa {{ quando }}.</p>{% endif %}
     </header>
+    <div class="ranking-controles">
     <nav class="barra-periodo-ranking" aria-label="Período da nota média">
       <span class="barra-periodo-ranking-rotulo" id="rotulo-periodo-ranking">Nota média em:</span>
       <div class="seletor-periodo" role="group" aria-labelledby="rotulo-periodo-ranking">
@@ -101,6 +102,13 @@
         {% endfor %}
       </div>
     </nav>
+    {% if lista %}
+    {% set meta_lucro, meta_voltar, meta_logado, meta_descricao = meta_encomenda, "ranking", logado, "explica-meta-ranking" %}
+    {% include "partials/_meta_lucro.html" %}
+    {% include "partials/_legenda_raridade.html" %}
+    {% endif %}
+    </div>
+    {% if lista %}<p class="visualmente-oculto" id="explica-meta-ranking">Muda o “Encomenda até” de cada item: o máximo a pagar numa encomenda para lucrar essa porcentagem revendendo pelo preço de hoje, já com a taxa da Steam.</p>{% endif %}
     {% if modo == "presenca" %}
     <p class="aviso-periodo-ranking status-muted">A nota de todos os itens começou a ser guardada em 17/11. Até completar {{ dias_minimos }} dias, a ordem é por quantas vezes cada item esteve no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
     {% elif modo == "media" and desde %}
@@ -108,12 +116,9 @@
     {% endif %}
     {% if lista %}
     <section class="ranking-top20" aria-labelledby="titulo-top20">
-      <div class="ranking-top20-cabecalho">
-        <h2 class="visualmente-oculto" id="titulo-top20">Os 20 melhores no período</h2>
-        {% include "partials/_legenda_raridade.html" %}
-      </div>
+      <h2 class="visualmente-oculto" id="titulo-top20">Os 20 melhores no período</h2>
       <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Ranking pela nota média">
-      <table class="tabela-candidatos tabela-top20 tabela-cards-mobile">
+      <table class="tabela-candidatos tabela-top20 tabela-cards-mobile" data-taxa="{{ taxa_steam_pct }}">
         <thead>
           <tr>
             <th>#</th>
@@ -121,7 +126,7 @@
             <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
             <th title="Nota na última coleta">Hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
-            <th class="th-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Pagando até esse valor, revender pelo preço de hoje dá {{ meta_encomenda }}% de lucro, já com a taxa. Clique no valor para copiar.">Encomenda até<span class="th-sub">lucro de {{ meta_encomenda }}%</span></th>
+            <th class="th-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Pagando até esse valor, revender pelo preço de hoje dá {{ meta_encomenda }}% de lucro, já com a taxa. Clique no valor para copiar.">Encomenda até<span class="th-sub">lucro de <span data-meta-num>{{ meta_encomenda }}</span>%</span></th>
           </tr>
         </thead>
         <tbody>
@@ -138,10 +143,10 @@
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
-            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
-            <td data-label="Hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
-            <td data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
-            <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}">{{ it.encomenda.ate_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button>{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td class="celula-valor-ranking" data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
+            <td class="celula-hoje" data-label="Hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td class="celula-no-top" data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
+            <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" data-preco-hoje="{{ it.preco_hoje }}" data-nome="{{ it.name_fmt }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}"><span data-encomenda-valor>{{ it.encomenda.ate_fmt }}</span><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button>{% else %}<span class="status-muted">—</span>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

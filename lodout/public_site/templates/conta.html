@@ -112,18 +112,8 @@
       {% if avaliacao.rows %}
       {# Meta de lucro (2026-11-15): o preço de venda de cada item já soma
          a taxa da Steam e a meta escolhida. #}
-      <form class="form-meta-lucro" method="post" action="{{ url_for('account.definir_meta') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <label class="form-meta-lucro-rotulo">Quero lucrar
-          <select name="meta" data-enviar-ao-mudar aria-describedby="explica-meta">
-            {% for op in meta_lucro_opcoes %}
-            <option value="{{ op }}" {{ "selected" if op == meta_lucro else "" }}>{{ op }}%</option>
-            {% endfor %}
-            {% if meta_lucro not in meta_lucro_opcoes %}<option value="{{ meta_lucro }}" selected>{{ meta_lucro }}%</option>{% endif %}
-          </select>
-        </label>
-        <button type="submit" class="botao-link botao-filtrar-sem-js">aplicar</button>
-      </form>
+      {% set meta_voltar, meta_logado, meta_descricao = "conta", True, "explica-meta" %}
+      {% include "partials/_meta_lucro.html" %}
       {% endif %}
     </div>
     {# Inventário da Steam (conta-inventario.md, fase 2): sincroniza no

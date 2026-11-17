@@ -1666,11 +1666,18 @@ def test_ranking_encomenda_ate_copiavel(client, monkeypatch, tmp_path):
     from lodout import portfolio
     ate = round(portfolio.max_buy_price(1500.0, 20), 2)
     numero = f"{ate:.2f}".replace(".", ",")
-    assert "Encomenda até" in body and "lucro de 20%" in body
+    assert "Encomenda até" in body
     assert f'data-copiar-preco="{numero}"' in body and "." not in numero
     assert 'src="/static/ranking.js' in body or "ranking.js" in body
     assert "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
+    # Barra "Quero lucrar" (17/11): sem login, só neste navegador -- o
+    # formulário só aparece com JS e não tem botão de enviar.
+    form = body.split("data-meta-lucro", 1)[1].split("</form>", 1)[0]
+    assert "data-meta-local hidden" in form and 'type="range"' in form
+    assert 'value="20"' in form and "csrf_token" not in form and "aplicar" not in form
+    assert f'data-preco-hoje="1500.0"' in body and 'data-taxa="15"' in body
+    assert 'lucro de <span data-meta-num>20</span>%' in body
 
 
 def test_ranking_sem_historico_completo_usa_presenca_no_top20(client, monkeypatch):

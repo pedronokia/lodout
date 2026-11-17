@@ -450,7 +450,18 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
     assert resp.status_code == 302
     pagina = client.get("/conta").data.decode("utf-8")
     assert '<span data-campo="alvo">R$ 172,50</span>' in pagina
-    assert '<option value="50" selected>50%</option>' in pagina
+    # Barra de arrastar (17/11), no lugar do menu de opções.
+    assert 'type="range" id="meta-lucro-conta" name="meta" min="1" max="100" step="1" value="50"' in pagina
+    assert 'data-meta-lucro-valor>50%</output>' in pagina
+    assert "<select name=\"meta\"" not in pagina
+
+
+def test_meta_de_lucro_pela_barra_do_ranking_volta_para_o_ranking(client, monkeypatch):
+    """Sem JS, "aplicar" na barra do Ranking salva e volta para o Ranking."""
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    resp = client.post("/conta/meta", data={"meta": "35", "voltar": "ranking", "csrf_token": token})
+    assert resp.status_code == 302 and resp.headers["Location"].endswith("/ranking")
 
 
 def test_meta_de_lucro_invalida_e_recusada(client, monkeypatch):

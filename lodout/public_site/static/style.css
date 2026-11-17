@@ -2747,6 +2747,8 @@ table.tabela-candidatos td.celula-preco {
 .nota-mini .nota-anel-fundo,
 .nota-mini .nota-anel-progresso { stroke-width: 2.5; }
 .nota-mini .nota-numero { font-size: var(--fs-2xs); }
+/* "100" não cabia no anel pequeno (vazava pelas bordas). */
+.nota-mini.nota-tres-digitos .nota-numero { font-size: 0.6875rem; letter-spacing: -0.03em; }
 
 .nota-alta { color: var(--positive); }
 .nota-media { color: var(--warn); }
@@ -4259,6 +4261,49 @@ table.tabela-conta th { white-space: normal; }
   font-size: var(--fs-sm);
   font-weight: 500;
 }
+
+/* Barra de arrastar da meta (17/11), na conta e no Ranking. O trecho
+   preenchido vem de --pct (o JS atualiza; sem JS fica o padrão). */
+.form-meta-lucro[hidden] { display: none; }
+.meta-lucro-barra {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 168px;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.meta-lucro-barra::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--accent) var(--pct, 19%), var(--surface-hover) var(--pct, 19%));
+}
+.meta-lucro-barra::-moz-range-track { height: 6px; border-radius: 3px; background: var(--surface-hover); }
+.meta-lucro-barra::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--accent); }
+.meta-lucro-barra::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: 0 0 0 1px var(--accent);
+  transition: transform var(--dur-base) var(--ease-standard);
+}
+.meta-lucro-barra::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.meta-lucro-barra:active::-webkit-slider-thumb { transform: scale(1.15); }
+.meta-lucro-barra:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: var(--radius-xs); }
+.meta-lucro-valor { min-width: 4.5ch; color: var(--text-bright); font-size: var(--fs-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .form-meta-lucro select {
   min-height: 40px;
@@ -6894,7 +6939,21 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 /* Ranking pela nota média + "o que mudou desde ontem" (17/11). */
 .ranking-base { margin: 0 0 var(--sp-3); }
 .ranking-top20 { margin: 0 0 var(--sp-6); }
-.ranking-top20-cabecalho { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-3); margin: 0 0 var(--sp-2); }
+/* Período + "Cores da borda" na mesma linha (antes o botão ocupava uma
+   linha sozinho em cima da tabela). */
+.ranking-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-3); }
+.ranking-controles .barra-periodo-ranking { margin: 0; }
+.ranking-controles .popover-legenda { margin: 0; }
+.ranking-controles .form-meta-lucro { margin: 0 0 0 auto; }
+@media (max-width: 640px) {
+  .ranking-controles .form-meta-lucro { margin: 0; flex-basis: 100%; }
+  .ranking-controles .form-meta-lucro-rotulo { flex: 1 1 auto; }
+  .ranking-controles .meta-lucro-barra { flex: 1 1 auto; width: auto; min-width: 0; }
+}
+.ranking-controles .popover-legenda-conteudo { right: 0; left: auto; }
+/* A tabela cabe inteira: sem a faixa reservada à barra de rolagem, que
+   a deixava 15px mais estreita que o resto da página. */
+.ranking-top20 .tabela-wrap { scrollbar-gutter: auto; }
 .ranking-mudou-titulo { margin-top: var(--sp-6); }
 .ranking-movimento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin: 0 0 var(--sp-4); }
 .ranking-bloco { display: grid; align-content: start; gap: var(--sp-2); }
@@ -6931,6 +6990,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .movimento-linha-numeros { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
 .movimento-linha-numeros strong { color: var(--text); }
 .movimento-linha-nota { flex: none; margin-left: auto; display: inline-flex; }
+.movimento-linha-nota .nota-mini { width: 32px; height: 32px; }
 .movimento-linha-numeros .icone-ui { width: 10px; height: 10px; vertical-align: -1px; }
 .ranking-pos-celular, .ranking-pos-celular[hidden] { display: none; }
 @media (max-width: 640px) {
@@ -6939,11 +6999,27 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 /* Celular: cada item do Ranking vira um cartão (antes as colunas da
    direita ficavam escondidas, só arrastando a tabela). */
 @media (max-width: 640px) {
-  table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Cartão mais baixo: nome + figurinha de hoje em cima; frequência (ou
+     média), dias no Top 20 e encomenda numa linha só embaixo. */
+  /* Colunas do tamanho do rótulo ("FREQUÊNCIA" quebrava no meio). */
+  table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "item item item hoje" "valor top enc enc"; }
+  table.tabela-top20.tabela-cards-mobile tbody td::before { white-space: nowrap; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-item-ranking { grid-area: item; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { grid-area: hoje; justify-content: center; align-items: flex-end; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje::before { display: none; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking { grid-area: valor; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { grid-area: top; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-encomenda { grid-area: enc; }
+  .tabela-top20 .frequencia { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .tabela-top20 .frequencia strong { min-width: 0; text-align: left; }
   table.tabela-top20 tbody td.ranking-pos { display: none; }
   table.tabela-top20 tbody td.celula-item-ranking { flex-direction: row; align-items: center; gap: var(--sp-2); }
   table.tabela-top20 tbody td.celula-item-ranking::before { display: none; }
   .ranking-pos-celular { display: inline; min-width: 2.2em; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+}
+/* Celular estreito (SE): a encomenda desce para uma linha própria. */
+@media (max-width: 374px) {
+  table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "item item hoje" "valor top top" "enc enc enc"; }
 }
 
 /* "Meus trades" = trocas (17/11): dois lados, várias linhas por lado. */

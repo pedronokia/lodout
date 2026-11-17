@@ -650,6 +650,9 @@ def definir_meta():
     if quer_json:
         # conta.js recalcula os preços na própria página (sem recarregar).
         return jsonify({"ok": True, "meta": meta})
+    # A barra também fica no Ranking (17/11): sem JS, volta para lá.
+    if request.form.get("voltar") == "ranking":
+        return redirect(url_for("ranking_page"))
     return redirect(url_for("account.conta"))
 
 
