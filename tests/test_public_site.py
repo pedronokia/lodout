@@ -6167,3 +6167,17 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     assert "A meta de 20% muda em “Minha conta”" in body
     home = client.get("/").data.decode("utf-8")
     assert "Encomenda até <strong>R$ 72,46</strong>" in home
+
+
+def test_icones_pequenos_nao_baixam_a_versao_grande():
+    """Revisão 17/11 (Lighthouse): ícone mostrado com até 56 px não leva
+    srcset 2x -- a imagem de 192 px já é nítida até em tela de
+    densidade 3, e a de 384 pesava o dobro à toa no celular."""
+    import re
+    from pathlib import Path
+    pasta = Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "templates"
+    for arq in pasta.glob("*.html"):
+        for tag in re.findall(r"<img [^>]*>", arq.read_text(encoding="utf-8")):
+            w = re.search(r'width="(\d+)"', tag)
+            if w and int(w.group(1)) <= 56 and "/icone/" not in tag and "icon_url" in tag:
+                assert "srcset" not in tag, f"{arq.name}: {tag[:90]}"

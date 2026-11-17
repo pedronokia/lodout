@@ -220,7 +220,7 @@
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
               <span class="icone-item-placeholder"></span>
             {% if row.icon_url %}
-              <img class="icone-item" src="{{ row.icon_url }}" srcset="{{ row.icon_url }} 1x, {{ row.icon_url_2x }} 2x" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
+              <img class="icone-item" src="{{ row.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
             {% endif %}
             </span>
             <span class="celula-item-conta-texto">
