@@ -1287,18 +1287,15 @@ def create_app() -> Flask:
             it["name"] for fonte in (consistente["itens"], (atual or {}).get("items") or [],
                                      (anterior or {}).get("items") or [])
             for it in fonte if it.get("name")}))
-        meta_encomenda = encomenda.meta_do_visitante()
         lista = []
         for pos, it in enumerate(consistente["itens"], start=1):
             atual_scan = por_nome_scan.get(it["name"])
-            # "Encomenda até" copiável (pedido 17/11): número sem ponto de
-            # milhar ("1234,56"), como o campo de preço da Steam aceita.
-            enc = encomenda.info((atual_scan or {}).get("price"), None, meta_encomenda)
+            # Encomenda sugerida, copiável (escolha do usuário, 17/11): a
+            # frente da fila. Mudar o valor fica a critério da pessoa.
             lista.append({
-                "encomenda": enc,
-                "preco_hoje": (atual_scan or {}).get("price"),
+                "encomenda": encomenda.sugestao((atual_scan or {}).get("price"),
+                                                (atual_scan or {}).get("encomenda")),
                 "preco_hoje_fmt": fmt.brl((atual_scan or {}).get("price")),
-                "encomenda_copiar": f"{enc['ate']:.2f}".replace(".", ",") if enc else None,
                 **it,
                 "position": pos,
                 "name_fmt": localize_name(it["name"]),
@@ -1343,10 +1340,6 @@ def create_app() -> Flask:
             movimento=movimento,
             anterior_quando=(fmt.data_hora_br(anterior["ts"])[:5] if anterior else None),
             tamanho_top=len((atual or {}).get("items") or []),
-            meta_encomenda=meta_encomenda,
-            logado=bool(session.get("steamid")),
-            csrf_token=csrf_token() if session.get("steamid") else None,
-            taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             visiveis_por_bloco=_MOVIMENTO_VISIVEIS,
         )
 

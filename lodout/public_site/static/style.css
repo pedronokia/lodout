@@ -4262,7 +4262,7 @@ table.tabela-conta th { white-space: normal; }
   font-weight: 500;
 }
 
-/* Barra de arrastar da meta (17/11), na conta e no Ranking. O trecho
+/* Barra de arrastar da meta (17/11), em "Minha conta". O trecho
    preenchido vem de --pct (o JS atualiza; sem JS fica o padrão). */
 .form-meta-lucro[hidden] { display: none; }
 .meta-lucro-barra {
@@ -6944,12 +6944,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .ranking-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-3); }
 .ranking-controles .barra-periodo-ranking { margin: 0; }
 .ranking-controles .popover-legenda { margin: 0; }
-.ranking-controles .form-meta-lucro { margin: 0 0 0 auto; }
-@media (max-width: 640px) {
-  .ranking-controles .form-meta-lucro { margin: 0; flex-basis: 100%; }
-  .ranking-controles .form-meta-lucro-rotulo { flex: 1 1 auto; }
-  .ranking-controles .meta-lucro-barra { flex: 1 1 auto; width: auto; min-width: 0; }
-}
+
 .ranking-controles .popover-legenda-conteudo { right: 0; left: auto; }
 /* A tabela cabe inteira: sem a faixa reservada à barra de rolagem, que
    a deixava 15px mais estreita que o resto da página. */
@@ -6984,6 +6979,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .frequencia-cheio { fill: var(--accent); }
 /* "Encomenda até" copiável: a dica "copiado" sai para a esquerda. */
 .tabela-top20 .celula-encomenda { white-space: nowrap; }
+.ranking-nota-encomenda { margin: var(--sp-2) 0 0; font-size: var(--fs-xs); }
 /* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar
    fica sempre à vista (antes só aparecia com o mouse em cima). */
 .encomenda-preco-hoje { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }

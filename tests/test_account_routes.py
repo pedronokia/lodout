@@ -456,14 +456,6 @@ def test_conta_mostra_preco_para_empatar_e_para_a_meta(client, monkeypatch):
     assert "<select name=\"meta\"" not in pagina
 
 
-def test_meta_de_lucro_pela_barra_do_ranking_volta_para_o_ranking(client, monkeypatch):
-    """Sem JS, "aplicar" na barra do Ranking salva e volta para o Ranking."""
-    _login(client, monkeypatch)
-    token = _csrf_token(client)
-    resp = client.post("/conta/meta", data={"meta": "35", "voltar": "ranking", "csrf_token": token})
-    assert resp.status_code == 302 and resp.headers["Location"].endswith("/ranking")
-
-
 def test_meta_de_lucro_invalida_e_recusada(client, monkeypatch):
     _login(client, monkeypatch)
     token = _csrf_token(client)

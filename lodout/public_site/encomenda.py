@@ -62,3 +62,32 @@ def info(preco_hoje: "float | None", dado_scan: "dict | None", meta: int) -> "di
         "pedidos": pedidos if isinstance(pedidos, int) else None,
         "situacao": situacao,
     }
+
+
+def sugestao(preco_hoje: "float | None", dado_scan: "dict | None") -> "dict | None":
+    """Encomenda sugerida no Ranking (escolha do usuário, 17/11): R$ 0,01
+    acima da maior encomenda que já existe, para ficar na frente da fila
+    (as maiores são atendidas primeiro). A pessoa só copia; mudar o valor
+    fica a critério dela. Não é previsão de lucro: com a taxa da Steam,
+    revender pelo preço de hoje costuma dar prejuízo, então o site mostra
+    só quanto a sugestão fica abaixo do preço de hoje.
+
+    None sem preço de hoje, sem dado da fila, ou quando a frente da fila
+    já chega ao preço de hoje (aí comprar direto sai igual ou mais barato)."""
+    if not isinstance(preco_hoje, (int, float)) or preco_hoje <= 0:
+        return None
+    maior = (dado_scan or {}).get("maior")
+    if not isinstance(maior, (int, float)) or maior <= 0:
+        return None
+    valor = round(float(maior) + 0.01, 2)
+    if valor >= float(preco_hoje):
+        return None
+    pedidos = (dado_scan or {}).get("pedidos")
+    return {
+        "valor": valor,
+        "valor_fmt": fmt.brl(valor),
+        "copiar": f"{valor:.2f}".replace(".", ","),
+        "abaixo_pct": max(1, int(round(100 * (1 - valor / float(preco_hoje))))),
+        "maior_fmt": fmt.brl(float(maior)),
+        "pedidos": int(pedidos) if isinstance(pedidos, (int, float)) else None,
+    }

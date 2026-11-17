@@ -104,6 +104,9 @@ def _item(nome, categoria, nota, preco, cor, raridade, motivo, tendencia,
         "name": nome,
         "score": nota,
         "price": preco,
+        # Fila de encomendas fixa: a "Encomenda sugerida" do Ranking e o
+        # bloco de encomenda do item aparecem preenchidos (17/11).
+        "encomenda": {"maior": round(preco * 0.93, 2), "pedidos": 42},
         "category": categoria,
         "case_label": case_label,
         "case": None,

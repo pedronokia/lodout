@@ -1651,34 +1651,46 @@ def test_ranking_ordena_pela_nota_media_e_nao_pelo_pico(client, monkeypatch, tmp
     assert client.get("/ranking?periodo=xyz").status_code == 200
 
 
-def test_ranking_encomenda_ate_copiavel(client, monkeypatch, tmp_path):
-    """Pedido 17/11: copiar o preço por encomenda direto do Ranking. O
-    número vai sem "R$" e sem ponto de milhar, como a Steam aceita."""
+def test_ranking_sugere_encomenda_da_frente_da_fila(client, monkeypatch, tmp_path):
+    """Escolha do usuário (17/11): o site sugere a encomenda e a pessoa só
+    copia (mudar fica a critério dela). Sugestão = R$ 0,01 acima da maior
+    encomenda que já existe; número sem "R$" e sem ponto de milhar."""
     _salva_scan(tmp_path, monkeypatch, [
         {"name": "Faca Cara", "score": 90, "price": 1500.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": [],
+         "encomenda": {"maior": 1440.0, "pedidos": 3}},
+        {"name": "Sem Fila", "score": 80, "price": 10.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     agora = time.time()
-    snaps = [{"ts": agora - h * 3600, "items": [{"name": "Faca Cara", "score": 90, "position": 1}]}
+    snaps = [{"ts": agora - h * 3600, "items": [{"name": "Faca Cara", "score": 90, "position": 1},
+                                                {"name": "Sem Fila", "score": 80, "position": 2}]}
              for h in (12, 6, 0)]
     monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda *a, **k: snaps)
     body = client.get("/ranking").data.decode("utf-8")
-    from lodout import portfolio
-    ate = round(portfolio.max_buy_price(1500.0, 20), 2)
-    numero = f"{ate:.2f}".replace(".", ",")
-    assert "Encomenda até" in body
-    assert f'data-copiar-preco="{numero}"' in body and "." not in numero
-    assert 'src="/static/ranking.js' in body or "ranking.js" in body
-    assert "data-copiado" in body
+    assert "Encomenda sugerida" in body and "frente da fila" in body
+    faca = body.split(">Faca Cara<", 1)[1].split("</tr>", 1)[0]
+    assert 'data-copiar-preco="1440,01"' in faca and "R$ 1.440,01" in faca
+    assert "4% abaixo de hoje" in faca and "Preço de hoje: R$ 1.500,00" in faca
+    assert "Maior encomenda hoje: R$ 1.440,00 (3 pedidos)" in faca
+    sem_fila = body.split(">Sem Fila<", 1)[1].split("</tr>", 1)[0]
+    assert "data-copiar-preco" not in sem_fila and "Sem dado da fila" in sem_fila
+    assert "ranking.js" in body and "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
-    assert '<span class="encomenda-preco-hoje">hoje R$ 1.500,00</span>' in body
-    # Barra "Quero lucrar" (17/11): sem login, só neste navegador -- o
-    # formulário só aparece com JS e não tem botão de enviar.
-    form = body.split("data-meta-lucro", 1)[1].split("</form>", 1)[0]
-    assert "data-meta-local hidden" in form and 'type="range"' in form
-    assert 'value="20"' in form and "csrf_token" not in form and "aplicar" not in form
-    assert f'data-preco-hoje="1500.0"' in body and 'data-taxa="15"' in body
-    assert 'lucro de <span data-meta-num>20</span>%' in body
+    # Não promete lucro, e a barra de meta não fica no Ranking.
+    assert "Não é previsão de lucro" in body
+    assert "data-meta-lucro" not in body and 'type="range"' not in body
+
+
+def test_sugestao_de_encomenda_regras():
+    from lodout.public_site import encomenda
+    assert encomenda.sugestao(None, {"maior": 1.0}) is None
+    assert encomenda.sugestao(2.0, None) is None
+    assert encomenda.sugestao(2.0, {"maior": 0}) is None
+    # Frente da fila já no preço de hoje: comprar direto sai igual.
+    assert encomenda.sugestao(2.0, {"maior": 1.99}) is None
+    s = encomenda.sugestao(2.46, {"maior": 2.36, "pedidos": 79})
+    assert s["copiar"] == "2,37" and s["abaixo_pct"] == 4 and s["pedidos"] == 79
 
 
 def test_ranking_sem_historico_completo_usa_presenca_no_top20(client, monkeypatch):
