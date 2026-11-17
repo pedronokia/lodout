@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sqlite3
 import time
 import unicodedata
@@ -446,16 +447,19 @@ def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
 
 
 def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda",
-              limite: int = 12, offset: int = 0) -> "tuple[int, list[dict]]":
+              limite: int = 12, offset: int = 0,
+              contar: bool = True) -> "tuple[int, list[dict]]":
     """(total, itens) do catálogo que batem com os filtros, sem os
-    `excluir` (os itens com nota, que a lista já mostra antes)."""
+    `excluir` (os itens com nota, que a lista já mostra antes). Com
+    `contar=False` não conta (o total volta 0): a home já tem o total
+    de `contar_por_categoria`."""
     conn = _conectar_leitura()
     if conn is None:
         return 0, []
     try:
         where, args = _where(filtros, list(excluir))
         total = conn.execute(f"SELECT COUNT(*) FROM itens WHERE {where}",
-                             args).fetchone()[0]
+                             args).fetchone()[0] if contar else 0
         ordem = "preco ASC" if ordenar == "preco" else "a_venda DESC, nome"
         linhas = conn.execute(
             f"SELECT * FROM itens WHERE {where} ORDER BY {ordem} "
@@ -468,6 +472,24 @@ def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda"
         return 0, []
     finally:
         conn.close()
+
+
+def parecidos(nome: str, limite: int = 6) -> "list[dict]":
+    """Itens de nome parecido, para a página de item não encontrado
+    (revisão 17/11: nome digitado errado ou link antigo caía num "essa
+    página não existe" sem saída). Usa as palavras do nome, sem o
+    desgaste entre parênteses, e tira uma do fim por vez até achar algo:
+    "AK-47 | Redlin" acha os AK-47 | Redline."""
+    base = re.sub(r"\([^)]*\)", " ", nome or "")
+    palavras = [p for p in re.split(r"[\s|★™]+", texto_busca(base))
+                if len(p) >= 2 and p != "or" and any(ch.isalnum() for ch in p)][:6]
+    while palavras:
+        _total, linhas = consultar({"busca": " ".join(palavras)}, [],
+                                   limite=limite, contar=False)
+        if linhas:
+            return linhas
+        palavras = palavras[:-1]
+    return []
 
 
 def contar_por_categoria(filtros: dict, excluir: "list[str]" = ()) -> dict:

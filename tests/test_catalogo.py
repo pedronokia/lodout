@@ -418,3 +418,62 @@ def test_status_mostra_a_cotacao(client, monkeypatch):
     assert catalogo.resumo()["cotacao_brl_por_usd"] == 5.62
     body = client.get("/status").data.decode("utf-8")
     assert "R$ 5,62</strong> por dólar" in body and "medida em 12 itens" in body
+
+
+def test_parecidos_tira_palavras_do_fim_ate_achar():
+    """Revisão 17/11: item não encontrado sugere parecidos."""
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", a_venda=300),
+        _linha("AK-47 | Redline (Minimal Wear)", a_venda=80),
+        _linha("M4A4 | Howl (Field-Tested)", a_venda=5),
+    ]))
+    nomes = [r["nome"] for r in catalogo.parecidos("AK-47 | Redlin (Field Tested)")]
+    assert nomes == ["AK-47 | Redline (Field-Tested)", "AK-47 | Redline (Minimal Wear)"]
+    # "Redlinx" não casa: cai para só "ak47".
+    assert len(catalogo.parecidos("AK-47 | Redlinx")) == 2
+    assert catalogo.parecidos("Zzz qq") == []
+    assert catalogo.parecidos("") == []
+
+
+def test_item_nao_encontrado_diz_qual_e_sugere(client):
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", preco=51.0, a_venda=999),
+        _linha("AK-47 | Redline (Minimal Wear)", preco=90.0, a_venda=50),
+    ]))
+    r = client.get("/item/AK-47 | Redlin")
+    body = r.data.decode("utf-8")
+    assert r.status_code == 404
+    assert "Não achamos esse item" in body and "“AK-47 | Redlin”" in body
+    assert "Você quis dizer:" in body
+    assert 'href="/item/AK-47%20%7C%20Redline%20(Minimal%20Wear)"' in body
+    assert 'value="AK-47 | Redlin"' in body
+    # Sem parecidos: só a busca, já preenchida.
+    body = client.get("/item/Nada parecido").data.decode("utf-8")
+    assert "Você quis dizer" not in body and "Tente buscar só uma parte do nome" in body
+    # Outras páginas continuam com o texto de antes.
+    assert "Essa página não existe" in client.get("/isso-nao-existe").data.decode("utf-8")
+
+
+def test_busca_conta_o_catalogo_uma_vez_so(client, monkeypatch):
+    """Revisão 17/11: a home contava o catálogo duas vezes por busca."""
+    _catalogo_com(("Rifles", [
+        _linha(f"AK-47 | Teste {i} (Field-Tested)", a_venda=100 - i) for i in range(30)]))
+    contagens = []
+    original = catalogo.consultar
+
+    def espiao(*a, **k):
+        contagens.append(k.get("contar", True))
+        return original(*a, **k)
+    monkeypatch.setattr(catalogo, "consultar", espiao)
+    body = client.get("/?q=teste").data.decode("utf-8")
+    assert contagens == [False]
+    assert "AK-47 | Teste 0" in body
+    # O total certo continua aparecendo na paginação (30 itens).
+    body2 = client.get("/?q=teste&pagina=3").data.decode("utf-8")
+    assert "AK-47 | Teste 29" in body2 or "AK-47 | Teste 2" in body2
+
+
+def test_favicon_ico(client):
+    r = client.get("/favicon.ico")
+    assert r.status_code == 200 and r.mimetype == "image/png"
+    assert "max-age=86400" in r.headers["Cache-Control"]

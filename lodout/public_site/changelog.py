@@ -11,6 +11,15 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-17",
+        "titulo": "Busca mais rápida e ajuda quando um item não é encontrado",
+        "itens": [
+            "Abriu um item que não existe (nome digitado errado ou link antigo)? A página diz qual item não foi achado, sugere os de nome parecido e já deixa o nome na busca.",
+            "Buscar e filtrar no catálogo inteiro do Mercado ficou cerca de duas vezes mais rápido.",
+            "Links no meio do texto (Glossário e Histórico) ficaram sublinhados, para quem não distingue bem as cores, e a lista do Glossário ficou mais fácil para leitores de tela.",
+        ],
+    },
+    {
         "data": "2026-11-16",
         "titulo": "Mais itens com nota, conta mais rápida e login mais longo",
         "itens": [

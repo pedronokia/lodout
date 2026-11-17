@@ -497,10 +497,14 @@ def create_app() -> Flask:
                           if scan else [])
         total_cat = 0
         if usa_catalogo:
-            total_cat, _ = catalogo.consultar(
-                filtros_cat, nomes_com_nota, ordenar, limite=0)
-            for cat, n in catalogo.contar_por_categoria(
-                    filtros_cat, nomes_com_nota).items():
+            # Uma contagem só, por categoria (revisão 17/11: a busca contava
+            # o catálogo duas vezes, 0,1-0,4 s): o total da aba escolhida
+            # sai dela, e a página de itens não conta de novo.
+            por_categoria = catalogo.contar_por_categoria(
+                filtros_cat, nomes_com_nota)
+            total_cat = (por_categoria.get(categoria, 0) if categoria
+                         else sum(por_categoria.values()))
+            for cat, n in por_categoria.items():
                 contagem_abas[cat] = contagem_abas.get(cat, 0) + n
                 total_geral += n
         total_itens = len(todos) + total_cat
@@ -516,7 +520,7 @@ def create_app() -> Flask:
         if usa_catalogo and falta > 0 and total_cat:
             _total_ignorado, linhas = catalogo.consultar(
                 filtros_cat, nomes_com_nota, ordenar, limite=falta,
-                offset=max(0, inicio - len(todos)))
+                offset=max(0, inicio - len(todos)), contar=False)
             itens_catalogo_pagina = [_cartao_do_catalogo(r) for r in linhas]
         _marca("filtro")
         _enriquecer_com_historico(candidatos_pagina)
@@ -663,7 +667,15 @@ def create_app() -> Flask:
                           for r in (scan or {}).get("results") or [])
             linha = None if no_scan else catalogo.item(name)
             if linha is None or linha.get("preco") is None:
-                return render_template("404.html"), 404
+                # Nome errado ou link antigo (revisão 17/11): diz qual item
+                # não achou, deixa o nome na busca e sugere parecidos.
+                parecidos = [] if no_scan else [
+                    _cartao_do_catalogo(r) for r in catalogo.parecidos(name)
+                    if r.get("nome") != name]
+                return render_template(
+                    "404.html", item_procurado=name[:120],
+                    item_procurado_fmt=localize_name(name)[:120],
+                    parecidos=parecidos), 404
             item_cat = _cartao_do_catalogo(linha)
             na_conta = _na_sua_conta(name)
             return _resposta_item(render_template(
@@ -966,6 +978,17 @@ def create_app() -> Flask:
         return Response(
             f"google-site-verification: {_GOOGLE_VERIFICACAO}.html",
             mimetype="text/html")
+
+    @app.route("/favicon.ico")
+    def favicon_ico():
+        """Navegadores antigos, leitores de feed e alguns apps pedem o
+        ícone neste endereço fixo, sem ler o <link rel="icon"> (revisão
+        17/11: dava "página não encontrada"). Vai o PNG do app."""
+        resp = send_from_directory(_STATIC_DIR, "icon-192.png",
+                                   mimetype="image/png")
+        resp.cache_control.public = True
+        resp.cache_control.max_age = 86400
+        return resp
 
     @app.route("/robots.txt")
     def robots():
