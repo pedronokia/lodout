@@ -57,15 +57,21 @@
   {% endmacro %}
 
   {# Linha de um bloco de movimento (Ranking = "o que mudou", 17/11):
-     ícone, nome, posição antes -> agora e nota antes -> agora. #}
-  {% macro linha_movimento(it) %}
+     ícone, nome, posição antes -> agora e nota antes -> agora. Quem saiu
+     do Top 20 mostra "fora" no lugar da posição nova. #}
+  {% macro linha_movimento(it, saiu=False) %}
   <li class="movimento-linha">
     <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}><span class="icone-item-placeholder"></span>{% if it.icon_url %}<img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">{% endif %}</span>
     <span class="movimento-linha-texto">
-      <a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>
+      {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</span>{% endif %}
       <span class="movimento-linha-numeros">
-        <span>{% if it.prev_pos %}#{{ it.prev_pos }} {{ icone("seta-direita") }} {% endif %}<strong>#{{ it.position }}</strong></span>
+        {% if saiu %}
+        <span><span class="visualmente-oculto">era </span>#{{ it.prev_pos }} {{ icone("seta-direita") }} <strong>fora</strong></span>
+        <span>nota {{ it.prev_score }}{% if it.score is not none %} {{ icone("seta-direita") }} <span class="visualmente-oculto">agora </span><strong>{{ it.score }}</strong>{% endif %}</span>
+        {% else %}
+        <span>{% if it.prev_pos %}<span class="visualmente-oculto">era </span>#{{ it.prev_pos }} {{ icone("seta-direita") }} <span class="visualmente-oculto">agora </span>{% endif %}<strong>#{{ it.position }}</strong></span>
         <span>nota {% if it.nota_diff is not none %}{{ it.score - it.nota_diff }} {{ icone("seta-direita") }} {% endif %}<strong>{{ it.score }}</strong></span>
+        {% endif %}
       </span>
     </span>
   </li>
@@ -109,6 +115,7 @@
             <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
             <th title="Nota na última coleta">Hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
+            <th class="th-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Pagando até esse valor, revender pelo preço de hoje dá {{ meta_encomenda }}% de lucro, já com a taxa. Clique no valor para copiar.">Encomenda até<span class="th-sub">lucro de {{ meta_encomenda }}%</span></th>
           </tr>
         </thead>
         <tbody>
@@ -125,53 +132,54 @@
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
-            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<strong>{{ it.presenca_pct }}%</strong> <span class="status-muted">das coletas no Top 20</span>{% endif %}</td>
+            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
             <td data-label="Hoje">{% if it.nota_hoje is not none %}{{ it.nota_hoje }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
+            <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}">{{ it.encomenda.ate_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button>{% else %}<span class="status-muted">—</span>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       </div>
+      <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
     </section>
     {% else %}
       <p class="status status-vazio">Ainda não há notas guardadas para esse período. Volte em breve.</p>
     {% endif %}
 
     {% if movimento %}
+    {% set novos = movimento.entraram|length %}
     <h2 class="secao-titulo ranking-mudou-titulo">O que mudou no Top 20 desde ontem</h2>
-    <p class="status-muted ranking-base">Comparando o Top 20 da última coleta com o de {{ anterior_quando }}. A nota de um item pode mudar bastante de um dia para o outro; a lista acima, pela média, é mais estável.</p>
+    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}: a nota de um item muda bastante de um dia para o outro, e por isso a lista de cima usa a média.{% endif %}</p>
+    {# Entraram ao lado de Saíram, Subiram ao lado de Caíram; cada bloco
+       mostra até `visiveis_por_bloco` e guarda o resto em "Ver mais"
+       (17/11: 17 entradas num dia deixavam um bloco 3x mais alto). #}
     <div class="ranking-movimento">
-      {% for chave, titulo, vazio in (("entraram", "Entraram", "Ninguém entrou."), ("subiram", "Mais subiram", "Ninguém subiu de posição."), ("cairam", "Mais caíram", "Ninguém caiu de posição.")) %}
+      {% for chave, titulo, vazio in (("entraram", "Entraram", "Ninguém entrou no Top 20."), ("saidas", "Saíram", "Ninguém saiu do Top 20."), ("subiram", "Subiram", "Ninguém subiu de posição."), ("cairam", "Caíram", "Ninguém caiu de posição.")) %}
+      {% set itens_bloco = movimento[chave] %}
       <section class="card ranking-bloco ranking-bloco-{{ chave }}" aria-labelledby="titulo-{{ chave }}">
-        <h3 class="ranking-bloco-titulo" id="titulo-{{ chave }}">{{ titulo }}{% if movimento[chave] %} <span class="ranking-bloco-n">{{ movimento[chave]|length }}</span>{% endif %}</h3>
-        {% if movimento[chave] %}
-        <ul class="movimento-lista">{% for it in movimento[chave] %}{{ linha_movimento(it) }}{% endfor %}</ul>
+        <h3 class="ranking-bloco-titulo" id="titulo-{{ chave }}">{{ titulo }}{% if itens_bloco %} <span class="ranking-bloco-n">{{ itens_bloco|length }}</span>{% endif %}</h3>
+        {% if itens_bloco %}
+        <ul class="movimento-lista">{% for it in itens_bloco[:visiveis_por_bloco] %}{{ linha_movimento(it, chave == "saidas") }}{% endfor %}</ul>
+        {% if itens_bloco|length > visiveis_por_bloco %}
+        <details class="movimento-mais">
+          <summary>Ver mais {{ itens_bloco|length - visiveis_por_bloco }}</summary>
+          <ul class="movimento-lista">{% for it in itens_bloco[visiveis_por_bloco:] %}{{ linha_movimento(it, chave == "saidas") }}{% endfor %}</ul>
+        </details>
+        {% endif %}
         {% else %}
         <p class="status-muted">{{ vazio }}</p>
         {% endif %}
       </section>
       {% endfor %}
     </div>
-    {% if saidas %}
-    <section class="saidas-do-top" aria-labelledby="titulo-saidas">
-      <h3 class="ranking-bloco-titulo" id="titulo-saidas">Saíram do Top 20</h3>
-      <ul class="lista-saidas">
-        {% for s in saidas %}
-        <li>
-          {% if s.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=s.name) }}" translate="no">{{ s.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ s.name_fmt }}</span>{% endif %}
-          <span class="status-muted">era #{{ s.prev_pos }} com nota {{ s.prev_score }}{% if s.score is not none %}; agora nota {{ s.score }}{% endif %}</span>
-        </li>
-        {% endfor %}
-      </ul>
-    </section>
-    {% endif %}
     {% endif %}
   </main>
 
   <footer class="rodape">
-    <p>A nota de cada item é guardada a cada coleta de preços que dá certo.</p>
+    <p>A nota média vem das notas guardadas a cada coleta de preços. Nota alta não é garantia de lucro.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
+  <script src="{{ static_v('ranking.js') }}" defer></script>
 </body>
 </html>

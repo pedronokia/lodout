@@ -1277,10 +1277,26 @@ def create_app() -> Flask:
         scan = scan_store.load_last_scan()
         por_nome_scan = {r["name"]: r for r in (scan or {}).get("results") or []}
         com_pagina = _nomes_com_pagina(scan)
+        # O que mudou desde ontem (24 h), como antes, numa seção menor.
+        snaps = ranking.load_snapshots()
+        atual = snaps[-1] if snaps else None
+        anterior = _snapshot_de_comparacao(atual, "24h")
+        # Item que a coleta trouxe sem imagem: completa com a do catálogo
+        # (leitura local; antes ficava um quadrado vazio, achado 17/11).
+        por_nome_scan = raridade.completar_com_catalogo(por_nome_scan, list({
+            it["name"] for fonte in (consistente["itens"], (atual or {}).get("items") or [],
+                                     (anterior or {}).get("items") or [])
+            for it in fonte if it.get("name")}))
+        meta_encomenda = encomenda.meta_do_visitante()
         lista = []
         for pos, it in enumerate(consistente["itens"], start=1):
             atual_scan = por_nome_scan.get(it["name"])
+            # "Encomenda até" copiável (pedido 17/11): número sem ponto de
+            # milhar ("1234,56"), como o campo de preço da Steam aceita.
+            enc = encomenda.info((atual_scan or {}).get("price"), None, meta_encomenda)
             lista.append({
+                "encomenda": enc,
+                "encomenda_copiar": f"{enc['ate']:.2f}".replace(".", ",") if enc else None,
                 **it,
                 "position": pos,
                 "name_fmt": localize_name(it["name"]),
@@ -1289,10 +1305,6 @@ def create_app() -> Flask:
                 "tem_pagina": it["name"] in com_pagina,
                 **_icone_raridade(atual_scan),
             })
-        # O que mudou desde ontem (24 h), como antes, numa seção menor.
-        snaps = ranking.load_snapshots()
-        atual = snaps[-1] if snaps else None
-        anterior = _snapshot_de_comparacao(atual, "24h")
         itens_antigos = {it["name"]: it for it in (anterior or {}).get("items") or []}
         itens = []
         if atual:
@@ -1302,6 +1314,7 @@ def create_app() -> Flask:
                 itens.append({
                     "name": it["name"], "name_fmt": localize_name(it["name"]),
                     "position": it["position"], "score": it["score"],
+                    "tem_pagina": it["name"] in com_pagina,
                     "nota_diff": (it.get("score", 0) - velho.get("score", 0)) if velho else None,
                     **delta, **_icone_raridade(por_nome_scan.get(it["name"])),
                 })
@@ -1309,10 +1322,11 @@ def create_app() -> Flask:
         if anterior is not None:
             movimento = {
                 "entraram": [it for it in itens if it.get("label") == "NOVO"],
+                "saidas": _saidas_do_top(atual, anterior, por_nome_scan, com_pagina),
                 "subiram": sorted([it for it in itens if it.get("delta", 0) > 0],
-                                  key=lambda it: (-it["delta"], it["position"]))[:5],
+                                  key=lambda it: (-it["delta"], it["position"])),
                 "cairam": sorted([it for it in itens if it.get("delta", 0) < 0],
-                                 key=lambda it: (it["delta"], it["position"]))[:5],
+                                 key=lambda it: (it["delta"], it["position"])),
             }
         return render_template(
             "ranking.html",
@@ -1326,8 +1340,9 @@ def create_app() -> Flask:
             periodos=_PERIODOS_CONSISTENCIA,
             movimento=movimento,
             anterior_quando=(fmt.data_hora_br(anterior["ts"])[:5] if anterior else None),
-            saidas=_saidas_do_top(atual, anterior, por_nome_scan,
-                                  com_pagina if anterior else set()),
+            tamanho_top=len((atual or {}).get("items") or []),
+            meta_encomenda=meta_encomenda,
+            visiveis_por_bloco=_MOVIMENTO_VISIVEIS,
         )
 
     @app.route("/admin/login", methods=["GET", "POST"])
@@ -2220,8 +2235,15 @@ def _saidas_do_top(atual: "dict | None", anterior: "dict | None",
             "prev_score": it.get("score"),
             "score": agora.get("score") if agora else None,
             "tem_pagina": it["name"] in com_pagina,
+            **_icone_raridade(agora),
         })
     return out
+
+
+# "O que mudou desde ontem": quantas linhas cada bloco mostra antes do
+# "ver mais" (17/11: com 17 entradas num dia, o bloco ficava 3x mais alto
+# que os vizinhos e empurrava "Saíram" para longe).
+_MOVIMENTO_VISIVEIS = 5
 
 
 _HISTORICO_CURTO_LIMIAR = 5
