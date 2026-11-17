@@ -60,16 +60,18 @@
     </header>
     <h2 class="secao-titulo">O que a nota é</h2>
     <p>Um número de 0 a 100 que resume vários sinais factuais sobre um
-    item agora. Os que mais pesam:</p>
+    item. Ele é refeito a cada coleta de preço, só com os dados até
+    aquele momento; os períodos citados abaixo contam sempre a partir
+    da coleta. Os sinais que mais pesam:</p>
     <ul>
       <li><strong>Se é fácil de comprar e vender</strong>: a diferença
       entre o que os compradores oferecem e o menor anúncio, e se há mais
       gente querendo comprar do que vender.</li>
       <li><strong>Se o preço está abaixo do que costuma valer</strong>,
-      comparado com o preço típico das últimas semanas.</li>
-      <li><strong>Para onde o preço andou</strong>: nos últimos 7 dias e
-      em vários períodos de 24 horas a 30 dias. Nas skins, uma queda que
-      aparece em todos os períodos <em>soma</em> pontos, porque no
+      comparado com o preço típico do próprio item.</li>
+      <li><strong>Para onde o preço andou</strong>: se vem subindo ou
+      caindo, de um dia a um mês antes da coleta. Nas skins, uma queda que
+      aparece em todos esses períodos <em>soma</em> pontos, porque no
       histórico skins que caíram assim costumaram voltar a subir; nas
       caixas e cápsulas isso não se repetiu, e lá a queda tira pontos.</li>
       <li><strong>Quanto se vende perto do que há à venda</strong>, e a
@@ -95,7 +97,7 @@
     <p><strong>Caixas que pararam de ser sorteadas valorizaram mais</strong> —
     medido comparando caixas ainda ativas com caixas já aposentadas, na
     mesma janela de tempo. A amostra é pequena, o efeito foi mais forte
-    logo depois da aposentadoria e diminuiu com os anos. Foi o único
+    logo depois da aposentadoria e diminuiu com o tempo. Foi o único
     fator, dos medidos até hoje, em que a diferença passou com folga dos
     15% que a Steam cobra numa venda. Isso mostra o tamanho do efeito no
     passado, não uma garantia de lucro.</p>
@@ -115,23 +117,22 @@
       possivelmente artificial. Não cobre outros riscos (ex. mudanças
       que a própria Valve pode fazer no jogo).</li>
       <li>Os sinais são recalibrados de vez em quando, conforme mais
-      dado se acumula — o que a nota pesa hoje pode não ser
-      exatamente o que pesava há meses.</li>
+      dado se acumula, então o peso de cada fator pode mudar.</li>
       <li>A escala vai de 0 a 100, mas a soma dos fatores pode passar
       disso pra qualquer lado — um item muito bom ou muito ruim acerta
       o teto/piso da escala, não o fim da diferença entre ele e outro
       item também no teto. Quando isso acontece, um número pequeno do
       lado da nota ("+23", por exemplo) mostra o quanto ela passou do
-      limite; a ordem entre notas iguais na tabela já leva isso em
+      limite; a ordem entre notas iguais na lista já leva isso em
       conta.</li>
       <li>Vários fatores (tendência, distância do maior preço, alerta
       de subida artificial) só entram no cálculo quando há histórico
       suficiente pra confiar neles. Quando o item tem pouco histórico
-      registrado na Steam (ou o mais recente é velho), a nota sai de um
-      cálculo mais raso — um selo "Dado limitado" ao lado dela avisa
-      quando isso acontece. A tendência, por exemplo, compara o preço
-      médio de hoje com o de 7 dias atrás e só conta com pelo menos 5
-      dias de vendas registradas. O fator “subindo/caindo em todos os
+      registrado na Steam (ou as vendas mais recentes são antigas), a nota
+      sai de um cálculo mais raso — um selo "Dado limitado" ao lado dela
+      avisa quando isso acontece. A tendência, por exemplo, compara o
+      preço médio do dia da coleta com o de uma semana antes, e só conta
+      quando houve vendas na maior parte dessa semana. O fator “subindo/caindo em todos os
       períodos” também usa o preço médio de cada dia, e não uma venda
       solta: uma única venda fora do normal não muda a nota.</li>
       <li>Nem todo item tem nota. A busca mostra todo o Mercado de CS2 com o
