@@ -1803,7 +1803,7 @@ def test_ranking_periodo_sem_historico_avisa_em_vez_de_comparar(
     body = client.get("/ranking?periodo=30d").data.decode("utf-8")
     assert "Ainda não há ranking salvo de 30 dias atrás" in body
     assert "na nota" not in body
-    assert "Comparado com o ranking salvo" not in body
+    assert "Comparado com o Top 20" not in body
 
 
 def test_ranking_periodo_invalido_cai_no_padrao(client, monkeypatch):
@@ -5599,7 +5599,7 @@ def test_css_acabamento_toque_e_tipografia():
 def test_textos_sem_jargao_e_sem_promessa(client, monkeypatch):
     _ranking_com_historico(monkeypatch)
     ranking = client.get("/ranking").data.decode("utf-8")
-    assert "Comparado com o ranking salvo há " in ranking
+    assert "Comparado com o Top 20 de " in ranking
     assert "Snapshot" not in ranking
     status = client.get("/status").data.decode("utf-8")
     assert "worker" not in status.lower()

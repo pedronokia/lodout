@@ -107,7 +107,7 @@
       {% endif %}
       {% if resumo_do_dia %}
       <p class="resumo-do-dia">
-        Comparado com o ranking salvo {{ resumo_do_dia.quando }}:
+        Comparado com o Top 20 de {{ resumo_do_dia.dia_ref }}:
         {{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }} no Top 20{% if resumo_do_dia.maior_alta %}; maior alta de nota foi
         <strong translate="no">{{ resumo_do_dia.maior_alta.name_fmt }}</strong>
         ({{ resumo_do_dia.maior_alta.de }} {{ icone("seta-direita") }} {{ resumo_do_dia.maior_alta.para }}){% endif %}.
@@ -171,7 +171,7 @@
       {% if saidas %}
       <section class="saidas-do-top" aria-labelledby="titulo-saidas">
         <h2 class="secao-titulo" id="titulo-saidas">Saíram do Top 20</h2>
-        <p class="status-muted">{% if resumo_do_dia %}Estavam no ranking salvo {{ resumo_do_dia.quando }} e não estão no atual.{% else %}Estavam no ranking anterior e não estão no atual.{% endif %}</p>
+        <p class="status-muted">{% if resumo_do_dia %}Estavam no Top 20 de {{ resumo_do_dia.dia_ref }} e não estão no atual.{% else %}Estavam no ranking anterior e não estão no atual.{% endif %}</p>
         <ul class="lista-saidas">
           {% for s in saidas %}
           <li>

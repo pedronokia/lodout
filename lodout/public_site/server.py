@@ -1924,6 +1924,7 @@ def _resumo_entre(atual: "dict | None",
         "movimentos": movimentos[:_MOVIMENTOS_DESTAQUE],
         "quando": scan_store.idade_txt(antigo["ts"]),
         "desde": _desde_txt(antigo["ts"]),
+        "dia_ref": _desde_txt(antigo["ts"]).removeprefix("desde "),
     }
 
 

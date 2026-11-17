@@ -22,6 +22,7 @@ ENTRADAS = [
             "O desgaste “Well-Worn” aparece com o nome da Steam em português, “Bem Desgastada” (era “Bastante Usada”). O Glossário ganhou “Taxa da Steam” e “Encomenda”.",
             "A página de Privacidade conta que o banco tem uma cópia de segurança por dia, guardada por 7 dias: depois de excluir a conta, os dados ainda ficam nessas cópias por até uma semana e então somem sozinhos.",
             "O ícone do site (na aba do navegador e ao instalar no celular) voltou a ser as aspas laranja do topo da página, mais nítidas em tamanho pequeno.",
+            "No Ranking, “Comparado com o ranking salvo há 1 dia” virou “Comparado com o Top 20 de ontem”; no Status, “Visitas ao dashboard” virou “Visitas ao site”.",
             "Links no meio do texto (Glossário e Histórico) ficaram sublinhados, para quem não distingue bem as cores, e a lista do Glossário ficou mais fácil para leitores de tela.",
         ],
     },
