@@ -105,8 +105,60 @@ def test_experimento_das_caixas_nao_roda_no_worker_por_padrao(monkeypatch):
     from lodout.public_site import backtest_diario
     chamado = []
     monkeypatch.setattr(backtest_diario, "montar_itens", lambda: [{"x": 1}])
-    monkeypatch.setattr(backtest_diario.score_backtest, "relatorio", lambda itens: {"itens": 1})
+    monkeypatch.setattr(backtest_diario.score_backtest, "relatorio", lambda itens, **_: {"itens": 1})
     monkeypatch.setattr(backtest_diario, "experimento_caixas", lambda itens: chamado.append(1) or {})
     monkeypatch.delenv("LODOUT_EXPERIMENTO_CAIXAS", raising=False)
     assert backtest_diario.rodar_se_preciso() is True
     assert chamado == [] and "experimento_caixas" not in backtest_diario.ler()
+
+
+def _itens_sinteticos(n=6, seed=3):
+    import math
+    import random
+    rng = random.Random(seed)
+    agora = 1_794_900_000.0
+    itens = []
+    for k in range(n):
+        p = rng.uniform(1, 50)
+        hist = []
+        t = agora - 3 * 365 * 86400
+        while t < agora:
+            p *= math.exp(rng.gauss(0, 0.03))
+            hist.append({"time": t, "price_median": round(p, 2)})
+            t += 86400
+        rng.shuffle(hist)  # a ordem do histórico não pode mudar o resultado
+        itens.append({"name": f"Caixa {k}" if k % 2 else f"AK-47 | Teste {k} (Field-Tested)",
+                      "price_history": hist, "is_container": bool(k % 2)})
+    return itens, agora
+
+
+def test_relatorio_calcula_uma_vez_e_da_o_mesmo_que_amostras():
+    """Revisão 17/11: o relatório reaproveita a nota de cada data entre os
+    horizontes; as linhas têm que ser as mesmas de `amostras()`."""
+    itens, agora = _itens_sinteticos()
+    for h in (30, 90, 365):
+        esperado = []
+        for it in itens:
+            esperado.extend(score_backtest.amostras(
+                it["name"], it["price_history"], it["is_container"], h, agora=agora))
+        obtido = []
+        for it in itens:
+            obtido.extend(score_backtest._linhas_do_item(it, (30, 90, 365), 30.0, agora)[h])
+        chave = lambda r: (r["name"], r["as_of_ts"])
+        assert sorted(esperado, key=chave) == sorted(obtido, key=chave)
+
+
+def test_relatorio_mede_cada_fator_em_calibracao_e_confirmacao():
+    itens, agora = _itens_sinteticos(n=10)
+    rel = score_backtest.relatorio(itens, horizontes=(30,), agora=agora, fatores_seed=5)
+    fat = rel["horizontes"]["30"]["fatores"]
+    assert set(fat) == {"skins", "caixas"}
+    for grupo in fat.values():
+        assert set(grupo) == {"calibracao", "confirmacao"}
+    blocos = [b for g in fat.values() for parte in g.values() for b in parte.values()]
+    assert blocos, "esperava ao menos um fator medido"
+    for b in blocos:
+        assert {"com", "sem"} <= set(b) and b["com"]["n"] >= 20
+    # Sem a semente, o relatório fica como antes.
+    assert "fatores" not in score_backtest.relatorio(
+        itens, horizontes=(30,), agora=agora)["horizontes"]["30"]

@@ -20,6 +20,10 @@ from lodout import _paths, cases, scan_engine, scan_store, score_backtest
 
 _logger = logging.getLogger(__name__)
 INTERVALO_S = 24 * 3600
+# Medição por fator (revisão 17/11): a faixa 85-100 teve o pior resultado
+# a 1 ano. Split fixo por item -- hipóteses saem da calibração (70%), o
+# que se reporta é a confirmação (30%). Só mede; não muda a nota.
+_FATORES_SEED = 20261117
 
 
 def _caminho():
@@ -121,7 +125,7 @@ def rodar_se_preciso() -> bool:
     itens = montar_itens()
     if not itens:
         return False
-    rel = score_backtest.relatorio(itens)
+    rel = score_backtest.relatorio(itens, fatores_seed=_FATORES_SEED)
     # O experimento das caixas saiu daqui (16/11): rodando dentro do worker,
     # ele não terminou em mais de 2 h e segurou a coleta e o Top 20 a tarde
     # toda (o backtest sem ele leva ~4 min). Só roda se ligado de propósito

@@ -139,6 +139,14 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   por item antes de decidir -- ver o docstring da função pra disciplina
   de uso (resultado de confirmação é o que se reporta, não se ajusta
   o fator depois de ver esse número).
+- Backtest diário (2026-11-17): a nota quase não ordena o resultado
+  (Spearman ~0,03), e a faixa 85-100 teve a pior mediana a 365 dias. O
+  backtest só replaya os fatores de preço (sem livro de ofertas, que dá
+  os +25/+20 de liquidez da nota ao vivo). `/api/health` -> `backtest`
+  -> `horizontes` -> `fatores` traz cada fator "com x sem", em skins e
+  caixas, com split por item (`backtest_diario._FATORES_SEED`): tire
+  hipóteses da calibração, reporte a confirmação, e mostre ao usuário
+  antes de mudar qualquer peso.
 
 ## Interface pública
 

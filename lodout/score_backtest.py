@@ -48,6 +48,7 @@ for calibrado: ver seu docstring pra disciplina de uso.
 """
 from __future__ import annotations
 
+import bisect
 import random
 import statistics
 import time
@@ -86,7 +87,15 @@ def score_at(name: str, price_history: list[dict], as_of_ts: float,
     `name`: usado só pra resolver `cases.case_status(name, as_of=...)` --
     não entra em nenhum cálculo de preço.
     """
-    prefixo = _prefixo_ate(price_history, as_of_ts)
+    return _score_no_prefixo(name, _prefixo_ate(price_history, as_of_ts),
+                             as_of_ts, is_container)
+
+
+def _score_no_prefixo(name: str, prefixo: list[dict], as_of_ts: float,
+                      is_container: bool) -> "tuple[int, list[dict]] | None":
+    """Corpo de `score_at` com o prefixo já pronto (ordenado, só pontos
+    até `as_of_ts`) -- o `relatorio` corta o prefixo com bisect em vez de
+    reordenar o histórico inteiro a cada amostra."""
     if len(prefixo) < _MIN_PONTOS_PARA_SCORE:
         return None
 
@@ -241,9 +250,82 @@ def amostras(name: str, price_history: list[dict], is_container: bool,
                     "score": score,
                     "raw_score": signals.raw_score(breakdown),
                     "retorno_pct": ret,
+                    "fatores": _fatores(breakdown),
                 })
         ts += intervalo_dias * 86400
     return out
+
+
+def _fatores(breakdown: "list[dict] | None") -> dict:
+    """{fator: delta somado} de um breakdown (para a medição por fator)."""
+    out: dict = {}
+    for b in breakdown or []:
+        f = b.get("factor")
+        if f:
+            out[f] = round(out.get(f, 0) + float(b.get("delta") or 0), 1)
+    return out
+
+
+def _linhas_do_item(item: dict, horizontes, intervalo_dias: float,
+                    agora: "float | None") -> "dict[float, list[dict]]":
+    """As mesmas linhas de `amostras()` para vários horizontes de uma vez,
+    calculando a nota de cada data UMA vez (revisão 17/11: o backtest
+    diário levava 69 min no worker porque recalculava a nota de cada data
+    em cada horizonte e reordenava o histórico inteiro a cada amostra).
+    Mesma grade de datas e mesmo desempate de `forward_return`."""
+    name = item["name"]
+    is_container = bool(item.get("is_container"))
+    serie = sorted(
+        ((p["time"], i, p) for i, p in enumerate(item.get("price_history") or [])
+         if isinstance(p, dict) and p.get("time") is not None and p.get("price_median")),
+        key=lambda t: t[0])
+    pontos = [p for _t, _i, p in serie]
+    tempos = [t for t, _i, _p in serie]
+    out: "dict[float, list[dict]]" = {h: [] for h in horizontes}
+    limite = agora or time.time()
+    completo_n = bisect.bisect_right(tempos, limite)
+    if completo_n < _MIN_PONTOS_PARA_SCORE + 1:
+        return out
+    inicio = tempos[_MIN_PONTOS_PARA_SCORE]
+    fims = {h: tempos[completo_n - 1] - h * 86400 for h in horizontes}
+    validos = [h for h in horizontes if fims[h] > inicio]
+    if not validos:
+        return out
+    ultimo = max(fims[h] for h in validos)
+    ts = inicio
+    while ts <= ultimo:
+        k = bisect.bisect_right(tempos, ts)
+        resultado = _score_no_prefixo(name, pontos[:k], ts, is_container)
+        if resultado is not None:
+            score, breakdown = resultado
+            base = pontos[k - 1]["price_median"] if k else None
+            for h in validos:
+                if ts > fims[h] or not base:
+                    continue
+                ret = _retorno_ordenado(serie, tempos, base, ts, h)
+                if ret is not None:
+                    out[h].append({
+                        "name": name, "as_of_ts": ts, "score": score,
+                        "raw_score": signals.raw_score(breakdown),
+                        "retorno_pct": ret, "fatores": _fatores(breakdown),
+                    })
+        ts += intervalo_dias * 86400
+    return out
+
+
+def _retorno_ordenado(serie, tempos, preco_base: float, as_of_ts: float,
+                      horizon_days: float, tolerancia_dias: float = 5.0) -> "float | None":
+    """`forward_return` sobre a série já ordenada: o ponto mais perto do
+    alvo dentro da tolerância; no empate, o que vinha antes no histórico
+    original (o mesmo que o `min()` de `forward_return` escolhe)."""
+    alvo = as_of_ts + horizon_days * 86400
+    tol = tolerancia_dias * 86400
+    lo = bisect.bisect_left(tempos, alvo - tol)
+    hi = bisect.bisect_right(tempos, alvo + tol)
+    if lo >= hi:
+        return None
+    _t, _i, melhor = min(serie[lo:hi], key=lambda t: (abs(t[0] - alvo), t[1]))
+    return (melhor["price_median"] - preco_base) / preco_base * 100
 
 
 def avaliar(itens: "list[dict]", horizon_days: float,
@@ -401,21 +483,70 @@ def resumo_por_faixa(linhas: "list[dict]", taxa_pct: float = 15.0) -> dict:
     return out
 
 
+def resumo_por_fator(linhas: "list[dict]", taxa_pct: float = 15.0) -> dict:
+    """Para cada fator da nota, separado pelo sinal (ex.: "mediana+" deu
+    pontos, "mediana-" tirou): o que aconteceu com o preço nas datas em
+    que ele estava ligado x nas datas em que não estava (revisão 17/11).
+    Também quanto da faixa 85-100 tinha o fator (`na_faixa_85_pct`).
+
+    Mede associação, não causa: fatores aparecem juntos (ex.: queda e
+    "abaixo do típico"), então o "com x sem" de um carrega os vizinhos."""
+    if not linhas:
+        return {}
+    topo = [r for r in linhas if r["score"] >= 85]
+    chaves: set = set()
+    for r in linhas:
+        for f, d in (r.get("fatores") or {}).items():
+            if d:
+                chaves.add((f, d > 0))
+
+    def _stats(rets: list) -> dict:
+        return {"n": len(rets),
+                "mediana_pct": round(statistics.median(rets), 1),
+                "passou_taxa_pct": round(100 * sum(1 for x in rets if x >= taxa_pct) / len(rets))}
+
+    out = {}
+    for f, positivo in sorted(chaves):
+        def tem(r, f=f, positivo=positivo):
+            d = (r.get("fatores") or {}).get(f) or 0
+            return d > 0 if positivo else d < 0
+        com = [r["retorno_pct"] for r in linhas if tem(r)]
+        sem = [r["retorno_pct"] for r in linhas if not tem(r)]
+        if len(com) < 20 or not sem:
+            continue
+        bloco = {"com": _stats(com), "sem": _stats(sem)}
+        if topo:
+            bloco["na_faixa_85_pct"] = round(100 * sum(1 for r in topo if tem(r)) / len(topo))
+        out[f + ("+" if positivo else "-")] = bloco
+    return out
+
+
 def relatorio(itens: "list[dict]", horizontes=(30, 90, 365),
               intervalo_dias: float = 30.0,
-              agora: "float | None" = None) -> dict:
+              agora: "float | None" = None,
+              fatores_seed: "int | None" = None) -> dict:
     """Por horizonte: n, Spearman (nota bruta x retorno) e o resumo por
     faixa -- no geral e separado em skins e caixas/cápsulas (o modelo já
-    sabe que se comportam diferente, ver AGENTS.md)."""
+    sabe que se comportam diferente, ver AGENTS.md).
+
+    `fatores_seed` (revisão 17/11): com um número, inclui `fatores` --
+    `resumo_por_fator` em skins e caixas, separado por ITEM em calibração
+    (70%) e confirmação (30%) com `split_itens(seed=fatores_seed)`.
+    Disciplina: hipóteses saem da calibração; o número que se reporta é o
+    da confirmação."""
     out = {"itens": len(itens), "horizontes": {}}
-    for h in horizontes:
-        linhas = []
-        for item in itens:
-            for r in amostras(item["name"], item.get("price_history") or [],
-                              bool(item.get("is_container")), h,
-                              intervalo_dias=intervalo_dias, agora=agora):
+    por_h: "dict[float, list[dict]]" = {h: [] for h in horizontes}
+    for item in itens:
+        for h, linhas_h in _linhas_do_item(item, horizontes, intervalo_dias, agora).items():
+            for r in linhas_h:
                 r["is_container"] = bool(item.get("is_container"))
-                linhas.append(r)
+            por_h[h].extend(linhas_h)
+    confirmacao_nomes: set = set()
+    if fatores_seed is not None:
+        _cal, conf = split_itens(itens, seed=fatores_seed)
+        confirmacao_nomes = {i["name"] for i in conf}
+    for h in horizontes:
+        linhas = por_h[h]
         if not linhas:
             continue
         bloco = {
@@ -434,5 +565,16 @@ def relatorio(itens: "list[dict]", horizontes=(30, 90, 365),
                                          [r["retorno_pct"] for r in sub]),
                     "faixas": resumo_por_faixa(sub),
                 }
+        if fatores_seed is not None:
+            fat: dict = {}
+            for chave, filtro in (("skins", False), ("caixas", True)):
+                sub = [r for r in linhas if r["is_container"] is filtro]
+                fat[chave] = {
+                    "calibracao": resumo_por_fator(
+                        [r for r in sub if r["name"] not in confirmacao_nomes]),
+                    "confirmacao": resumo_por_fator(
+                        [r for r in sub if r["name"] in confirmacao_nomes]),
+                }
+            bloco["fatores"] = fat
         out["horizontes"][str(h)] = bloco
     return out
