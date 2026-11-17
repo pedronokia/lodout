@@ -37,11 +37,6 @@ def meta_do_visitante() -> int:
     return meta
 
 
-def para_template(preco_hoje, dado_scan=None) -> "dict | None":
-    """Atalho dos templates (cartões da home): `encomenda_info(preço)`."""
-    return info(preco_hoje, dado_scan, meta_do_visitante())
-
-
 def info(preco_hoje: "float | None", dado_scan: "dict | None", meta: int) -> "dict | None":
     """Textos do bloco "Comprar por encomenda". None sem preço de hoje."""
     if not isinstance(preco_hoje, (int, float)) or preco_hoje <= 0:

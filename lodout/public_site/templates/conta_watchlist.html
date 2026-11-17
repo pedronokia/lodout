@@ -1,3 +1,4 @@
+{% from "partials/_icons.html" import icone %}
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -83,7 +84,7 @@
           {% endif %}
             </div>
           </td>
-          <td data-label="Preço de hoje" class="celula-numero">{{ it.price_fmt }}{% if it.encomenda %}<span class="valor-total encomenda-linha" title="Até quanto pagar numa encomenda para lucrar {{ it.encomenda.meta }}% revendendo pelo preço de hoje, já com a taxa da Steam.{% if it.encomenda.maior_fmt %} Maior encomenda na Steam hoje: {{ it.encomenda.maior_fmt }}.{% endif %}">encomenda até <strong>{{ it.encomenda.ate_fmt }}</strong></span>{% endif %}</td>
+          <td data-label="Preço de hoje" class="celula-numero">{{ it.price_fmt }}{% if it.encomenda %}<span class="valor-total encomenda-linha">encomendar por <button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda.copiar }}" title="Um centavo acima da maior encomenda de hoje ({{ it.encomenda.maior_fmt }}), na frente da fila. Clique para copiar e cole no preço da encomenda na Steam." aria-label="Copiar {{ it.encomenda.valor_fmt }}, encomenda sugerida para {{ it.name_fmt }}"><strong>{{ it.encomenda.valor_fmt }}</strong><span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></span>{% endif %}</td>
           <td data-label="Alertas">{{ it.rules_resumo }}</td>
           <td data-label="Agora">
             {% if it.disparado %}
@@ -148,6 +149,8 @@
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% with dialogo_titulo="Deixar de acompanhar", dialogo_texto="O item sai da sua watchlist junto com as regras de alerta dele." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
   <script src="{{ static_v('conta.js') }}" defer></script>
+  <script src="{{ static_v('copiar_preco.js') }}" defer></script>
 </body>
 </html>

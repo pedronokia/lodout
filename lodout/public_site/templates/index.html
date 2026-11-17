@@ -205,10 +205,10 @@
         </span>
         <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
       </div>
-      {# Comprar por encomenda (pedido 16/11): até quanto pagar para lucrar
-         a meta revendendo pelo preço de hoje. Detalhes na página do item. #}
-      {% set enc = encomenda_info(c.price) %}
-      {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Pagando até esse valor, revender pelo preço de hoje dá {{ enc.meta }}% de lucro, já com a taxa.">Encomenda até <strong>{{ enc.ate_fmt }}</strong></p>{% endif %}
+      {# Encomenda sugerida (17/11, a mesma do Ranking e do item): um
+         centavo acima da maior encomenda da Steam. Copiar fica no item. #}
+      {% set enc = encomenda_sugestao(c.price, c.encomenda) %}
+      {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Este valor fica um centavo acima da maior encomenda de hoje ({{ enc.maior_fmt }}), na frente da fila, e {{ enc.abaixo_pct }}% abaixo do preço de hoje.">Encomendar por <strong>{{ enc.valor_fmt }}</strong></p>{% endif %}
       <div class="cartao-item-selos">
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa(c.name) }}</span>

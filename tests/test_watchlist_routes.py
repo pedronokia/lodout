@@ -378,3 +378,22 @@ def test_alvo_ao_adicionar_aparece_como_alerta(client, monkeypatch):
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
     assert "preço abaixo de R$ 35,10" in pagina
     assert 'name="price_below" step="0.01" min="0.01" value="35.10"' in pagina
+
+
+def test_watchlist_sugere_encomenda_copiavel(client, monkeypatch):
+    """17/11: a mesma encomenda sugerida do Ranking (um centavo acima da
+    maior encomenda da Steam), copiável, no lugar do "encomenda até"."""
+    monkeypatch.setattr(
+        "lodout.scan_store.load_last_scan", lambda: {
+            "ts": 0.0, "category": "", "results": [
+                {"name": "AK-47", "score": 77, "encomenda": {"maior": 9.2, "pedidos": 40}},
+            ]})
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/watchlist", data={
+        "name": "AK-47", "target": "15.00", "csrf_token": token,
+    })
+    body = client.get("/conta/watchlist").data.decode("utf-8")
+    assert 'data-copiar-preco="9,21"' in body and "<strong>R$ 9,21</strong>" in body
+    assert "encomendar por" in body and "encomenda até" not in body
+    assert "copiar_preco.js" in body and "data-copiado" in body

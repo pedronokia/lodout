@@ -38,7 +38,7 @@
 
     <section aria-labelledby="titulo-arquivos">
       <h2 class="secao-titulo" id="titulo-arquivos">Mudanças nos arquivos do jogo</h2>
-      <p class="status-muted">A cada ciclo de coleta, o Lodout compara os arquivos do CS2 com a versão anterior e anota quando uma coleção entra ou sai do drop semanal, quando algo entra ou sai do Armory e quando aparece uma caixa nova.{% if arquivos_conferidos_txt %} Arquivos conferidos {{ arquivos_conferidos_txt }}.{% endif %}</p>
+      <p class="status-muted secao-intro">A cada ciclo de coleta, o Lodout compara os arquivos do CS2 com a versão anterior e anota quando uma coleção entra ou sai do drop semanal, quando algo entra ou sai do Armory e quando aparece uma caixa nova.{% if arquivos_conferidos_txt %} Arquivos conferidos {{ arquivos_conferidos_txt }}.{% endif %}</p>
       {% if eventos %}
       <ol class="lista-novidades">
         {% for ev in eventos %}
@@ -59,7 +59,7 @@
 
     <section aria-labelledby="titulo-anuncios">
       <h2 class="secao-titulo" id="titulo-anuncios">Anúncios oficiais</h2>
-      <p class="status-muted">Os últimos anúncios do CS2 publicados pela Valve na Steam. Servem de contexto: não entram na nota.</p>
+      <p class="status-muted secao-intro">Os últimos anúncios do CS2 publicados pela Valve na Steam. Servem de contexto: não entram na nota.</p>
       {% if noticias %}
       <ol class="lista-novidades">
         {% for n in noticias %}

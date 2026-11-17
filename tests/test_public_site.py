@@ -6001,10 +6001,10 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     assert "Esse valor fica atrás da fila" in body
     assert "copiar_preco.js" in body and "data-copiado" in body
     assert "A meta de 20% muda em “Minha conta”" in body
-    # Sem a fila da coleta (item só do catálogo, ou sem dado), o destaque
-    # continua sendo o valor para lucrar a meta.
+    # Página inicial: a mesma sugestão (sem copiar; copiar fica no item).
     home = client.get("/").data.decode("utf-8")
-    assert "Encomenda até <strong>R$ 72,46</strong>" in home
+    assert "Encomendar por <strong>R$ 75,51</strong>" in home
+    assert "Encomenda até" not in home
 
 
 def test_icones_pequenos_nao_baixam_a_versao_grande():

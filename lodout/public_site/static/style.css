@@ -5805,6 +5805,11 @@ p { text-wrap: pretty; }
    entre as palavras. Lá vale a quebra normal, como antes. */
 .pagina-texto p,
 .pagina-texto li { text-wrap: wrap; }
+/* Definições do Glossário não são justificadas: lá cabe o `pretty`
+   (polimento 17/11: 8 definições terminavam com uma palavra sozinha). */
+.pagina-texto dd { text-wrap: pretty; }
+/* Frase de abertura de seção (Novidades) em medida de leitura. */
+.secao-intro { max-width: 62ch; }
 
 /* Números que mudam na tela sem empurrar o texto ao lado. */
 .contagem-comparar,
