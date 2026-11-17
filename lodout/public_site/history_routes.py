@@ -105,5 +105,5 @@ def desfazer_venda(index: int):
         user_portfolio.devolver_lote(steamid, user_vendidos.posicao_de_volta(tirado, time.time()))
         recuperar_posicoes.deixar_de_ignorar(steamid, nome)
     flash(f"Venda desfeita: {localize_name(nome)} voltou para a sua conta com o valor pago, "
-          "na aba “Fora do inventário”.", "success")
+          "marcado como “fora do inventário”.", "success")
     return redirect(url_for("account.conta", filtro="fora"))

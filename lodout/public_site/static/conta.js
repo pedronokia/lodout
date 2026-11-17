@@ -586,6 +586,28 @@
     });
   }
 
+  // Conta pequena (menos de 8 itens não tem a aba "Fora do inventário"):
+  // "Ver quais" e ?filtro=fora (depois de "Devolver" ou "Desfazer venda")
+  // destacam os itens fora e levam até o primeiro, se ele não estiver à
+  // vista (revisão 16/11, rodada 3).
+  (function () {
+    if (document.querySelector('[data-conta-filtro="fora"]')) return;
+    var linhas = document.querySelectorAll("tr.linha-fora");
+    if (!linhas.length) return;
+    var ir = function (focar) {
+      var reduzir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      linhas[0].scrollIntoView({ block: "nearest", behavior: reduzir ? "auto" : "smooth" });
+      Array.prototype.forEach.call(linhas, realcar);
+      var alvo = focar && linhas[0].querySelector("a, input, button, summary");
+      if (alvo) alvo.focus({ preventScroll: true });
+    };
+    var botao = document.querySelector("[data-ir-fora]");
+    if (botao) { botao.hidden = false; botao.addEventListener("click", function () { ir(true); }); }
+    var pedido = null;
+    try { pedido = new URLSearchParams(window.location.search).get("filtro"); } catch (erro) { /* ignora */ }
+    if (pedido === "fora") window.setTimeout(function () { ir(false); }, 0);
+  })();
+
   // Remover pede confirmação (ação destrutiva, AGENTS.md). Sem JS o
   // formulário envia direto, como antes.
   // Com <dialog>, uma janela própria com o botão vermelho; sem ela, o
@@ -901,7 +923,7 @@
       var forte = document.createElement("strong");
       forte.textContent = reais(recebe);
       contaVendi.appendChild(forte);
-      contaVendi.appendChild(document.createTextNode(" depois da taxa"));
+      contaVendi.appendChild(document.createTextNode((qtd > 1 ? " pelas " + qtd + "," : "") + " depois da taxa"));
       if (custoVendi !== null) {
         var lucro = recebe - custoVendi * qtd;
         contaVendi.appendChild(document.createTextNode(" · " + (lucro < 0 ? "prejuízo" : "lucro") + " ≈ "));
@@ -999,6 +1021,8 @@
       preencher("[data-resumo-preco-rotulo]", qtd > 1 ? "O comprador pagou (cada)" : "O comprador pagou");
       preencher("[data-resumo-preco]", reais(preco));
       preencher("[data-resumo-recebe]", reais(recebe));
+      preencher("[data-resumo-recebe-rotulo]", qtd > 1 ? "Você recebe (total)" : "Você recebe");
+      preencher("[data-resumo-pagou-rotulo]", qtd > 1 ? "Você pagou (total)" : "Você pagou");
       formVendi.querySelector("[data-resumo-pagou-linha]").hidden = custoVendi === null;
       var linhaRes = formVendi.querySelector("[data-resumo-resultado-linha]");
       linhaRes.hidden = custoVendi === null;

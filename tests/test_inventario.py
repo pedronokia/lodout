@@ -332,7 +332,12 @@ def test_conta_mostra_item_fora_do_inventario_com_vendi(client):
     assert pagina.count("linha-fora") == 1
     assert "fora do inventário desde" in pagina
     assert "Anunciou ou vendeu?" in pagina
-    assert "Está anunciado</label>" in pagina
+    # Rodada 3: "remover" também sem "anunciado" (trocou ou deu o item) e
+    # a caixa diz de qual item é para o leitor de tela.
+    assert "botao-fora-remover" in pagina
+    assert 'Está anunciado<span class="visualmente-oculto"> (' in pagina
+    assert "Vendeu ou trocou um item? Ele sai da lista sozinho" not in pagina
+    assert "> Está anunciado<span" in pagina
     assert 'name="sell_price"' in pagina
     assert 'id="dialogo-vendi"' in pagina and "data-vendi-custo=\"3.0000\"" in pagina
     assert "1 item não aparece no inventário agora" in pagina

@@ -107,7 +107,7 @@
     <p>Cada ponto é o valor de mercado no momento da visita — não é projeção nem recomendação de investimento.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
-  {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, na aba “Fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

@@ -6778,6 +6778,7 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
 .form-vendi .input-venda { width: 9ch; text-align: right; font-variant-numeric: tabular-nums; }
 .tabela-conta .botao-confirmar-venda { min-height: 24px; padding: 0; color: var(--accent); font-weight: 600; }
 .item-fora .form-remover { display: inline-flex; }
+table.tabela-cards-mobile .item-fora .form-remover { width: auto; }
 .form-anunciado { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .botao-mudar-anuncio { min-height: 24px; color: var(--text-muted); font-size: var(--fs-xs); text-decoration: underline; text-underline-offset: 3px; }
 table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }

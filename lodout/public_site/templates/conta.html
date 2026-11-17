@@ -191,7 +191,7 @@
         <div><dt>Lucro hoje</dt><dd>O que sobraria vendendo hoje por esse preço, já sem os {{ taxa_steam_pct }}% da Steam, menos o que você pagou. Negativo quer dizer prejuízo.</dd></div>
         <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam. Na Steam, é o valor do campo “O comprador paga”.</dd></div>
         <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% a mais do que pagou, também já com a taxa. Também vai no campo “O comprador paga”; em “Você recebe”, a Steam mostra o que sobra para você. Mude a porcentagem em “Quero lucrar”.</dd></div>
-        <div><dt>Inventário</dt><dd>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Vendeu ou trocou um item? Ele sai da lista sozinho. “Atualizar agora” busca na hora.</dd></div>
+        <div><dt>Inventário</dt><dd>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Item sem valor pago deixa a lista sozinho quando sai do inventário; com valor pago, fica marcado “fora do inventário” para você dizer se anunciou ou vendeu (trocou ou deu? use “remover”). “Atualizar agora” busca na hora.</dd></div>
         <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar e cole em “O comprador paga” na Steam. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
       </dl>
     </details>
@@ -278,7 +278,7 @@
                 <form method="post" action="{{ url_for('account.marcar_anunciado', name=row.name) }}" class="form-anunciado" data-anuncio data-anuncio-nome="{{ row.name_fmt }}" data-anuncio-atual="{{ row.anuncio_preco_campo or '' }}" data-anuncio-preco-hoje="{{ ('%.2f'|format(row.price))|replace('.', ',') if row.price else '' }}" data-anuncio-custo="{{ '%.4f'|format(row.cost) if row.has_cost else '' }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
-                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1"{{ ' checked' if row.anunciado else '' }}> Está anunciado</label>
+                  <label class="caixa-marcar"><input type="checkbox" name="anunciado" value="1"{{ ' checked' if row.anunciado else '' }}> Está anunciado<span class="visualmente-oculto"> ({{ row.name_fmt }})</span></label>
                   <label class="anuncio-preco-sem-js">por R$ <input type="text" name="anuncio_preco" inputmode="decimal" maxlength="12" autocomplete="off" value="{{ sugestao }}" class="input-compacto input-venda"></label>
                   <button type="submit" class="botao-link botao-filtrar-sem-js">salvar</button>
                   {% if row.anunciado %}<button type="button" class="acao-texto botao-mudar-anuncio" data-mudar-anuncio hidden>{{ "mudar preço" if row.anuncio_preco_fmt else "informar preço" }}</button>{% endif %}
@@ -296,13 +296,13 @@
                     <button type="submit" class="botao-link botao-confirmar-venda">Confirmar venda</button>
                   </form>
                 </details>
-                {% if row.anunciado %}
-                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}" data-dialogo-texto="O item sai da sua lista junto com o valor que você informou. Se ele voltar ao seu inventário da Steam (anúncio cancelado), volta sem o valor pago. Se você vendeu, use “Vendi”: a venda fica no Histórico." data-confirmar="Remover {{ row.name_fmt }} da sua lista? Se você vendeu, use “Vendi”.">
+                {# "remover" em todo item fora (rodada 3): quem trocou ou deu
+                   o item não tem "Vendi" para marcar. #}
+                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}" data-dialogo-texto="O item sai da sua lista junto com o valor que você informou. Serve para item que você trocou ou deu; se vendeu, use “Vendi”, que guarda a venda no Histórico. Se ele voltar ao seu inventário da Steam, volta sem o valor pago." data-confirmar="Remover {{ row.name_fmt }} da sua lista? Se você vendeu, use “Vendi”.">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
                   <button type="submit" class="botao-link botao-remover botao-fora-remover" aria-label="Remover {{ row.name_fmt }}">remover</button>
                 </form>
-                {% endif %}
               </span>
               {% endif %}
             </span>

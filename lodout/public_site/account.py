@@ -939,7 +939,7 @@ def recuperar_apagados():
     recuperar_posicoes._CACHE_PREVIA.pop(steamid, None)
     n = len(voltaram)
     flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago. "
-          "Eles estão na aba “Fora do inventário”: marque “Está anunciado” ou "
+          "Eles estão destacados na lista, como “fora do inventário”: marque “Está anunciado” ou "
           "“Vendi” em cada um.", "success")
     return redirect(url_for("account.conta", filtro="fora"))
 
