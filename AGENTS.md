@@ -157,8 +157,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
 - O CSP não permite estilos inline. Prefira classes e regras em `style.css`.
 - As telas que exibem preços carregam primeiro os valores já guardados; não
   faça fetch automático ao abrir a página.
-- A conexão SSE é compartilhada pelo `app.js`; não abra outra `EventSource`
-  por tela.
+- Não há conexão SSE (a anotação antiga estava errada). O único sinal
+  periódico é o `static/online.js` do rodapé ("N pessoas no site agora",
+  2026-11-17): 1 POST por minuto por aba visível a `/api/online`, com um
+  código aleatório do sessionStorage, sem cookie; `online.py` guarda só
+  código e hora por 10 min. Não use esse código para rastrear ninguém.
 - Ações destrutivas pedem confirmação antes de enviar a requisição.
 
 ### Arquitetura da informação (revisão 2026-11-14)

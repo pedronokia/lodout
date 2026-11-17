@@ -6891,6 +6891,9 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .pagina-inicial .home-tese-texto { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
 .hero-destaque-desde { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
 
+/* "N pessoas no site agora" no rodapé (17/11): nasce hidden quando zero. */
+.rodape-online[hidden] { display: none; }
+
 /* Item não encontrado: "Você quis dizer" (revisão 17/11). */
 .pagina-404-parecidos { margin: var(--sp-5) 0; }
 .pagina-texto .lista-parecidos-404,

@@ -6201,3 +6201,38 @@ def test_home_mostra_a_tese_do_site(client):
     body = client.get("/").data.decode("utf-8")
     assert '<h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>' in body
     assert "mostra o porquê da nota" in body and 'href="/metodo"' in body
+
+
+def test_pessoas_no_site_agora(client):
+    """Pedido 17/11: o rodapé mostra quantas abas deram sinal nos últimos
+    3 minutos; só código aleatório + hora, apagados em 10 minutos."""
+    import time
+
+    from lodout.public_site import online, rate_limit
+    rate_limit._hits.clear()
+    body = client.get("/").data.decode("utf-8")
+    assert "data-online hidden" in body and "online.js" in body
+    a, b = "a" * 32, "b" * 32
+    r = client.post("/api/online", json={"id": a})
+    assert r.status_code == 200 and r.get_json() == {"agora": 1}
+    assert client.post("/api/online", json={"id": a}).get_json() == {"agora": 1}
+    assert client.post("/api/online", json={"id": b}).get_json() == {"agora": 2}
+    assert "2 pessoas no site agora" in client.get("/").data.decode("utf-8")
+    # Código inválido não grava; sinal velho deixa de contar e some.
+    assert client.post("/api/online", json={"id": "<script>"}).status_code == 400
+    assert client.post("/api/online", data="x").status_code == 400
+    agora = time.time()
+    assert online.contar(agora + online.JANELA_S + 1) == 0
+    online.marcar("c" * 32, agora + online.GUARDA_S + 1)
+    assert online.contar(agora + online.GUARDA_S + 1) == 1
+    # Sem cookie de sessão na resposta.
+    assert "Set-Cookie" not in client.post("/api/online", json={"id": a}).headers
+
+
+def test_pessoas_no_site_agora_tem_limite_por_ip(client):
+    from lodout.public_site import rate_limit
+    rate_limit._hits.clear()
+    codigos = [f"{i:032x}" for i in range(rate_limit.ONLINE_MAX_HITS + 3)]
+    status = [client.post("/api/online", json={"id": c}).status_code for c in codigos]
+    assert status.count(429) == 3
+    rate_limit._hits.clear()

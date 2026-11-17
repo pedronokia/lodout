@@ -50,7 +50,7 @@ from lodout.localization import localize_name
 from lodout.public_site import (
     backtest_diario, buscas, catalogo, changelog, charts, db_backup,
     discord_notify, encomenda,
-    erro_stats, fmt, icon_cache, latencia, og_cards, profile_fetcher,
+    erro_stats, fmt, icon_cache, latencia, og_cards, online, profile_fetcher,
     raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
 )
@@ -332,6 +332,7 @@ def create_app() -> Flask:
         return {
             "visitas_total": visits.total(),
             "visitas_hoje": visitas_hoje,
+            "online_agora": online.contar(),
         }
 
     @app.context_processor
@@ -978,6 +979,23 @@ def create_app() -> Flask:
         return Response(
             f"google-site-verification: {_GOOGLE_VERIFICACAO}.html",
             mimetype="text/html")
+
+    @app.route("/api/online", methods=["POST"])
+    @rate_limit.rate_limited(rate_limit.ONLINE_MAX_HITS, rate_limit.ONLINE_WINDOW_S)
+    def online_agora():
+        """"Estou aqui" de uma aba aberta (static/online.js, pedido do
+        usuário 17/11): guarda só um código aleatório da aba e a hora, e
+        devolve quantas abas estão no site agora. Sem sessão nem CSRF: não
+        mexe em dado de ninguém."""
+        dados = request.get_json(silent=True) or {}
+        codigo = dados.get("id") if isinstance(dados, dict) else None
+        if not online.id_valido(codigo):
+            return jsonify({"erro": "código inválido"}), 400
+        try:
+            online.marcar(codigo)
+        except Exception:
+            _logger.warning("registro de quem está no site falhou", exc_info=True)
+        return jsonify({"agora": online.contar()})
 
     @app.route("/favicon.ico")
     def favicon_ico():

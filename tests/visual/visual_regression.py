@@ -386,6 +386,11 @@ def _congelar_relogio():
 
     visits.dia_local = lambda ts=None: DIA_FIXO
     visits.registrar = lambda *args, **kwargs: 0
+    # "N pessoas no site agora" (17/11) varia com as capturas abertas ao
+    # mesmo tempo: nas fotos ele fica escondido (zero).
+    import lodout.public_site.online as online
+    online.marcar = lambda *args, **kwargs: None
+    online.contar = lambda *args, **kwargs: 0
 
     # Conta: "há X", o prazo do quadro de recuperação e a idade dos preços
     # saem do relógio de account.py; o resto do módulo time segue real.
