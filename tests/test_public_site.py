@@ -218,7 +218,7 @@ def test_index_mostra_resumo_do_dia_com_alta_e_queda(client, monkeypatch, tmp_pa
     # citando maior_alta na própria frase (não tem os cards).
     assert "maior alta de nota foi" not in resumo
     assert "maior queda foi" not in resumo
-    assert "0 itens novos" in resumo
+    assert "Nenhum item novo entrou no Top 20" in resumo
     # item #19: mini-cards com os vaivens de nota, pra alta E pra baixa
     assert 'class="movimentos-do-dia"' in body
     cards = body.split('class="movimentos-do-dia"', 1)[1].split("</ul>", 1)[0]
@@ -253,7 +253,7 @@ def test_index_resumo_do_dia_mostra_mesmo_sem_mudanca_de_nota(client, monkeypatc
     body = client.get("/").data.decode("utf-8")
     assert 'class="resumo-do-dia"' in body
     resumo = body.split('class="resumo-do-dia"', 1)[1].split("</p>", 1)[0]
-    assert "1 item novo" in resumo
+    assert "1 item entrou no Top 20" in resumo
     assert "maior alta de nota foi" not in resumo
     assert "movimentos-do-dia" not in body
 
@@ -6181,3 +6181,21 @@ def test_icones_pequenos_nao_baixam_a_versao_grande():
             w = re.search(r'width="(\d+)"', tag)
             if w and int(w.group(1)) <= 56 and "/icone/" not in tag and "icon_url" in tag:
                 assert "srcset" not in tag, f"{arq.name}: {tag[:90]}"
+
+
+def test_desde_txt_diz_ontem_ou_a_data():
+    """Revisão 17/11: "desde o ranking salvo há 1 dia" virou "desde ontem"."""
+    import time
+
+    from lodout.public_site import fmt, server
+    agora = time.time()
+    assert server._desde_txt(agora - 86400) == "desde ontem"
+    tres = agora - 3 * 86400
+    assert server._desde_txt(tres) == "desde " + fmt.dia_mes_br(tres)
+
+
+def test_home_mostra_a_tese_do_site(client):
+    """Revisão 17/11: o <h1> era oculto e o celular não dizia o que é o site."""
+    body = client.get("/").data.decode("utf-8")
+    assert '<h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>' in body
+    assert "mostra o porquê da nota" in body and 'href="/metodo"' in body

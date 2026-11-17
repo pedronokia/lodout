@@ -17,6 +17,7 @@ ENTRADAS = [
             "Abriu um item que não existe (nome digitado errado ou link antigo)? A página diz qual item não foi achado, sugere os de nome parecido e já deixa o nome na busca.",
             "Filtrar o catálogo inteiro do Mercado (desgaste, preço) ficou de 4 a 6 vezes mais rápido.",
             "No celular, as listas pesam menos: os ícones pequenos (conta, watchlist, trades, ranking e “itens parecidos”) não baixam mais a versão grande da imagem, sem perder nitidez.",
+            "A página inicial diz logo no topo o que é o Lodout (notas de 0 a 100 para skins de CS2, com o porquê de cada uma) e leva a “Como funciona”. O resumo do Top 20 ficou mais simples (“3 itens entraram no Top 20 desde ontem”) e o preço do destaque diz desde quando mudou.",
             "Links no meio do texto (Glossário e Histórico) ficaram sublinhados, para quem não distingue bem as cores, e a lista do Glossário ficou mais fácil para leitores de tela.",
         ],
     },

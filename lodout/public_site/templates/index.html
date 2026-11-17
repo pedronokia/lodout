@@ -301,10 +301,14 @@
   <main id="conteudo" class="pagina-inicial">
     {# Mensagem de uma ação que termina aqui (ex.: conta excluída). #}
     {% include "partials/_mensagens.html" %}
-    {# Título da página pro leitor de tela. O <h1> era o logo, que só
-       anunciava "link, Lodout — página inicial"; nas outras páginas o
-       logo já é <p> e o <h1> diz do que é a página. #}
-    <h1 class="visualmente-oculto">Lodout: notas e preços de skins de CS2</h1>
+    {# O <h1> diz do que é o site (o logo é <p>). Era oculto: no celular,
+       quem chegava pela 1ª vez via só o ícone e um cartão de cápsula, sem
+       saber o que é o Lodout (revisão 17/11). Agora é a tese em uma
+       linha, com o link para o Método. #}
+    <header class="home-tese">
+      <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
+      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+    </header>
     {% if destaque_hero %}
     <section class="hero-destaque{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-label="Item com a nota mais alta hoje">
       <span class="hero-destaque-halo{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-hidden="true"></span>
@@ -325,6 +329,8 @@
           {% set pct_txt = ("%.1f"|format(destaque_hero.variacao_pct|abs))|replace(".", ",") ~ "%" if destaque_hero.variacao_pct is number else "" %}
           {% set verbo = "subiu" if destaque_hero.tendencia == "alta" else "caiu" %}
           <span class="icone-tendencia tendencia-{{ destaque_hero.tendencia }}" title="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior" aria-label="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior">{{ icone("seta-cima" if destaque_hero.tendencia == "alta" else "seta-baixo") }} {{ pct_txt or verbo|capitalize }}</span>
+          {# Visível (revisão 17/11): no celular não há "passar o mouse". #}
+          <span class="hero-destaque-desde" aria-hidden="true">desde a última coleta</span>
           {% endif %}
         </p>
       </div>
@@ -340,7 +346,7 @@
     <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
       <span class="status-coleta-ponto" aria-hidden="true"></span>
       {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com chance alta de alta rápida e artificial no preço não entram na lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
-      {% if resumo_do_dia %}<span class="resumo-do-dia">{{ resumo_do_dia.novos_no_top }} {{ "itens novos" if resumo_do_dia.novos_no_top != 1 else "item novo" }} no Top 20 desde o ranking salvo {{ resumo_do_dia.quando }}</span>{% endif %}
+      {% if resumo_do_dia %}<span class="resumo-do-dia">{% if resumo_do_dia.novos_no_top == 0 %}Nenhum item novo entrou no Top 20{% elif resumo_do_dia.novos_no_top == 1 %}1 item entrou no Top 20{% else %}{{ resumo_do_dia.novos_no_top }} itens entraram no Top 20{% endif %} {{ resumo_do_dia.desde }}</span>{% endif %}
     </p>
     {% endif %}
     {% if scan and scan_desatualizado %}

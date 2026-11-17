@@ -1923,7 +1923,17 @@ def _resumo_entre(atual: "dict | None",
         "maior_queda": maior_queda,
         "movimentos": movimentos[:_MOVIMENTOS_DESTAQUE],
         "quando": scan_store.idade_txt(antigo["ts"]),
+        "desde": _desde_txt(antigo["ts"]),
     }
+
+
+def _desde_txt(ts: float) -> str:
+    """ "desde ontem" para o ranking de ~1 dia atrás; senão a data
+    (revisão 17/11: "desde o ranking salvo há 1 dia" era jargão)."""
+    idade = time.time() - float(ts)
+    if 0 <= idade < 48 * 3600 and fmt.dia_mes_br(ts) == fmt.dia_mes_br(time.time() - 86400):
+        return "desde ontem"
+    return "desde " + fmt.dia_mes_br(ts)
 
 
 _logger = logging.getLogger("lodout.site")

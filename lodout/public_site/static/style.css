@@ -373,7 +373,8 @@ summary:focus-visible,
 
 /* Dentro de uma frase (guia da nota na home), o link segue a altura da
    linha: os 44px mínimos de link isolado abriam um vão na última linha. */
-.ajuda-nota .link-com-seta {
+.ajuda-nota .link-com-seta,
+.home-tese-texto .link-com-seta {
   display: inline;
   min-height: 0;
   white-space: nowrap;
@@ -6881,6 +6882,14 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .conta-recuperar-conferir { margin-top: var(--sp-3); }
 .conta-recuperar-dispensar { margin-top: var(--sp-2); }
 .conta-recuperar-dispensar .botao-link { color: var(--text-muted); font-size: var(--fs-sm); padding-inline: 0; }
+
+/* Tese do site no topo da home (revisão 17/11): o <h1> era oculto e
+   quem chegava pelo celular não via o que é o Lodout. Compacto, para o
+   cartão do destaque continuar na primeira tela. */
+.home-tese { margin: 0 0 var(--sp-4); }
+.home-tese-titulo { margin: 0; font-size: var(--fs-lg); line-height: 1.25; color: var(--text-bright); }
+.pagina-inicial .home-tese-texto { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
+.hero-destaque-desde { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
 
 /* Item não encontrado: "Você quis dizer" (revisão 17/11). */
 .pagina-404-parecidos { margin: var(--sp-5) 0; }
