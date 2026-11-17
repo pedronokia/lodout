@@ -33,7 +33,14 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
 	}
 
-	reverse_proxy web:8000
+	# Deploy sem página de erro (17/11): o `web` é recriado a cada
+	# publicação e fica ~20 s fora; sem isto o Caddy devolvia 502 a quem
+	# chegasse nessa janela. Agora ele segura o pedido e tenta de novo até
+	# o novo container responder (máx. 30 s).
+	reverse_proxy web:8000 {
+		lb_try_duration 30s
+		lb_try_interval 250ms
+	}
 }
 
 # Domínio principal desde 2026-11-13 (antes: galaseca.com, 2026-10-29).

@@ -6926,7 +6926,17 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 }
 
 /* "N pessoas no site agora" no rodapé (17/11): nasce hidden quando zero. */
-.rodape-online { display: inline-flex; align-items: center; gap: 0; white-space: nowrap; }
+.rodape-online {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.7em;
+  padding: 1px 10px 1px 8px;
+  border: 1px solid rgba(57, 194, 102, 0.28);
+  border-radius: 999px;
+  background: rgba(57, 194, 102, 0.07);
+  white-space: nowrap;
+  cursor: default;
+}
 .rodape-online strong { color: var(--text-bright); font-weight: 600; font-variant-numeric: tabular-nums; }
 .rodape-online-ponto {
   width: 7px;
@@ -6937,13 +6947,17 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   box-shadow: 0 0 0 3px rgba(57, 194, 102, 0.18);
   animation: rodape-online-pulso 2.4s ease-in-out infinite;
 }
-.rodape-online-sep { margin: 0 0.45em; }
 @keyframes rodape-online-pulso {
   0%, 100% { box-shadow: 0 0 0 3px rgba(57, 194, 102, 0.18); }
   50% { box-shadow: 0 0 0 5px rgba(57, 194, 102, 0.05); }
 }
+.rodape-online-mudou strong { animation: rodape-online-mudou 0.9s ease-out; }
+@keyframes rodape-online-mudou {
+  0% { color: var(--positive); }
+  100% { color: var(--text-bright); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .rodape-online-ponto { animation: none; }
+  .rodape-online-ponto, .rodape-online-mudou strong { animation: none; }
 }
 .rodape-online[hidden] { display: none; }
 

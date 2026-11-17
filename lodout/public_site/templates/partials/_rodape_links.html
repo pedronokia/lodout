@@ -38,13 +38,13 @@
     <a href="https://github.com/pedronokia/lodout" target="_blank" rel="noopener">Código aberto</a>
   </div>
 </nav>
-{# Visitas em frase de gente ("357 acessos hoje · 8.465 no total") em
+{# Visitas em frase de gente ("357 visitas hoje · 8.465 no total") em
    vez de "Lodout v1.0.0 (20261114-...) · Hoje: · Total:"; a versão e o
    build ficam no title, pra conferir deploy passando o mouse. #}
 <div class="rodape-base">
   <p class="versao">Criado por <a href="https://steamcommunity.com/profiles/76561199685192075" target="_blank" rel="noopener">nokia</a></p>
   {# "N pessoas no site agora" (pedido 17/11): abas que deram sinal nos
      últimos 3 min (online.py). online.js atualiza o número a cada minuto. #}
-  <p class="versao rodape-versao" title="Lodout {{ versao }}"><span class="rodape-online" data-online{{ '' if online_agora else ' hidden' }}><span class="rodape-online-ponto" aria-hidden="true"></span><strong data-online-n>{{ "{:,}".format(online_agora or 0)|replace(",", ".") }}</strong>&nbsp;<span data-online-rotulo>{{ "pessoa online" if online_agora == 1 else "pessoas online" }}</span><span class="rodape-online-sep" aria-hidden="true">·</span></span>{{ "{:,}".format(visitas_hoje or 0)|replace(",", ".") }} {{ "acesso" if visitas_hoje == 1 else "acessos" }} hoje · {{ "{:,}".format(visitas_total or 0)|replace(",", ".") }} no total</p>
+  <p class="versao rodape-versao" title="Lodout {{ versao }}"><span class="rodape-online" data-online title="Pessoas com o Lodout aberto nos últimos 3 minutos"{{ '' if online_agora else ' hidden' }}><span class="rodape-online-ponto" aria-hidden="true"></span><strong data-online-n>{{ "{:,}".format(online_agora or 0)|replace(",", ".") }}</strong>&nbsp;<span data-online-rotulo>{{ "pessoa online" if online_agora == 1 else "pessoas online" }}</span></span>{{ "{:,}".format(visitas_hoje or 0)|replace(",", ".") }} {{ "visita" if visitas_hoje == 1 else "visitas" }} hoje · {{ "{:,}".format(visitas_total or 0)|replace(",", ".") }} no total</p>
 </div>
 <script src="{{ static_v('online.js') }}" defer></script>

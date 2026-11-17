@@ -157,7 +157,7 @@ def test_index_exibe_total_de_visitas_no_rodape(client, monkeypatch, tmp_path):
     # Frase de gente no rodapé (2026-11-14), sem "Hoje:/Total:" nem o
     # código de build à vista (fica no title).
     # 2 registradas acima + a própria visita à home.
-    assert "3 acessos hoje · 3 no total" in body
+    assert "3 visitas hoje · 3 no total" in body
     assert 'title="Lodout ' in body
 
 
@@ -6211,7 +6211,7 @@ def test_pessoas_no_site_agora(client):
     from lodout.public_site import online, rate_limit
     rate_limit._hits.clear()
     body = client.get("/").data.decode("utf-8")
-    assert "data-online hidden" in body and "online.js" in body
+    assert 'nos últimos 3 minutos" hidden>' in body and "online.js" in body
     a, b = "a" * 32, "b" * 32
     r = client.post("/api/online", json={"id": a})
     assert r.status_code == 200 and r.get_json() == {"agora": 1}
