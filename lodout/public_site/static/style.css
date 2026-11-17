@@ -590,9 +590,20 @@ header.topo h1 {
 
 .nav-principal a:hover { color: var(--chrome-texto-forte); }
 
-/* A página atual não ganha destaque visual na barra -- como na barra
-   da Apple, o link fica igual aos demais; o aria-current continua no
-   HTML só para leitor de tela (mesma decisão do rodapé). */
+/* Página atual (pedido do usuário, 17/11): texto forte e um traço
+   laranja curto embaixo -- antes ficava igual aos demais e não dava
+   para saber onde se estava no computador (o celular já marcava). */
+.nav-principal a[aria-current="page"] { color: var(--chrome-texto-forte); }
+.nav-principal a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  left: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--marca);
+}
 
 .nav-principal a:focus-visible { outline-offset: -2px; }
 

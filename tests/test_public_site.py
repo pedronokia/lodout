@@ -6132,3 +6132,15 @@ def test_item_mostra_grafico_da_nota(client, monkeypatch, tmp_path):
     assert 'id="historico-nota"' in body and "grafico-nota" in body
     assert "Nota de 60 a 90 no período, média 73" in body
     assert 'href="/item/Item%20N?nota=1a#historico-nota"' in body
+
+
+def test_menu_do_topo_marca_a_pagina_atual(client):
+    """Pedido 17/11: no computador, o menu do topo mostra em qual página
+    a pessoa está (o celular já marcava na barra de baixo)."""
+    body = client.get("/ranking").data.decode("utf-8")
+    nav = body.split('class="nav-principal"', 1)[1].split("</nav>", 1)[0]
+    assert '<a href="/ranking" aria-current="page">Ranking</a>' in nav
+    assert nav.count('aria-current="page"') == 1
+    from pathlib import Path
+    css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
+    assert '.nav-principal a[aria-current="page"]::after' in css
