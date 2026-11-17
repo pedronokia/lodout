@@ -18,6 +18,7 @@ ENTRADAS = [
             "Filtrar o catálogo inteiro do Mercado (desgaste, preço) ficou de 4 a 6 vezes mais rápido.",
             "No celular, as listas pesam menos: os ícones pequenos (conta, watchlist, trades, ranking e “itens parecidos”) não baixam mais a versão grande da imagem, sem perder nitidez.",
             "A página inicial diz logo no topo o que é o Lodout (notas de 0 a 100 para skins de CS2, com o porquê de cada uma) e leva a “Como funciona”. O resumo do Top 20 ficou mais simples (“3 itens entraram no Top 20 desde ontem”) e o preço do destaque diz desde quando mudou.",
+            "A página “Como funciona a nota” lista os fatores que mais pesam (inclusive a facilidade de comprar e vender), explica por que, nas skins, uma queda em todos os períodos soma pontos, e corrige que o nível do preço só conta para caixas e cápsulas.",
             "Links no meio do texto (Glossário e Histórico) ficaram sublinhados, para quem não distingue bem as cores, e a lista do Glossário ficou mais fácil para leitores de tela.",
         ],
     },
