@@ -6954,6 +6954,11 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .pagina-inicial > .status { margin: var(--sp-4) 0 0; }
 /* Links no meio do texto do aviso (página de excluir conta): sublinhados. */
 .card-aviso p a { text-decoration: underline; text-underline-offset: 3px; }
+/* Link no meio do texto precisa de sublinhado: só a cor laranja sobre o
+   cinza não basta para quem não distingue cores (verificação de
+   acessibilidade, 17/11). */
+.lista-glossario dd a,
+.descricao-pagina a { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Inventário grande (revisão 2026-11-16, 500 itens): o ícone de copiar
    era um <svg> repetido em cada preço (1.000 na página); agora é desenho
