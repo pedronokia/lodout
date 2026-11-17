@@ -1670,6 +1670,7 @@ def test_ranking_encomenda_ate_copiavel(client, monkeypatch, tmp_path):
     assert f'data-copiar-preco="{numero}"' in body and "." not in numero
     assert 'src="/static/ranking.js' in body or "ranking.js" in body
     assert "data-copiado" in body
+    assert 'aria-label="Nota de hoje 90 de 100"' in body
 
 
 def test_ranking_sem_historico_completo_usa_presenca_no_top20(client, monkeypatch):
@@ -1714,8 +1715,10 @@ def test_ranking_mostra_o_que_mudou_desde_ontem(client, monkeypatch):
     assert ">Y<" in cairam
     saidas = mudou.split('id="titulo-saidas"', 1)[1].split("</section>", 1)[0]
     assert "Sumiu" in saidas and "#2" in saidas and "<strong>fora</strong>" in saidas
-    assert "nota 60" in saidas
+    assert "nota era 60" in saidas
     assert "1 de 3 itens é novo" in mudou
+    # A nota vai na figurinha (anel colorido), não como número solto.
+    assert 'aria-label="Nota agora 80 de 100"' in subiram
 
 
 def test_ranking_o_que_mudou_guarda_o_excesso_em_ver_mais(client, monkeypatch, tmp_path):
@@ -5028,11 +5031,11 @@ def test_ranking_mostra_quem_saiu_do_top(client, monkeypatch, tmp_path):
     assert '<span class="ranking-bloco-n">2</span>' in saidas
     z = saidas.split('href="/item/Z"', 1)[1].split("</li>", 1)[0]
     assert "#2" in z and "<strong>fora</strong>" in z
-    assert "nota 60" in z and "<strong>41</strong>" in z
+    assert "nota era 60" in z and 'aria-label="Nota agora 41 de 100"' in z
     # Fora do scan atual: sem link (a página do item daria 404).
     assert 'href="/item/Sumiu"' not in body
     sumiu = saidas.split(">Sumiu<", 1)[1].split("</li>", 1)[0]
-    assert "#3" in sumiu and "nota 55" in sumiu and "<strong>41</strong>" not in sumiu
+    assert "#3" in sumiu and "nota era 55" in sumiu and "Nota agora" not in sumiu
 
 
 def test_ranking_sem_saidas_nao_mostra_secao(client, monkeypatch):

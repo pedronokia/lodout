@@ -56,6 +56,10 @@
     {% endif %}
   {% endmacro %}
 
+  {# A nota sempre na figurinha (anel colorido), como no resto do site
+     (pedido do usuário, 17/11). #}
+  {% macro nota_figurinha(n, mini=False, rotulo="Nota") %}<span class="nota{{ ' nota-mini' if mini else '' }} nota-{{ n|nota_classe }}" role="img" title="{{ rotulo }}: {{ n }} de 100" aria-label="{{ rotulo }} {{ n }} de 100">{{ n|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ n }}</span></span>{% endmacro %}
+
   {# Linha de um bloco de movimento (Ranking = "o que mudou", 17/11):
      ícone, nome, posição antes -> agora e nota antes -> agora. Quem saiu
      do Top 20 mostra "fora" no lugar da posição nova. #}
@@ -67,13 +71,15 @@
       <span class="movimento-linha-numeros">
         {% if saiu %}
         <span><span class="visualmente-oculto">era </span>#{{ it.prev_pos }} {{ icone("seta-direita") }} <strong>fora</strong></span>
-        <span>nota {{ it.prev_score }}{% if it.score is not none %} {{ icone("seta-direita") }} <span class="visualmente-oculto">agora </span><strong>{{ it.score }}</strong>{% endif %}</span>
+        <span>nota era {{ it.prev_score }}</span>
         {% else %}
         <span>{% if it.prev_pos %}<span class="visualmente-oculto">era </span>#{{ it.prev_pos }} {{ icone("seta-direita") }} <span class="visualmente-oculto">agora </span>{% endif %}<strong>#{{ it.position }}</strong></span>
-        <span>nota {% if it.nota_diff is not none %}{{ it.score - it.nota_diff }} {{ icone("seta-direita") }} {% endif %}<strong>{{ it.score }}</strong></span>
+        {% if it.nota_diff is not none and it.nota_diff != 0 %}<span>nota era {{ it.score - it.nota_diff }}</span>{% endif %}
         {% endif %}
       </span>
     </span>
+    {% set nota_agora = it.score %}
+    {% if nota_agora is not none %}<span class="movimento-linha-nota">{{ nota_figurinha(nota_agora, mini=True, rotulo="Nota agora") }}</span>{% endif %}
   </li>
   {% endmacro %}
 
@@ -132,8 +138,8 @@
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
-            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
-            <td data-label="Hoje">{% if it.nota_hoje is not none %}{{ it.nota_hoje }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
+            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
+            <td data-label="Hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
             <td class="celula-encomenda" data-label="Encomenda até">{% if it.encomenda %}<button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda_copiar }}" title="Copiar {{ it.encomenda_copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ it.encomenda.ate_fmt }}, preço máximo da encomenda de {{ it.name_fmt }}">{{ it.encomenda.ate_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button>{% else %}<span class="status-muted">—</span>{% endif %}</td>
           </tr>
