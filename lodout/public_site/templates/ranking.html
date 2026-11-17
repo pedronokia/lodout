@@ -106,7 +106,7 @@
           <tr>
             <th>#</th>
             <th>Item</th>
-            <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "No Top 20" }}</th>
+            <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
             <th title="Nota na última coleta">Hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
           </tr>
@@ -125,7 +125,7 @@
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
             </td>
-            <td data-label="{{ 'Nota média' if modo == 'media' else 'No Top 20' }}">{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<strong>{{ it.presenca_pct }}%</strong> <span class="status-muted">das coletas</span>{% endif %}</td>
+            <td data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}<span class="nota nota-{{ it.media_int|nota_classe }}">{{ it.media_int|nota_anel|safe }}<span class="nota-numero">{{ it.media_int }}</span></span>{% else %}<strong>{{ it.presenca_pct }}%</strong> <span class="status-muted">das coletas no Top 20</span>{% endif %}</td>
             <td data-label="Hoje">{% if it.nota_hoje is not none %}{{ it.nota_hoje }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
           </tr>
