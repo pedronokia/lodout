@@ -6217,7 +6217,8 @@ def test_pessoas_no_site_agora(client):
     assert r.status_code == 200 and r.get_json() == {"agora": 1}
     assert client.post("/api/online", json={"id": a}).get_json() == {"agora": 1}
     assert client.post("/api/online", json={"id": b}).get_json() == {"agora": 2}
-    assert "2 pessoas no site agora" in client.get("/").data.decode("utf-8")
+    rodape = client.get("/").data.decode("utf-8")
+    assert "<strong data-online-n>2</strong>" in rodape and ">pessoas online<" in rodape
     # Código inválido não grava; sinal velho deixa de contar e some.
     assert client.post("/api/online", json={"id": "<script>"}).status_code == 400
     assert client.post("/api/online", data="x").status_code == 400

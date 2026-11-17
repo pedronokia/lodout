@@ -18,7 +18,10 @@
     var el = document.querySelector("[data-online]");
     if (!el) return;
     if (!(n >= 1)) { el.hidden = true; return; }
-    el.textContent = n + (n === 1 ? " pessoa" : " pessoas") + " no site agora · ";
+    var num = el.querySelector("[data-online-n]");
+    var rotulo = el.querySelector("[data-online-rotulo]");
+    if (num) num.textContent = n.toLocaleString("pt-BR");
+    if (rotulo) rotulo.textContent = n === 1 ? "pessoa online" : "pessoas online";
     el.hidden = false;
   }
   function avisar() {

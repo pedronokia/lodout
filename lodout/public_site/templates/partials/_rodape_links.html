@@ -45,6 +45,6 @@
   <p class="versao">Criado por <a href="https://steamcommunity.com/profiles/76561199685192075" target="_blank" rel="noopener">nokia</a></p>
   {# "N pessoas no site agora" (pedido 17/11): abas que deram sinal nos
      últimos 3 min (online.py). online.js atualiza o número a cada minuto. #}
-  <p class="versao rodape-versao" title="Lodout {{ versao }}"><span class="rodape-online" data-online{{ '' if online_agora else ' hidden' }}>{{ online_agora }} {{ "pessoa" if online_agora == 1 else "pessoas" }} no site agora · </span>{{ "{:,}".format(visitas_hoje or 0)|replace(",", ".") }} {{ "acesso" if visitas_hoje == 1 else "acessos" }} hoje · {{ "{:,}".format(visitas_total or 0)|replace(",", ".") }} no total</p>
+  <p class="versao rodape-versao" title="Lodout {{ versao }}"><span class="rodape-online" data-online{{ '' if online_agora else ' hidden' }}><span class="rodape-online-ponto" aria-hidden="true"></span><strong data-online-n>{{ "{:,}".format(online_agora or 0)|replace(",", ".") }}</strong>&nbsp;<span data-online-rotulo>{{ "pessoa online" if online_agora == 1 else "pessoas online" }}</span><span class="rodape-online-sep" aria-hidden="true">·</span></span>{{ "{:,}".format(visitas_hoje or 0)|replace(",", ".") }} {{ "acesso" if visitas_hoje == 1 else "acessos" }} hoje · {{ "{:,}".format(visitas_total or 0)|replace(",", ".") }} no total</p>
 </div>
 <script src="{{ static_v('online.js') }}" defer></script>
