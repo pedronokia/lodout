@@ -48,23 +48,23 @@ def test_tokens_de_superficie_opencode():
     assert "--border: #4a4a4a" in css
 
 
-def test_laranja_da_casa():
+def test_cor_da_casa_azul_e_amarelo():
+    """18/11 (escolha do usuário, opção A): o laranja da casa virou o azul
+    e o amarelo do logo. Azul para o que se clica (o do logo, #4a64c8,
+    como fundo de botão com texto branco; um tom mais claro, #6f88ea,
+    para texto e links, que dá 5,5:1 no fundo); amarelo para foco e
+    "onde estou". Nenhum laranja sobra no CSS."""
     css = _css()
-    # Laranja da casa (Claude Code): #f97316 nos botões/pílulas ativas (70%
-    # opacidade = rgba(249, 115, 22, 0.7)) e hover #b8480a. Links: eram
-    # #d0580c (4.5:1 no branco, do tema claro); no fundo escuro davam
-    # 4,0:1 -- agora o próprio #f97316 (5,9:1 em --surface; auditoria de
-    # acessibilidade com axe-core, 2026-11-14).
-    assert "--accent: #f97316" in css
-    assert "--accent-bright: #f97316" in css
-    assert "--accent-hover: #b8480a" in css
-    assert "background: rgba(184, 72, 10, 0.7);" in css
-    # Foco de teclado e item ativo das barras escuras acompanham o laranja.
-    assert "--focus: #f97316" in css
-    assert "--chrome-foco: #fb923c" in css
-    # Anel de foco dos formulários e selo "novo" acompanham o laranja.
-    assert "rgba(249, 115, 22, 0.28)" in css
-    assert "rgba(249, 115, 22, 0.1)" in css
+    assert "--accent: #6f88ea" in css
+    assert "--accent-bright: #6f88ea" in css
+    assert "--accent-acao: #4a64c8" in css
+    assert "--accent-acao-hover: #3b52ad" in css
+    assert "--accent-rgb: 74 100 200" in css
+    assert "--focus: #fbac18" in css
+    assert "--marca: #fbac18" in css
+    assert "--chrome-foco: #fbac18" in css
+    for laranja in ("#f97316", "#fb923c", "#b8480a", "249, 115, 22", "184, 72, 10"):
+        assert laranja not in css, laranja
 
 
 def test_raios_da_apple():
@@ -149,10 +149,10 @@ def test_cards_sem_fio_com_elevacao_hover():
     assert "border-radius: var(--radius-md);" in card
     assert "transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);" in card
     assert "box-shadow: var(--shadow-lg);" in css
-    assert "border: 1px solid rgba(249, 115, 22, 0.35);" in css
+    assert "border: 1px solid rgb(var(--accent-rgb) / 0.35);" in css
     # Brilho diagonal animado no hover/focus (reduced-motion o esconde).
     assert ".cartao-item-brilho {" in css
-    assert "rgba(249, 115, 22, 0.12)" in css
+    assert "rgb(var(--accent-rgb) / 0.12)" in css
     # Focus visível no card.
     assert ".cartao-item:focus-visible {" in css
     assert "outline: 2px solid var(--focus);" in css
@@ -203,7 +203,7 @@ def test_polimento_da_maquete_v4():
     aba_ativa = _bloco(css, '.aba-categoria[aria-current="page"]')
     # O laranja de ação virou token (auditoria 17/11), com o mesmo valor.
     assert "background: var(--accent-acao);" in aba_ativa
-    assert "--accent-acao: rgba(249, 115, 22, 0.7);" in css
+    assert "--accent-acao: #4a64c8;" in css
     # Estado da coleta na home: linha leve com bolinha de status (era a
     # caixa .painel-info com fios laranja, até 2026-11-14).
     linha = _bloco(css, ".status-coleta")

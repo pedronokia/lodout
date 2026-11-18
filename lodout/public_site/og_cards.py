@@ -29,7 +29,7 @@ _FUNDO = (22, 22, 22)          # --bg #161616
 _SUPERFICIE = (30, 30, 30)     # --surface #1e1e1e
 _TEXTO = (255, 255, 255)
 _TEXTO_FRACO = (179, 179, 179)  # --text-muted
-_LARANJA = (249, 115, 22)      # --accent
+_DESTAQUE = (111, 136, 234)    # --accent (azul da casa desde 18/11)
 # Aspas do logo (18/11, escolha do usuário): a 1ª amarela, a 2ª azul
 # (--marca-amarelo e --marca-azul no style.css).
 _MARCA_AMARELO = (251, 172, 24)
@@ -125,7 +125,7 @@ def _png(img: Image.Image) -> bytes:
 def cartao_padrao() -> bytes:
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
+    d.rectangle([0, 0, LARGURA, 10], fill=_DESTAQUE)
     _aspas(d, 92, 70, 220)
     d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
     frase = "Notas e preços de skins de CS2,\ncom dados públicos da Steam."
@@ -134,7 +134,7 @@ def cartao_padrao() -> bytes:
         d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)
         y += 56
     d.text((100, ALTURA - 70), "lodout.com", font=_fonte(30, 600),
-           fill=_LARANJA)
+           fill=_DESTAQUE)
     return _png(img)
 
 
@@ -147,7 +147,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
                 raridade: "str | None" = None,
                 icone: "bytes | None" = None) -> bytes:
     """1200x630: ícone à esquerda (se houver), nome, nota e preço."""
-    cor_rar = _CORES_RARIDADE.get(raridade or "", _LARANJA)
+    cor_rar = _CORES_RARIDADE.get(raridade or "", _DESTAQUE)
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, LARGURA, 10], fill=cor_rar)
@@ -205,7 +205,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
                font=_fonte(tam, 700), fill=_TEXTO)
 
     f_rod = _fonte(30, 600)
-    d.text((x, ALTURA - 70), "lodout.com", font=f_rod, fill=_LARANJA)
+    d.text((x, ALTURA - 70), "lodout.com", font=f_rod, fill=_DESTAQUE)
     d.text((x + f_rod.getlength("lodout.com") + 12, ALTURA - 70),
            "· dados públicos da Steam", font=_fonte(30, 400),
            fill=_TEXTO_FRACO)
@@ -224,7 +224,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v3"]).encode("utf-8")).hexdigest()
+        "v4"]).encode("utf-8")).hexdigest()
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:
