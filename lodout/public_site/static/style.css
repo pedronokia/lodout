@@ -71,6 +71,11 @@
   --accent-bright: #f97316;
   --accent-hover: #b8480a;
   --accent-soft: rgba(249, 115, 22, 0.1);
+  /* Laranja de ação (fundo de botão principal e do item escolhido) e o
+     halo laranja de foco/destaque: eram escritos à mão 7x cada
+     (auditoria 17/11); o DESIGN.md chama de "Laranja de Ação". */
+  --accent-acao: rgba(249, 115, 22, 0.7);
+  --accent-halo: rgba(249, 115, 22, 0.28);
   --accent-steel: #66c0f4;
   /* Paleta de estados (revisão de cor 2026-11-14): UMA cor por estado,
      todas na mesma família do laranja da marca -- luminosidade ~0,72 e
@@ -1475,7 +1480,7 @@ footer.rodape .rodape-base a:hover {
 
 .hero-destaque-nome {
   display: block;
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: clamp(1.75rem, 3.8vw, var(--fs-2xl));
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1613,7 +1618,7 @@ footer.rodape .rodape-base a:hover {
 .form-filtros input:focus-visible {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 /* :focus fallback para navegadores sem :focus-visible. */
@@ -1621,7 +1626,7 @@ footer.rodape .rodape-base a:hover {
 .form-filtros input:focus:not(:focus-visible) {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 /* Active state para feedback tátil imediato. */
@@ -1717,8 +1722,8 @@ footer.rodape .rodape-base a:hover {
   padding: 8px 22px;
   border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-size: var(--fs-base);
   font-weight: 400;
   cursor: pointer;
@@ -1974,8 +1979,8 @@ footer.rodape .rodape-base a:hover {
    a cada troca de aba/período (layout que pula). */
 .aba-categoria[aria-current="page"] {
   border-color: var(--accent);
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-weight: 500;
 }
 
@@ -2705,8 +2710,10 @@ table.tabela-candidatos td.celula-preco {
 .nota {
   position: relative;
   display: inline-grid;
-  width: 40px;
-  height: 40px;
+  /* rem, não px (auditoria 17/11): o anel cresce junto com a letra
+     ampliada; no tamanho normal são os mesmos 40px. */
+  width: 2.5rem;
+  height: 2.5rem;
   place-items: center;
   border-radius: 50%;
   line-height: 1;
@@ -2743,8 +2750,8 @@ table.tabela-candidatos td.celula-preco {
 }
 
 .nota-grande {
-  width: 72px;
-  height: 72px;
+  width: 4.5rem;
+  height: 4.5rem;
 }
 
 .nota-grande .nota-anel-fundo,
@@ -2754,7 +2761,7 @@ table.tabela-candidatos td.celula-preco {
 
 /* Nota pequena na linha da conta (pedido 16/11: o mesmo círculo do resto
    do site, em vez do texto "nota 67"). */
-.nota-mini { width: 28px; height: 28px; }
+.nota-mini { width: 1.75rem; height: 1.75rem; }
 .nota-mini .nota-anel-fundo,
 .nota-mini .nota-anel-progresso { stroke-width: 2.5; }
 .nota-mini .nota-numero { font-size: var(--fs-2xs); }
@@ -2827,7 +2834,7 @@ table.tabela-candidatos td.celula-preco {
   border-color: var(--accent);
   color: var(--text);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 /* Cabeçalho ordenável: herda a caixa do <th> e alarga o alvo de
@@ -3624,8 +3631,8 @@ a.paginacao-passo:hover {
 }
 
 .seletor-periodo a[aria-current="true"] {
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-weight: 500;
 }
 
@@ -3771,12 +3778,12 @@ a.paginacao-passo:hover {
 
 .checkbox-comparar:checked {
   border-color: var(--accent);
-  background: rgba(249, 115, 22, 0.7);
+  background: var(--accent-acao);
 }
 
 .checkbox-comparar:checked::before {
   content: "✓";
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1;
@@ -4371,7 +4378,7 @@ table.tabela-conta th { white-space: normal; }
 .form-adicionar input:focus-visible {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 .form-adicionar input[name="name"] {
@@ -4392,8 +4399,8 @@ table.tabela-conta th { white-space: normal; }
   padding: 8px 22px;
   border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-size: var(--fs-base);
   font-weight: 400;
   cursor: pointer;
@@ -4466,7 +4473,7 @@ table.tabela-conta th { white-space: normal; }
 .input-compacto:focus-visible {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 .badge-disparado {
@@ -4525,7 +4532,7 @@ table.tabela-conta th { white-space: normal; }
 .form-regras input:focus-visible {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28);
+  box-shadow: 0 0 0 3px var(--accent-halo);
 }
 
 .form-regras button {
@@ -4534,8 +4541,8 @@ table.tabela-conta th { white-space: normal; }
   padding: 8px 14px;
   border: 1px solid var(--accent);
   border-radius: var(--radius-xs);
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-weight: 600;
   cursor: pointer;
   transition: background-color var(--dur-base) var(--ease-standard);
@@ -4593,7 +4600,7 @@ table.tabela-conta th { white-space: normal; }
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--danger-fundo);
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: var(--fs-base);
   font-weight: 400;
   cursor: pointer;
@@ -4902,8 +4909,8 @@ table.tabela-conta th { white-space: normal; }
   padding: 8px 20px;
   border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(249, 115, 22, 0.7);
-  color: #ffffff;
+  background: var(--accent-acao);
+  color: var(--text-bright);
   font-size: var(--fs-sm);
   font-weight: 600;
   text-decoration: none;
@@ -4912,7 +4919,7 @@ table.tabela-conta th { white-space: normal; }
 
 .botao-acao:hover {
   background: rgba(184, 72, 10, 0.7);
-  color: #ffffff;
+  color: var(--text-bright);
   text-decoration: none;
 }
 
@@ -4928,7 +4935,7 @@ table.tabela-conta th { white-space: normal; }
   padding: 0 6px;
   border-radius: var(--radius-pill);
   background: var(--accent-hover);
-  color: #ffffff;
+  color: var(--text-bright);
   font-size: var(--fs-2xs);
   font-weight: 700;
 }
@@ -5798,7 +5805,7 @@ a, button, summary, select, label, input[type="checkbox"], [role="button"] {
 /* ── Acabamento (skill make-interfaces-feel-better, 2026-11-13) ───── */
 
 /* Títulos sem palavra sozinha na última linha; parágrafos sem órfã. */
-h1, h2, h3 { text-wrap: balance; }
+h1, h2, h3 { text-wrap: balance; overflow-wrap: break-word; hyphens: auto; }
 p { text-wrap: pretty; }
 /* Texto justificado (páginas de texto) não combina com `pretty`: a linha
    encurtada pra evitar a órfã é esticada até a margem e abre buracos
@@ -7027,7 +7034,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .movimento-linha-numeros { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
 .movimento-linha-numeros strong { color: var(--text); }
 .movimento-linha-nota { flex: none; margin-left: auto; display: inline-flex; }
-.movimento-linha-nota .nota-mini { width: 32px; height: 32px; }
+.movimento-linha-nota .nota-mini { width: 2rem; height: 2rem; }
 .movimento-linha-numeros .icone-ui { width: 10px; height: 10px; vertical-align: -1px; }
 .ranking-pos-celular, .ranking-pos-celular[hidden] { display: none; }
 @media (max-width: 640px) {
@@ -7037,16 +7044,29 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
    direita ficavam escondidas, só arrastando a tabela). */
 @media (max-width: 640px) {
   /* Cartão mais baixo: nome + figurinha de hoje em cima; frequência (ou
-     média), dias no Top 20 e encomenda numa linha só embaixo. */
-  /* Colunas do tamanho do rótulo ("FREQUÊNCIA" quebrava no meio). */
-  table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "item item item hoje" "valor top enc enc"; }
+     média), dias no Top 20 e encomenda numa linha só embaixo. Em flex
+     com quebra (auditoria 17/11): com letra muito grande, os valores
+     descem de linha em vez de empurrar a página para o lado (antes era
+     grade fixa e, abaixo de 375 px, a encomenda ia para baixo). */
+  table.tabela-top20.tabela-cards-mobile tbody tr { display: flex; flex-wrap: wrap; align-items: flex-start; }
   table.tabela-top20.tabela-cards-mobile tbody td::before { white-space: nowrap; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-item-top { grid-area: item; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { grid-area: hoje; justify-content: center; align-items: flex-end; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-item-top { order: 0; flex: 1 1 calc(100% - 80px); align-self: center; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { order: 1; flex: 0 0 auto; justify-content: center; align-items: flex-end; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking { order: 2; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { order: 3; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-encomenda { order: 4; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje::before { display: none; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking { grid-area: valor; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { grid-area: top; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-encomenda { grid-area: enc; }
+  /* Base 0 e mínimo = o próprio conteúdo: dividem a linha e só descem
+     quando o mínimo não cabe (letra muito grande). */
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking,
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { flex: 1 1 0; min-width: min-content; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-encomenda { flex: 1.6 1 0; min-width: min-content; }
+  .tabela-top20 .encomenda-acoes { white-space: nowrap; }
+  /* Espaços um pouco menores na linha de valores, para um preço comum
+     (até R$ 9.999,99) caber ao lado; maior que isso, desce de linha. */
+  table.tabela-top20.tabela-cards-mobile tbody tr { column-gap: 4px; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking,
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { padding-inline: 6px; }
   .tabela-top20 .frequencia { flex-direction: column; align-items: flex-start; gap: 6px; }
   .tabela-top20 .frequencia strong { min-width: 0; text-align: left; }
   table.tabela-top20 tbody td.ranking-pos { display: none; }
@@ -7055,9 +7075,30 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   table.tabela-top20 tbody td.celula-item-top::before { display: none; }
   .ranking-pos-celular { display: inline; min-width: 2.2em; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
 }
-/* Celular estreito (SE): a encomenda desce para uma linha própria. */
-@media (max-width: 374px) {
-  table.tabela-top20.tabela-cards-mobile tbody tr { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "item item hoje" "valor top top" "enc enc enc"; }
+
+/* Celular com letra ampliada e toque (auditoria da skill, 17/11): com o
+   texto a 200%, a página rolava de lado em 320/375 px. */
+@media (max-width: 640px) {
+  /* Barra de baixo: o rótulo encolhe com reticências em vez de empurrar. */
+  .nav-inferior a { min-width: 0; }
+  .nav-inferior a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Links dentro de frase podem quebrar linha no celular. */
+  .ajuda-nota .link-com-seta,
+  .home-tese-texto .link-com-seta { white-space: normal; }
+  /* Rodapé do cartão: o "Steam Market" desce de linha se não couber,
+     e quebra a própria linha com letra muito grande. */
+  .cartao-item-rodape { flex-wrap: wrap; }
+  .cartao-item-steam { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  /* Colunas de links do rodapé: palavra longa quebra em vez de vazar. */
+  .rodape a { overflow-wrap: anywhere; }
+  /* Item: quadros de nota/preço e legenda da faixa de dias quebram linha
+     com letra grande. */
+  .card { min-width: 0; }
+  .card-valor, .resumo-cards-item .card-valor, .resumo-cards-item .card-label, .faixa-dias-legenda-item { white-space: normal; }
+  /* "Cores da borda" dentro da frase-guia (21 px de altura): área de
+     toque maior sem mudar o desenho. */
+  .guia-nota .popover-legenda-toggle { position: relative; }
+  .guia-nota .popover-legenda-toggle::after { content: ""; position: absolute; inset: -12px -4px; }
 }
 
 /* "Meus trades" = trocas (17/11): dois lados, várias linhas por lado. */
@@ -7070,7 +7111,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .troca-lado legend { float: left; width: 100%; margin: 0 0 var(--sp-1); padding: 0; color: var(--text-bright); font-weight: 600; }
 .troca-linha { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 7.5rem; gap: var(--sp-2); align-items: end; }
 .troca-linha input { width: 100%; min-width: 0; height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
-.troca-linha input:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.28); }
+.troca-linha input:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-halo); }
 .troca-linha .campo-adicionar-nome { min-width: 0; }
 .troca-mais { justify-self: start; min-height: 32px; }
 .troca-mais[hidden],

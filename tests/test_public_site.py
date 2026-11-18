@@ -5410,7 +5410,7 @@ def test_css_acabamento_toque_e_tipografia():
     from pathlib import Path as _P
     css = (_P(server.__file__).parent / "static" / "style.css").read_text(
         encoding="utf-8")
-    assert "h1, h2, h3 { text-wrap: balance; }" in css
+    assert "h1, h2, h3 { text-wrap: balance;" in css
     assert "p { text-wrap: pretty; }" in css
     assert ".paginacao-numero:active" in css and "scale(0.97)" in css
     # Área de toque extra só em tela de toque, sem mexer no desktop.

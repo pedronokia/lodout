@@ -201,7 +201,9 @@ def test_polimento_da_maquete_v4():
     assert "background: transparent;" in aba
     assert "border: 1px solid var(--border);" in aba
     aba_ativa = _bloco(css, '.aba-categoria[aria-current="page"]')
-    assert "background: rgba(249, 115, 22, 0.7);" in aba_ativa
+    # O laranja de ação virou token (auditoria 17/11), com o mesmo valor.
+    assert "background: var(--accent-acao);" in aba_ativa
+    assert "--accent-acao: rgba(249, 115, 22, 0.7);" in css
     # Estado da coleta na home: linha leve com bolinha de status (era a
     # caixa .painel-info com fios laranja, até 2026-11-14).
     linha = _bloco(css, ".status-coleta")
@@ -209,7 +211,7 @@ def test_polimento_da_maquete_v4():
     assert "background: var(--positive);" in _bloco(css, ".status-coleta-ponto")
     # CTA laranja da página do item, em pílula com texto branco (70% opacidade).
     acao = _bloco(css, ".botao-acao")
-    assert "background: rgba(249, 115, 22, 0.7);" in acao
+    assert "background: var(--accent-acao);" in acao
     assert "border-radius: var(--radius-pill);" in acao
     # Linha de coleta fechando a ficha do item (régua de baixo).
     coleta = _bloco(css, ".resumo-cards-item .card-coleta")

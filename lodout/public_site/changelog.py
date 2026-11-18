@@ -11,6 +11,15 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-18",
+        "titulo": "Letra grande no celular e menu que mostra onde você está",
+        "itens": [
+            "Com a letra do celular ampliada (até o dobro), nenhuma página rola mais para o lado: títulos, cartões do Ranking, quadros do item e links do rodapé quebram a linha, e a figurinha da nota cresce junto com a letra.",
+            "No computador, o menu do topo marca a página em que você está, com o texto mais forte e um traço laranja embaixo.",
+            "“Cores da borda”, na frase que explica a nota, ficou mais fácil de tocar no celular.",
+        ],
+    },
+    {
         "data": "2026-11-17",
         "titulo": "Página inicial mais clara, textos revisados e ícone novo",
         "itens": [
