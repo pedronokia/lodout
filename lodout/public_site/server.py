@@ -1143,7 +1143,7 @@ def create_app() -> Flask:
             "  <InputEncoding>UTF-8</InputEncoding>\n"
             "</OpenSearchDescription>\n"
         )
-        return Response(xml, mimetype="application/opensearchdescription+xml")
+        return Response(xml, mimetype="application/xml")
 
     @app.errorhandler(404)
     def pagina_nao_encontrada(_erro):

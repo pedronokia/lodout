@@ -2124,7 +2124,7 @@ def test_feed_filtrado_por_categoria(client, monkeypatch, tmp_path):
 def test_opensearch_xml(client):
     resp = client.get("/opensearch.xml")
     assert resp.status_code == 200
-    assert resp.mimetype == "application/opensearchdescription+xml"
+    assert resp.mimetype == "application/xml"
     assert b"OpenSearchDescription" in resp.data
     assert b"searchTerms" in resp.data
 
