@@ -30,6 +30,10 @@ _SUPERFICIE = (30, 30, 30)     # --surface #1e1e1e
 _TEXTO = (255, 255, 255)
 _TEXTO_FRACO = (179, 179, 179)  # --text-muted
 _LARANJA = (249, 115, 22)      # --accent
+# Aspas do logo (18/11, escolha do usuário): a 1ª amarela, a 2ª azul
+# (--marca-amarelo e --marca-azul no style.css).
+_MARCA_AMARELO = (251, 172, 24)
+_MARCA_AZUL = (74, 100, 200)
 _CORES_NOTA = {"alta": (57, 194, 102), "media": (242, 187, 37),
                "baixa": (179, 179, 179)}
 _CORES_RARIDADE = {
@@ -75,9 +79,29 @@ def _quebrar(texto: str, fonte, largura_max: int, linhas_max: int) -> "list[str]
 
 
 def _aspas(d: ImageDraw.ImageDraw, x: int, y: int, tamanho: int,
-           cor=_LARANJA) -> None:
-    """As aspas do logo: o caractere “ da própria Inter, em negrito."""
-    d.text((x, y), "\u201c", font=_fonte(tamanho, 800), fill=cor)
+           cor=None) -> None:
+    """As aspas do logo: o caractere “ da própria Inter, em negrito. Sem
+    `cor`, nas cores da marca: a primeira amarela e a segunda azul."""
+    fonte = _fonte(tamanho, 800)
+    if cor is not None:
+        d.text((x, y), "\u201c", font=fonte, fill=cor)
+        return
+    img = d._image
+    mascara = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mascara).text((x, y), "\u201c", font=fonte, fill=255)
+    caixa = mascara.getbbox()
+    if not caixa:
+        return
+    esq, topo, dir_, base = caixa
+    # Corte no vão entre as duas aspas (a coluna vazia mais perto do meio).
+    meio = (esq + dir_) // 2
+    vazias = [c for c in range(esq, dir_)
+              if not mascara.crop((c, topo, c + 1, base)).getbbox()]
+    corte = min(vazias, key=lambda c: abs(c - meio)) if vazias else meio
+    for cor_parte, (a, b) in ((_MARCA_AMARELO, (esq, corte)), (_MARCA_AZUL, (corte, dir_))):
+        parte = Image.new("L", img.size, 0)
+        parte.paste(mascara.crop((a, topo, b, base)), (a, topo))
+        img.paste(cor_parte, mask=parte)
 
 
 def _estrela(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,

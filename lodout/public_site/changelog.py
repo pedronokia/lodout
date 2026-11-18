@@ -17,6 +17,7 @@ ENTRADAS = [
             "Com a letra do celular ampliada (até o dobro), nenhuma página rola mais para o lado: títulos, cartões do Ranking, quadros do item e links do rodapé quebram a linha, e a figurinha da nota cresce junto com a letra.",
             "No computador, o menu do topo marca a página em que você está, com o texto mais forte e um traço laranja embaixo.",
             "“Cores da borda”, na frase que explica a nota, ficou mais fácil de tocar no celular.",
+            "Logo novo nas cores: a primeira aspa amarela e a segunda azul, no topo e no rodapé de todas as páginas, no ícone da aba, no ícone do celular e na imagem que aparece ao compartilhar o site.",
         ],
     },
     {

@@ -3,6 +3,8 @@ name: Lodout
 description: Notas de 0 a 100 explicadas para skins de CS2, num caderno escuro e calmo.
 colors:
   laranja-aspas: "#f97316"
+  marca-amarelo: "#fbac18"
+  marca-azul: "#4a64c8"
   laranja-acao: "rgba(249, 115, 22, 0.7)"
   laranja-pressionado: "#b8480a"
   azul-steam: "#66c0f4"
@@ -161,7 +163,8 @@ A tipografia é uma só família (Inter variável) em pesos levemente acima do c
 Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
-- **Laranja Aspas** (#f97316): a cor da marca (as aspas do topo e do ícone do site), links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
+- **Laranja Aspas** (#f97316): a cor de ação e destaque (links de destaque, anel de foco, trecho preenchido de barras e medidores). Nunca para texto corrido.
+- **Amarelo e Azul da Marca** (#fbac18 e #4a64c8): só no logo — a primeira aspa amarela, a segunda azul (18/11, escolha do usuário, como o ícone da aba de notícias do CS2; o azul é o mesmo tom, mais claro, para aparecer no fundo escuro). Topo, rodapé, ícone da aba, ícone do celular e imagem de compartilhamento.
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 
@@ -183,7 +186,9 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Texto** (#e8e8e8), **Texto Forte** (#ffffff) e **Texto Apagado** (#b3b3b3, 4,5:1 sobre #252525): corpo, títulos/números e legendas/rótulos.
 
 ### Named Rules
-**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é a marca nem um medidor, troque a cor.
+**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é um destaque nem um medidor, troque a cor.
+
+**The Logo Colors Rule.** O amarelo e o azul da marca existem só nas aspas do logo, sempre nessa ordem (amarela, depois azul). Fora do logo, não usar.
 
 **The Meaning Colors Rule.** Verde, amarelo e vermelho só aparecem quando dizem alto/médio/baixo, subiu/caiu ou deu certo/errado. Nunca como decoração.
 

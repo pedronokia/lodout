@@ -101,6 +101,11 @@
   --danger-bright: #b62324;
   --focus: #f97316;
   --marca: #f97316;
+  /* Cores das aspas do logo (18/11, escolha do usuário): a primeira
+     amarela e a segunda azul, como o ícone da aba de notícias do CS2
+     (o azul é o mesmo tom, mais claro, para aparecer no fundo escuro). */
+  --marca-amarelo: #fbac18;
+  --marca-azul: #4a64c8;
 
   /* Barra de navegação -- PRETO PURO #080808, opaco, bem
      separado do cinza escuro #161616 do conteúdo. */
@@ -562,6 +567,11 @@ header.topo h1 {
 /* As aspas herdam a cor do link: assim o mesmo token
    (--chrome-texto -> --chrome-texto-forte) acende o desenho inteiro. */
 .logo-aspas { fill: currentColor; }
+.logo-aspa-1 { fill: var(--marca-amarelo); }
+.logo-aspa-2 { fill: var(--marca-azul); }
+/* Ao passar o mouse, as duas aspas clareiam juntas. */
+.logo .logo-icone { transition: filter var(--dur-base) var(--ease-standard); }
+.logo:hover .logo-icone { filter: brightness(1.2); }
 
 /* Navegação principal -- grupo compacto no centro da barra, com o
    mesmo respiro entre itens da barra da Apple (12px de texto, ~24px
@@ -881,7 +891,8 @@ footer.rodape .rodape-marca-nome {
   flex: 0 0 auto;
 }
 
-.rodape-marca-icone .logo-aspas { fill: var(--accent); }
+.rodape-marca-icone .logo-aspa-1 { fill: var(--marca-amarelo); }
+.rodape-marca-icone .logo-aspa-2 { fill: var(--marca-azul); }
 
 /* "● Preços atualizados há 2 h · Status": bolinha verde; atrasada vira
    âmbar e a frase muda (não depende só da cor). */
