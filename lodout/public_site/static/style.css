@@ -9693,3 +9693,147 @@ circle.grafico-ponto-interativo:hover {
 .nav-inferior a[aria-current="page"] svg {
   filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
 }
+
+/* ==========================================================================
+   25. Refinamento de Tipografia, Fontes e Micro-cópias (Inter Variable OpenType)
+   ========================================================================== */
+
+/* Suavização de fontes em nível de pixel (Windows / macOS / Linux) */
+html,
+body,
+input,
+button,
+select,
+textarea {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+}
+
+/* Números tabulares de alta precisão para métricas, valores e tabelas financeiras */
+.valor,
+.preco-num,
+.card-valor,
+.pulse-card-preco,
+.nota-numero,
+.hero-destaque-nota-num,
+.encomenda-valor,
+.tabela-linha-preco,
+.termometro-item-preco,
+.detalhe-metrica-valor,
+.celula-preco,
+.celula-nota,
+.cartao-item-preco,
+.pulse-delta-pct,
+.pulse-volume-val,
+.cartao-item-nota-numero,
+.hero-destaque-preco,
+.ranking-posicao,
+.tabela-ranking-pos,
+.wear-preco,
+.wear-vendas,
+.historico-ranking-pos,
+.movimento-linha-numeros strong,
+.ranking-media-nota,
+.simulador-resultado-valor {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;
+}
+
+/* Títulos: tracking ótico refinado e contraste branco puro */
+h1,
+.home-tese-titulo,
+.titulo-pagina,
+.hero-destaque-nome,
+.nome-item-destaque {
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+h2,
+h3,
+.secao-titulo,
+.market-pulse-titulo {
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+
+/* Kicker editorial sobre o título principal */
+.home-tese-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--sp-2);
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+/* Subtítulos e parágrafos principais: contraste e altura de linha ideais */
+.home-tese-texto,
+.descricao-pagina {
+  color: #94a3b8;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+/* Micro-etiquetas, selos e cápsulas informativas */
+.pulse-badge,
+.hero-destaque-rotulo,
+.aba-contagem,
+.ranking-seletor-btn,
+.cartao-item-caixa,
+.selo-descontinuada,
+.selo-risco,
+.selo-novo {
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+/* Campo de busca: placeholder refinado com contraste nítido */
+#campo-busca::placeholder,
+.campo-busca::placeholder {
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* Barra de navegação superior */
+.nav-principal a {
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.nav-principal a:hover {
+  color: #ffffff;
+}
+
+.nav-principal a[aria-current="page"] {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Subnav da conta */
+.subnav-conta-link {
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+.subnav-conta-link.subnav-conta-ativo {
+  font-weight: 650;
+}
+

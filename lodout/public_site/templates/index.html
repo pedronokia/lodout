@@ -306,8 +306,9 @@
        saber o que é o Lodout (revisão 17/11). Agora é a tese em uma
        linha, com o link para o Método. #}
     <header class="home-tese">
+      <span class="home-tese-kicker">Inteligência Algorítmica de Mercado CS2</span>
       <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
-      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota — rastreando liquidez, volatilidade e risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
@@ -345,7 +346,7 @@
     <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
       <div class="market-pulse-cabecalho">
         <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
-        <span class="market-pulse-sub">Destaques calculados com os dados públicos do último scan</span>
+        <span class="market-pulse-sub">Destaques e volatilidade calculados com dados públicos da Steam</span>
       </div>
       <div class="market-pulse-grid">
         {% if market_pulse.top_score %}
@@ -485,7 +486,7 @@
 
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
       <label class="campo-busca-rotulo">Buscar
-        <input type="text" name="q" id="campo-busca" placeholder="Ex.: redline, snakebite case (atalho: /)" value="{{ busca_sel or '' }}">
+        <input type="text" name="q" id="campo-busca" placeholder="Buscar skin, caixa, faca, luva ou adesivo... (atalho: /)" value="{{ busca_sel or '' }}">
       </label>
       {# Categoria sai do formulário (2026-11-14): as abas logo abaixo já
          escolhem a categoria; o menu repetia isso e espremia a busca.
