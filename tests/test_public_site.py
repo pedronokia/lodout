@@ -6144,3 +6144,26 @@ def test_menu_do_topo_marca_a_pagina_atual(client):
     from pathlib import Path
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
     assert '.nav-principal a[aria-current="page"]::after' in css
+
+
+def test_api_sugestoes_spotlight_retorna_metadados(client, monkeypatch, tmp_path):
+    """Garante que a busca spotlight (/api/sugestoes) devolve metadados
+    enriquecidos (preço formatado, score, ícone e raridade_classe)."""
+    resultados = [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 88, "price": 85.5,
+         "icon": "hash123", "name_color": "eb4b4b", "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    resp = client.get("/api/sugestoes?q=redline")
+    assert resp.status_code == 200
+    dados = resp.json
+    assert len(dados) == 1
+    it = dados[0]
+    assert it["nome"] == "AK-47 | Redline (Field-Tested)"
+    assert it["score"] == 88
+    assert it["preco_fmt"] == "R$ 85,50"
+    assert it["raridade_classe"] == "raridade-covert"
+    assert "/icone/hash123.webp" in it["icon_url"]
+    assert it["url"] == "/item/AK-47%20%7C%20Redline%20(Field-Tested)"
+

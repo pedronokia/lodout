@@ -1039,7 +1039,7 @@ def create_app() -> Flask:
                     "preco_fmt": fmt.brl(preco_num) if preco_num is not None else None,
                     "score": r.get("score"),
                     "icon_url": icon_url,
-                    "raridade_classe": raridade.classe_css(r.get("rarity_id"), r.get("name_color")),
+                    "raridade_classe": raridade.raridade_classe(r),
                     "url": url_for("item_detail", name=nome),
                 })
                 vistos.add(nome)
@@ -1060,7 +1060,7 @@ def create_app() -> Flask:
                     "preco_fmt": fmt.brl(preco_cat) if preco_cat is not None else None,
                     "score": None,
                     "icon_url": icon_url_cat,
-                    "raridade_classe": raridade.classe_css(linha.get("rarity_id"), linha.get("name_color")),
+                    "raridade_classe": f"raridade-{linha['raridade']}" if linha.get("raridade") else "",
                     "url": url_for("item_detail", name=nome_cat),
                 })
         resp = jsonify(out)
