@@ -7365,7 +7365,7 @@ justify-content: space-between;
 background: var(--surface);
 border: 1px solid var(--border);
 border-radius: var(--radius-sm);
-padding: var(--sp-3) var(--sp-4);
+padding: 12px;
 text-decoration: none;
 color: inherit;
 transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
@@ -7382,18 +7382,18 @@ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 display: flex;
 align-items: center;
 justify-content: space-between;
-gap: 6px;
+gap: 4px;
 margin-bottom: var(--sp-2);
 }
 .pulse-badge {
 display: inline-flex;
 align-items: center;
 gap: 4px;
-font-size: 0.6875rem;
+font-size: 0.65rem;
 font-weight: 700;
 text-transform: uppercase;
-letter-spacing: 0.04em;
-padding: 3px 8px;
+letter-spacing: 0.03em;
+padding: 2px 7px;
 border-radius: 980px;
 white-space: nowrap;
 flex-shrink: 0;
@@ -7421,12 +7421,12 @@ border: 1px solid rgba(242, 187, 37, 0.3);
 .pulse-card-corpo {
 display: flex;
 align-items: center;
-gap: var(--sp-3);
+gap: 8px;
 margin-bottom: var(--sp-2);
 }
 .pulse-card-img-wrap {
-width: 44px;
-height: 44px;
+width: 40px;
+height: 40px;
 border-radius: var(--radius-xs);
 background: var(--surface-sunken);
 border: 1px solid var(--border);
@@ -7448,7 +7448,7 @@ overflow: hidden;
 min-width: 0;
 }
 .pulse-card-nome {
-  font-size: var(--fs-sm);
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-bright);
   display: -webkit-box;
@@ -7489,6 +7489,7 @@ min-width: 0;
   white-space: nowrap;
   font-weight: 500;
   letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 @media (max-width: 900px) {
 .market-pulse-grid {

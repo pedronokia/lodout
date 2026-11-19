@@ -373,7 +373,11 @@
           <div class="pulse-card-topo">
             <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais Negociado</span>
             {% if it.volume is number %}
-            <span class="pulse-volume-val">{{ "{:,}".format(it.volume)|replace(",", ".") }} / 24h</span>
+              {% if it.volume >= 1000 %}
+              <span class="pulse-volume-val">{{ "%.1f"|format(it.volume / 1000)|replace(".", ",") }}k / 24h</span>
+              {% else %}
+              <span class="pulse-volume-val">{{ it.volume }} / 24h</span>
+              {% endif %}
             {% endif %}
           </div>
           <div class="pulse-card-corpo">
