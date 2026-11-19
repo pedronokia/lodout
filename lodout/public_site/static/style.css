@@ -8819,3 +8819,229 @@ circle.grafico-ponto-interativo:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.26);
 }
+
+/* 9. Maiores Mudanças de Nota Hoje (.movimento-do-dia) */
+.movimento-do-dia {
+  background: linear-gradient(180deg, rgba(32, 32, 32, 0.7) 0%, rgba(20, 20, 20, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.movimento-icone {
+  border-radius: 8px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 4px;
+}
+
+.movimento-delta {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+}
+
+.movimento-alta {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.movimento-baixa {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@media (hover: hover) {
+  .movimento-do-dia:hover {
+    border-color: rgba(249, 115, 22, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.45);
+    transform: translateY(-2px);
+  }
+}
+
+/* 10. Status da Coleta Ao Vivo */
+@keyframes pulso-radar {
+  0% {
+    box-shadow: 0 0 0 2px rgba(57, 194, 102, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(57, 194, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(57, 194, 102, 0.45);
+  }
+}
+
+.status-coleta-ponto {
+  animation: pulso-radar 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-coleta-ponto {
+    animation: none;
+  }
+}
+
+/* 11. Ranking & Tabelas de Dados (Terminal de Consistência) */
+.barra-periodo-ranking .seletor-periodo {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.barra-periodo-ranking .seletor-periodo a {
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  padding: 5px 14px;
+  min-height: 30px;
+  transition: all 0.15s ease;
+}
+
+.barra-periodo-ranking .seletor-periodo a[aria-current="true"] {
+  background: rgba(249, 115, 22, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+}
+
+.tabela-top20 tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.tabela-top20 tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+.tabela-top20 .copiar-preco {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.15s ease;
+}
+
+.tabela-top20 .copiar-preco:hover {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: var(--accent);
+}
+
+.ranking-bloco {
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.7) 0%, rgba(20, 20, 20, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ranking-bloco-titulo {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.ranking-bloco-n {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 12. Simulador Interativo & Presets da Ficha do Item */
+.simulador-encomenda-box {
+  background: linear-gradient(180deg, rgba(28, 28, 28, 0.8) 0%, rgba(18, 18, 18, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.btn-sim-preset {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 3px 11px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.15s ease;
+}
+
+.btn-sim-preset:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-sim-preset.ativo,
+.btn-preset-breakeven:hover {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: var(--accent);
+}
+
+.simulador-metrica-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.simulador-metrica-card.card-destaque-lucro {
+  border-color: rgba(57, 194, 102, 0.3);
+  background: radial-gradient(circle at top right, rgba(57, 194, 102, 0.08) 0%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+/* 13. Tabela no Modo Lista (Grade de Dados) */
+.tabela-candidatos tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.tabela-candidatos tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+.tabela-candidatos .celula-preco,
+.tabela-candidatos .celula-sparkline,
+.tabela-candidatos .celula-nota {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 14. Ações da Ficha do Item */
+.acoes-item .botao-acao {
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.15s ease;
+}
+
+.acoes-item .botao-acao:hover {
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.acoes-item .botao-secundario,
+.acoes-item .botao-favorito-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
+}
+
+.acoes-item .botao-secundario:hover,
+.acoes-item .botao-favorito-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
