@@ -8528,12 +8528,12 @@ circle.grafico-ponto-interativo:hover {
 .pulse-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.65rem;
+  gap: 4px;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 3px 9px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
   line-height: 1.2;
 }
@@ -8603,10 +8603,11 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .pulse-volume-val {
-  font-size: var(--fs-xs);
-  font-weight: 700;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: #38bdf8;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pulse-card-sub {
