@@ -7382,6 +7382,7 @@ box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 display: flex;
 align-items: center;
 justify-content: space-between;
+gap: 6px;
 margin-bottom: var(--sp-2);
 }
 .pulse-badge {
@@ -7394,6 +7395,8 @@ text-transform: uppercase;
 letter-spacing: 0.04em;
 padding: 3px 8px;
 border-radius: 980px;
+white-space: nowrap;
+flex-shrink: 0;
 }
 .pulse-badge-fogo {
 background: rgba(249, 115, 22, 0.15);

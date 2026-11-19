@@ -395,7 +395,7 @@
         {% set it = market_pulse.destaque_container %}
         <a class="pulse-card pulse-card-container{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
-            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} Caixa em Alta</span>
+            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} {{ "Cápsula em Alta" if ("Capsule" in it.name or "Cápsula" in it.name) else "Caixa em Alta" }}</span>
             <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
           </div>
           <div class="pulse-card-corpo">
