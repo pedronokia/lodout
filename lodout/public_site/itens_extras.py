@@ -30,7 +30,7 @@ from lodout.public_site import catalogo
 
 _logger = logging.getLogger(__name__)
 
-QUANTIDADE_PADRAO = 100
+QUANTIDADE_PADRAO = 200
 _QUANTIDADE_MAX = 400
 _RENOVA_S = 24 * 3600
 _PRECO_MIN_BRL = 1.0
