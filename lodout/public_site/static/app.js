@@ -667,5 +667,118 @@ if ("serviceWorker" in navigator) {
     });
     var valInicial = parseFloat(input.value);
     if (!isNaN(valInicial)) calcular(valInicial);
+
+    /* Presets de oferta rápida no simulador */
+    var btnPresets = box.querySelectorAll(".btn-sim-preset");
+    btnPresets.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        btnPresets.forEach(function (b) { b.classList.remove("ativo"); });
+        btn.classList.add("ativo");
+        var novoVal = 0;
+        if (btn.getAttribute("data-breakeven") === "true") {
+          novoVal = Math.round(precoAtual * (100 / 115) * 100) / 100;
+        } else {
+          var pct = parseFloat(btn.getAttribute("data-pct"));
+          if (!isNaN(pct)) {
+            novoVal = Math.round(precoAtual * pct * 100) / 100;
+          }
+        }
+        if (novoVal > 0) {
+          input.value = novoVal.toFixed(2);
+          slider.value = novoVal;
+          calcular(novoVal);
+        }
+      });
+    });
   }
+})();
+
+/* Helper de Toast e Botão Compartilhar */
+(function () {
+  var toast = document.getElementById("toast-notificacao");
+  var toastTimer = null;
+
+  function mostrarToast(msg) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.hidden = false;
+    toast.classList.add("visivel");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.remove("visivel");
+      setTimeout(function () { toast.hidden = true; }, 300);
+    }, 3000);
+  }
+
+  var btnCompartilhar = document.querySelector(".botao-compartilhar");
+  if (btnCompartilhar) {
+    btnCompartilhar.addEventListener("click", function () {
+      var nome = btnCompartilhar.getAttribute("data-nome") || "";
+      var nota = btnCompartilhar.getAttribute("data-nota") || "";
+      var preco = btnCompartilhar.getAttribute("data-preco") || "";
+      var url = btnCompartilhar.getAttribute("data-url") || window.location.href;
+
+      var texto = "🔥 " + nome + " no Lodout\n" +
+                  "📊 Nota: " + nota + "/100 · Preço: " + preco + "\n" +
+                  "Análise completa e simulador de lucro no link:\n" + url;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function () {
+          mostrarToast("✓ Resumo e link da skin copiados!");
+        }).catch(function () {
+          mostrarToast("Link do item: " + url);
+        });
+      } else {
+        mostrarToast("Link do item: " + url);
+      }
+    });
+  }
+})();
+
+/* Tooltip Interativo no Gráfico de Histórico */
+(function () {
+  var cards = document.querySelectorAll(".grafico-card");
+  cards.forEach(function (card) {
+    var tooltip = card.querySelector(".grafico-tooltip");
+    var svg = card.querySelector("svg");
+    if (!tooltip || !svg) return;
+
+    var pontos = svg.querySelectorAll(".grafico-ponto-interativo");
+    if (!pontos.length) return;
+
+    function atualizar(pt) {
+      var info = pt.getAttribute("data-info") || "";
+      if (!info) return;
+
+      var partes = info.split(" — ");
+      var dataTxt = partes[0] || "";
+      var valorTxt = partes[1] || "";
+
+      tooltip.innerHTML = '<span class="gt-data">' + dataTxt + '</span>' +
+                          '<strong class="gt-valor">' + valorTxt + '</strong>';
+      tooltip.hidden = false;
+
+      var rectCard = card.getBoundingClientRect();
+      var rectPt = pt.getBoundingClientRect();
+
+      var x = rectPt.left - rectCard.left + (rectPt.width / 2);
+      var y = rectPt.top - rectCard.top - 12;
+
+      tooltip.style.left = x + "px";
+      tooltip.style.top = y + "px";
+    }
+
+    pontos.forEach(function (pt) {
+      pt.addEventListener("mouseenter", function () {
+        atualizar(pt);
+      });
+      pt.addEventListener("touchstart", function () {
+        atualizar(pt);
+      }, { passive: true });
+    });
+
+    card.addEventListener("mouseleave", function () {
+      tooltip.hidden = true;
+    });
+  });
 })();

@@ -7968,3 +7968,213 @@ pointer-events: none;
 .botao-acao {
 box-shadow: 0 0 16px rgba(249, 115, 22, 0.22);
 }
+
+/* ==========================================================================
+   Melhorias Fase 2: Tooltips, Gauges, Presets e Toast
+   ========================================================================== */
+
+.botao-compartilhar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-bright);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.botao-compartilhar:hover {
+  border-color: var(--accent);
+  background: var(--surface-sunken);
+  color: var(--accent);
+}
+
+.botao-compartilhar .icone-ui {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.gauge-barras {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.gauge-barras[hidden] {
+  display: none;
+}
+
+.gauge-seg {
+  width: 5px;
+  height: 12px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.2s ease;
+}
+
+.gauge-risco-low .gauge-seg:nth-child(1) {
+  background: #10b981;
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+}
+
+.gauge-risco-medium .gauge-seg:nth-child(1),
+.gauge-risco-medium .gauge-seg:nth-child(2) {
+  background: #f59e0b;
+  box-shadow: 0 0 5px rgba(245, 158, 11, 0.4);
+}
+
+.gauge-risco-high .gauge-seg {
+  background: #ef4444;
+  box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+}
+
+.gauge-liquidez-raso .gauge-seg:nth-child(1) {
+  background: #94a3b8;
+}
+
+.gauge-liquidez-fino .gauge-seg:nth-child(1),
+.gauge-liquidez-fino .gauge-seg:nth-child(2) {
+  background: #38bdf8;
+  box-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
+}
+
+.gauge-liquidez-medio .gauge-seg:nth-child(1),
+.gauge-liquidez-medio .gauge-seg:nth-child(2),
+.gauge-liquidez-medio .gauge-seg:nth-child(3) {
+  background: #0ea5e9;
+  box-shadow: 0 0 5px rgba(14, 165, 233, 0.4);
+}
+
+.gauge-liquidez-profundo .gauge-seg,
+.gauge-liquidez-muito-liquida .gauge-seg {
+  background: #0284c7;
+  box-shadow: 0 0 5px rgba(2, 132, 199, 0.5);
+}
+
+.simulador-presets {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.simulador-presets-rotulo {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.btn-sim-preset {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 3px 10px;
+  border-radius: 980px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-sim-preset:hover,
+.btn-sim-preset.ativo {
+  border-color: var(--accent);
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--accent);
+}
+
+.btn-preset-breakeven {
+  border-color: rgba(249, 115, 22, 0.4);
+  color: var(--text-bright);
+}
+
+.grafico-card {
+  position: relative;
+}
+
+circle.grafico-ponto-interativo {
+  cursor: pointer;
+}
+
+circle.grafico-ponto-interativo:hover {
+  stroke: var(--accent);
+  stroke-width: 2px;
+  fill: rgba(249, 115, 22, 0.4);
+}
+
+.grafico-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  background: rgba(22, 22, 22, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.grafico-tooltip[hidden] {
+  display: none;
+}
+
+.gt-data {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+}
+
+.gt-valor {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.toast-notificacao {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--accent);
+  color: var(--text-bright);
+  padding: 10px 20px;
+  border-radius: 980px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.toast-notificacao.visivel {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-notificacao[hidden] {
+  display: none;
+}
