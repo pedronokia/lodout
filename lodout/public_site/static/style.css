@@ -10201,3 +10201,405 @@ h3,
 }
 
 
+
+
+/* ==========================================================================
+   POLIMENTO REFINADO: AÇÕES DO TOPO & TOOLBAR DE FILTROS DO CATÁLOGO
+   - Header 3 itens: Buscar [Ctrl K], pílula da conta [avatar + nome], e botão sair
+   - Catálogo Início: + Filtros em destaque, busca secundária compacta e painel glassmorphic
+   ========================================================================== */
+
+/* 1. Tríade de ações do topo (altura consistente de 32px, alinhamento perfeito) */
+.topo-linha .barra-acoes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.botao-spotlight-gatilho {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.botao-spotlight-gatilho .icone-ui {
+  width: 13px;
+  height: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.18s ease;
+}
+
+.botao-spotlight-gatilho:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.botao-spotlight-gatilho:hover .icone-ui {
+  color: var(--accent);
+}
+
+.spotlight-gatilho-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2.5px 5.5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+  transition: all 0.18s ease;
+}
+
+.botao-spotlight-gatilho:hover .spotlight-gatilho-kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #ffffff;
+}
+
+.conta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  min-height: 32px;
+  padding: 2px 12px 2px 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 9999px;
+  color: #f1f5f9;
+  font-size: 0.78125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.conta-pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  text-decoration: none;
+}
+
+.conta-pill[aria-current="page"] {
+  border-color: var(--accent);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.conta-avatar {
+  display: block;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.conta-nome {
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.conta-sair {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.conta-sair .icone-ui {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2px;
+}
+
+.conta-sair:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+  transform: translateX(1px);
+  text-decoration: none;
+}
+
+/* 2. Barra de Ferramentas e Filtros do Catálogo (Home/Início) */
+.form-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  margin-bottom: var(--sp-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.form-filtros .filtros-mais {
+  order: 1;
+  display: inline-flex;
+}
+
+.filtros-mais-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9999px;
+  color: #f1f5f9;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filtros-mais-toggle::-webkit-details-marker { display: none; }
+
+.filtros-mais-toggle:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+}
+
+.filtros-mais[open] .filtros-mais-toggle {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.5);
+  color: #ffffff;
+}
+
+.filtros-mais-toggle .icone-ui-filtro {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+}
+
+.filtros-mais-toggle .icone-ui-chevron-baixo {
+  width: 12px;
+  height: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.filtros-mais[open] .filtros-mais-toggle .icone-ui-chevron-baixo {
+  transform: rotate(180deg);
+}
+
+.badge-contagem-filtros {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Botão Só favoritos */
+.form-filtros button#botao-favoritos {
+  order: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.form-filtros button#botao-favoritos:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.form-filtros button#botao-favoritos[aria-pressed="true"] {
+  background: rgba(250, 204, 21, 0.12);
+  border-color: rgba(250, 204, 21, 0.45);
+  color: #facc15;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.15);
+}
+
+.form-filtros button#botao-favoritos .icone-ui-favorito {
+  width: 14px;
+  height: 14px;
+}
+
+/* Campo de filtro rápido inline, compacto e discreto */
+.form-filtros .campo-busca-rotulo {
+  order: 3;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  flex: 0 1 250px;
+}
+
+.form-filtros .campo-busca-rotulo .icone-ui-lupa {
+  position: absolute;
+  left: 11px;
+  width: 13px;
+  height: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.form-filtros input[type="text"]#campo-busca {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px 0 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 9999px;
+  color: #f1f5f9;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.form-filtros input[type="text"]#campo-busca:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.form-filtros input[type="text"]#campo-busca:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  outline: none;
+}
+
+.form-filtros input[type="text"]#campo-busca::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Painel de Filtros expandido: matriz de precisão */
+.form-filtros .filtros-mais[open] {
+  flex-basis: 100%;
+  order: 10;
+  width: 100%;
+}
+
+.filtros-mais-corpo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 16px;
+  background: rgba(18, 24, 38, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.filtro-campo-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 6px;
+}
+
+.filtros-mais-corpo input[type="number"],
+.filtros-mais-corpo select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #f1f5f9;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
+}
+
+.filtros-mais-corpo select option {
+  background: #111827;
+  color: #f1f5f9;
+}
+
+.filtros-mais-corpo input[type="number"]:focus,
+.filtros-mais-corpo select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+}
+
+@media (max-width: 640px) {
+  .form-filtros {
+    padding: 10px;
+  }
+  .form-filtros .campo-busca-rotulo {
+    order: 1;
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+  .form-filtros .filtros-mais {
+    order: 2;
+  }
+  .form-filtros button#botao-favoritos {
+    order: 3;
+  }
+  .filtros-mais-corpo {
+    grid-template-columns: 1fr 1fr;
+  }
+}
