@@ -28,6 +28,8 @@
       <p class="descricao-pagina">As trocas que você fez com outros jogadores: o que deu, o que recebeu e quanto valia cada lado. Troca direta não paga a taxa da Steam. Vendas ficam em <a href="{{ url_for('history.listar') }}#vendidos">Itens vendidos</a>, no Histórico.</p>
     </header>
 
+    {% include "partials/_subnav_conta.html" %}
+
     <section class="resumo-cards">
       <div class="card"><span class="card-label">Trocas registradas</span><span class="card-valor">{{ resumo.n }}</span></div>
       <div class="card">
