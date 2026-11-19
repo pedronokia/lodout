@@ -10375,11 +10375,11 @@ h3,
 }
 
 .form-filtros .filtros-mais {
-  order: 1;
-  display: inline-flex;
+  display: contents;
 }
 
 .filtros-mais-toggle {
+  order: 1;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -10395,6 +10395,7 @@ h3,
   user-select: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  width: fit-content;
 }
 
 .filtros-mais-toggle::-webkit-details-marker { display: none; }
@@ -10529,17 +10530,13 @@ h3,
 }
 
 /* Painel de Filtros expandido: matriz de precisão */
-.form-filtros .filtros-mais[open] {
-  flex-basis: 100%;
-  order: 10;
-  width: 100%;
-}
-
 .filtros-mais-corpo {
+  order: 10;
+  flex-basis: 100%;
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 14px;
-  width: 100%;
   margin-top: 10px;
   padding: 16px;
   background: rgba(18, 24, 38, 0.55);
