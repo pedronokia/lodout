@@ -8427,3 +8427,495 @@ circle.grafico-ponto-interativo:hover {
   background: var(--accent);
   color: #fff;
 }
+
+/* ==========================================================================
+   Acabamento Artesanal de Luxo & Micro-detalhes (Terminal de Inteligência CS2)
+   ========================================================================== */
+
+/* 1. Identidade & Cabeçalho Global */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-texto {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.logo:hover .logo-texto {
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+}
+
+.logo:hover .logo-aspas {
+  color: var(--accent);
+  filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.5));
+}
+
+.topo {
+  background: rgba(22, 22, 22, 0.88);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.nav-principal a {
+  position: relative;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all 0.15s ease;
+}
+
+.nav-principal a:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.nav-principal a[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.botao-spotlight-gatilho {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.15s ease;
+}
+
+.botao-spotlight-gatilho:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #ffffff;
+}
+
+.spotlight-gatilho-kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+}
+
+.conta-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px 3px 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.15s ease;
+}
+
+.conta-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.conta-link-entrar {
+  background: linear-gradient(180deg, #1f2733 0%, #151b24 100%);
+  border: 1px solid rgba(102, 192, 244, 0.35);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.15s ease;
+}
+
+.conta-link-entrar:hover {
+  border-color: rgba(102, 192, 244, 0.7);
+  box-shadow: 0 4px 16px rgba(102, 192, 244, 0.25);
+  transform: translateY(-1px);
+}
+
+/* 2. Hero Tese & Destaque */
+.home-tese-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 11px;
+  border-radius: var(--radius-pill);
+  background: rgba(249, 115, 22, 0.09);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-2);
+}
+
+.home-tese-badge[hidden] {
+  display: none;
+}
+
+.home-tese-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: badge-pulse 2s infinite ease-in-out;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.home-tese-titulo {
+  font-size: clamp(1.85rem, 3.2vw, 2.45rem);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  line-height: 1.15;
+}
+
+.home-tese-texto {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 65ch;
+}
+
+.hero-destaque {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 3. Termômetro do Mercado (Market Pulse) */
+.market-pulse-titulo {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.market-pulse-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: -0.01em;
+}
+
+.pulse-card {
+  background: linear-gradient(180deg, rgba(32, 32, 32, 0.8) 0%, rgba(20, 20, 20, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.pulse-card:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  line-height: 1.2;
+}
+
+.pulse-badge-fogo {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.pulse-badge-dip {
+  background: rgba(57, 194, 102, 0.12);
+  color: #39c266;
+  border: 1px solid rgba(57, 194, 102, 0.35);
+}
+
+.pulse-badge-volume {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.pulse-badge-container {
+  background: rgba(242, 187, 37, 0.12);
+  color: #f2bb25;
+  border: 1px solid rgba(242, 187, 37, 0.35);
+}
+
+.pulse-card-img-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 3px;
+}
+
+.pulse-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.pulse-card-nome {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.28;
+  color: #ffffff;
+  min-height: 2.56em;
+}
+
+.pulse-card-preco {
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.pulse-volume-val {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: #38bdf8;
+  font-variant-numeric: tabular-nums;
+}
+
+.pulse-card-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+/* 4. Vitrine Cards (.cartao-item) */
+.cartao-item {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+
+.cartao-item-imagem {
+  aspect-ratio: 4 / 3;
+  padding: 28px 16px 8px;
+  background:
+    radial-gradient(ellipse at 50% 65%, color-mix(in srgb, var(--rar-cor, #888) 22%, transparent) 0%, transparent 72%),
+    var(--surface);
+}
+
+.cartao-item-icon {
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 14px color-mix(in srgb, var(--rar-cor, transparent) 22%, transparent));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+}
+
+.cartao-item:hover .cartao-item-icon {
+  transform: scale(1.08) translateY(-3px);
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 20px color-mix(in srgb, var(--rar-cor, transparent) 40%, transparent));
+}
+
+.cartao-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--rar-cor, var(--border));
+  opacity: 0.85;
+  transition: height 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cartao-item:hover::after {
+  height: 4px;
+  opacity: 1;
+  box-shadow: 0 0 12px var(--rar-cor);
+}
+
+.cartao-item-rodape .botao-favorito {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.cartao-item-rodape .botao-favorito:hover {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+.cartao-item-encomenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cartao-item-steam:hover {
+  color: #38bdf8;
+}
+
+.cartao-item-steam:hover .icone-ui {
+  transform: translateX(2px);
+  transition: transform 0.15s ease;
+}
+
+/* 5. Subnav da Conta (/conta) */
+.subnav-conta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  margin: var(--sp-4) 0 var(--sp-6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.subnav-conta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.subnav-conta-link:hover {
+  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.subnav-conta-link.subnav-conta-ativo {
+  color: #ffffff;
+  background: rgba(249, 115, 22, 0.16);
+  border-color: rgba(249, 115, 22, 0.4);
+  border-bottom-color: rgba(249, 115, 22, 0.4);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  font-weight: 650;
+}
+
+.subnav-conta-link.subnav-conta-ativo .icone-ui {
+  color: var(--accent);
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+}
+
+/* 6. Abas de Categorias & Filtros */
+.aba-contagem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.aba-categoria[aria-current="page"] .aba-contagem {
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+
+.campo-busca,
+.filtro-select {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.campo-busca:focus,
+.filtro-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+/* 7. Ficha do Item & Simulador */
+.hero-item {
+  box-shadow: inset 2px 0 0 var(--rar-cor, var(--accent)), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.resumo-cards-item .card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* 8. Seleção Global & Barra de Rolagem */
+::selection {
+  background: rgba(249, 115, 22, 0.35);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
