@@ -8178,3 +8178,72 @@ circle.grafico-ponto-interativo:hover {
 .toast-notificacao[hidden] {
   display: none;
 }
+
+/* ==========================================================================
+   Polimentos de Interação e Feedback Visual
+   ========================================================================== */
+
+.botao-compartilhar .icone-ui-check {
+  display: none;
+}
+
+.botao-compartilhar.copiado {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.botao-compartilhar.copiado .icone-ui-compartilhar {
+  display: none;
+}
+
+.botao-compartilhar.copiado .icone-ui-check {
+  display: inline-block;
+  stroke: #10b981;
+}
+
+.wear-matrix-card-atual {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.10) 0%, var(--surface-sunken) 100%);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.15);
+}
+
+.wear-matrix-badge-atual {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(249, 115, 22, 0.2);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+.pulse-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.pulse-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.pulse-card-top:hover {
+  border-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.18);
+}
+
+@keyframes pulse-fogo-anim {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.pulse-badge-fogo {
+  animation: pulse-fogo-anim 3s ease-in-out infinite;
+}
+
+.btn-sim-preset:active {
+  transform: scale(0.95);
+}

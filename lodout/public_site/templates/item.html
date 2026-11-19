@@ -83,7 +83,7 @@
             <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
-            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link da análise" aria-label="Compartilhar análise">{{ icone("compartilhar") }}<span class="texto-compartilhar">Compartilhar</span></button>
+            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link da análise" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>
@@ -254,16 +254,19 @@
       {% for v in variantes %}
       {% set tag_desgaste = "FN" if "(Factory New)" in v.name else ("MW" if "(Minimal Wear)" in v.name else ("FT" if "(Field-Tested)" in v.name else ("WW" if "(Well-Worn)" in v.name else ("BS" if "(Battle-Scarred)" in v.name else "STD")))) %}
       {% set is_st = "StatTrak" in v.name %}
-      <a class="wear-matrix-card{{ ' wear-matrix-card-st' if is_st else '' }}" href="{{ url_for('item_detail', name=v.name) if v.tem_pagina else v.market_url }}" {% if not v.tem_pagina %}target="_blank" rel="noopener"{% endif %}>
+      {% set is_atual = (v.name == item.name) %}
+      <a class="wear-matrix-card{{ ' wear-matrix-card-st' if is_st else '' }}{{ ' wear-matrix-card-atual' if is_atual else '' }}" href="{{ url_for('item_detail', name=v.name) if v.tem_pagina else v.market_url }}" {% if not v.tem_pagina %}target="_blank" rel="noopener"{% endif %}>
         <div class="wear-matrix-header">
           <span class="wear-matrix-tag">{{ tag_desgaste }}{% if is_st %} ST{% endif %}</span>
-          {% if v.compras_24h is not none and v.compras_24h > 0 %}
+          {% if is_atual %}
+          <span class="wear-matrix-badge-atual">Versão atual</span>
+          {% elif v.compras_24h is not none and v.compras_24h > 0 %}
           <span class="wear-matrix-compras">{{ v.compras_24h }} vendas/24h</span>
           {% endif %}
         </div>
         <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
         <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
-        <span class="wear-matrix-link-txt">{{ "Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗" }}</span>
+        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗") }}</span>
       </a>
       {% endfor %}
     </div>

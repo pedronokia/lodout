@@ -722,10 +722,19 @@ if ("serviceWorker" in navigator) {
                   "📊 Nota: " + nota + "/100 · Preço: " + preco + "\n" +
                   "Análise completa e simulador de lucro no link:\n" + url;
 
+      function ativarSucesso() {
+        btnCompartilhar.classList.add("copiado");
+        var txtSpan = btnCompartilhar.querySelector(".texto-compartilhar");
+        if (txtSpan) txtSpan.textContent = "Copiado!";
+        mostrarToast("✓ Resumo e link da skin copiados!");
+        setTimeout(function () {
+          btnCompartilhar.classList.remove("copiado");
+          if (txtSpan) txtSpan.textContent = "Compartilhar";
+        }, 2200);
+      }
+
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(texto).then(function () {
-          mostrarToast("✓ Resumo e link da skin copiados!");
-        }).catch(function () {
+        navigator.clipboard.writeText(texto).then(ativarSucesso).catch(function () {
           mostrarToast("Link do item: " + url);
         });
       } else {
