@@ -106,7 +106,10 @@ def scan_item(name: str, category: str | None = None,
     as 2 requisições de sempre.
     """
     try:
-        if fonte == "pagina" and fator_preco:
+        if steam_api.has_cached_page_data(name):
+            page = steam_api.get_market_page_data(name)
+            overview = None
+        elif fonte == "pagina" and fator_preco:
             page = steam_api.get_market_page_data(name)
             overview = _overview_da_pagina(page, fator_preco)
             if overview is None:
@@ -132,6 +135,13 @@ def scan_item(name: str, category: str | None = None,
         if price_val and price_val > 0:
             lowest = price_val
             derived_price = True
+
+    if (median is None or volume is None) and page and page.get("price_history"):
+        m_24, v_24 = _mediana_volume_24h(page["price_history"])
+        if median is None:
+            median = m_24 if m_24 is not None else lowest
+        if volume is None:
+            volume = v_24
 
     if lowest is None:
         return None

@@ -948,6 +948,70 @@ def test_get_market_page_data_query_data_not_string(monkeypatch):
     assert steam_api.get_market_page_data("AK") is None
 
 
+def test_get_market_page_data_cache_hit_e_semeia_variantes(monkeypatch):
+    calls = []
+    rc = json.dumps({
+        "queryData": json.dumps({
+            "queries": [
+                {
+                    "state": {"data": {"prices": [{"time": 100, "price_median": 50.0, "purchases": 2}]}},
+                    "queryKey": ["market", "pricehistory", 730, "AK-47 | Redline (Field-Tested)"],
+                },
+                {
+                    "state": {"data": {"prices": [{"time": 100, "price_median": 120.0, "purchases": 1}]}},
+                    "queryKey": ["market", "pricehistory", 730, "AK-47 | Redline (Minimal Wear)"],
+                },
+                {
+                    "state": {"data": {"amtMaxBuyOrder": 4500, "amtMinSellOrder": 5200,
+                                       "cBuyOrders": 20, "cSellOrders": 10}},
+                    "queryKey": ["market", "orderbook", 730, "AK-47 | Redline (Field-Tested)"],
+                },
+                {
+                    "state": {"data": {"type": "Classified Rifle", "commodity": 0, "name_color": "d32ce6"}},
+                    "queryKey": ["market", "description", 730, "AK-47 | Redline (Field-Tested)"],
+                },
+                {
+                    "state": {"data": {"type": "Classified Rifle", "commodity": 0, "name_color": "d32ce6"}},
+                    "queryKey": ["market", "description", 730, "AK-47 | Redline (Minimal Wear)"],
+                },
+            ],
+        }),
+    })
+    html = '<script>window.SSR.renderContext = JSON.parse("' + rc.replace('"', '\\"') + '")</script>'
+    monkeypatch.setattr("lodout.steam_api._http_get",
+                        lambda url: (calls.append(url), (200, html))[1])
+
+    # 1a chamada: busca na rede e popula o cache
+    r_ft = steam_api.get_market_page_data("AK-47 | Redline (Field-Tested)")
+    assert r_ft is not None
+    assert len(calls) == 1
+    assert r_ft["order_book_approx"] is False
+
+    # Verifica status do cache
+    assert steam_api.has_cached_page_data("AK-47 | Redline (Field-Tested)") is True
+    assert steam_api.has_cached_page_data("AK-47 | Redline (Minimal Wear)") is True
+    assert steam_api.has_cached_page_data("M4A4 | Asiimov") is False
+
+    # 2a chamada para o mesmo item: 0 requisições a mais
+    r_ft_cached = steam_api.get_market_page_data("AK-47 | Redline (Field-Tested)")
+    assert r_ft_cached is not None
+    assert len(calls) == 1
+
+    # Chamada para a variante irmã semeada: 0 requisições de rede
+    r_mw_cached = steam_api.get_market_page_data("AK-47 | Redline (Minimal Wear)")
+    assert r_mw_cached is not None
+    assert len(calls) == 1
+    assert r_mw_cached["price_history"][0]["price_median"] == 120.0
+    assert r_mw_cached["order_book_approx"] is True
+    assert r_mw_cached["order_book"]["best_bid"] == 4500
+    assert r_mw_cached["meta"]["name_color"] == "d32ce6"
+
+    # Limpeza de cache funciona
+    steam_api.limpar_cache_paginas()
+    assert steam_api.has_cached_page_data("AK-47 | Redline (Minimal Wear)") is False
+    assert steam_api.has_cached_page_data("AK-47 | Redline (Field-Tested)") is False
+
+
 # ── search_market: camada de descoberta ────────────────────────────
 
 

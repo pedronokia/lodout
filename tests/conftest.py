@@ -71,9 +71,11 @@ def _sem_disjuntores_de_rate_limit():
     from lodout.public_site import rate_limit
 
     steam_api._rate_limit_state.clear()
+    steam_api.limpar_cache_paginas()
     rate_limit.reset()
     yield
     steam_api._rate_limit_state.clear()
+    steam_api.limpar_cache_paginas()
     rate_limit.reset()
 
 
