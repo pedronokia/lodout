@@ -49,9 +49,9 @@
     {% if mais_buscados %}
       <h2 class="secao-titulo">O que mais se busca aqui</h2>
       <p>Termos agregados, sem ligação com quem buscou (ver <a href="{{ url_for('privacidade') }}">privacidade</a>).</p>
-      <ul>
+      <ul class="busca-tags-grid">
         {% for termo, qtd in mais_buscados %}
-        <li>{{ termo }} — {{ qtd }}x</li>
+        <li class="busca-tag-chip">{{ termo }} — {{ qtd }}x</li>
         {% endfor %}
       </ul>
     {% endif %}

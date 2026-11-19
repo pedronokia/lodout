@@ -44,73 +44,120 @@
       <h1 class="titulo-pagina">Perguntas frequentes</h1>
       <p class="descricao-pagina">Respostas diretas, sem enrolação.</p>
     </header>
-    <h2 class="secao-titulo">O que é o Lodout?</h2>
-    <p>Um painel que dá nota de 0 a 100 pra skins de CS2, a partir de dados
-    públicos da Steam Community Market, com o motivo escrito pra cada nota
-    — não um palpite.</p>
 
-    <h2 class="secao-titulo">É seguro usar?</h2>
-    <p>O painel principal não pede login nem senha nenhuma. O login
-    opcional ("Entrar com Steam") usa o <strong>Steam OpenID</strong>, o
-    mesmo mecanismo público que qualquer site usa — você loga direto no
-    domínio da Steam, nunca digita senha aqui. Ver <a href="{{ url_for('privacidade') }}">privacidade</a> pros detalhes.</p>
+    <div class="faq-lista">
+      <article class="faq-item">
+        <h2 class="secao-titulo">O que é o Lodout?</h2>
+        <div class="faq-resposta">
+          <p>Um painel que dá nota de 0 a 100 pra skins de CS2, a partir de dados
+          públicos da Steam Community Market, com o motivo escrito pra cada nota
+          — não um palpite.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">Preciso fazer login pra usar?</h2>
-    <p>Não. O painel de notas é público e não exige conta. O login
-    só é necessário para a sua conta (seus itens e quanto você pagou),
-    trades e watchlist.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">É seguro usar?</h2>
+        <div class="faq-resposta">
+          <p>O painel principal não pede login nem senha nenhuma. O login
+          opcional ("Entrar com Steam") usa o <strong>Steam OpenID</strong>, o
+          mesmo mecanismo público que qualquer site usa — você loga direto no
+          domínio da Steam, nunca digita senha aqui. Ver <a href="{{ url_for('privacidade') }}">privacidade</a> pros detalhes.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">O Lodout vê o meu inventário da Steam?</h2>
-    <p>Só o inventário <strong>público</strong>, o mesmo que qualquer
-    pessoa vê no seu perfil: quando você entra, quando clica em "Atualizar
-    agora" e uma vez por dia. O Lodout nunca pede senha nem chave da Steam,
-    não vê o seu histórico de compras (por isso o valor pago é você que
-    digita) e não faz nada na sua conta da Steam. Detalhes em
-    <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">Preciso fazer login pra usar?</h2>
+        <div class="faq-resposta">
+          <p>Não. O painel de notas é público e não exige conta. O login
+          só é necessário para a sua conta (seus itens e quanto você pagou),
+          trades e watchlist.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">Anunciei um item no Mercado. O que acontece na minha conta?</h2>
-    <p>Enquanto está anunciado, a Steam tira o item do seu inventário
-    público, então o Lodout não sabe se você anunciou ou vendeu. Se ele tem
-    valor pago, fica na sua conta com a etiqueta "fora do inventário" e você
-    responde:</p>
-    <ul>
-      <li><strong>Está anunciado:</strong> marque a caixa e ele fica na
-      lista, com a etiqueta "anunciado", até você tirar.</li>
-      <li><strong>Vendi:</strong> informe por quanto vendeu. A venda vai
-      para "Itens vendidos", na página Histórico, com o lucro já sem a
-      taxa da Steam.</li>
-    </ul>
-    <p>Se você cancelar o anúncio, o item volta ao normal sozinho. O Lodout
-    não descobre a venda sozinho porque o histórico de vendas e trocas da
-    Steam não é público.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">O Lodout vê o meu inventário da Steam?</h2>
+        <div class="faq-resposta">
+          <p>Só o inventário <strong>público</strong>, o mesmo que qualquer
+          pessoa vê no seu perfil: quando você entra, quando clica em "Atualizar
+          agora" e uma vez por dia. O Lodout nunca pede senha nem chave da Steam,
+          não vê o seu histórico de compras (por isso o valor pago é você que
+          digita) e não faz nada na sua conta da Steam. Detalhes em
+          <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">A nota é recomendação de investimento?</h2>
-    <p>Não. A nota descreve dados já medidos — nunca prevê o futuro.
-    Desempenho passado não garante nada, e a decisão de comprar ou vender é
-    sempre sua. Ver <a href="{{ url_for('metodo') }}">como a nota
-    funciona</a> pra entender os limites.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">Anunciei um item no Mercado. O que acontece na minha conta?</h2>
+        <div class="faq-resposta">
+          <p>Enquanto está anunciado, a Steam tira o item do seu inventário
+          público, então o Lodout não sabe se você anunciou ou vendeu. Se ele tem
+          valor pago, fica na sua conta com a etiqueta "fora do inventário" e você
+          responde:</p>
+          <ul>
+            <li><strong>Está anunciado:</strong> marque a caixa e ele fica na
+            lista, com a etiqueta "anunciado", até você tirar.</li>
+            <li><strong>Vendi:</strong> informe por quanto vendeu. A venda vai
+            para "Itens vendidos", na página Histórico, com o lucro já sem a
+            taxa da Steam.</li>
+          </ul>
+          <p>Se você cancelar o anúncio, o item volta ao normal sozinho. O Lodout
+          não descobre a venda sozinho porque o histórico de vendas e trocas da
+          Steam não é público.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">De onde vêm os preços?</h2>
-    <p>Direto da Steam Community Market, de forma pública (o mesmo preço
-    que qualquer um vê no site da Steam). O Lodout não é afiliado à
-    Valve.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">A nota é recomendação de investimento?</h2>
+        <div class="faq-resposta">
+          <p>Não. A nota descreve dados já medidos — nunca prevê o futuro.
+          Desempenho passado não garante nada, e a decisão de comprar ou vender é
+          sempre sua. Ver <a href="{{ url_for('metodo') }}">como a nota
+          funciona</a> pra entender os limites.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">Por que às vezes os dados parecem desatualizados?</h2>
-    <p>A Steam limita quantas vezes um mesmo endereço pode consultar o
-    mercado por minuto. Quando esse limite é atingido, a próxima coleta fica
-    temporariamente bloqueada — o site avisa com um banner quando isso
-    acontece, em vez de esconder o problema. Ver <a href="{{ url_for('status') }}">status</a> pro histórico de ciclos.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">De onde vêm os preços?</h2>
+        <div class="faq-resposta">
+          <p>Direto da Steam Community Market, de forma pública (o mesmo preço
+          que qualquer um vê no site da Steam). O Lodout não é afiliado à
+          Valve.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">Dá pra instalar o Lodout como app no celular?</h2>
-    <p>Sim. No Chrome/Edge (Android) ou Safari (iOS), use "Adicionar à
-    tela inicial" no menu do navegador — o site abre como um app, sem
-    barra de endereço, sem precisar baixar nada de loja nenhuma.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">Por que às vezes os dados parecem desatualizados?</h2>
+        <div class="faq-resposta">
+          <p>A Steam limita quantas vezes um mesmo endereço pode consultar o
+          mercado por minuto. Quando esse limite é atingido, a próxima coleta fica
+          temporariamente bloqueada — o site avisa com um banner quando isso
+          acontece, em vez de esconder o problema. Ver <a href="{{ url_for('status') }}">status</a> pro histórico de ciclos.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">O Lodout é gratuito?</h2>
-    <p>Sim, sem custo pra usar.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">Dá pra instalar o Lodout como app no celular?</h2>
+        <div class="faq-resposta">
+          <p>Sim. No Chrome/Edge (Android) ou Safari (iOS), use "Adicionar à
+          tela inicial" no menu do navegador — o site abre como um app, sem
+          barra de endereço, sem precisar baixar nada de loja nenhuma.</p>
+        </div>
+      </article>
 
-    <h2 class="secao-titulo">Quem mantém o Lodout?</h2>
-    <p>Um projeto de uma pessoa só, código aberto no GitHub. Ver <a href="{{ url_for('sobre') }}">sobre</a>.</p>
+      <article class="faq-item">
+        <h2 class="secao-titulo">O Lodout é gratuito?</h2>
+        <div class="faq-resposta">
+          <p>Sim, sem custo pra usar.</p>
+        </div>
+      </article>
+
+      <article class="faq-item">
+        <h2 class="secao-titulo">Quem mantém o Lodout?</h2>
+        <div class="faq-resposta">
+          <p>Um projeto de uma pessoa só, código aberto no GitHub. Ver <a href="{{ url_for('sobre') }}">sobre</a>.</p>
+        </div>
+      </article>
+    </div>
   </main>
 
   <footer class="rodape">
