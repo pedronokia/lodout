@@ -60,28 +60,22 @@
   --text-muted: #b3b3b3;
   --text-fraco: rgba(232, 232, 232, 0.56);
 
-  /* Cor da casa (18/11, escolha do usuário: "trocar o laranja pelo azul e
-     amarelo do logo", opção A). AZUL para tudo que se clica (botões,
-     opção escolhida, links, barras); AMARELO para "onde estou" e foco
-     (traço do menu, página atual na barra de baixo, contorno de foco).
-     O amarelo nunca vira texto: não confundir com a nota média.
-     O #66c0f4 continua sendo o azul da Steam, para pontos da Steam. */
-  /* Azul de TEXTO e links: o #4a64c8 do logo dá só 3,4:1 no fundo; este
-     tom mais claro dá 5,5:1 (5,1:1 em --surface, 4,7:1 em hover). */
-  --accent: #6f88ea;
-  --accent-bright: #6f88ea;
-  /* Hover de link: clareia (no escuro, escurecer tiraria contraste). */
-  --accent-hover: #93a6f0;
-  --accent-soft: rgba(74, 100, 200, 0.14);
-  /* Fundo do botão principal e do item escolhido: o azul do logo, sólido
-     (texto branco por cima: 5,4:1). */
-  --accent-acao: #4a64c8;
-  --accent-halo: rgba(74, 100, 200, 0.32);
-  /* A mesma cor em "R G B", para as transparências espalhadas pelo CSS
-     (bordas, fundos e gradientes): trocar a cor da casa muda tudo junto. */
-  --accent-rgb: 74 100 200;
-  /* Hover dos botões de fundo azul. */
-  --accent-acao-hover: #3b52ad;
+  /* Marca e estados -- o laranja da casa (Claude Code): botões em #f97316 com texto
+     branco (contraste 4.5:1 no cinza escuro), links em #d0580c e hover #b8480a
+     (4.5:1 no branco). O #f97316 fica para os marcadores da marca; o #66c0f4 é o
+     azul da Steam, guardado para pontos que identificam a Steam. */
+  --accent: #f97316;
+  /* Cor de TEXTO dos links. Era #d0580c (tom de tema claro): 4,0:1
+     sobre --surface, abaixo dos 4,5:1. O laranja da marca dá 5,9:1
+     (5,1:1 sobre o card em hover). */
+  --accent-bright: #f97316;
+  --accent-hover: #b8480a;
+  --accent-soft: rgba(249, 115, 22, 0.1);
+  /* Laranja de ação (fundo de botão principal e do item escolhido) e o
+     halo laranja de foco/destaque: eram escritos à mão 7x cada
+     (auditoria 17/11); o DESIGN.md chama de "Laranja de Ação". */
+  --accent-acao: rgba(249, 115, 22, 0.7);
+  --accent-halo: rgba(249, 115, 22, 0.28);
   --accent-steel: #66c0f4;
   /* Paleta de estados (revisão de cor 2026-11-14): UMA cor por estado,
      todas na mesma família do laranja da marca -- luminosidade ~0,72 e
@@ -105,14 +99,8 @@
      são pra TEXTO sobre o escuro e dariam ~3,3:1 com branco por cima. */
   --danger-fundo: #d03739;
   --danger-bright: #b62324;
-  /* Amarelo do logo: foco do teclado e "onde estou" (traço do menu). */
-  --focus: #fbac18;
-  --marca: #fbac18;
-  /* Cores das aspas do logo (18/11, escolha do usuário): a primeira
-     amarela e a segunda azul, como o ícone da aba de notícias do CS2
-     (o azul é o mesmo tom, mais claro, para aparecer no fundo escuro). */
-  --marca-amarelo: #fbac18;
-  --marca-azul: #4a64c8;
+  --focus: #f97316;
+  --marca: #f97316;
 
   /* Barra de navegação -- PRETO PURO #080808, opaco, bem
      separado do cinza escuro #161616 do conteúdo. */
@@ -121,7 +109,7 @@
   --chrome-texto: rgba(255, 255, 255, 0.82);
   --chrome-texto-forte: #ffffff;
   --chrome-linha: rgba(255, 255, 255, 0.14);
-  --chrome-foco: #fbac18;
+  --chrome-foco: #fb923c;
 
   /* Raridade do CS2 (sobrescrita pelas classes .raridade-*) */
   --rar-cor: #b0c3d9;
@@ -287,7 +275,7 @@ hr {
 }
 
 ::selection {
-  background: rgb(var(--accent-rgb) / 0.18);
+  background: rgba(249, 115, 22, 0.18);
   color: var(--text-bright);
 }
 
@@ -448,8 +436,8 @@ summary:focus-visible,
   padding: 12px 20px;
   border-radius: 0 0 var(--radius-sm) 0;
   background: var(--accent);
-  /* Texto escuro sobre o azul da casa (~5,7:1; branco daria 3,3:1). */
-  color: #0a0f24;
+  /* Texto escuro: branco sobre o laranja dava 2,8:1; este dá ~7:1. */
+  color: #1a0d03;
   font-weight: 600;
   font-size: var(--fs-sm);
   text-decoration: none;
@@ -459,7 +447,7 @@ summary:focus-visible,
 }
 
 .link-pular-conteudo:focus-visible { left: 0; }
-.link-pular-conteudo:hover { color: #0a0f24; text-decoration: underline; }
+.link-pular-conteudo:hover { color: #1a0d03; text-decoration: underline; }
 
 /* Texto de exemplo dos campos: o cinza padrão do navegador (#757575)
    dava 3,5:1 no fundo escuro; este dá 5:1 ou mais. */
@@ -574,11 +562,6 @@ header.topo h1 {
 /* As aspas herdam a cor do link: assim o mesmo token
    (--chrome-texto -> --chrome-texto-forte) acende o desenho inteiro. */
 .logo-aspas { fill: currentColor; }
-.logo-aspa-1 { fill: var(--marca-amarelo); }
-.logo-aspa-2 { fill: var(--marca-azul); }
-/* Ao passar o mouse, as duas aspas clareiam juntas. */
-.logo .logo-icone { transition: filter var(--dur-base) var(--ease-standard); }
-.logo:hover .logo-icone { filter: brightness(1.2); }
 
 /* Navegação principal -- grupo compacto no centro da barra, com o
    mesmo respiro entre itens da barra da Apple (12px de texto, ~24px
@@ -898,8 +881,7 @@ footer.rodape .rodape-marca-nome {
   flex: 0 0 auto;
 }
 
-.rodape-marca-icone .logo-aspa-1 { fill: var(--marca-amarelo); }
-.rodape-marca-icone .logo-aspa-2 { fill: var(--marca-azul); }
+.rodape-marca-icone .logo-aspas { fill: var(--accent); }
 
 /* "● Preços atualizados há 2 h · Status": bolinha verde; atrasada vira
    âmbar e a frase muda (não depende só da cor). */
@@ -1320,7 +1302,7 @@ footer.rodape .rodape-base a:hover {
 @media (hover: hover) {
   .movimento-do-dia:hover {
     box-shadow: var(--shadow-md);
-    border-color: rgb(var(--accent-rgb) / 0.35);
+    border-color: rgba(249, 115, 22, 0.35);
     transform: translateY(-2px);
   }
 }
@@ -1414,7 +1396,7 @@ footer.rodape .rodape-base a:hover {
   background: linear-gradient(
     110deg,
     transparent 40%,
-    rgb(var(--accent-rgb) / 0.08) 50%,
+    rgba(249, 115, 22, 0.08) 50%,
     transparent 60%
   );
   transform: translateX(-100%);
@@ -1748,7 +1730,7 @@ footer.rodape .rodape-base a:hover {
   transition: background-color var(--dur-base) var(--ease-standard);
 }
 
-.form-filtros button:hover { background: var(--accent-acao-hover); }
+.form-filtros button:hover { background: rgba(184, 72, 10, 0.7); }
 
 .form-filtros button:focus-visible {
   outline: 2px solid var(--focus);
@@ -2631,7 +2613,7 @@ table.tabela-itens th.celula-sparkline { white-space: nowrap; }
   padding: 2px 9px;
   border: 0;
   border-radius: var(--radius-pill);
-  background: rgb(var(--accent-rgb) / 0.1);
+  background: rgba(249, 115, 22, 0.1);
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -3122,7 +3104,7 @@ a.paginacao-passo:hover {
   background: linear-gradient(
     110deg,
     transparent 40%,
-    rgb(var(--accent-rgb) / 0.12) 50%,
+    rgba(249, 115, 22, 0.12) 50%,
     transparent 60%
   );
   transform: translateX(-100%);
@@ -3153,14 +3135,14 @@ a.paginacao-passo:hover {
 /* Hover/focus do card: elevação + fio laranja sutil. */
 .cartao-item:focus-within {
   box-shadow: var(--shadow-lg);
-  border: 1px solid rgb(var(--accent-rgb) / 0.35);
+  border: 1px solid rgba(249, 115, 22, 0.35);
   z-index: 1;
 }
 
 @media (hover: hover) {
   .cartao-item:hover {
     box-shadow: var(--shadow-lg);
-    border: 1px solid rgb(var(--accent-rgb) / 0.35);
+    border: 1px solid rgba(249, 115, 22, 0.35);
     z-index: 1;
   }
 }
@@ -4425,7 +4407,7 @@ table.tabela-conta th { white-space: normal; }
   transition: background-color var(--dur-base) var(--ease-standard);
 }
 
-.form-adicionar button:hover { background: var(--accent-acao-hover); }
+.form-adicionar button:hover { background: rgba(184, 72, 10, 0.7); }
 
 /* Botão de texto no estilo Apple: laranja, sem caixa, sublinhado só no
    hover. min-height 44px para touch targets (WCAG). */
@@ -4566,7 +4548,7 @@ table.tabela-conta th { white-space: normal; }
   transition: background-color var(--dur-base) var(--ease-standard);
 }
 
-.form-regras button:hover { background: var(--accent-acao-hover); }
+.form-regras button:hover { background: rgba(154, 52, 18, 0.7); }
 
 /* ── Gráficos ────────────────────────────────────────── */
 
@@ -4936,7 +4918,7 @@ table.tabela-conta th { white-space: normal; }
 }
 
 .botao-acao:hover {
-  background: var(--accent-acao-hover);
+  background: rgba(184, 72, 10, 0.7);
   color: var(--text-bright);
   text-decoration: none;
 }

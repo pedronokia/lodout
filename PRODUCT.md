@@ -58,10 +58,7 @@ carteira) serve a essa decisão explicada.
 ## Brand Commitments
 
 - Nome "Lodout" (maiúscula no texto; minúsculo só em URL e domínio).
-- Marca: as aspas do topo da página, a primeira amarela (#fbac18) e a segunda
-  azul (#4a64c8), desde 18/11 (escolha do usuário, como o ícone da aba de
-  notícias do CS2); as mesmas no rodapé, no ícone do site e na imagem de
-  compartilhamento.
+- Marca: aspas laranja do topo da página, também usadas no ícone do site.
 - Voz: português simples, tom de quem explica para iniciante; diz a idade
   dos dados e os limites da conta em vez de esconder.
 

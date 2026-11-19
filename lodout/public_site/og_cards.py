@@ -29,11 +29,7 @@ _FUNDO = (22, 22, 22)          # --bg #161616
 _SUPERFICIE = (30, 30, 30)     # --surface #1e1e1e
 _TEXTO = (255, 255, 255)
 _TEXTO_FRACO = (179, 179, 179)  # --text-muted
-_DESTAQUE = (111, 136, 234)    # --accent (azul da casa desde 18/11)
-# Aspas do logo (18/11, escolha do usuário): a 1ª amarela, a 2ª azul
-# (--marca-amarelo e --marca-azul no style.css).
-_MARCA_AMARELO = (251, 172, 24)
-_MARCA_AZUL = (74, 100, 200)
+_LARANJA = (249, 115, 22)      # --accent
 _CORES_NOTA = {"alta": (57, 194, 102), "media": (242, 187, 37),
                "baixa": (179, 179, 179)}
 _CORES_RARIDADE = {
@@ -79,29 +75,9 @@ def _quebrar(texto: str, fonte, largura_max: int, linhas_max: int) -> "list[str]
 
 
 def _aspas(d: ImageDraw.ImageDraw, x: int, y: int, tamanho: int,
-           cor=None) -> None:
-    """As aspas do logo: o caractere “ da própria Inter, em negrito. Sem
-    `cor`, nas cores da marca: a primeira amarela e a segunda azul."""
-    fonte = _fonte(tamanho, 800)
-    if cor is not None:
-        d.text((x, y), "\u201c", font=fonte, fill=cor)
-        return
-    img = d._image
-    mascara = Image.new("L", img.size, 0)
-    ImageDraw.Draw(mascara).text((x, y), "\u201c", font=fonte, fill=255)
-    caixa = mascara.getbbox()
-    if not caixa:
-        return
-    esq, topo, dir_, base = caixa
-    # Corte no vão entre as duas aspas (a coluna vazia mais perto do meio).
-    meio = (esq + dir_) // 2
-    vazias = [c for c in range(esq, dir_)
-              if not mascara.crop((c, topo, c + 1, base)).getbbox()]
-    corte = min(vazias, key=lambda c: abs(c - meio)) if vazias else meio
-    for cor_parte, (a, b) in ((_MARCA_AMARELO, (esq, corte)), (_MARCA_AZUL, (corte, dir_))):
-        parte = Image.new("L", img.size, 0)
-        parte.paste(mascara.crop((a, topo, b, base)), (a, topo))
-        img.paste(cor_parte, mask=parte)
+           cor=_LARANJA) -> None:
+    """As aspas do logo: o caractere “ da própria Inter, em negrito."""
+    d.text((x, y), "\u201c", font=_fonte(tamanho, 800), fill=cor)
 
 
 def _estrela(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,
@@ -125,7 +101,7 @@ def _png(img: Image.Image) -> bytes:
 def cartao_padrao() -> bytes:
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, LARGURA, 10], fill=_DESTAQUE)
+    d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
     _aspas(d, 92, 70, 220)
     d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
     frase = "Notas e preços de skins de CS2,\ncom dados públicos da Steam."
@@ -134,7 +110,7 @@ def cartao_padrao() -> bytes:
         d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)
         y += 56
     d.text((100, ALTURA - 70), "lodout.com", font=_fonte(30, 600),
-           fill=_DESTAQUE)
+           fill=_LARANJA)
     return _png(img)
 
 
@@ -147,7 +123,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
                 raridade: "str | None" = None,
                 icone: "bytes | None" = None) -> bytes:
     """1200x630: ícone à esquerda (se houver), nome, nota e preço."""
-    cor_rar = _CORES_RARIDADE.get(raridade or "", _DESTAQUE)
+    cor_rar = _CORES_RARIDADE.get(raridade or "", _LARANJA)
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, LARGURA, 10], fill=cor_rar)
@@ -205,7 +181,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
                font=_fonte(tam, 700), fill=_TEXTO)
 
     f_rod = _fonte(30, 600)
-    d.text((x, ALTURA - 70), "lodout.com", font=f_rod, fill=_DESTAQUE)
+    d.text((x, ALTURA - 70), "lodout.com", font=f_rod, fill=_LARANJA)
     d.text((x + f_rod.getlength("lodout.com") + 12, ALTURA - 70),
            "· dados públicos da Steam", font=_fonte(30, 400),
            fill=_TEXTO_FRACO)
@@ -224,7 +200,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v4"]).encode("utf-8")).hexdigest()
+        "v3"]).encode("utf-8")).hexdigest()
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:
