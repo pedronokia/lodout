@@ -2072,25 +2072,56 @@ def _resumo_entre(atual: "dict | None",
 
 def _calcular_market_pulse(candidatos: list[dict], scan: dict | None) -> dict | None:
     """Termômetro do Mercado (4 destaques para o topo da Home).
-    Calculado só com os dados do scan atual, sem nenhuma consulta à Steam."""
+    Calculado só com os dados do scan atual, sem nenhuma consulta à Steam.
+    Garante que cada cartão exiba um item distinto para evitar duplicações."""
     if not candidatos:
         return None
 
-    top_score = max(candidatos, key=lambda c: c.get("score") or 0)
+    escolhidos = set()
 
-    em_queda = [c for c in candidatos if isinstance(c.get("variacao_pct"), (int, float)) and c["variacao_pct"] < 0]
+    # 1. Top Nota do scan
+    top_score = max(candidatos, key=lambda c: c.get("score") or 0)
+    escolhidos.add(top_score.get("name"))
+
+    # 2. Maior Queda recente (distinto)
+    em_queda = [
+        c for c in candidatos
+        if c.get("name") not in escolhidos
+        and isinstance(c.get("variacao_pct"), (int, float))
+        and c["variacao_pct"] < 0
+    ]
     maior_queda = min(em_queda, key=lambda c: c["variacao_pct"]) if em_queda else None
     if not maior_queda:
-        maior_queda = min(candidatos, key=lambda c: (c.get("price") or 999999))
+        restantes = [c for c in candidatos if c.get("name") not in escolhidos]
+        if restantes:
+            maior_queda = min(restantes, key=lambda c: (c.get("price") or 999999))
+    if maior_queda:
+        escolhidos.add(maior_queda.get("name"))
 
-    com_volume = [c for c in candidatos if isinstance(c.get("volume"), (int, float)) and c["volume"] > 0]
+    # 3. Mais Negociado em volume (distinto)
+    com_volume = [
+        c for c in candidatos
+        if c.get("name") not in escolhidos
+        and isinstance(c.get("volume"), (int, float))
+        and c["volume"] > 0
+    ]
     mais_negociado = max(com_volume, key=lambda c: c["volume"]) if com_volume else None
+    if mais_negociado:
+        escolhidos.add(mais_negociado.get("name"))
 
-    containers = [c for c in candidatos if c.get("is_container") or c.get("category") in ("Caixas", "Cápsulas")]
+    # 4. Caixa ou Cápsula em alta (distinto do top_score e demais)
+    containers = [
+        c for c in candidatos
+        if c.get("name") not in escolhidos
+        and (c.get("is_container") or c.get("category") in ("Caixas", "Cápsulas"))
+    ]
     destaque_container = max(containers, key=lambda c: c.get("score") or 0) if containers else None
-    if not destaque_container and len(candidatos) > 1:
-        outros = [c for c in candidatos if c["name"] != top_score["name"]]
-        destaque_container = max(outros, key=lambda c: c.get("score") or 0) if outros else None
+    if not destaque_container:
+        restantes = [c for c in candidatos if c.get("name") not in escolhidos]
+        if restantes:
+            destaque_container = max(restantes, key=lambda c: c.get("score") or 0)
+    if destaque_container:
+        escolhidos.add(destaque_container.get("name"))
 
     pulse_itens = [it for it in (top_score, maior_queda, mais_negociado, destaque_container) if it]
     for it in pulse_itens:

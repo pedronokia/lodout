@@ -7448,38 +7448,47 @@ overflow: hidden;
 min-width: 0;
 }
 .pulse-card-nome {
-font-size: var(--fs-sm);
-color: var(--text-bright);
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-line-height: 1.25;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-bright);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.25;
+  min-height: 2.5em;
+  word-break: break-word;
 }
 .pulse-card-preco {
-font-size: var(--fs-base);
-font-weight: 700;
-color: var(--text);
-font-variant-numeric: tabular-nums;
-margin-top: 2px;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 .pulse-card-sub {
-font-size: var(--fs-xs);
-color: var(--text-muted);
-line-height: 1.3;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
 }
 .pulse-delta-pct.negativo {
-font-size: var(--fs-xs);
-font-weight: 700;
-color: var(--positive);
-font-variant-numeric: tabular-nums;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--positive);
+  font-variant-numeric: tabular-nums;
 }
 .pulse-volume-val {
-font-size: var(--fs-xs);
-color: var(--text-muted);
-font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 @media (max-width: 900px) {
 .market-pulse-grid {
@@ -8233,6 +8242,21 @@ circle.grafico-ponto-interativo:hover {
 .pulse-card-top:hover {
   border-color: rgba(249, 115, 22, 0.5);
   box-shadow: 0 8px 24px rgba(249, 115, 22, 0.18);
+}
+
+.pulse-card-dip:hover {
+  border-color: rgba(57, 194, 102, 0.5);
+  box-shadow: 0 8px 24px rgba(57, 194, 102, 0.15);
+}
+
+.pulse-card-volume:hover {
+  border-color: rgba(102, 192, 244, 0.5);
+  box-shadow: 0 8px 24px rgba(102, 192, 244, 0.15);
+}
+
+.pulse-card-container:hover {
+  border-color: rgba(242, 187, 37, 0.5);
+  box-shadow: 0 8px 24px rgba(242, 187, 37, 0.15);
 }
 
 @keyframes pulse-fogo-anim {

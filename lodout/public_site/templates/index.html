@@ -337,7 +337,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">Maior pontuação algorítmica do dia</span>
+          <span class="pulse-card-sub">Maior pontuação algorítmica hoje</span>
         </a>
         {% endif %}
 
@@ -363,7 +363,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">Preço recuou no mercado recente</span>
+          <span class="pulse-card-sub">Maior recuo recente de preço</span>
         </a>
         {% endif %}
 
@@ -372,7 +372,9 @@
         <a class="pulse-card pulse-card-volume{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
             <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais Negociado</span>
-            <span class="pulse-volume-val">{{ "{:,}".format(it.volume)|replace(",", ".") }} vendas/24h</span>
+            {% if it.volume is number %}
+            <span class="pulse-volume-val">{{ "{:,}".format(it.volume)|replace(",", ".") }} / 24h</span>
+            {% endif %}
           </div>
           <div class="pulse-card-corpo">
             <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
