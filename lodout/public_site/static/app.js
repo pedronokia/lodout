@@ -1,13 +1,3 @@
-// JS do dashboard público -- extraído de index.html pra ficar fora da
-// página (permite um Content-Security-Policy sem 'unsafe-inline' em
-// script-src no Caddyfile). Vanilla, sem dependência, sem build step.
-
-// Chaves do localStorage mudaram de nome a cada troca de nome do projeto:
-// skinvault_* -> galaseca_* (2026-10-29) -> lodout_* (2026-11-13). Roda
-// antes de todo bloco abaixo: copia o que existir num nome antigo (sem
-// sobrescrever o novo) e apaga o antigo, pra ninguém perder favorito, nota
-// ou busca salva. (localStorage é por domínio: isto cobre quem continua no
-// mesmo endereço; o que ficou salvo em outro domínio não atravessa.)
 (function () {
   ["notas", "favoritos", "comparar", "ultima_visita", "buscas_salvas"].forEach(function (k) {
     ["galaseca_", "skinvault_"].forEach(function (prefixoAntigo) {
@@ -22,12 +12,6 @@
     });
   });
 })();
-
-// Avisos pro leitor de tela (auditoria Web Interface Guidelines,
-// 2026-11-13): "Copiado", contagem de itens pra comparar etc. mudavam na
-// tela em silêncio. Uma região aria-live única, criada sob demanda e
-// invisível (.visualmente-oculto); limpa antes de escrever pra repetir a
-// mesma frase também ser lida.
 function anunciar(msg) {
   try {
     var regiao = document.getElementById("anuncio-ao-vivo");
@@ -43,21 +27,12 @@ function anunciar(msg) {
     setTimeout(function () { regiao.textContent = msg; }, 50);
   } catch (e) {}
 }
-
-// Filtros aplicam sozinhos: o <select> de categoria envia o form ao mudar
-// e os campos de texto/número já enviam com Enter. Com JS ativo o botão
-// "Filtrar" vira redundante e some (classe js-ativo); sem JS ele continua.
 document.documentElement.classList.add("js-ativo");
 document.addEventListener("change", function (e) {
   var campo = e.target;
   if (!campo.matches || !campo.matches("[data-enviar-ao-mudar]") || !campo.form) return;
   campo.form.submit();
 });
-
-// Copiar nome do item (clipboard) e atalho "/" pra focar a busca -- os
-// únicos dois recursos desta página que genuinamente não dão pra fazer
-// sem JS. Delegação de evento (um listener só, cobre linhas criadas por
-// qualquer um dos modos: lista, agrupado).
 document.addEventListener("click", function (e) {
   var btn = e.target.closest(".botao-copiar");
   if (!btn) return;
@@ -80,22 +55,12 @@ document.addEventListener("click", function (e) {
     }, 1200);
   }).catch(function () {});
 });
-
-// "recolher" fica depois da lista de motivos, fora do <summary> --
-// só <summary> alterna o `open` nativamente, então esse botão precisa
-// fechar o <details> na mão.
 document.addEventListener("click", function (e) {
   var btn = e.target.closest(".botao-recolher-motivo");
   if (!btn) return;
   var detalhes = btn.closest("details");
   if (detalhes) detalhes.open = false;
 });
-
-// Confirmação antes de remover trade/item da watchlist/posição da
-// carteira -- essas ações eram só um POST direto sem nenhuma checagem
-// (achado 2026-11-02). `.botao-limpar-comparar` também usa
-// `.botao-remover` mas é `type="button"` fora de formulário (só limpa a
-// seleção local), então não dispara `submit` e não é afetado aqui.
 document.addEventListener("submit", function (e) {
   var form = e.target;
   if (!form.querySelector) return;
@@ -105,27 +70,18 @@ document.addEventListener("submit", function (e) {
     e.preventDefault();
   }
 });
-
-// Menu "⋯ Mais ações" (por item) e popover "Cores da borda" -- <details>
-// nativo não fecha sozinho quando o clique acontece fora dele; sem
-// isso ficava aberto flutuando por cima do resto da tabela depois que
-// o usuário claramente saiu dali (achado 2026-11-01, mesmo princípio
-// reaproveitado pro popover de legenda de raridade).
 var _SELETOR_DETAILS_AUTO_FECHA = ".menu-acoes-item[open], .popover-legenda[open]";
-
 document.addEventListener("click", function (e) {
   document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
     if (!det.contains(e.target)) det.open = false;
   });
 });
-
 document.addEventListener("keydown", function (e) {
   if (e.key !== "Escape") return;
   document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
     det.open = false;
   });
 });
-
 document.addEventListener("error", function (e) {
   if (e.target.matches && e.target.matches(".icone-item")) {
     e.target.classList.add("icone-item-indisponivel");
@@ -133,7 +89,6 @@ document.addEventListener("error", function (e) {
     if (quadro) quadro.classList.remove("icone-item-quadro-com-imagem");
   }
 }, true);
-
 document.addEventListener("keydown", function (e) {
   if (e.key !== "/") return;
   var ativo = document.activeElement;
@@ -145,17 +100,6 @@ document.addEventListener("keydown", function (e) {
   e.preventDefault();
   campo.focus();
 });
-
-// Notas pessoais por item -- só neste navegador (localStorage), nunca
-// enviadas pro servidor. Tenta ler/escrever; se o navegador bloquear
-// (aba anônima, storage desligado), a página continua funcionando
-// normal, só sem salvar a nota.
-//
-// O campo nasce com [hidden] (pouca gente usa, não vale ocupar espaço
-// em toda linha da tabela o tempo todo -- achado visual, 2026-10-27).
-// .botao-nota-toggle revela/esconde; se já existe nota salva, o campo
-// aparece revelado desde o load e o botão ganha .tem-nota como sinal
-// permanente, mesmo fechado.
 (function () {
   var CHAVE = "lodout_notas";
   function lerTudo() {
@@ -181,7 +125,6 @@ document.addEventListener("keydown", function (e) {
       }
     });
   } catch (e) {}
-
   document.addEventListener("click", function (e) {
     var botao = e.target.closest(".botao-nota-toggle");
     if (!botao) return;
@@ -192,7 +135,6 @@ document.addEventListener("keydown", function (e) {
     botao.setAttribute("aria-expanded", String(!campo.hidden));
     if (!campo.hidden) campo.focus();
   });
-
   document.addEventListener("change", function (e) {
     if (!e.target.classList || !e.target.classList.contains("input-tag-local")) return;
     try {
@@ -208,10 +150,6 @@ document.addEventListener("keydown", function (e) {
     var botao = botaoDoCampo(e.target);
     if (botao) botao.classList.toggle("tem-nota", !!e.target.value);
   });
-
-  // blur não borbulha -- precisa de capture pra pegar no listener do
-  // document. Campo vazio ao perder foco volta a ficar escondido, pra
-  // não deixar a linha "aberta" depois que o usuário desistiu de anotar.
   document.addEventListener("blur", function (e) {
     if (!e.target.classList || !e.target.classList.contains("input-tag-local")) return;
     if (e.target.value) return;
@@ -220,11 +158,6 @@ document.addEventListener("keydown", function (e) {
     if (botao) botao.setAttribute("aria-expanded", "false");
   }, true);
 })();
-
-// Favoritos -- igual às notas acima, só neste navegador, nunca enviado
-// pro servidor. "☆ Só favoritos" filtra as linhas da tabela na hora,
-// sem recarregar a página (o filtro do servidor não sabe o que está
-// no localStorage de cada visitante).
 (function () {
   var CHAVE = "lodout_favoritos";
   function lerTudo() {
@@ -252,11 +185,6 @@ document.addEventListener("keydown", function (e) {
     });
   }
   try { aplicarEstadoInicial(); } catch (e) {}
-
-  // Favoritos ficam no navegador e a página mostra só 10 itens: com o
-  // contador em "1" e nada na tela, a mensagem antiga ("nenhum item
-  // favoritado") contradizia o próprio contador. Lista os que estão em
-  // outras páginas, com link pro detalhe de cada um.
   function mostrarFavoritosFora(nomes) {
     var texto = document.getElementById("texto-sem-favoritos");
     var lista = document.getElementById("lista-favoritos-fora");
@@ -280,7 +208,6 @@ document.addEventListener("keydown", function (e) {
     });
     lista.hidden = false;
   }
-
   document.addEventListener("click", function (e) {
     var btn = e.target.closest(".botao-favorito");
     if (!btn) return;
@@ -291,9 +218,6 @@ document.addEventListener("keydown", function (e) {
       if (novoEstado) { favoritos[item] = true; } else { delete favoritos[item]; }
       salvar(favoritos);
       pintarBotao(btn, novoEstado);
-      // Pop breve só ao MARCAR (não ao desmarcar nem no carregamento
-      // da página) -- feedback de resposta imediata ao clique.
-      // `animation` já respeita prefers-reduced-motion via CSS.
       if (novoEstado) {
         btn.classList.remove("favoritando");
         void btn.offsetWidth; // força reflow pra reiniciar a animação em cliques seguidos
@@ -301,7 +225,6 @@ document.addEventListener("keydown", function (e) {
       }
     } catch (e) {}
   });
-
   document.addEventListener("click", function (e) {
     var botao = e.target.closest("#botao-favoritos");
     if (!botao) return;
@@ -317,21 +240,11 @@ document.addEventListener("keydown", function (e) {
         linha.style.display = escondida ? "none" : "";
         if (!escondida) algumVisivel = true;
       });
-      // O rótulo fica "Só favoritos" nos dois estados (2026-11-14): com
-      // aria-pressed, trocar o texto para a ação contrária ("Todos os
-      // itens") fazia o botão ligado anunciar o oposto do que mostrava e
-      // mudar de largura. O estado ligado aparece pelo dourado e pela
-      // estrela cheia.
       botao.setAttribute("aria-pressed", String(ativo));
       var semNenhum = ativo && !algumVisivel;
-      // Sem linha/card visível, o cabeçalho da tabela ou a grade vazia
-      // só ocupava espaço (a grade também é escondida -- rodada 2 do
-      // visual adicionou o modo Vitrine, com <li> em vez de <tr>).
       document.querySelectorAll("table.tabela-candidatos, .grade-cards").forEach(function (t) {
         t.style.display = semNenhum ? "none" : "";
       });
-      // A paginação ("Mostrando 1–12 de 38 itens", "Anterior", "Próxima") fala da
-      // lista completa; no modo só favoritos ela contradizia a tela.
       document.querySelectorAll(".paginacao").forEach(function (nav) {
         nav.hidden = ativo;
       });
@@ -343,10 +256,6 @@ document.addEventListener("keydown", function (e) {
     } catch (e) {}
   });
 })();
-
-// Comparador -- marca até 3 itens (sessionStorage, por aba/sessão: não
-// faz sentido sobreviver semanas como os favoritos) e mostra uma barra
-// flutuante com link pra /comparar?nomes=A,B,C.
 (function () {
   var CHAVE = "lodout_comparar";
   var MAX = 3;
@@ -356,8 +265,6 @@ document.addEventListener("keydown", function (e) {
   function salvar(lista) {
     try { sessionStorage.setItem(CHAVE, JSON.stringify(lista)); } catch (e) {}
   }
-  // Retorno VISÍVEL ao tentar marcar além do limite (o anunciar() só
-  // chega ao leitor de tela): a barra troca o texto por alguns segundos.
   var timerLimite = null;
   function avisarLimite() {
     var barra = document.getElementById("barra-comparar");
@@ -375,7 +282,6 @@ document.addEventListener("keydown", function (e) {
       barra.classList.remove("barra-comparar-limite");
     }, 3000);
   }
-
   function atualizarBarra() {
     var lista = ler();
     var barra = document.getElementById("barra-comparar");
@@ -394,7 +300,6 @@ document.addEventListener("keydown", function (e) {
     });
     atualizarBarra();
   } catch (e) {}
-
   document.addEventListener("change", function (e) {
     if (!e.target.classList || !e.target.classList.contains("checkbox-comparar")) return;
     var lista = ler();
@@ -414,7 +319,6 @@ document.addEventListener("keydown", function (e) {
     atualizarBarra();
     anunciar(lista.length + " de " + MAX + " selecionados pra comparar");
   });
-
   document.addEventListener("click", function (e) {
     if (e.target.id !== "botao-limpar-comparar") return;
     salvar([]);
@@ -423,10 +327,6 @@ document.addEventListener("keydown", function (e) {
     anunciar("Seleção pra comparar limpa");
   });
 })();
-
-// "O que mudou desde sua última visita" -- compara a nota de cada item
-// na tabela com a última vez que ESTE navegador viu a página, destaca
-// quem mudou, e atualiza o snapshot pra próxima visita.
 (function () {
   var CHAVE = "lodout_ultima_visita";
   function lerAnterior() {
@@ -464,10 +364,6 @@ document.addEventListener("keydown", function (e) {
     if (Object.keys(atual).length) localStorage.setItem(CHAVE, JSON.stringify(atual));
   } catch (e) {}
 })();
-
-// Atalhos de teclado pra paginação (seta esquerda/direita) -- só quando
-// nenhum campo de formulário está focado, pra não roubar a seta de
-// dentro de um <input>.
 document.addEventListener("keydown", function (e) {
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
   var ativo = document.activeElement;
@@ -480,17 +376,9 @@ document.addEventListener("keydown", function (e) {
   e.preventDefault();
   link.click();
 });
-
-// PWA: registra o service worker (ver /sw.js + manifest.json) -- só
-// pra instalabilidade ("Adicionar à tela inicial"); a lógica de cache
-// de verdade vive no próprio sw.js, não aqui.
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(function () {});
 }
-
-// Altura do header.topo em --altura-topo: o cabeçalho fixo da tabela
-// (style.css) gruda logo abaixo dele. Medido em vez de fixo porque o
-// header muda de altura (logado/deslogado, zoom, fonte).
 (function () {
   var topo = document.querySelector("header.topo");
   if (!topo) return;
@@ -504,8 +392,6 @@ if ("serviceWorker" in navigator) {
     else window.addEventListener("resize", atualizar);
   } catch (e) {}
 })();
-
-// Botão "voltar ao topo" -- aparece só depois de rolar um pouco.
 (function () {
   var botao = document.getElementById("botao-topo");
   if (!botao) return;
@@ -520,8 +406,6 @@ if ("serviceWorker" in navigator) {
   });
   try { atualizar(); } catch (e) {}
 })();
-
-// Contagem de favoritos no botão de filtro + atalho de teclado "f".
 (function () {
   function contarFavoritos() {
     try {
@@ -552,12 +436,6 @@ if ("serviceWorker" in navigator) {
     if (botao) botao.click();
   });
 })();
-
-// Prefetch da página de detalhes ao passar o mouse no link "Detalhes" --
-// quando o visitante de fato clica, a página já está no cache do
-// navegador. `rel="prefetch"` é uma dica (o navegador pode ignorar sob
-// dados limitados/economia de bateria); nunca prefetch em toque (mobile
-// não tem hover de verdade, e isso dispararia prefetch em todo scroll).
 (function () {
   var jaPrefetchado = {};
   document.addEventListener("mouseover", function (e) {
@@ -570,29 +448,18 @@ if ("serviceWorker" in navigator) {
     document.head.appendChild(tag);
   });
 })();
-
-// Barra de carregamento no topo ao navegar (filtro, paginação, ordenar
-// coluna, trocar de página...) -- site é MPA tradicional, sem fetch()
-// em lugar nenhum (confirmado), então todo clique em link interno ou
-// submit de formulário recarrega a página de verdade. Sem feedback
-// nenhum, um clique num filtro numa conexão lenta parecia que não deu
-// em nada até a próxima página aparecer.
 (function () {
   var barra = document.createElement("div");
   barra.className = "barra-carregamento";
   barra.setAttribute("aria-hidden", "true");
   document.body.prepend(barra);
-
   function iniciarCarregamento() {
     var reduzirMovimento = window.matchMedia
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     barra.classList.toggle("sem-animacao", !!reduzirMovimento);
-    // Força reflow antes de ativar -- sem isso, uma 2a navegação muito
-    // rápida (ex. clique duplo) não reiniciava a transição.
     void barra.offsetWidth;
     barra.classList.add("ativa");
   }
-
   document.addEventListener("click", function (e) {
     if (e.defaultPrevented || e.button !== 0) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -604,14 +471,201 @@ if ("serviceWorker" in navigator) {
         || href.indexOf("javascript:") === 0) return;
     iniciarCarregamento();
   });
-
-  // Roda DEPOIS dos outros listeners de "submit" registrados acima
-  // neste arquivo (ordem de registro) -- o de "Remover" chama
-  // `e.preventDefault()` de forma síncrona (dentro do próprio
-  // window.confirm) quando a pessoa cancela, então `e.defaultPrevented`
-  // já reflete a decisão por aqui.
   document.addEventListener("submit", function (e) {
     if (e.defaultPrevented || e.target.target === "_blank") return;
     iniciarCarregamento();
   });
+})();
+(function () {
+  var overlay = document.getElementById("spotlight-overlay");
+  var input = document.getElementById("spotlight-input");
+  var resultados = document.getElementById("spotlight-resultados");
+  var fecharBtn = document.getElementById("spotlight-fechar");
+  var gatilhoBtn = document.getElementById("gatilho-spotlight");
+  if (!overlay || !input || !resultados) return;
+  var debounceTimer = null;
+  var indiceAtivo = -1;
+  function abrirSpotlight() {
+    overlay.hidden = false;
+    overlay.removeAttribute("aria-hidden");
+    input.value = "";
+    indiceAtivo = -1;
+    resultados.innerHTML = '<div class="spotlight-dica-inicial"><p class="spotlight-dica-texto">Digite o nome em português ou inglês para buscar instantaneamente no catálogo e nas notas do Lodout.</p></div>';
+    setTimeout(function () { input.focus(); }, 50);
+  }
+  function fecharSpotlight() {
+    overlay.hidden = true;
+    overlay.setAttribute("aria-hidden", "true");
+    if (gatilhoBtn) gatilhoBtn.focus();
+  }
+  if (gatilhoBtn) {
+    gatilhoBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      abrirSpotlight();
+    });
+  }
+  if (fecharBtn) {
+    fecharBtn.addEventListener("click", fecharSpotlight);
+  }
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) fecharSpotlight();
+  });
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      if (overlay.hidden) abrirSpotlight();
+      else fecharSpotlight();
+      return;
+    }
+    if (overlay.hidden) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      fecharSpotlight();
+      return;
+    }
+    var itens = resultados.querySelectorAll(".spotlight-item");
+    if (!itens.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      indiceAtivo = (indiceAtivo + 1) % itens.length;
+      atualizarAtivo(itens);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      indiceAtivo = (indiceAtivo - 1 + itens.length) % itens.length;
+      atualizarAtivo(itens);
+    } else if (e.key === "Enter") {
+      if (indiceAtivo >= 0 && itens[indiceAtivo]) {
+        e.preventDefault();
+        itens[indiceAtivo].click();
+      }
+    }
+  });
+  function atualizarAtivo(itens) {
+    for (var i = 0; i < itens.length; i++) {
+      if (i === indiceAtivo) {
+        itens[i].classList.add("spotlight-item-ativo");
+        itens[i].scrollIntoView({ block: "nearest" });
+      } else {
+        itens[i].classList.remove("spotlight-item-ativo");
+      }
+    }
+  }
+  input.addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+    var q = input.value.trim();
+    if (q.length < 2) {
+      resultados.innerHTML = '<div class="spotlight-dica-inicial"><p class="spotlight-dica-texto">Digite pelo menos 2 letras para buscar...</p></div>';
+      return;
+    }
+    debounceTimer = setTimeout(function () {
+      fetch("/api/sugestoes?q=" + encodeURIComponent(q))
+        .then(function (res) { return res.json(); })
+        .then(function (lista) {
+          indiceAtivo = -1;
+          if (!lista || !lista.length) {
+            resultados.innerHTML = '<div class="spotlight-sem-resultado"><p>Nenhum item encontrado para "' + escapeHtml(q) + '".</p></div>';
+            return;
+          }
+          var html = "";
+          for (var i = 0; i < lista.length; i++) {
+            var item = lista[i];
+            var imgHtml = item.icon_url
+              ? '<img class="spotlight-item-img" src="' + escapeHtml(item.icon_url) + '" alt="" width="36" height="36" loading="lazy">'
+              : '<span class="icone-item-placeholder"></span>';
+            var scoreHtml = (typeof item.score === "number")
+              ? '<span class="spotlight-item-score nota-' + Math.min(100, Math.max(0, item.score)) + '">Nota ' + item.score + '</span>'
+              : '<span class="spotlight-item-sem-score">Catálogo</span>';
+            var precoHtml = item.preco_fmt ? '<span class="spotlight-item-preco">' + escapeHtml(item.preco_fmt) + '</span>' : '';
+            var rarClasse = item.raridade_classe ? ' ' + escapeHtml(item.raridade_classe) : '';
+            html += '<a class="spotlight-item' + rarClasse + '" href="' + escapeHtml(item.url || ("/item/" + encodeURIComponent(item.nome))) + '" role="option">' +
+              '<span class="spotlight-item-img-wrap' + rarClasse + '">' + imgHtml + '</span>' +
+              '<div class="spotlight-item-info">' +
+                '<strong class="spotlight-item-nome" translate="no">' + escapeHtml(item.nome_pt || item.nome) + '</strong>' +
+                (item.nome_pt && item.nome_pt !== item.nome ? '<span class="spotlight-item-sub">' + escapeHtml(item.nome) + '</span>' : '') +
+              '</div>' +
+              '<div class="spotlight-item-lado">' +
+                precoHtml +
+                scoreHtml +
+              '</div>' +
+            '</a>';
+          }
+          resultados.innerHTML = html;
+        })
+        .catch(function () {});
+    }, 150);
+  });
+  function escapeHtml(s) {
+    if (!s) return "";
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+})();
+(function () {
+  var box = document.querySelector(".simulador-encomenda-box");
+  if (!box) return;
+  var input = document.getElementById("sim-input-encomenda");
+  var slider = document.getElementById("sim-slider-encomenda");
+  var precoAtual = parseFloat(box.getAttribute("data-preco-atual")) || 0;
+  var maiorEncomenda = parseFloat(box.getAttribute("data-maior-encomenda")) || 0;
+  var elEmpate = document.getElementById("sim-empate-val");
+  var elLucro = document.getElementById("sim-lucro-val");
+  var elRetorno = document.getElementById("sim-retorno-pct");
+  var elFila = document.getElementById("sim-fila-status");
+  var elFilaDesc = document.getElementById("sim-fila-desc");
+  function formatarBrl(val) {
+    return "R$ " + val.toFixed(2).replace(".", ",");
+  }
+  function calcular(valorPago) {
+    if (isNaN(valorPago) || valorPago <= 0) return;
+    var pontoEmpate = valorPago * 1.15;
+    if (elEmpate) elEmpate.textContent = formatarBrl(pontoEmpate);
+    if (precoAtual > 0) {
+      var liquidoVenda = precoAtual / 1.15;
+      var lucroLiquido = liquidoVenda - valorPago;
+      var retornoPct = (lucroLiquido / valorPago) * 100;
+      if (elLucro) {
+        elLucro.textContent = (lucroLiquido >= 0 ? "+" : "") + formatarBrl(lucroLiquido);
+        elLucro.className = "simulador-metrica-val " + (lucroLiquido >= 0 ? "texto-positivo" : "texto-perigo");
+      }
+      if (elRetorno) {
+        elRetorno.textContent = (retornoPct >= 0 ? "+" : "") + retornoPct.toFixed(1).replace(".", ",") + "% líquido";
+        elRetorno.className = "simulador-metrica-sub " + (retornoPct >= 0 ? "texto-positivo" : "texto-perigo");
+      }
+    }
+    if (elFila && elFilaDesc) {
+      if (maiorEncomenda > 0) {
+        if (valorPago > maiorEncomenda) {
+          elFila.textContent = "1º na fila!";
+          elFila.className = "simulador-metrica-val texto-positivo";
+          elFilaDesc.textContent = "Acima da maior encomenda (" + formatarBrl(maiorEncomenda) + ")";
+        } else if (Math.abs(valorPago - maiorEncomenda) < 0.01) {
+          elFila.textContent = "Empatado no topo";
+          elFila.className = "simulador-metrica-val texto-alerta";
+          elFilaDesc.textContent = "Empata com a maior encomenda da Steam";
+        } else {
+          elFila.textContent = "Atrás da fila";
+          elFila.className = "simulador-metrica-val texto-muted";
+          elFilaDesc.textContent = "A maior encomenda atual é " + formatarBrl(maiorEncomenda);
+        }
+      } else {
+        elFila.textContent = "Oferta aberta";
+        elFilaDesc.textContent = "Sem fila conhecida no momento";
+      }
+    }
+  }
+  if (input && slider) {
+    input.addEventListener("input", function () {
+      var val = parseFloat(input.value);
+      if (!isNaN(val)) {
+        slider.value = val;
+        calcular(val);
+      }
+    });
+    slider.addEventListener("input", function () {
+      var val = parseFloat(slider.value);
+      input.value = val.toFixed(2);
+      calcular(val);
+    });
+    var valInicial = parseFloat(input.value);
+    if (!isNaN(valInicial)) calcular(valInicial);
+  }
 })();

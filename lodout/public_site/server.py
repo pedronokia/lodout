@@ -570,12 +570,16 @@ def create_app() -> Flask:
         # "destaque") -- é uma leitura do dado, não uma recomendação (ver
         # AGENTS.md, "não promete retorno").
         destaque_hero = None
+        market_pulse = None
+        if pagina == 1 and sem_filtro_ativo and ordenar == "nota" and todos:
+            market_pulse = _calcular_market_pulse(todos, scan)
         if pagina == 1 and sem_filtro_ativo and ordenar == "nota" and candidatos_pagina:
             destaque_hero = candidatos_pagina[0]
         resp = make_response(render_template(
             "index.html",
             candidatos=candidatos_pagina,
             destaque_hero=destaque_hero,
+            market_pulse=market_pulse,
             scan=scan,
             resumo_do_dia=resumo_do_dia,
             idade=scan_store.idade_txt(scan["ts"]) if scan else None,
@@ -1025,8 +1029,19 @@ def create_app() -> Flask:
             nome = r.get("name") or ""
             texto = catalogo.texto_busca(catalogo.nome_para_busca(nome, localize_name(nome)))
             if nome and all(p in texto for p in palavras):
-                out.append({"nome": nome, "nome_pt": localize_name(nome),
-                            "preco": r.get("price") if isinstance(r.get("price"), (int, float)) else None})
+                preco_num = r.get("price") if isinstance(r.get("price"), (int, float)) else None
+                h = r.get("icon")
+                icon_url = url_for("icone_cache", hash_icone=h, v=3) if h else None
+                out.append({
+                    "nome": nome,
+                    "nome_pt": localize_name(nome),
+                    "preco": preco_num,
+                    "preco_fmt": fmt.brl(preco_num) if preco_num is not None else None,
+                    "score": r.get("score"),
+                    "icon_url": icon_url,
+                    "raridade_classe": raridade.classe_css(r.get("rarity_id"), r.get("name_color")),
+                    "url": url_for("item_detail", name=nome),
+                })
                 vistos.add(nome)
             if len(out) >= 8:
                 break
@@ -1034,8 +1049,20 @@ def create_app() -> Flask:
             _total, linhas = catalogo.consultar({"busca": q}, list(vistos),
                                                 limite=8 - len(out), contar=False)
             for linha in linhas:
-                out.append({"nome": linha["nome"], "nome_pt": localize_name(linha["nome"]),
-                            "preco": linha.get("preco")})
+                nome_cat = linha["nome"]
+                preco_cat = linha.get("preco")
+                h_cat = linha.get("icon")
+                icon_url_cat = url_for("icone_cache", hash_icone=h_cat, v=3) if h_cat else None
+                out.append({
+                    "nome": nome_cat,
+                    "nome_pt": localize_name(nome_cat),
+                    "preco": preco_cat,
+                    "preco_fmt": fmt.brl(preco_cat) if preco_cat is not None else None,
+                    "score": None,
+                    "icon_url": icon_url_cat,
+                    "raridade_classe": raridade.classe_css(linha.get("rarity_id"), linha.get("name_color")),
+                    "url": url_for("item_detail", name=nome_cat),
+                })
         resp = jsonify(out)
         resp.headers["Cache-Control"] = "private, max-age=300"
         return resp
@@ -2040,6 +2067,42 @@ def _resumo_entre(atual: "dict | None",
         "quando": scan_store.idade_txt(antigo["ts"]),
         "desde": _desde_txt(antigo["ts"]),
         "dia_ref": _desde_txt(antigo["ts"]).removeprefix("desde "),
+    }
+
+
+def _calcular_market_pulse(candidatos: list[dict], scan: dict | None) -> dict | None:
+    """Termômetro do Mercado (4 destaques para o topo da Home).
+    Calculado só com os dados do scan atual, sem nenhuma consulta à Steam."""
+    if not candidatos:
+        return None
+
+    top_score = max(candidatos, key=lambda c: c.get("score") or 0)
+
+    em_queda = [c for c in candidatos if isinstance(c.get("variacao_pct"), (int, float)) and c["variacao_pct"] < 0]
+    maior_queda = min(em_queda, key=lambda c: c["variacao_pct"]) if em_queda else None
+    if not maior_queda:
+        maior_queda = min(candidatos, key=lambda c: (c.get("price") or 999999))
+
+    com_volume = [c for c in candidatos if isinstance(c.get("volume"), (int, float)) and c["volume"] > 0]
+    mais_negociado = max(com_volume, key=lambda c: c["volume"]) if com_volume else None
+
+    containers = [c for c in candidatos if c.get("is_container") or c.get("category") in ("Caixas", "Cápsulas")]
+    destaque_container = max(containers, key=lambda c: c.get("score") or 0) if containers else None
+    if not destaque_container and len(candidatos) > 1:
+        outros = [c for c in candidatos if c["name"] != top_score["name"]]
+        destaque_container = max(outros, key=lambda c: c.get("score") or 0) if outros else None
+
+    pulse_itens = [it for it in (top_score, maior_queda, mais_negociado, destaque_container) if it]
+    for it in pulse_itens:
+        h = it.get("icon")
+        if h and not it.get("icon_url"):
+            it["icon_url"] = f"/icone/{h}.webp?v=3"
+
+    return {
+        "top_score": top_score,
+        "maior_queda": maior_queda,
+        "mais_negociado": mais_negociado,
+        "destaque_container": destaque_container,
     }
 
 

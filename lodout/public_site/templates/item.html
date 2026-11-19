@@ -123,6 +123,44 @@
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
       <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga. Por isso o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+
+      <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
+        <div class="simulador-topo">
+          <span class="simulador-badge">{{ icone("grafico") }} Simulador Interativo</span>
+          <h3 class="simulador-titulo">Simule sua Oferta & Retorno Líquido</h3>
+        </div>
+        <p class="simulador-desc">Arraste para ajustar o valor que quer oferecer e veja o lucro líquido em tempo real após a taxa da Steam.</p>
+
+        <div class="simulador-controles">
+          <div class="simulador-campo-grupo">
+            <label for="sim-input-encomenda" class="simulador-label">Quanto quero pagar (R$):</label>
+            <div class="simulador-input-wrap">
+              <span class="simulador-moeda">R$</span>
+              <input type="number" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" step="0.01" min="0.03" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}">
+            </div>
+          </div>
+          <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
+        </div>
+
+        <div class="simulador-metricas-grid">
+          <div class="simulador-metrica-card">
+            <span class="simulador-metrica-rotulo">Ponto de Empate</span>
+            <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
+            <span class="simulador-metrica-sub">Venda mínima p/ não perder</span>
+          </div>
+          <div class="simulador-metrica-card card-destaque-lucro">
+            <span class="simulador-metrica-rotulo">Lucro ao Preço de Hoje</span>
+            <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
+            <span class="simulador-metrica-sub" id="sim-retorno-pct">+0,0% líquido</span>
+          </div>
+          <div class="simulador-metrica-card">
+            <span class="simulador-metrica-rotulo">Fila no Mercado</span>
+            <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
+            <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
+          </div>
+        </div>
+      </div>
+
       {% include "partials/_aviso_prazo_steam.html" %}
       {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
@@ -196,8 +234,27 @@
     </div>
 
     {% if variantes %}
-    <h2 class="secao-titulo">Outras versões desta skin</h2>
-    <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam (não é o menor anúncio). Vêm na mesma consulta deste item, sem custo extra.</p>
+    <h2 class="secao-titulo">Outras versões desta skin (Matriz de Desgastes)</h2>
+    <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam. Vêm na mesma consulta deste item, sem custo extra.</p>
+    
+    <div class="wear-matrix-grid">
+      {% for v in variantes %}
+      {% set tag_desgaste = "FN" if "(Factory New)" in v.name else ("MW" if "(Minimal Wear)" in v.name else ("FT" if "(Field-Tested)" in v.name else ("WW" if "(Well-Worn)" in v.name else ("BS" if "(Battle-Scarred)" in v.name else "STD")))) %}
+      {% set is_st = "StatTrak" in v.name %}
+      <a class="wear-matrix-card{{ ' wear-matrix-card-st' if is_st else '' }}" href="{{ url_for('item_detail', name=v.name) if v.tem_pagina else v.market_url }}" {% if not v.tem_pagina %}target="_blank" rel="noopener"{% endif %}>
+        <div class="wear-matrix-header">
+          <span class="wear-matrix-tag">{{ tag_desgaste }}{% if is_st %} ST{% endif %}</span>
+          {% if v.compras_24h is not none and v.compras_24h > 0 %}
+          <span class="wear-matrix-compras">{{ v.compras_24h }} vendas/24h</span>
+          {% endif %}
+        </div>
+        <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
+        <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
+        <span class="wear-matrix-link-txt">{{ "Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗" }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
     <div class="tabela-wrap" role="region" tabindex="0" aria-label="Outras versões desta skin, com rolagem lateral">
     <table class="tabela-candidatos tabela-variantes">
       <thead>

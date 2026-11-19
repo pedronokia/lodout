@@ -309,6 +309,114 @@
       <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
       <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
+
+    {% if market_pulse %}
+    <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
+      <div class="market-pulse-cabecalho">
+        <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
+        <span class="market-pulse-sub">Destaques calculados com os dados públicos do último scan</span>
+      </div>
+      <div class="market-pulse-grid">
+        {% if market_pulse.top_score %}
+        {% set it = market_pulse.top_score %}
+        <a class="pulse-card pulse-card-top{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-fogo">{{ icone("fogo") }} Top Nota</span>
+            <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Maior pontuação algorítmica do dia</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.maior_queda %}
+        {% set it = market_pulse.maior_queda %}
+        <a class="pulse-card pulse-card-dip{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-dip">{{ icone("seta-baixo") }} Queda Recente</span>
+            {% if it.variacao_pct is number %}
+            <span class="pulse-delta-pct negativo">{{ "%.1f"|format(it.variacao_pct) }}%</span>
+            {% endif %}
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Preço recuou no mercado recente</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.mais_negociado %}
+        {% set it = market_pulse.mais_negociado %}
+        <a class="pulse-card pulse-card-volume{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais Negociado</span>
+            <span class="pulse-volume-val">{{ "{:,}".format(it.volume)|replace(",", ".") }} vendas/24h</span>
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Líder em liquidez e giro no dia</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.destaque_container %}
+        {% set it = market_pulse.destaque_container %}
+        <a class="pulse-card pulse-card-container{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} Caixa em Alta</span>
+            <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">{{ it.case_label|rotulo_caixa(it.name) or "Destaque da categoria de caixas" }}</span>
+        </a>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
     {% if destaque_hero %}
     <section class="hero-destaque{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-label="Item com a nota mais alta hoje">
       <span class="hero-destaque-halo{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-hidden="true"></span>
