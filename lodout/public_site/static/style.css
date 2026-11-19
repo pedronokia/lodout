@@ -8344,3 +8344,61 @@ circle.grafico-ponto-interativo:hover {
 .linha-posicao:hover {
   background-color: rgba(255, 255, 255, 0.02);
 }
+
+/* ==========================================================================
+   Polimentos Refinados da Conta (Etiqueta, Busca, Copiar Preço e Status)
+   ========================================================================== */
+
+.item-etiqueta-anunciado {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+}
+
+.copiar-preco.copiado {
+  color: var(--positive);
+  background: rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+  border-radius: var(--radius-xs);
+}
+
+.copiar-preco.copiado::after {
+  content: " ✓";
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--positive);
+}
+
+.conta-busca input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  outline: none;
+}
+
+.conta-ordem select:hover,
+.conta-ordem select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.card-falta .botao-preencher {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.card-falta .botao-preencher:hover {
+  background: var(--accent);
+  color: #fff;
+}
