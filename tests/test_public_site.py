@@ -6236,3 +6236,22 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
     assert css.count("{") == css.count("}")
     # arquivos que não estão na lista seguem o caminho normal do Flask
     assert client.get("/static/popover.js").status_code == 200
+
+
+def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
+    """A imagem do WhatsApp/Discord desenhava o “ da fonte Inter (reto e
+    inclinado), diferente do logo (revisão 20/11). Agora usa a máscara do
+    mesmo traço do topo do site, e o og-image.png publicado está em dia."""
+    import io as _io
+    from pathlib import Path as _P
+    from PIL import Image as _Img, ImageChops as _Ch
+    from lodout.public_site import og_cards
+    assert og_cards._MASCARA_ASPAS.exists()
+    novo = _Img.open(_io.BytesIO(og_cards.cartao_padrao())).convert("RGB")
+    publicado = _Img.open(_P(og_cards.__file__).parent / "static" / "og-image.png").convert("RGB")
+    assert _Ch.difference(novo, publicado).getbbox() is None
+    # aspas laranja na área do logo, à esquerda e acima do nome
+    area = novo.crop((90, 90, 240, 215))
+    laranja = sum(1 for x in range(area.width) for y in range(area.height)
+                  if (lambda px: px[0] > 200 and 90 < px[1] < 140 and px[2] < 60)(area.getpixel((x, y))))
+    assert laranja > 3000
