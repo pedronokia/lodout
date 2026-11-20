@@ -331,3 +331,14 @@ def test_superficies_sem_tom_azulado():
         if b - r >= 12 and b >= g and max(r, g, b) < 60:
             azuladas.append(m.group(0))
     assert not azuladas, azuladas
+
+
+def test_um_verde_um_vermelho_um_amarelo_sem_cinza_azulado():
+    """Revisão 20/11: o CSS tinha 4 verdes, 3 vermelhos e 2 amarelos além
+    dos oficiais (--positive, --danger, --warn), e um cinza-azulado
+    (#94a3b8) em textos de apoio. Fica um de cada, como no DESIGN.md."""
+    css = _css().lower()
+    for cor in ("#10b981", "#22c55e", "#34d399", "#4ade80",
+                "#ef4444", "#f87171", "#ff8a80", "#facc15", "#94a3b8",
+                "rgba(16, 185, 129", "rgba(239, 68, 68", "rgba(148, 163, 184"):
+        assert cor not in css, cor

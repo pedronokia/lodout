@@ -26,6 +26,7 @@ ENTRADAS = [
             "Página de item que ainda não tem nota: o quadro “Comprar por encomenda” mostrava um botão vazio e uma frase incompleta; agora mostra só o valor para lucrar a sua meta. Comparar itens: no celular, a tabela desliza dentro do quadro em vez de arrastar a página toda para o lado.",
             "O balão “Cores da borda” do Ranking agora fecha com Esc ou tocando fora, como na página inicial. Com a letra do celular ampliada, os cartões da página inicial passam a uma coluna e o preço da encomenda não some mais. Na janela “Vendi”, a dica diz “corrija se vendeu por outro valor” (antes falava em anúncio).",
             "Cores de volta ao cinza do Lodout: quadros, cartões, tabelas e painéis tinham ganhado um fundo azul-marinho; agora são cinza neutro, com o laranja como única cor de destaque. O botão “Entrar com Steam” continua com o azul da Steam.",
+            "Um verde, um vermelho e um amarelo só: o site usava quatro tons de verde, três de vermelho e dois de amarelo; agora todos são os da casa. O texto de apoio da página inicial, os subtítulos das páginas e o seletor de período do Ranking deixaram um cinza puxado para o azul. Link com o mouse em cima fica laranja claro, mais fácil de ler.",
         ],
     },
     {

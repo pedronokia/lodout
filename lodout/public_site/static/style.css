@@ -287,7 +287,7 @@ a {
 
 /* Link da casa: #9a3412 no corpo, escurece no hover. */
 a:hover {
-  color: var(--accent-hover);
+  color: #fb923c;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -690,7 +690,7 @@ header.topo h1 {
 }
 
 .conta-sair:hover {
-  color: #ff8a80;
+  color: #ff6e70;
   background: rgba(255, 255, 255, 0.12);
   text-decoration: none;
 }
@@ -8022,7 +8022,7 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .gauge-risco-low .gauge-seg:nth-child(1) {
-  background: #10b981;
+  background: #39c266;
   box-shadow: none;
 }
 
@@ -8033,12 +8033,12 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .gauge-risco-high .gauge-seg {
-  background: #ef4444;
+  background: #ff6e70;
   box-shadow: none;
 }
 
 .gauge-liquidez-raso .gauge-seg:nth-child(1) {
-  background: #94a3b8;
+  background: #b3b3b3;
 }
 
 .gauge-liquidez-fino .gauge-seg:nth-child(1),
@@ -8186,9 +8186,9 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .botao-compartilhar.copiado {
-  border-color: #10b981;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
+  border-color: #39c266;
+  color: #39c266;
+  background: rgba(57, 194, 102, 0.12);
 }
 
 .botao-compartilhar.copiado .icone-ui-compartilhar {
@@ -8197,7 +8197,7 @@ circle.grafico-ponto-interativo:hover {
 
 .botao-compartilhar.copiado .icone-ui-check {
   display: inline-block;
-  stroke: #10b981;
+  stroke: #39c266;
 }
 
 .wear-matrix-card-atual {
@@ -8370,7 +8370,7 @@ circle.grafico-ponto-interativo:hover {
 
 .copiar-preco.copiado {
   color: var(--positive);
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(57, 194, 102, 0.15);
   box-shadow: none;
   border-radius: var(--radius-xs);
 }
@@ -8900,15 +8900,15 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .movimento-alta {
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #39c266;
+  background: rgba(57, 194, 102, 0.12);
+  border: 1px solid rgba(57, 194, 102, 0.3);
 }
 
 .movimento-baixa {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ff6e70;
+  background: rgba(255, 110, 112, 0.12);
+  border: 1px solid rgba(255, 110, 112, 0.3);
 }
 
 @media (hover: hover) {
@@ -9540,7 +9540,7 @@ circle.grafico-ponto-interativo:hover {
 
 .ranking-bloco-entraram::before { background: #39c266; }
 .ranking-bloco-subiram::before { background: #38bdf8; }
-.ranking-bloco-saidas::before { background: #ef4444; }
+.ranking-bloco-saidas::before { background: #ff6e70; }
 .ranking-bloco-cairam::before { background: #f97316; }
 
 .ranking-bloco:hover {
@@ -9554,7 +9554,7 @@ circle.grafico-ponto-interativo:hover {
 
 .ranking-bloco-entraram:hover { border-color: rgba(57, 194, 102, 0.4); }
 .ranking-bloco-subiram:hover { border-color: rgba(56, 189, 248, 0.4); }
-.ranking-bloco-saidas:hover { border-color: rgba(239, 68, 68, 0.4); }
+.ranking-bloco-saidas:hover { border-color: rgba(255, 110, 112, 0.4); }
 .ranking-bloco-cairam:hover { border-color: rgba(249, 115, 22, 0.4); }
 
 .tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
@@ -9751,7 +9751,7 @@ h3,
 /* Subtítulos e parágrafos principais: contraste e altura de linha ideais */
 .home-tese-texto,
 .descricao-pagina {
-  color: #94a3b8;
+  color: #b3b3b3;
   font-size: 1.0625rem;
   line-height: 1.6;
 }
@@ -9813,7 +9813,7 @@ h3,
 
 .barra-periodo-ranking-rotulo {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   font-weight: 500;
 }
 
@@ -9835,7 +9835,7 @@ h3,
   border-radius: var(--radius-pill);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #b3b3b3;
   text-decoration: none;
   transition: all 0.15s ease;
   border: 1px solid transparent;
@@ -9866,7 +9866,7 @@ h3,
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: #94a3b8;
+  color: #b3b3b3;
   margin-bottom: var(--sp-4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
@@ -9987,7 +9987,7 @@ h3,
 /* Coluna No Top 20 */
 .celula-no-top {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -10032,7 +10032,7 @@ h3,
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  color: #b3b3b3;
   transition: all 0.15s ease;
 }
 
@@ -10045,7 +10045,7 @@ h3,
 .encomenda-preco-hoje {
   display: block;
   font-size: 0.75rem;
-  color: #10b981;
+  color: #39c266;
   font-weight: 550;
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
@@ -10111,7 +10111,7 @@ h3,
 
 .movimento-linha-numeros {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -10128,7 +10128,7 @@ h3,
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   cursor: pointer;
   transition: all 0.15s ease;
   margin-top: 6px;
@@ -10337,9 +10337,9 @@ h3,
 }
 
 .conta-sair:hover {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #f87171;
+  background: linear-gradient(180deg, rgba(255, 110, 112, 0.18) 0%, rgba(255, 110, 112, 0.07) 100%);
+  border-color: rgba(255, 110, 112, 0.45);
+  color: #ff6e70;
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   transform: translateY(-0.5px);
   text-decoration: none;
@@ -10347,7 +10347,7 @@ h3,
 
 .conta-sair:hover .icone-ui {
   transform: translateX(1.5px);
-  color: #f87171;
+  color: #ff6e70;
 }
 
 /* 2. Barra de Ferramentas e Filtros do Catálogo (Home/Início) */
@@ -10461,9 +10461,9 @@ h3,
 }
 
 .form-filtros button#botao-favoritos[aria-pressed="true"] {
-  background: rgba(250, 204, 21, 0.12);
-  border-color: rgba(250, 204, 21, 0.45);
-  color: #facc15;
+  background: rgba(242, 187, 37, 0.12);
+  border-color: rgba(242, 187, 37, 0.45);
+  color: #f2bb25;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
@@ -10635,9 +10635,9 @@ h3,
 }
 
 .botao-limpar-filtros:hover {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: rgba(255, 110, 112, 0.12);
+  border-color: rgba(255, 110, 112, 0.3);
+  color: #ff6e70;
   text-decoration: none;
 }
 
@@ -10912,12 +10912,12 @@ h3,
 }
 
 .resumo-cards-conta .card-valor.valor-positivo {
-  color: #22c55e;
+  color: #39c266;
   text-shadow: none;
 }
 
 .resumo-cards-conta .card-valor.valor-negativo {
-  color: #ef4444;
+  color: #ff6e70;
   text-shadow: none;
 }
 
@@ -11706,18 +11706,18 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .link-excluir-conta .conta-excluir a {
-  color: rgba(239, 68, 68, 0.75);
+  color: rgba(255, 110, 112, 0.75);
   text-decoration: none;
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(255, 110, 112, 0.25);
   transition: all 0.15s ease;
 }
 
 .link-excluir-conta .conta-excluir a:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.45);
+  color: #ff6e70;
+  background: rgba(255, 110, 112, 0.12);
+  border-color: rgba(255, 110, 112, 0.45);
 }
 
 /* 9. Tema Unificado para Watchlist, Trades, Histórico e Componentes Gerais */
@@ -11776,9 +11776,9 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   gap: 4px;
   padding: 3px 8px;
   border-radius: 9999px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #f87171;
+  background: rgba(255, 110, 112, 0.15);
+  border: 1px solid rgba(255, 110, 112, 0.35);
+  color: #ff6e70;
   font-size: 0.71875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -12551,13 +12551,13 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .simulador-metrica-card.card-destaque-lucro {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #34d399;
+  background: rgba(57, 194, 102, 0.08);
+  border-color: rgba(57, 194, 102, 0.25);
+  color: #39c266;
 }
 
 .simulador-metrica-card.card-destaque-lucro .simulador-metrica-valor {
-  color: #34d399;
+  color: #39c266;
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
