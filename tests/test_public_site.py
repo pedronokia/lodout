@@ -654,7 +654,8 @@ def test_index_explicita_escala_da_nota_e_rotulo_textual_de_risco(
     ])
     body = client.get("/").data.decode("utf-8")
 
-    assert "Nota (0\u2013100)" in body
+    # A escala não aparece no texto desde 20/11 (pedido do usuário).
+    assert "0 a 100" not in body and "0\u2013100" not in body and "/100" not in body
     assert "Não é previsão nem promessa de lucro" in body
     # Risco baixo é o caso comum: sem coluna nem selo (era uma coluna
     # inteira repetindo "Baixo" em toda linha) -- e sem a frase que
@@ -1549,7 +1550,7 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
     (G maiúsculo). O resto do texto do site continua "lodout"."""
-    assert "<title>Lodout — notas de 0 a 100 para skins de CS2</title>" in client.get("/").data.decode("utf-8")
+    assert "<title>Lodout — análise do mercado de skins de CS2</title>" in client.get("/").data.decode("utf-8")
     ranking = client.get("/ranking").data.decode("utf-8")
     assert "<title>Ranking — Lodout</title>" in ranking
     assert "— lodout</title>" not in ranking
@@ -4894,7 +4895,7 @@ def test_index_traduz_caixa_igual_coluna_item(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
 
     assert ">Caixa CS:GO Weapon (descontinuada, 2013)</span>" in body
-    assert "<title>Lodout — notas de 0 a 100 para skins de CS2</title>" in body
+    assert "<title>Lodout — análise do mercado de skins de CS2</title>" in body
 
 
 def test_feed_e_api_nao_leem_historico_de_todos_os_itens(
@@ -6061,8 +6062,8 @@ def test_desde_txt_diz_ontem_ou_a_data():
 def test_home_mostra_a_tese_do_site(client):
     """Revisão 17/11: o <h1> era oculto e o celular não dizia o que é o site."""
     body = client.get("/").data.decode("utf-8")
-    assert '<h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>' in body
-    assert "Você vê o motivo" in body and 'href="/metodo"' in body
+    assert '<h1 class="home-tese-titulo">Entenda o mercado de skins de CS2</h1>' in body
+    assert "Cada nota mostra o motivo" in body and 'href="/metodo"' in body
 
 
 def test_pessoas_no_site_agora(client):

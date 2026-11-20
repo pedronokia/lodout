@@ -1677,8 +1677,8 @@ def create_app() -> Flask:
             '<rss version="2.0"><channel>\n'
             f"  <title>{titulo}</title>\n"
             f"  <link>{_xml_escape(link_self)}</link>\n"
-            "  <description>Nota de 0 a 100 pra skins do CS2, com o motivo"
-            " escrito.</description>\n"
+            "  <description>Análise do mercado de skins de CS2, com notas"
+            " e o motivo de cada uma.</description>\n"
             "  <language>pt-BR</language>\n"
             f"{itens_xml}\n"
             "</channel></rss>\n"

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Como funciona a nota — Lodout</title>
-  <meta name="description" content="O que a nota de 0 a 100 mede, de onde vêm os dados e o que ela não é.">
+  <meta name="description" content="O que a nota do Lodout mede, de onde vêm os dados e o que ela não é.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -28,7 +28,7 @@
       {
         "@type": "Question",
         "name": "O que a nota do Lodout mede?",
-        "acceptedAnswer": {"@type": "Answer", "text": "Um número de 0 a 100 que resume dados de mercado de um item: facilidade de comprar e vender, preço em relação ao habitual, tendência, se a caixa ainda sai no jogo e alta rápida demais (tratada como risco)."}
+        "acceptedAnswer": {"@type": "Answer", "text": "Um número que resume dados de mercado de um item (quanto maior, mais fatores positivos): facilidade de comprar e vender, preço em relação ao habitual, tendência, se a caixa ainda sai no jogo e alta rápida demais (tratada como risco)."}
       },
       {
         "@type": "Question",
@@ -60,7 +60,7 @@
     </header>
     <section class="metodo-secao metodo-sinais">
       <h2 class="secao-titulo">O que a nota é</h2>
-      <p class="metodo-intro">Um número de 0 a 100 que resume dados de mercado de um item.
+      <p class="metodo-intro">Um número que resume os dados de mercado de um item: quanto maior, mais fatores positivos.
       É recalculado a cada coleta de preço, só com os dados até aquele momento.
       Os fatores que mais pesam:</p>
       <ul class="metodo-sinais-lista">
@@ -121,7 +121,7 @@
       cobre outros riscos, como mudanças da Valve no jogo.</li>
       <li>Os fatores são recalibrados conforme os dados crescem, e os pesos
       podem mudar.</li>
-      <li>A soma dos fatores pode passar de 0 ou de 100. A nota para no limite,
+      <li>A soma dos fatores pode passar dos limites da escala. A nota para no limite,
       e um número ao lado (por exemplo, “+23”) mostra quanto passou. A ordem
       entre notas iguais já considera isso.</li>
       <li>Tendência, distância do maior preço e alerta de alta artificial só

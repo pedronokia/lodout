@@ -113,7 +113,7 @@ def cartao_padrao() -> bytes:
     d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
     _aspas(img, 100, 96, 110)
     d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
-    frase = "Notas e preços de skins de CS2,\ncom dados públicos da Steam."
+    frase = "Análise do mercado de skins de CS2,\ncom dados públicos da Steam."
     y = 430
     for linha in frase.split("\n"):
         d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)
@@ -175,14 +175,12 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
         d.text((x, y), "Nota", font=_fonte(30, 500), fill=_TEXTO_FRACO)
         d.text((x, y + 34), f"{int(nota)}", font=_fonte(120, 800),
                fill=_CORES_NOTA[_nota_classe(nota)])
-        d.text((x + _fonte(120, 800).getlength(f"{int(nota)}") + 14, y + 104),
-               "/100", font=_fonte(34, 500), fill=_TEXTO_FRACO)
     if preco_fmt:
-        # Depois do "87 /100" de verdade: nota 100 tem 3 dígitos.
+        # Depois da nota de verdade: nota 100 tem 3 dígitos. Sem "/100"
+        # desde 20/11 (pedido do usuário: a escala fica implícita).
         fim_nota = x
         if nota is not None:
-            fim_nota = (x + _fonte(120, 800).getlength(f"{int(nota)}") + 14
-                        + _fonte(34, 500).getlength("/100"))
+            fim_nota = x + _fonte(120, 800).getlength(f"{int(nota)}")
         px = max(x + 300, int(fim_nota) + 50)
         tam = 56
         while tam > 34 and _fonte(tam, 700).getlength(preco_fmt) > LARGURA - 60 - px:
@@ -211,7 +209,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v4"]).encode("utf-8")).hexdigest()  # v4: aspas do logo (20/11)
+        "v5"]).encode("utf-8")).hexdigest()  # v5: sem "/100" (20/11)
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:

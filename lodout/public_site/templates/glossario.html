@@ -21,7 +21,7 @@
       {"@type": "DefinedTerm", "name": "StatTrak™", "description": "Versão da skin que conta os abates feitos com ela. Costuma custar mais que a versão normal."},
       {"@type": "DefinedTerm", "name": "Souvenir", "description": "Versão da arma que só sai de pacotes de torneio, sem StatTrak. Em geral é mais rara e mais cara que a normal."},
       {"@type": "DefinedTerm", "name": "Float", "description": "Número de 0 a 1 que define o desgaste exato de um item dentro da sua faixa de desgaste. O Lodout não mostra o float de cada item, só o preço por faixa."},
-      {"@type": "DefinedTerm", "name": "Nota", "description": "Número de 0 a 100 que resume os dados de mercado de um item. Não é previsão."},
+      {"@type": "DefinedTerm", "name": "Nota", "description": "Número que resume os dados de mercado de um item; quanto maior, mais fatores positivos. Não é previsão."},
       {"@type": "DefinedTerm", "name": "Sem nota ainda", "description": "Item que aparece na busca só com o preço do dia e a quantidade à venda. A nota exige o histórico de preço, uma consulta mais pesada à Steam; por enquanto, existe para os itens mais negociados, e outros entram aos poucos."},
       {"@type": "DefinedTerm", "name": "Preço típico", "description": "A mediana dos preços recentes do item. Serve de referência para saber se o preço atual está acima ou abaixo do normal."},
       {"@type": "DefinedTerm", "name": "Caixa descontinuada", "description": "Caixa que parou de ser sorteada no jogo (saiu do drop pool). No histórico medido, caixas assim valorizaram mais que as ainda ativas, o que não garante o que vai acontecer."},
@@ -104,7 +104,7 @@
 
       <div class="termo-glossario">
       <dt id="termo-nota"><strong>Nota</strong></dt>
-      <dd>Número de 0 a 100 que resume os dados de mercado de um item. Não é previsão. Veja <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</dd>
+      <dd>Número que resume os dados de mercado de um item; quanto maior, mais fatores positivos. Não é previsão. Veja <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</dd>
       </div>
 
       <div class="termo-glossario">

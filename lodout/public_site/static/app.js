@@ -720,7 +720,7 @@ if ("serviceWorker" in navigator) {
       var url = btnCompartilhar.getAttribute("data-url") || window.location.href;
 
       var texto = "🔥 " + nome + " no Lodout\n" +
-                  "📊 Nota: " + nota + "/100 · Preço: " + preco + "\n" +
+                  "📊 Nota: " + nota + " · Preço: " + preco + "\n" +
                   "Análise completa e simulador de lucro no link:\n" + url;
 
       function ativarSucesso() {

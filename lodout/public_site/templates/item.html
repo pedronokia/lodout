@@ -5,19 +5,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ item.name_fmt }} — Lodout</title>
-  <meta name="description" content="{{ item.name_fmt }}: nota {{ item.score }}/100 e preço de {{ item.price_fmt }} no Mercado da Steam.">
+  <meta name="description" content="{{ item.name_fmt }}: nota {{ item.score }} e preço de {{ item.price_fmt }} no Mercado da Steam.">
   <meta property="og:title" content="{{ item.name_fmt }} — Lodout">
-  <meta property="og:description" content="Nota {{ item.score }}/100 · {{ item.price_fmt }}{% if item.reasons %} · {{ item.reasons|join('; ') }}{% endif %}">
+  <meta property="og:description" content="Nota {{ item.score }} · {{ item.price_fmt }}{% if item.reasons %} · {{ item.reasons|join('; ') }}{% endif %}">
   <meta property="og:type" content="website">
   <meta property="og:image" content="{{ request.url_root.rstrip('/') ~ url_for('og_item', nome=item.name) }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="{{ item.name_fmt }}: nota {{ item.score }}/100, {{ item.price_fmt }}">
+  <meta property="og:image:alt" content="{{ item.name_fmt }}: nota {{ item.score }}, {{ item.price_fmt }}">
   <meta property="og:url" content="{{ request.url }}">
   <meta property="og:locale" content="pt_BR">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ item.name_fmt }} — Lodout">
-  <meta name="twitter:description" content="Nota {{ item.score }}/100 · {{ item.price_fmt }}">
+  <meta name="twitter:description" content="Nota {{ item.score }} · {{ item.price_fmt }}">
   <meta name="twitter:image" content="{{ request.url_root.rstrip('/') ~ url_for('og_item', nome=item.name) }}">
   <link rel="canonical" href="{{ request.url }}">
   <script type="application/ld+json">
@@ -99,7 +99,7 @@
     </div>
 
     <section class="resumo-cards resumo-cards-item" aria-label="Resumo do item">
-      <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
+      <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da nota: sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
       <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span></div>
       <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Skins desta caixa que o Lodout já acompanha (não é o total do jogo)">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
       <div class="card card-risco"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}"><span class="gauge-barras gauge-risco gauge-risco-{{ item.pump_risk|risco_nivel }}" aria-hidden="true"><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span></span>{{ item.pump_risk|risco_label }}</span></div>
