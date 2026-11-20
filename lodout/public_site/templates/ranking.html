@@ -89,7 +89,6 @@
      no Top 20 desde ontem vem embaixo, menor. #}
   <main id="conteudo">
     <header class="cabecalho-pagina">
-      <span class="ranking-kicker">Consistência e Histórico de Desempenho</span>
       <h1 class="titulo-pagina">Ranking</h1>
       <p class="descricao-pagina">Os itens que se mantêm com as melhores notas, pela nota média no período, e não só pela nota de hoje.</p>
       {% if quando %}<p class="cabecalho-meta">Última coleta completa {{ quando }}.</p>{% endif %}
@@ -128,7 +127,7 @@
         <tbody>
           {% for it in lista %}
           <tr>
-            <td class="ranking-pos" data-label="#">{{ it.position }}</td>
+            <td class="ranking-pos" data-label="#"><span class="ranking-pos-num">{{ it.position }}</span></td>
             <td class="celula-item-top" data-label="Item"><div class="celula-item-ranking">
               <span class="ranking-pos-celular" aria-hidden="true">#{{ it.position }}</span>
               <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}>

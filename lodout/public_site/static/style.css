@@ -7726,19 +7726,6 @@ align-items: center;
 gap: var(--sp-3);
 margin-bottom: var(--sp-1);
 }
-.simulador-badge {
-display: inline-flex;
-align-items: center;
-gap: 4px;
-font-size: 0.6875rem;
-font-weight: 700;
-text-transform: uppercase;
-background: rgba(249, 115, 22, 0.15);
-color: var(--accent);
-padding: 3px 8px;
-border-radius: 980px;
-border: 1px solid rgba(249, 115, 22, 0.3);
-}
 .simulador-titulo {
 font-size: 1.125rem;
 font-weight: 700;
@@ -9575,19 +9562,19 @@ circle.grafico-ponto-interativo:hover {
 .ranking-bloco-saidas:hover { border-color: rgba(239, 68, 68, 0.4); }
 .ranking-bloco-cairam:hover { border-color: rgba(249, 115, 22, 0.4); }
 
-.tabela-top20 tbody tr:nth-child(1) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
   color: #f2bb25;
   font-weight: 700;
   text-shadow: 0 0 10px rgba(242, 187, 37, 0.4);
 }
 
-.tabela-top20 tbody tr:nth-child(2) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(2) .ranking-pos-num {
   color: #e2e8f0;
   font-weight: 700;
   text-shadow: 0 0 8px rgba(226, 232, 240, 0.3);
 }
 
-.tabela-top20 tbody tr:nth-child(3) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(3) .ranking-pos-num {
   color: #d97706;
   font-weight: 700;
   text-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
@@ -9765,21 +9752,6 @@ h3,
 }
 
 /* Kicker editorial sobre o título principal */
-.home-tese-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: var(--sp-2);
-  background: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.25);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-}
 
 /* Subtítulos e parágrafos principais: contraste e altura de linha ideais */
 .home-tese-texto,
@@ -9805,7 +9777,7 @@ h3,
 /* Campo de busca: placeholder refinado com contraste nítido */
 #campo-busca::placeholder,
 .campo-busca::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -9827,21 +9799,6 @@ h3,
    ========================================================================== */
 
 /* Kicker do Ranking */
-.ranking-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: var(--sp-2);
-  background: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.25);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-}
 
 /* Controles de Período e Legenda */
 .ranking-controles {
@@ -9932,7 +9889,7 @@ h3,
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -9954,10 +9911,9 @@ h3,
 /* Top 3 Podium Highlights */
 .tabela-top20 tbody tr:nth-child(1) {
   background: linear-gradient(90deg, rgba(242, 187, 37, 0.07) 0%, rgba(242, 187, 37, 0.01) 100%);
-  border-left: 3px solid #f2bb25;
 }
 
-.tabela-top20 tbody tr:nth-child(1) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
   color: #ffd700;
   font-weight: 800;
   background: rgba(242, 187, 37, 0.15);
@@ -9970,10 +9926,9 @@ h3,
 
 .tabela-top20 tbody tr:nth-child(2) {
   background: linear-gradient(90deg, rgba(226, 232, 240, 0.05) 0%, rgba(226, 232, 240, 0.01) 100%);
-  border-left: 3px solid #cbd5e1;
 }
 
-.tabela-top20 tbody tr:nth-child(2) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(2) .ranking-pos-num {
   color: #f1f5f9;
   font-weight: 750;
   background: rgba(226, 232, 240, 0.1);
@@ -9986,10 +9941,9 @@ h3,
 
 .tabela-top20 tbody tr:nth-child(3) {
   background: linear-gradient(90deg, rgba(217, 119, 6, 0.06) 0%, rgba(217, 119, 6, 0.01) 100%);
-  border-left: 3px solid #d97706;
 }
 
-.tabela-top20 tbody tr:nth-child(3) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(3) .ranking-pos-num {
   color: #fbbf24;
   font-weight: 750;
   background: rgba(217, 119, 6, 0.12);
@@ -10000,8 +9954,8 @@ h3,
   box-shadow: 0 0 10px rgba(217, 119, 6, 0.2);
 }
 
-.tabela-top20 tbody tr:nth-child(n+4) .ranking-pos {
-  color: #64748b;
+.tabela-top20 tbody tr:nth-child(n+4) .ranking-pos-num {
+  color: var(--text-muted);
   font-weight: 600;
   padding: 3px 8px;
   display: inline-block;
@@ -10104,7 +10058,7 @@ h3,
 
 .encomenda-sem-dado {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -10272,7 +10226,8 @@ h3,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;
@@ -10566,7 +10521,7 @@ h3,
 }
 
 .form-filtros input[type="text"]#campo-busca::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
 }
 
 /* Painel de Filtros expandido: matriz de precisão */
@@ -11024,7 +10979,8 @@ h3,
 }
 
 .conta-lista-cabecalho .meta-lucro-valor {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent);
@@ -11167,7 +11123,8 @@ h3,
   background: rgba(255, 255, 255, 0.08);
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   margin-left: 2px;
   transition: all 0.15s ease;
@@ -11367,7 +11324,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #f1f5f9;
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Campo de Custo Inline Integrado */
@@ -11388,7 +11346,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #f8fafc;
   font-size: 0.8125rem;
   font-weight: 500;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   transition: all 0.18s ease;
 }
@@ -11447,7 +11406,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f8fafc;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -11880,7 +11840,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .troca-coluna-total {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: #f8fafc;
 }
@@ -12000,7 +11961,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .hero-destaque-preco {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -12095,7 +12057,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .pulse-card-valor {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
@@ -12115,8 +12078,13 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   padding: 3px;
 }
 
+.pulse-card-img-wrap { position: relative; overflow: hidden; }
+/* O placeholder global é absoluto: sem o "position: relative" acima ele
+   cobria o cartão inteiro quando o item não tinha imagem (revisão 19/11). */
 .pulse-card-img-wrap .icone-item-placeholder {
   display: flex !important;
+  position: absolute;
+  inset: 0;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -12222,7 +12190,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .cartao-item-preco {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.125rem;
   font-weight: 700;
   color: #f8fafc;
@@ -12544,7 +12513,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .resumo-cards.resumo-cards-item .card-valor.nota .nota-numero {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.5rem !important;
   font-weight: 700 !important;
   line-height: 1;
@@ -12591,7 +12561,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .simulador-metrica-card.card-destaque-lucro .simulador-metrica-valor {
   color: #34d399;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
@@ -12723,4 +12694,34 @@ footer.rodape a {
 footer.rodape-global a:hover,
 footer.rodape a:hover {
   color: #ffffff;
+}
+
+/* Desempenho no celular (revisão 19/11): o "vidro" (backdrop-filter)
+   estava em ~30 elementos da página inicial, a maioria selos repetidos
+   em cada cartão -- cada um é uma camada que o navegador recalcula ao
+   rolar. Fica só no que flutua sobre a página (topo, barra de baixo,
+   busca, dicas, avisos); nos cartões e selos, fundo escuro quase sólido,
+   que dá a mesma leitura sobre a imagem. */
+.cartao-item-nota,
+.cartao-item-margem,
+.cartao-item-posicao,
+.selo-sem-nota,
+.hero-destaque-nota {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgba(12, 12, 12, 0.82);
+}
+.pulse-card,
+.movimento-do-dia,
+.ranking-bloco,
+.hero-destaque,
+.resumo-cards:not(.resumo-cards-item) .card,
+.resumo-cards-conta .card {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* "Ctrl K" não faz sentido sem teclado (celular, tablet). */
+@media (hover: none), (max-width: 640px) {
+  .spotlight-gatilho-kbd { display: none; }
 }

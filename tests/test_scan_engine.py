@@ -638,7 +638,9 @@ def test_scan_item_modo_pagina_faz_uma_requisicao(monkeypatch):
     assert r["price"] == 123.45 and r["volume"] == 8
 
 
-def test_scan_item_usa_variante_em_cache_sem_bater_na_steam(monkeypatch):
+def test_scan_item_usa_variante_em_cache_e_busca_so_o_preco(monkeypatch):
+    """Página de um desgaste irmão em cache: não busca a página de novo,
+    mas busca o preço de agora (priceoverview), como no book aproximado."""
     import time
     import pytest
     from lodout import steam_api
@@ -667,18 +669,24 @@ def test_scan_item_usa_variante_em_cache_sem_bater_na_steam(monkeypatch):
         },
     )
 
-    def _bloqueado(*args, **kwargs):
-        raise AssertionError("Não deveria chamar get_market_overview para item já em cache")
+    chamadas = []
+    monkeypatch.setattr("lodout.steam_api.get_market_overview",
+                        lambda name, **kw: chamadas.append(name) or
+                        {"lowest": 142.5, "median": 139.0, "volume": 11})
 
-    monkeypatch.setattr("lodout.steam_api.get_market_overview", _bloqueado)
+    def _pagina_bloqueada(*args, **kwargs):
+        raise AssertionError("Não deveria buscar a página de novo")
+
+    monkeypatch.setattr("lodout.steam_api._MARKET_LISTING_URL", "http://bloqueado/{name}")
+    monkeypatch.setattr("lodout.steam_api.em_cooldown", _pagina_bloqueada)
 
     r = scan_engine.scan_item("AK-47 | Redline (Minimal Wear)")
+    assert chamadas == ["AK-47 | Redline (Minimal Wear)"]
     assert r is not None
     assert r["name"] == "AK-47 | Redline (Minimal Wear)"
-    assert r["price"] == 140.0
-    assert r["median"] is not None
-    assert r["volume"] == 8
-    assert r["derived_price"] is True
+    # Preço de agora (menor anúncio), não o último ponto do histórico.
+    assert r["price"] == 142.5 and r["derived_price"] is False
+    assert r["median"] == 139.0 and r["volume"] == 11
     assert r["score"] > 0
 
 

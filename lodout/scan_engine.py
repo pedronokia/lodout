@@ -107,8 +107,14 @@ def scan_item(name: str, category: str | None = None,
     """
     try:
         if steam_api.has_cached_page_data(name):
+            # Página emprestada de um desgaste "irmão" (mesmo payload da
+            # listing page): economiza a requisição pesada, mas o book é de
+            # outro desgaste e o histórico não diz o preço de AGORA. Mesma
+            # regra do modo "pagina" com book aproximado: busca o
+            # priceoverview (1 requisição leve). Revisão 19/11: sem isso o
+            # preço saía do último ponto do histórico.
             page = steam_api.get_market_page_data(name)
-            overview = None
+            overview = steam_api.get_market_overview(name)
         elif fonte == "pagina" and fator_preco:
             page = steam_api.get_market_page_data(name)
             overview = _overview_da_pagina(page, fator_preco)

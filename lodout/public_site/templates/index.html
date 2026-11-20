@@ -306,9 +306,8 @@
        saber o que é o Lodout (revisão 17/11). Agora é a tese em uma
        linha, com o link para o Método. #}
     <header class="home-tese">
-      <span class="home-tese-kicker">Inteligência Algorítmica de Mercado CS2</span>
       <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
-      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota — rastreando liquidez, volatilidade e risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota: se é fácil de comprar e vender, quanto o preço oscila e se há risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
@@ -346,14 +345,15 @@
     <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
       <div class="market-pulse-cabecalho">
         <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
-        <span class="market-pulse-sub">Destaques e volatilidade calculados com dados públicos da Steam</span>
+        <span class="market-pulse-sub">Destaques do dia, com dados públicos da Steam</span>
       </div>
       <div class="market-pulse-grid">
-        {% if market_pulse.top_score %}
+        {# Sem repetir o item do destaque logo acima (revisão 19/11). #}
+        {% if market_pulse.top_score and not (destaque_hero and market_pulse.top_score.name == destaque_hero.name) %}
         {% set it = market_pulse.top_score %}
         <a class="pulse-card pulse-card-top{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
-            <span class="pulse-badge pulse-badge-fogo">{{ icone("fogo") }} Top Nota</span>
+            <span class="pulse-badge pulse-badge-fogo">{{ icone("fogo") }} Maior nota</span>
             <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
           </div>
           <div class="pulse-card-corpo">
@@ -369,7 +369,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">Maior pontuação algorítmica hoje</span>
+          <span class="pulse-card-sub">Maior nota de hoje</span>
         </a>
         {% endif %}
 
@@ -377,7 +377,7 @@
         {% set it = market_pulse.maior_queda %}
         <a class="pulse-card pulse-card-dip{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
-            <span class="pulse-badge pulse-badge-dip">{{ icone("seta-baixo") }} Queda Recente</span>
+            <span class="pulse-badge pulse-badge-dip">{{ icone("seta-baixo") }} Queda recente</span>
             {% if it.variacao_pct is number %}
             <span class="pulse-delta-pct negativo">{{ "%.1f"|format(it.variacao_pct) }}%</span>
             {% endif %}
@@ -403,7 +403,7 @@
         {% set it = market_pulse.mais_negociado %}
         <a class="pulse-card pulse-card-volume{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
-            <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais Negociado</span>
+            <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais negociado</span>
             {% if it.volume is number %}
               {% if it.volume >= 1000 %}
               <span class="pulse-volume-val">{{ "%.1f"|format(it.volume / 1000)|replace(".", ",") }}k / 24h</span>
@@ -425,7 +425,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">Líder em liquidez e giro no dia</span>
+          <span class="pulse-card-sub">O mais negociado nas últimas 24 h</span>
         </a>
         {% endif %}
 
@@ -433,7 +433,7 @@
         {% set it = market_pulse.destaque_container %}
         <a class="pulse-card pulse-card-container{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
           <div class="pulse-card-topo">
-            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} {{ "Cápsula em Alta" if ("Capsule" in it.name or "Cápsula" in it.name) else "Caixa em Alta" }}</span>
+            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} {{ "Cápsula em alta" if ("Capsule" in it.name or "Cápsula" in it.name) else "Caixa em alta" }}</span>
             <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
           </div>
           <div class="pulse-card-corpo">

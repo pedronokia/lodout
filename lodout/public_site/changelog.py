@@ -11,6 +11,17 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-20",
+        "titulo": "Preço certo nos desgastes, textos mais simples e site mais leve no celular",
+        "itens": [
+            "Quando a coleta aproveita a página de um item para os outros desgastes dele, agora busca também o preço de agora de cada um (antes vinha do último ponto do histórico).",
+            "Simulador da encomenda, na página do item: aceita vírgula (“58,95”), mostra prejuízo como “−R$ 2,82”, igual ao resto do site, e fala em português simples.",
+            "Ranking: textos cinza com contraste suficiente para ler e a posição (1, 2, 3…) centralizada na linha.",
+            "Página inicial: textos sem jargão, preços na mesma fonte do site, sem repetir o item da nota mais alta no Termômetro e com menos efeito de vidro, que deixava a rolagem pesada no celular.",
+            "No celular, o botão de busca não mostra mais o atalho de teclado “Ctrl K”.",
+        ],
+    },
+    {
         "data": "2026-11-18",
         "titulo": "Letra grande no celular e menu que mostra onde você está",
         "itens": [

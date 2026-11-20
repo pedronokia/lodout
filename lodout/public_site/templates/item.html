@@ -127,17 +127,16 @@
 
       <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
         <div class="simulador-topo">
-          <span class="simulador-badge">{{ icone("grafico") }} Simulador Interativo</span>
-          <h3 class="simulador-titulo">Simule sua Oferta & Retorno Líquido</h3>
+          <h3 class="simulador-titulo">Simule sua encomenda</h3>
         </div>
-        <p class="simulador-desc">Arraste para ajustar o valor que quer oferecer e veja o lucro líquido em tempo real após a taxa da Steam.</p>
+        <p class="simulador-desc">Arraste para escolher quanto oferecer e veja quanto sobraria revendendo pelo preço de hoje, já com a taxa da Steam.</p>
 
         <div class="simulador-controles">
           <div class="simulador-campo-grupo">
             <label for="sim-input-encomenda" class="simulador-label">Quanto quero pagar (R$):</label>
             <div class="simulador-input-wrap">
               <span class="simulador-moeda">R$</span>
-              <input type="number" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" step="0.01" min="0.03" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}">
+              <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
             </div>
           </div>
           <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
@@ -149,22 +148,22 @@
           <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
           <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
           <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
-          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Preço exato de oferta para recuperar 100% na revenda de hoje">No Empate</button>
+          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Oferta que empata revendendo pelo preço de hoje, já com a taxa">No empate</button>
         </div>
 
         <div class="simulador-metricas-grid">
           <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Ponto de Empate</span>
+            <span class="simulador-metrica-rotulo">Ponto de empate</span>
             <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
-            <span class="simulador-metrica-sub">Venda mínima p/ não perder</span>
+            <span class="simulador-metrica-sub">Venda mínima para não perder</span>
           </div>
           <div class="simulador-metrica-card card-destaque-lucro">
-            <span class="simulador-metrica-rotulo">Lucro ao Preço de Hoje</span>
+            <span class="simulador-metrica-rotulo">Lucro revendendo hoje</span>
             <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
-            <span class="simulador-metrica-sub" id="sim-retorno-pct">+0,0% líquido</span>
+            <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
           </div>
           <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Fila no Mercado</span>
+            <span class="simulador-metrica-rotulo">Fila de encomendas</span>
             <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
             <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
           </div>
