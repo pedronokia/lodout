@@ -550,13 +550,6 @@
           {% endif %}
         </div>
       </details>
-      <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só os itens que você favoritou (só neste navegador) — atalho: f">
-        {{ icone("favorito") }}<span id="texto-botao-favoritos">Só favoritos</span> <span id="contagem-favoritos" class="contagem-favoritos" hidden>0</span>
-      </button>
-      <label class="campo-busca-rotulo"><span class="visualmente-oculto">Filtrar por nome</span>
-        {{ icone("lupa") }}
-        <input type="text" name="q" id="campo-busca" placeholder="Filtrar nesta lista... (atalho: /)" value="{{ busca_sel or '' }}">
-      </label>
       {% if categoria_sel %}<input type="hidden" name="categoria" value="{{ categoria_sel }}">{% endif %}
       <input type="hidden" name="ordenar" value="{{ ordenar_sel }}">
       <input type="hidden" name="ver" value="{{ ver_sel }}">

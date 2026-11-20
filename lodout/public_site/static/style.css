@@ -10363,19 +10363,14 @@ h3,
 /* 2. Barra de Ferramentas e Filtros do Catálogo (Home/Início) */
 .form-filtros {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 0;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   margin-bottom: var(--sp-4);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 10px 14px;
 }
 
 .filtros-barra-acoes {
@@ -10385,7 +10380,7 @@ h3,
   width: 100%;
 }
 
-.filtros-mais-toggle {
+.form-filtros button.filtros-mais-toggle {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -10405,33 +10400,34 @@ h3,
   white-space: nowrap;
 }
 
-.filtros-mais-toggle:hover {
+.form-filtros button.filtros-mais-toggle:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
 }
 
-.filtros-mais-toggle[aria-expanded="true"] {
-  background: rgba(249, 115, 22, 0.12);
+.form-filtros button.filtros-mais-toggle[aria-expanded="true"] {
+  background: rgba(249, 115, 22, 0.14);
   border-color: rgba(249, 115, 22, 0.5);
   color: #ffffff;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.18);
 }
 
-.filtros-mais-toggle .icone-ui-filtro {
+.form-filtros button.filtros-mais-toggle .icone-ui-filtro {
   width: 14px;
   height: 14px;
   color: var(--accent);
 }
 
-.filtros-mais-toggle .icone-ui-chevron-baixo {
+.form-filtros button.filtros-mais-toggle .icone-ui-chevron-baixo {
   width: 12px;
   height: 12px;
   color: rgba(255, 255, 255, 0.5);
   transition: transform 0.2s ease;
 }
 
-.filtros-mais-toggle[aria-expanded="true"] .icone-ui-chevron-baixo {
+.form-filtros button.filtros-mais-toggle[aria-expanded="true"] .icone-ui-chevron-baixo {
   transform: rotate(180deg);
 }
 
@@ -10536,6 +10532,16 @@ h3,
 /* Painel de Filtros expandido: matriz de precisão */
 .form-filtros .filtros-mais {
   width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.form-filtros .filtros-mais[open] {
+  margin-top: 10px;
+}
+
+.form-filtros .filtros-mais-toggle-nativo {
+  display: none !important;
 }
 
 .filtros-mais-corpo {
@@ -10543,7 +10549,6 @@ h3,
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 14px;
   width: 100%;
-  margin-top: 12px;
   padding: 16px;
   background: rgba(18, 24, 38, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
