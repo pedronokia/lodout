@@ -5522,9 +5522,12 @@ def test_deploy_repassa_senha_do_admin_sem_aspas_manuais():
     from pathlib import Path as _P
     wf = (_P(server.__file__).parents[2] / ".github" / "workflows"
           / "deploy.yml").read_text(encoding="utf-8")
-    assert wf.count("envs: ADMIN_PASSWORD") == 3
-    assert wf.count('LODOUT_ADMIN_PASSWORD="$ADMIN_PASSWORD"') == 3
+    # Todos os passos SSH passam secrets via `envs:` (nunca interpolados
+    # dentro do `script:` com aspas manuais).
+    assert wf.count("ADMIN_PASSWORD") >= 6
+    assert wf.count('LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"') == 4
     assert "${{ secrets.ADMIN_PASSWORD }}'" not in wf
+    assert "${{ secrets.ADMIN_DISCORD_WEBHOOK }}'" not in wf
 
 
 def test_arquivo_de_verificacao_do_google(client):

@@ -57,6 +57,27 @@ CSP_REPORT_MAX_HITS, CSP_REPORT_WINDOW_S = 20, 60.0
 ICON_MAX_HITS, ICON_WINDOW_S = 120, 60.0
 
 
+_MAX_CHAVES = 5000
+_TTL_INATIVO_S = 300.0
+
+
+def _podar_expirados(ts: float) -> None:
+    """Remove chaves vazias/inativas e, se ainda passar de `_MAX_CHAVES`,
+    descarta as com atividade mais antiga (evita vazamento de memória sob
+    tráfego de bots com milhares de IPs distintos)."""
+    corte = ts - _TTL_INATIVO_S
+    expiradas = [k for k, d in _hits.items() if not d or d[-1] < corte]
+    for k in expiradas:
+        _hits.pop(k, None)
+    if len(_hits) > _MAX_CHAVES:
+        excesso = len(_hits) - _MAX_CHAVES
+        mais_antigas = sorted(
+            _hits.items(), key=lambda par: par[1][-1] if par[1] else 0.0
+        )[:excesso]
+        for k, _ in mais_antigas:
+            _hits.pop(k, None)
+
+
 def allow(key: str, max_hits: int, window_seconds: float,
          now: "float | None" = None) -> bool:
     """True se `key` ainda tem orçamento na janela; já registra o hit.
@@ -66,6 +87,8 @@ def allow(key: str, max_hits: int, window_seconds: float,
     """
     ts = now if now is not None else time.time()
     with _trava:
+        if len(_hits) > _MAX_CHAVES:
+            _podar_expirados(ts)
         hits = _hits[key]
         corte = ts - window_seconds
         while hits and hits[0] < corte:
@@ -80,7 +103,8 @@ def reset() -> None:
     """Limpa todo o estado -- o dict é de módulo e sobrevive entre
     testes na mesma sessão do pytest, mesmo padrão do disjuntor da
     Steam (`steam_api._rate_limit_state`)."""
-    _hits.clear()
+    with _trava:
+        _hits.clear()
 
 
 def rate_limited(max_hits: int, window_seconds: float):

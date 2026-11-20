@@ -1,0 +1,39 @@
+# Atualizações automáticas semanais de dependências e segurança.
+# Agrupadas por ecossistema pra evitar enxurrada de PRs pequenos.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    groups:
+      python-runtime:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/tests/visual"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns:
+          - "*"
