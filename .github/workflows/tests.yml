@@ -88,7 +88,7 @@ jobs:
       # cachear corta o download; o apt install dos libs de sistema
       # continua rodando sempre (a VM do runner é efêmera a cada run).
       - name: Cache do Chromium do Playwright
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('tests/visual/requirements.txt') }}
