@@ -171,6 +171,49 @@
         </div>
       </div>
 
+      {# Matriz de Arbitragem Multi-Mercado & Spread Real (Steam vs CSFloat / P2P) #}
+      <div class="arbitragem-box" data-preco-atual="{{ item.price or 0 }}">
+        <div class="arbitragem-header">
+          <span class="arbitragem-badge">{{ icone("moedas") }} Arbitragem & Spread Real</span>
+          <h3 class="arbitragem-titulo">Retorno Líquido: Steam vs Marketplace Externo</h3>
+        </div>
+        <p class="arbitragem-desc">Compare o valor que cai no seu bolso ao revender este item hoje na Steam (taxa oficial de 13,04% sobre o valor bruto) versus marketplaces P2P como CSFloat/DMarket (taxa de 2,0% a 2,5%).</p>
+
+        <div class="arbitragem-cards-grid">
+          <div class="arbitragem-card arbitragem-card-steam">
+            <div class="arbitragem-card-topo">
+              <span class="arbitragem-mercado-nome">{{ icone("steam") }} Mercado da Steam</span>
+              <span class="arbitragem-taxa-badge">Taxa 13,04% (15%)</span>
+            </div>
+            <div class="arbitragem-card-corpo">
+              <span class="arbitragem-label">Você recebe líquido:</span>
+              <strong class="arbitragem-valor-liquido" id="arb-steam-liquido">R$ {{ '%.2f'|format((item.price or 0) / 1.15)|replace('.', ',') }}</strong>
+              <span class="arbitragem-sub">Retido na carteira da Steam</span>
+            </div>
+          </div>
+
+          <div class="arbitragem-card arbitragem-card-externo">
+            <div class="arbitragem-card-topo">
+              <span class="arbitragem-mercado-nome">{{ icone("raio") }} Marketplace P2P (CSFloat)</span>
+              <span class="arbitragem-taxa-badge badge-destaque-taxa">Taxa ~2,0%</span>
+            </div>
+            <div class="arbitragem-card-corpo">
+              <span class="arbitragem-label">Você recebe líquido:</span>
+              <strong class="arbitragem-valor-liquido destaque-verde" id="arb-externo-liquido">R$ {{ '%.2f'|format((item.price or 0) * 0.98)|replace('.', ',') }}</strong>
+              <span class="arbitragem-sub">Dinheiro real disponível (PIX/Crypto)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="arbitragem-spread-barra">
+          <div class="arbitragem-spread-info">
+            <span class="arbitragem-spread-rotulo">Spread Real a Favor do Vendedor:</span>
+            <strong class="arbitragem-spread-val" id="arb-spread-val">+11,0% (+R$ {{ '%.2f'|format((item.price or 0) * (0.98 - (1 / 1.15)))|replace('.', ',') }})</strong>
+          </div>
+          <span class="arbitragem-spread-dica">Você retém ~11% a mais do valor bruto vendendo fora da Steam, sem a taxa de 13,04% retida pela Valve.</span>
+        </div>
+      </div>
+
       {% include "partials/_aviso_prazo_steam.html" %}
       {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
