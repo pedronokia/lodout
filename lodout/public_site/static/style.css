@@ -10215,6 +10215,12 @@ h3,
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  vertical-align: middle;
+}
+
+.topo-linha .botao-spotlight-gatilho + .barra-acoes,
+.topo-linha .botao-spotlight-gatilho + .entrar-cta {
+  margin-left: -8px;
 }
 
 .botao-spotlight-gatilho {
@@ -10224,10 +10230,10 @@ h3,
   height: 32px;
   min-height: 32px;
   padding: 0 7px 0 11px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.025) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.025) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -10237,20 +10243,23 @@ h3,
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .botao-spotlight-gatilho .icone-ui {
   width: 13px;
   height: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.50);
   transition: color 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
 }
 
 .botao-spotlight-gatilho:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.045) 100%);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4);
   transform: translateY(-0.5px);
 }
 
@@ -10267,13 +10276,13 @@ h3,
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;
-  height: 20px;
-  min-width: 20px;
+  height: 19px;
+  min-width: 19px;
   padding: 0 5.5px;
   border-radius: 4px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.035) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.70);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.035) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   letter-spacing: 0.02em;
   transition: all 0.18s ease;
@@ -10293,8 +10302,8 @@ h3,
   height: 32px;
   min-height: 32px;
   padding: 3px 12px 3px 3px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.025) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
   color: #f1f5f9;
   font-size: 0.78125rem;
@@ -10306,11 +10315,13 @@ h3,
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .conta-pill:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%);
-  border-color: rgba(255, 255, 255, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.045) 100%);
+  border-color: rgba(255, 255, 255, 0.26);
   color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transform: translateY(-0.5px);
@@ -10330,9 +10341,10 @@ h3,
   min-width: 24px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
   transition: border-color 0.18s ease;
+  flex-shrink: 0;
 }
 
 .conta-pill:hover .conta-avatar {
@@ -10354,14 +10366,16 @@ h3,
   min-width: 32px;
   min-height: 32px;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.50);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: rgba(255, 255, 255, 0.55);
   text-decoration: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .conta-sair .icone-ui {
@@ -10369,6 +10383,7 @@ h3,
   height: 14px;
   stroke-width: 2px;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .conta-sair:hover {
@@ -10615,6 +10630,63 @@ h3,
   border-color: var(--accent);
   outline: none;
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+}
+
+.filtros-mais-acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.botao-aplicar-filtros {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 16px;
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.18s ease;
+}
+
+.botao-aplicar-filtros:hover {
+  background: #ea580c;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+  transform: translateY(-0.5px);
+}
+
+.botao-limpar-filtros {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.botao-limpar-filtros:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  text-decoration: none;
 }
 
 @media (max-width: 640px) {
