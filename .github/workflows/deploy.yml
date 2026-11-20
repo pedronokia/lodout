@@ -133,9 +133,13 @@ jobs:
                 up -d --force-recreate caddy
             fi
 
-            # Limpa imagens/cache Docker antigos (>7 dias) pra evitar disco cheio na VM.
-            sudo docker image prune -f --filter "until=168h" || true
-            sudo docker builder prune -f --filter "until=168h" || true
+            # Só limpa imagens/cache Docker antigos (>7 dias) quando houve
+            # rebuild de imagem — em deploy rápido via bind mount, evita
+            # ~4 min de varredura desnecessária do BuildKit cache na VM.
+            if [ -n "$BUILD_FLAG" ]; then
+              sudo docker image prune -f --filter "until=168h" || true
+              sudo docker builder prune -f --filter "until=168h" || true
+            fi
             df -h /
 
       - name: Confirma que o site subiu (/readyz)
