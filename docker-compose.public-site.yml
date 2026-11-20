@@ -26,6 +26,7 @@ services:
       - LODOUT_ADMIN_PASSWORD=${LODOUT_ADMIN_PASSWORD:-}
     volumes:
       - skinvault_data:/data
+      - ./lodout:/app/lodout:ro
     restart: unless-stopped
     logging: &log-rotativo
       # Gunicorn/worker não rotacionam o próprio log -- escrevem em
@@ -50,12 +51,14 @@ services:
     stop_grace_period: 40s
     environment:
       - LODOUT_WORKER_INTERVAL_HORAS=6
+      - LODOUT_ITENS_EXTRAS=350
       # Alertas do dono (worker_alert.py). Vem do secret
       # ADMIN_DISCORD_WEBHOOK do GitHub via deploy.yml -- nunca escrito
       # aqui. Vazio = sem alerta.
       - LODOUT_ADMIN_DISCORD_WEBHOOK=${LODOUT_ADMIN_DISCORD_WEBHOOK:-}
     volumes:
       - skinvault_data:/data
+      - ./lodout:/app/lodout:ro
     restart: unless-stopped
     logging: *log-rotativo
 

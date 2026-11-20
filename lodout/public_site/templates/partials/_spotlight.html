@@ -1,0 +1,20 @@
+{% from "partials/_icons.html" import icone %}
+<div id="spotlight-overlay" class="spotlight-overlay" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Busca rápida">
+  <div class="spotlight-modal">
+    <div class="spotlight-topo">
+      <span class="spotlight-icone" aria-hidden="true">{{ icone("lupa") }}</span>
+      <input type="text" id="spotlight-input" class="spotlight-input" placeholder="Buscar entre 33.000 skins e caixas... (ex.: redline, asiimov)" autocomplete="off" spellcheck="false" aria-label="Digite o nome da skin ou caixa">
+      <button type="button" class="spotlight-fechar" id="spotlight-fechar" aria-label="Fechar busca rápida"><kbd>Esc</kbd></button>
+    </div>
+    <div id="spotlight-resultados" class="spotlight-resultados" role="listbox" aria-label="Resultados da busca rápida">
+      <div class="spotlight-dica-inicial">
+        <p class="spotlight-dica-texto">Digite o nome em português ou inglês para buscar instantaneamente no catálogo e nas notas do Lodout.</p>
+      </div>
+    </div>
+    <div class="spotlight-rodape">
+      <span class="spotlight-atalho"><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+      <span class="spotlight-atalho"><kbd>Enter</kbd> abrir item</span>
+      <span class="spotlight-atalho"><kbd>Esc</kbd> fechar</span>
+    </div>
+  </div>
+</div>

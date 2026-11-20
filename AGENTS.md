@@ -110,13 +110,18 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
   mediana reais (coleta) ÷ dólar (catálogo) dos itens nos dois. Não leia
   a coluna `preco` direto como reais.
-- Itens a mais com nota (`public_site/itens_extras.py`, 2026-11-16): os
-  mais anunciados do catálogo (sem adesivos, a partir de R$ 1) somam-se aos
-  alvos da coleta; `LODOUT_ITENS_EXTRAS` (padrão 100, máx. 400). Cada item
-  custa ~50 s/dia que saem da volta do catálogo. Suba em degraus de +100 só
+- Itens a mais com nota (`public_site/itens_extras.py`, 2026-11-16; degrau 2 em
+  2026-11-19): os mais anunciados do catálogo (sem adesivos, a partir de R$ 1)
+  somam-se aos alvos da coleta; `LODOUT_ITENS_EXTRAS` (padrão 200, máx. 400).
+  Cada item custa ~50 s/dia que saem da volta do catálogo. Suba em degraus de +100 só
   com `/api/health` -> `ultimo_ciclo_worker.pausas_429` limpo por 2–3 dias;
   acima de ~500 a volta do catálogo passa de 1,5 dia. O rodízio (histórico
   1x/dia) foi medido e descartado: a nota muda demais com cópia velha.
+- Cache de variantes SSR (2026-11-19, Pilar 1): cada página de listagem traz o
+  SSR de até 10 variantes irmãs do mesmo skin (wears x Normal/StatTrak/Souvenir).
+  O worker semeia `_PAGE_CACHE` em `steam_api` (TTL 2 h, limpo no início de cada
+  ciclo); variantes irmãs do mesmo skin no ciclo são avaliadas diretamente do
+  cache sem consultas HTTP adicionais à Steam e sem risco de 429.
 
 ### Evidência histórica do modelo
 

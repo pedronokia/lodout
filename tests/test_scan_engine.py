@@ -638,6 +638,50 @@ def test_scan_item_modo_pagina_faz_uma_requisicao(monkeypatch):
     assert r["price"] == 123.45 and r["volume"] == 8
 
 
+def test_scan_item_usa_variante_em_cache_sem_bater_na_steam(monkeypatch):
+    import time
+    import pytest
+    from lodout import steam_api
+    monkeypatch.setattr(
+        "lodout.steam_api.fair_value_verdict",
+        lambda lowest, median, **kw: {
+            "label": "COMPRA", "diff_pct": -5,
+            "spread_verdict": "tight", "book_verdict": "buyer_dominant",
+            "trend_verdict": "rising",
+        })
+    monkeypatch.setattr("lodout.signals.record_item_price", lambda *a, **kw: None)
+    monkeypatch.setattr("lodout.signals.record_item_volume", lambda *a, **kw: None)
+    monkeypatch.setattr("lodout.signals.record_item_supply", lambda *a, **kw: None)
+
+    steam_api._PAGE_CACHE["AK-47 | Redline (Minimal Wear)"] = (
+        time.time(),
+        {
+            "price_history": [
+                {"time": time.time() - 3600, "price_median": 135.0, "purchases": 5},
+                {"time": time.time() - 1800, "price_median": 140.0, "purchases": 3},
+            ],
+            "variants": {},
+            "order_book": {"best_bid": 13000, "best_ask": 14500, "buy_count": 10, "sell_count": 8},
+            "order_book_approx": True,
+            "meta": {"rarity_id": "Rarity_Covert_Weapon", "name_color": "eb4b4b"},
+        },
+    )
+
+    def _bloqueado(*args, **kwargs):
+        raise AssertionError("Não deveria chamar get_market_overview para item já em cache")
+
+    monkeypatch.setattr("lodout.steam_api.get_market_overview", _bloqueado)
+
+    r = scan_engine.scan_item("AK-47 | Redline (Minimal Wear)")
+    assert r is not None
+    assert r["name"] == "AK-47 | Redline (Minimal Wear)"
+    assert r["price"] == 140.0
+    assert r["median"] is not None
+    assert r["volume"] == 8
+    assert r["derived_price"] is True
+    assert r["score"] > 0
+
+
 def test_scan_item_modo_pagina_book_aproximado_usa_overview(monkeypatch):
     _mock_steam_ok(monkeypatch)
     chamadas = []

@@ -2,10 +2,9 @@
 name: Lodout
 description: Notas de 0 a 100 explicadas para skins de CS2, num caderno escuro e calmo.
 colors:
-  azul-texto: "#6f88ea"
-  azul-acao: "#4a64c8"
-  azul-pressionado: "#3b52ad"
-  amarelo-marca: "#fbac18"
+  laranja-aspas: "#f97316"
+  laranja-acao: "rgba(249, 115, 22, 0.7)"
+  laranja-pressionado: "#b8480a"
   azul-steam: "#66c0f4"
   verde-alta: "#39c266"
   amarelo-media: "#f2bb25"
@@ -87,14 +86,14 @@ spacing:
   sp-11: "64px"
 components:
   button-primary:
-    backgroundColor: "{colors.azul-acao}"
+    backgroundColor: "{colors.laranja-acao}"
     textColor: "{colors.texto-forte}"
     typography: "{typography.small}"
     rounded: "{rounded.pill}"
     padding: "8px 20px"
     height: "44px"
   button-primary-hover:
-    backgroundColor: "{colors.azul-pressionado}"
+    backgroundColor: "{colors.laranja-pressionado}"
   button-ghost:
     backgroundColor: "transparent"
     textColor: "{colors.texto-apagado}"
@@ -111,7 +110,7 @@ components:
     padding: "5px 13px"
     height: "34px"
   segmented-item-active:
-    backgroundColor: "{colors.azul-acao}"
+    backgroundColor: "{colors.laranja-acao}"
     textColor: "{colors.texto-forte}"
   card:
     backgroundColor: "{colors.folha}"
@@ -146,26 +145,25 @@ components:
 
 O Lodout é um caderno escuro e calmo aberto sobre o Mercado da Steam: cada página anota números observados e, ao lado de cada um, a conta de onde ele veio. Quem chega é iniciante e precisa decidir o que comprar e por quanto; o visual existe para que o número certo seja lido primeiro e a explicação esteja sempre a um olhar de distância, nunca para impressionar.
 
-O clima é escuro, calmo e confiável. O fundo quase preto e as folhas cinza-escuras deixam o conteúdo em primeiro plano; a cor aparece pouco e sempre com significado: o azul do logo para tudo que se clica, o amarelo do logo para foco e "onde estou", e verde, amarelo e vermelho só para dizer se uma nota ou um movimento é alto, médio ou de queda. Nada pisca sem motivo, e a idade dos dados fica à vista. A densidade é média: tabelas que viram cartões no celular, números grandes com tabulação alinhada e texto explicativo em medida de leitura.
+O clima é escuro, calmo e confiável. O fundo quase preto e as folhas cinza-escuras deixam o conteúdo em primeiro plano; a cor aparece pouco e sempre com significado: um único laranja para ação e marca, e verde, amarelo e vermelho só para dizer se uma nota ou um movimento é alto, médio ou de queda. Nada pisca sem motivo, e a idade dos dados fica à vista. A densidade é média: tabelas que viram cartões no celular, números grandes com tabulação alinhada e texto explicativo em medida de leitura.
 
 A tipografia é uma só família (Inter variável) em pesos levemente acima do comum (450 no corpo), para que o texto claro sobre fundo escuro não afine. Os títulos são grandes e firmes; os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
 
 **Key Characteristics:**
 - Fundo quase preto em camadas tonais (moldura, caderno, folha, rebaixo), com borda fina em vez de sombra.
-- Azul do logo para ação e amarelo do logo para foco e "onde estou" (desde 18/11; antes era laranja); verde/amarelo/vermelho reservados a significado.
+- Um único laranja de ação e marca; verde/amarelo/vermelho reservados a significado.
 - A nota como figurinha: anel colorido com o número no centro, sempre o mesmo em todo o site.
 - Números tabulares e grandes onde a decisão acontece (preço, encomenda, nota).
 - Explicação sempre ao lado do número, em português simples.
 
 ## Colors
 
-Paleta neutra escura com as duas cores do logo (azul de ação, amarelo de foco) e três cores de significado.
+Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
-- **Azul de Ação** (#4a64c8): o azul da segunda aspa do logo, como fundo do botão principal e do item escolhido no seletor de período (texto branco por cima: 5,4:1); hover em **Azul Pressionado** (#3b52ad).
-- **Azul de Texto** (#6f88ea): o mesmo azul, mais claro, para links, barras e medidores e destaques em texto (5,5:1 no fundo; o #4a64c8 daria só 3,4:1).
-- **Amarelo da Marca** (#fbac18): o amarelo da primeira aspa do logo, para o contorno de foco do teclado, o traço da página atual no menu e o ícone ativo da barra do celular. Nunca como texto (para não confundir com a nota média, também amarela).
-- O logo é sempre a aspa amarela e depois a azul (#fbac18 e #4a64c8), no topo, no rodapé, nos ícones e na imagem de compartilhamento.
+- **Laranja Aspas** (#f97316): a cor da marca (as aspas do topo e do ícone do site), links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
+- **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
+- **Laranja Pressionado** (#b8480a): hover do botão principal.
 
 ### Secondary
 - **Azul Steam** (#66c0f4): referências à própria Steam (ícone e links que levam ao Mercado), para separar o que é do Lodout do que é da Steam.
@@ -185,9 +183,7 @@ Paleta neutra escura com as duas cores do logo (azul de ação, amarelo de foco)
 - **Texto** (#e8e8e8), **Texto Forte** (#ffffff) e **Texto Apagado** (#b3b3b3, 4,5:1 sobre #252525): corpo, títulos/números e legendas/rótulos.
 
 ### Named Rules
-**The Blue Action Rule.** O azul é a cor de ação: se algo azul não é clicável, não é um medidor nem o logo, troque a cor. Texto azul sempre no tom claro (#6f88ea).
-
-**The Yellow Place Rule.** O amarelo do logo marca foco e "onde estou" (contorno de foco, página atual); nunca texto nem fundo de botão.
+**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é a marca nem um medidor, troque a cor.
 
 **The Meaning Colors Rule.** Verde, amarelo e vermelho só aparecem quando dizem alto/médio/baixo, subiu/caiu ou deu certo/errado. Nunca como decoração.
 
@@ -240,8 +236,8 @@ Cantos suaves e consistentes por escala: 8px em controles pequenos e campos, 12p
 
 ### Buttons
 - **Shape:** pílula (980px).
-- **Primary:** Azul de Ação com texto branco, 44px de altura, 8px 20px; hover em Azul Pressionado. Um por área de decisão ("Ver no Steam Market", "Devolver com o valor pago").
-- **Hover / Focus:** transição de cor em 200ms (cubic-bezier(0.4, 0, 0.2, 1)); foco com anel Amarelo da Marca de 2px.
+- **Primary:** Laranja de Ação com texto branco, 44px de altura, 8px 20px; hover em Laranja Pressionado. Um por área de decisão ("Ver no Steam Market", "Devolver com o valor pago").
+- **Hover / Focus:** transição de cor em 200ms (cubic-bezier(0.4, 0, 0.2, 1)); foco com anel Laranja Aspas de 2px.
 - **Ghost:** texto apagado sem fundo, borda fina em pílula ("Cores da borda"); ações de texto sublinhadas para ações secundárias ("Ver mais", "apagar").
 
 ### Chips
@@ -257,15 +253,15 @@ Cantos suaves e consistentes por escala: 8px em controles pequenos e campos, 12p
 
 ### Inputs / Fields
 - **Style:** fundo do caderno, borda 1px Linha, cantos de 8px, texto em 1.0625rem para não dar zoom no celular.
-- **Focus:** anel Amarelo da Marca visível.
+- **Focus:** anel Laranja Aspas visível.
 - **Error / Disabled:** mensagem em Vermelho Queda logo abaixo, dizendo o problema e como resolver.
 
 ### Navigation
-- **Desktop:** barra Moldura (#080808) com a marca à esquerda, links centrais em texto translúcido e "Entrar com Steam" à direita. A página atual fica em texto forte com um traço Amarelo da Marca de 2px embaixo (sem negrito, para os vizinhos não mudarem de lugar); nos links da conta, o atual fica em texto forte.
-- **Celular:** barra fixa no rodapé com cinco itens (ícone + texto), o atual em amarelo.
+- **Desktop:** barra Moldura (#080808) com a marca à esquerda, links centrais em texto translúcido e "Entrar com Steam" à direita. A página atual fica em texto forte com um traço Laranja Aspas de 2px embaixo (sem negrito, para os vizinhos não mudarem de lugar); nos links da conta, o atual fica em texto forte.
+- **Celular:** barra fixa no rodapé com cinco itens (ícone + texto), o atual em laranja.
 
 ### Segmented Control (seletor de período)
-Trilho Rebaixo com borda fina e cantos de 12px; cada opção é um texto apagado de 34px de altura, e a escolhida ganha o fundo Azul de Ação com texto branco. Usado para período do Ranking, do gráfico e da nota.
+Trilho Rebaixo com borda fina e cantos de 12px; cada opção é um texto apagado de 34px de altura, e a escolhida ganha o fundo Laranja de Ação com texto branco. Usado para período do Ranking, do gráfico e da nota.
 
 ### A Figurinha da Nota (signature)
 A nota de 0 a 100 é sempre um anel: trilho cinza e arco de progresso na cor de significado (verde ≥ alto, amarelo médio, cinza baixo), com o número em peso 600 no centro. 40px nas listas, 28–32px em linhas compactas, 72px no item. Nunca aparece como número solto quando é a nota do Lodout.
@@ -277,7 +273,7 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 
 ### Do:
 - **Do** usar o anel colorido sempre que mostrar a nota do Lodout, do mesmo jeito em todas as páginas.
-- **Do** usar o azul do logo (#4a64c8) como fundo de botão principal e o azul claro (#6f88ea) para links e destaques em texto; o amarelo (#fbac18) só para foco e "onde estou".
+- **Do** manter um único laranja (#f97316) como voz de ação e marca, e o laranja translúcido (rgba(249, 115, 22, 0.7)) como fundo de botão principal.
 - **Do** separar quadros com borda fina (#4a4a4a) e tom (#1e1e1e sobre #161616).
 - **Do** usar algarismos tabulares em preços, notas e porcentagens.
 - **Do** transformar tabelas em cartões no celular, com rótulo em caixa alta acima de cada valor.

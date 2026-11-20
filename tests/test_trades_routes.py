@@ -154,7 +154,7 @@ def test_compra_e_venda_antigas_vao_para_itens_vendidos(client, monkeypatch):
 
 def test_link_trades_aparece_no_dashboard_logado(client, monkeypatch):
     _login(client, monkeypatch)
-    pagina = client.get("/").data.decode("utf-8")
+    pagina = client.get("/conta").data.decode("utf-8")
     assert "/conta/trades" in pagina
 
 

@@ -306,9 +306,11 @@
        saber o que é o Lodout (revisão 17/11). Agora é a tese em uma
        linha, com o link para o Método. #}
     <header class="home-tese">
+      <span class="home-tese-kicker">Inteligência Algorítmica de Mercado CS2</span>
       <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
-      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota — rastreando liquidez, volatilidade e risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
+
     {% if destaque_hero %}
     <section class="hero-destaque{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-label="Item com a nota mais alta hoje">
       <span class="hero-destaque-halo{{ ' ' ~ destaque_hero.raridade_classe if destaque_hero.raridade_classe else '' }}" aria-hidden="true"></span>
@@ -340,6 +342,120 @@
     </section>
     {% endif %}
 
+    {% if market_pulse %}
+    <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
+      <div class="market-pulse-cabecalho">
+        <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
+        <span class="market-pulse-sub">Destaques e volatilidade calculados com dados públicos da Steam</span>
+      </div>
+      <div class="market-pulse-grid">
+        {% if market_pulse.top_score %}
+        {% set it = market_pulse.top_score %}
+        <a class="pulse-card pulse-card-top{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-fogo">{{ icone("fogo") }} Top Nota</span>
+            <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Maior pontuação algorítmica hoje</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.maior_queda %}
+        {% set it = market_pulse.maior_queda %}
+        <a class="pulse-card pulse-card-dip{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-dip">{{ icone("seta-baixo") }} Queda Recente</span>
+            {% if it.variacao_pct is number %}
+            <span class="pulse-delta-pct negativo">{{ "%.1f"|format(it.variacao_pct) }}%</span>
+            {% endif %}
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Maior recuo recente de preço</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.mais_negociado %}
+        {% set it = market_pulse.mais_negociado %}
+        <a class="pulse-card pulse-card-volume{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-volume">{{ icone("raio") }} Mais Negociado</span>
+            {% if it.volume is number %}
+              {% if it.volume >= 1000 %}
+              <span class="pulse-volume-val">{{ "%.1f"|format(it.volume / 1000)|replace(".", ",") }}k / 24h</span>
+              {% else %}
+              <span class="pulse-volume-val">{{ it.volume }} / 24h</span>
+              {% endif %}
+            {% endif %}
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">Líder em liquidez e giro no dia</span>
+        </a>
+        {% endif %}
+
+        {% if market_pulse.destaque_container %}
+        {% set it = market_pulse.destaque_container %}
+        <a class="pulse-card pulse-card-container{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" href="{{ url_for('item_detail', name=it.name) }}">
+          <div class="pulse-card-topo">
+            <span class="pulse-badge pulse-badge-caixa">{{ icone("caixa") }} {{ "Cápsula em Alta" if ("Capsule" in it.name or "Cápsula" in it.name) else "Caixa em Alta" }}</span>
+            <span class="nota nota-pequena nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>
+          </div>
+          <div class="pulse-card-corpo">
+            <span class="pulse-card-img-wrap{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}">
+              {% if it.icon_url %}
+              <img class="pulse-card-img" src="{{ it.icon_url }}" alt="" loading="lazy" width="48" height="48">
+              {% else %}
+              <span class="icone-item-placeholder"></span>
+              {% endif %}
+            </span>
+            <div class="pulse-card-info">
+              <strong class="pulse-card-nome" translate="no">{{ it.name_fmt }}</strong>
+              <span class="pulse-card-preco">{{ it.price_fmt }}</span>
+            </div>
+          </div>
+          <span class="pulse-card-sub">{{ it.case_label|rotulo_caixa(it.name) or "Destaque da categoria de caixas" }}</span>
+        </a>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+
     {% if scan or resumo_do_dia %}
     {# Estado da coleta numa linha leve (2026-11-14) -- era uma caixa com
        duas barras laranja pra duas frases curtas. #}
@@ -368,74 +484,82 @@
           ordenar=ordenar_sel, ver=ver_sel) }}
     {%- endmacro %}
 
+    {% set n_filtros = (1 if exterior_sel else 0) + (1 if raridade_filtro_sel else 0) + (1 if nota_min_sel is not none else 0) + (1 if preco_max_sel is not none else 0) + (1 if liquidez_min_sel else 0) + (1 if versao_sel else 0) %}
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
-      <label class="campo-busca-rotulo">Buscar
-        <input type="text" name="q" id="campo-busca" placeholder="Ex.: redline, snakebite case (atalho: /)" value="{{ busca_sel or '' }}">
-      </label>
-      {# Categoria sai do formulário (2026-11-14): as abas logo abaixo já
-         escolhem a categoria; o menu repetia isso e espremia a busca.
-         Buscar dentro da categoria aberta continua: vai oculta. #}
-      {% if categoria_sel %}<input type="hidden" name="categoria" value="{{ categoria_sel }}">{% endif %}
-      {# Polimento (2026-11-13): nota mínima/preço máximo/liquidez ficam
-         atrás de "Mais filtros" -- a maioria das visitas não mexe
-         nesses três, e deixá-los sempre abertos empurra o conteúdo de
-         verdade pra baixo. Abre sozinho quando um deles já está ativo,
-         pra quem chegou com link de filtro não perder de vista o que
-         está aplicado. #}
+      <div class="filtros-barra-acoes">
+        <button type="button" class="filtros-mais-toggle" id="gatilho-filtros-toggle" aria-expanded="{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %}true{% else %}false{% endif %}" title="Filtros avançados do catálogo">
+          {{ icone("filtro") }}
+          <span class="filtros-mais-rotulo">+ Filtros</span>
+          {% if n_filtros > 0 %}<span class="badge-contagem-filtros">{{ n_filtros }}</span>{% endif %}
+          {{ icone("chevron-baixo") }}
+        </button>
+        <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só os itens que você favoritou (só neste navegador) — atalho: f">
+          {{ icone("favorito") }}<span id="texto-botao-favoritos">Só favoritos</span> <span id="contagem-favoritos" class="contagem-favoritos" hidden>0</span>
+        </button>
+        <label class="campo-busca-rotulo"><span class="visualmente-oculto">Filtrar por nome</span>
+          {{ icone("lupa") }}
+          <input type="text" name="q" id="campo-busca" placeholder="Filtrar nesta lista... (atalho: /)" value="{{ busca_sel or '' }}">
+        </label>
+      </div>
+
       <details class="filtros-mais"{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %} open{% endif %}>
-        <summary class="filtros-mais-toggle">Mais filtros {{ icone("chevron-baixo") }}</summary>
+        <summary class="filtros-mais-toggle-nativo visualmente-oculto">Mais filtros {{ icone("chevron-baixo") }}</summary>
         <div class="filtros-mais-corpo">
           <div class="filtros-numericos">
-            <label>Nota mínima
-              <input type="number" name="nota_min" min="0" max="100" step="1" value="{{ nota_min_sel if nota_min_sel is not none else '' }}">
+            <label><span class="filtro-campo-label">Nota mínima</span>
+              <input type="number" name="nota_min" min="0" max="100" step="1" value="{{ nota_min_sel if nota_min_sel is not none else '' }}" placeholder="0 a 100">
             </label>
-            <label>Preço máximo (R$)
-              <input type="number" name="preco_max" min="0" step="0.01" value="{{ preco_max_sel if preco_max_sel is not none else '' }}">
+            <label><span class="filtro-campo-label">Preço máximo (R$)</span>
+              <input type="number" name="preco_max" min="0" step="0.01" value="{{ preco_max_sel if preco_max_sel is not none else '' }}" placeholder="Sem limite">
             </label>
           </div>
-          <label>Liquidez mínima
+          <label><span class="filtro-campo-label">Liquidez mínima</span>
             <select name="liquidez_min" data-enviar-ao-mudar title="Baseado em dias de listagens no ritmo atual de negociação — itens sem dado suficiente ficam de fora quando esse filtro está ativo">
-              <option value="">Qualquer</option>
+              <option value="">Qualquer liquidez</option>
               {% for banda in liquidez_opcoes %}
               <option value="{{ banda }}" {{ "selected" if banda == liquidez_min_sel else "" }}>{{ banda|liquidez_label }} ou melhor</option>
               {% endfor %}
             </select>
           </label>
           {# Os mesmos filtros do Mercado da Steam (2026-11-14). #}
-          <label>Exterior
+          <label><span class="filtro-campo-label">Exterior</span>
             <select name="exterior" data-enviar-ao-mudar title="Desgaste da skin, como no Mercado da Steam">
-              <option value="">Qualquer</option>
+              <option value="">Qualquer desgaste</option>
               {% for k, rotulo in exterior_opcoes.items() %}
               <option value="{{ k }}" {{ "selected" if k == exterior_sel else "" }}>{{ rotulo }}</option>
               {% endfor %}
             </select>
           </label>
-          <label>Raridade
+          <label><span class="filtro-campo-label">Raridade</span>
             <select name="raridade" data-enviar-ao-mudar title="A cor da borda da imagem do item">
-              <option value="">Qualquer</option>
+              <option value="">Qualquer raridade</option>
               {% for k, rotulo in raridade_opcoes.items() %}
               <option value="{{ k }}" {{ "selected" if k == raridade_filtro_sel else "" }}>{{ rotulo }}</option>
               {% endfor %}
             </select>
           </label>
           {% if mostrar_versao %}
-          <label>Versão
+          <label><span class="filtro-campo-label">Versão</span>
             <select name="versao" data-enviar-ao-mudar title="StatTrak™ conta abates; Souvenir vem de pacotes de campeonato">
-              <option value="">Qualquer</option>
+              <option value="">Qualquer versão</option>
               {% for k, rotulo in versao_opcoes.items() %}
               <option value="{{ k }}" {{ "selected" if k == versao_sel else "" }}>{{ rotulo }}</option>
               {% endfor %}
             </select>
           </label>
           {% endif %}
+          <div class="filtros-mais-acoes">
+            <button type="submit" class="botao-aplicar-filtros">Aplicar filtros</button>
+            {% if n_filtros > 0 %}
+            <a href="{{ url_for('index', categoria=categoria_sel, q=busca_sel, ordenar=ordenar_sel, ver=ver_sel) }}" class="botao-limpar-filtros">Limpar filtros</a>
+            {% endif %}
+          </div>
         </div>
       </details>
+      {% if categoria_sel %}<input type="hidden" name="categoria" value="{{ categoria_sel }}">{% endif %}
       <input type="hidden" name="ordenar" value="{{ ordenar_sel }}">
       <input type="hidden" name="ver" value="{{ ver_sel }}">
       <button type="submit" class="botao-filtrar-sem-js">Filtrar</button>
-      <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só os itens que você favoritou (só neste navegador) — atalho: f">
-        {{ icone("favorito") }}<span id="texto-botao-favoritos">Só favoritos</span> <span id="contagem-favoritos" class="contagem-favoritos" hidden>0</span>
-      </button>
     </form>
 
     {% if categoria_sel or nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or busca_sel or exterior_sel or raridade_filtro_sel or versao_sel %}

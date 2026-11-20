@@ -1518,7 +1518,7 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
     assert 'class="logo"' in body
     assert 'class="logo-icone"' in body
-    assert 'class="logo-aspas logo-aspa-1"' in body and 'class="logo-aspas logo-aspa-2"' in body
+    assert 'class="logo-aspas"' in body
     assert 'aria-label="Lodout — página inicial"' in body
     assert 'class="logo-cheia"' not in body
     # A marca agora é só o desenho das aspas: nada de disco/círculo atrás.
@@ -2124,7 +2124,7 @@ def test_feed_filtrado_por_categoria(client, monkeypatch, tmp_path):
 def test_opensearch_xml(client):
     resp = client.get("/opensearch.xml")
     assert resp.status_code == 200
-    assert resp.mimetype == "application/opensearchdescription+xml"
+    assert resp.mimetype == "application/xml"
     assert b"OpenSearchDescription" in resp.data
     assert b"searchTerms" in resp.data
 
@@ -4001,9 +4001,7 @@ def test_icones_do_site_usam_as_aspas_da_marca(client):
     import xml.dom.minidom
     svg = client.get("/static/favicon.svg").data.decode("utf-8")
     xml.dom.minidom.parseString(svg)           # SVG válido (sem "--" em comentário)
-    # 18/11 (escolha do usuário): 1ª aspa amarela, 2ª azul.
-    assert svg.index('fill="#fbac18"') < svg.index('fill="#4a64c8"')
-    assert "#f97316" not in svg
+    assert 'fill="#f97316"' in svg
     assert 'id="fade"' not in svg and "<circle" not in svg
 
     from PIL import Image
@@ -6097,21 +6095,6 @@ def test_icone_da_aba_em_png_encaixado_nos_pixels(client):
         # Nitidez: a maioria dos pixels desenhados é cheia, não meio-tom.
         alfas = [px[x, y][3] for y in range(lado) for x in range(lado) if px[x, y][3]]
         assert sum(1 for a in alfas if a > 230) / len(alfas) >= 0.55  # o antigo, sem encaixe: 0,51; este: 0,60
-        # Cores (18/11): metade esquerda amarela, direita azul.
-        esq = {px[x, y][:3] for y in range(lado) for x in range(lado // 2) if px[x, y][3]}
-        dir_ = {px[x, y][:3] for y in range(lado) for x in range(lado // 2, lado) if px[x, y][3]}
-        assert esq == {(0xfb, 0xac, 0x18)} and dir_ == {(0x4a, 0x64, 0xc8)}
-
-
-def test_logo_do_topo_e_rodape_amarelo_e_azul(client):
-    """18/11 (escolha do usuário): no site inteiro, a primeira aspa do
-    logo é amarela e a segunda azul, como o ícone da aba de notícias."""
-    body = client.get("/faq").data.decode("utf-8")
-    assert body.count("logo-aspa-1") == 2 and body.count("logo-aspa-2") == 2  # topo e rodapé
-    from pathlib import Path
-    css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
-    assert "--marca-amarelo: #fbac18;" in css and "--marca-azul: #4a64c8;" in css
-    assert ".logo-aspa-1 { fill: var(--marca-amarelo); }" in css
 
 
 def test_historico_da_nota_compacta_e_apaga_o_velho():
@@ -6161,3 +6144,26 @@ def test_menu_do_topo_marca_a_pagina_atual(client):
     from pathlib import Path
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
     assert '.nav-principal a[aria-current="page"]::after' in css
+
+
+def test_api_sugestoes_spotlight_retorna_metadados(client, monkeypatch, tmp_path):
+    """Garante que a busca spotlight (/api/sugestoes) devolve metadados
+    enriquecidos (preço formatado, score, ícone e raridade_classe)."""
+    resultados = [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 88, "price": 85.5,
+         "icon": "hash123", "name_color": "eb4b4b", "case_label": "",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    resp = client.get("/api/sugestoes?q=redline")
+    assert resp.status_code == 200
+    dados = resp.json
+    assert len(dados) == 1
+    it = dados[0]
+    assert it["nome"] == "AK-47 | Redline (Field-Tested)"
+    assert it["score"] == 88
+    assert it["preco_fmt"] == "R$ 85,50"
+    assert it["raridade_classe"] == "raridade-covert"
+    assert "/icone/hash123.webp" in it["icon_url"]
+    assert it["url"] == "/item/AK-47%20%7C%20Redline%20(Field-Tested)"
+

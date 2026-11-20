@@ -503,6 +503,43 @@ MARKET_FACETS = {
     "graffiti_color": "SprayColorCategory",
 }
 
+# ── Cache em memória de páginas de listagem e variantes ───────────────
+#
+# Evita requisitar a mesma página (ou variantes irmãs de desgaste que vêm
+# no mesmo payload SSR) repetidamente. TTL padrão de 2 horas.
+PAGE_CACHE_TTL_S = 7200.0
+_PAGE_CACHE: dict[str, tuple[float, dict]] = {}
+
+
+def limpar_cache_paginas() -> None:
+    """Limpa o cache em memória de páginas e variantes da Steam."""
+    _PAGE_CACHE.clear()
+
+
+def has_cached_page_data(market_hash_name: str) -> bool:
+    """True se há dados válidos e não expirados para o item no cache."""
+    entry = _PAGE_CACHE.get(market_hash_name)
+    if not entry:
+        return False
+    ts, _data = entry
+    if time.time() - ts < PAGE_CACHE_TTL_S:
+        return True
+    _PAGE_CACHE.pop(market_hash_name, None)
+    return False
+
+
+def get_cached_page_data(market_hash_name: str) -> dict | None:
+    """Retorna dados do cache se válidos e não expirados, ou None."""
+    entry = _PAGE_CACHE.get(market_hash_name)
+    if not entry:
+        return None
+    ts, data = entry
+    if time.time() - ts < PAGE_CACHE_TTL_S:
+        return data
+    _PAGE_CACHE.pop(market_hash_name, None)
+    return None
+
+
 _SORT_COLUMNS = ("quantity", "price", "name", "default")
 # A Steam ignora count menor que o dela e devolve o proprio tamanho de pagina;
 # por isso a paginacao avanca por len(resultados), nunca pelo count pedido.
@@ -1019,6 +1056,10 @@ def get_market_page_data(
     get_market_overview: sem isso, 185 itens bloqueados martelam a mesma
     URL por ~26min sem nunca desistir cedo.
     """
+    cached = get_cached_page_data(market_hash_name)
+    if cached is not None:
+        return cached
+
     if em_cooldown("market_listings"):
         return None
     url = _MARKET_LISTING_URL.format(
@@ -1114,6 +1155,44 @@ def get_market_page_data(
                 else None
             ),
         }
+
+    if result:
+        agora = time.time()
+        _PAGE_CACHE[market_hash_name] = (agora, result)
+
+        # Semear variantes irmãs da mesma página SSR
+        if variants:
+            facets_cached = result.get("facets")
+            items_meta_cached = result.get("items_meta") or {}
+            base_ob = result.get("order_book")
+
+            for v_name, v_prices in variants.items():
+                if v_name == market_hash_name:
+                    continue
+                v_meta = items_meta_cached.get(v_name)
+                if not v_meta and result.get("meta"):
+                    # Clona meta base mas sem exterior específico que possa conflitar
+                    v_meta = {k: v for k, v in result["meta"].items()
+                              if k not in ("exterior", "exterior_id")}
+
+                v_res = {
+                    "price_history": v_prices,
+                    "variants": variants,
+                }
+                if facets_cached:
+                    v_res["facets"] = facets_cached
+                if items_meta_cached:
+                    v_res["items_meta"] = items_meta_cached
+                if v_meta:
+                    v_res["meta"] = v_meta
+                if base_ob:
+                    v_res["order_book"] = base_ob
+                    v_res["order_book_approx"] = True
+                    v_res["order_book_commodity"] = bool(
+                        (v_meta or {}).get("commodity", False)
+                    )
+
+                _PAGE_CACHE[v_name] = (agora, v_res)
 
     return result if result else None
 

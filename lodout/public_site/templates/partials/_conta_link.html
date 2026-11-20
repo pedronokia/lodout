@@ -6,13 +6,13 @@
   <a href="{{ url_for('faq') }}"{% if request.endpoint == 'faq' %} aria-current="page"{% endif %}>FAQ</a>
   <a href="{{ url_for('status') }}"{% if request.endpoint == 'status' %} aria-current="page"{% endif %}>Status</a>
 </nav>
+<button type="button" class="botao-spotlight-gatilho" id="gatilho-spotlight" title="Buscar skin ou caixa (Ctrl+K)" aria-label="Abrir busca rápida">
+  {{ icone("lupa") }}
+  <span class="spotlight-gatilho-txt">Buscar</span>
+  <kbd class="spotlight-gatilho-kbd">Ctrl K</kbd>
+</button>
 {% if session.steamid %}
   <span class="barra-acoes">
-    <nav class="conta-nav" aria-label="Minhas páginas">
-      <a href="{{ url_for('trades.listar') }}"{% if request.endpoint == 'trades.listar' %} aria-current="page"{% endif %}>Trades</a>
-      <a href="{{ url_for('watchlist.listar') }}"{% if request.endpoint == 'watchlist.listar' %} aria-current="page"{% endif %}>Watchlist</a>
-      <a href="{{ url_for('history.listar') }}"{% if request.endpoint == 'history.listar' %} aria-current="page"{% endif %}>Histórico</a>
-    </nav>
     <a class="conta-pill" href="{{ url_for('account.conta') }}" title="Minha conta"{% if request.endpoint == 'account.conta' %} aria-current="page"{% endif %}>
       {% if avatar_local %}
       <img class="conta-avatar" src="{{ url_for('account.avatar') }}" alt="" width="24" height="24" loading="lazy">
@@ -38,3 +38,4 @@
   <a href="{{ url_for('faq') }}"{% if request.endpoint == 'faq' %} aria-current="page"{% endif %}>{{ icone("ajuda") }}<span>FAQ</span></a>
   <a href="{{ url_for('status') }}"{% if request.endpoint == 'status' %} aria-current="page"{% endif %}>{{ icone("grafico") }}<span>Status</span></a>
 </nav>
+{% include "partials/_spotlight.html" %}

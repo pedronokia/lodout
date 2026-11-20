@@ -83,6 +83,7 @@
             <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
+            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link da análise" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>
@@ -101,11 +102,11 @@
       <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
       <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span></div>
       <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Quantas skins desta caixa já estão mapeadas no Lodout — não é a contagem oficial do jogo">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
-      <div class="card"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}">{{ item.pump_risk|risco_label }}</span></div>
+      <div class="card card-risco"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}"><span class="gauge-barras gauge-risco gauge-risco-{{ item.pump_risk|risco_nivel }}" aria-hidden="true"><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span></span>{{ item.pump_risk|risco_label }}</span></div>
       {% if item.liquidity_depth and item.liquidity_depth.band %}
-      <div class="card" title="{{ item.liquidity_depth.label }}">
+      <div class="card card-liquidez" title="{{ item.liquidity_depth.label }}">
         <span class="card-label">Liquidez</span>
-        <span class="card-valor liquidez liquidez-{{ item.liquidity_depth.band|replace('_', '-') }}">{{ item.liquidity_depth.band|liquidez_label }}</span>
+        <span class="card-valor liquidez liquidez-{{ item.liquidity_depth.band|replace('_', '-') }}"><span class="gauge-barras gauge-liquidez gauge-liquidez-{{ item.liquidity_depth.band|replace('_', '-') }}" aria-hidden="true"><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span></span>{{ item.liquidity_depth.band|liquidez_label }}</span>
       </div>
       {% endif %}
       {% if tempo_aposentadoria %}
@@ -123,6 +124,53 @@
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
       <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga. Por isso o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+
+      <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
+        <div class="simulador-topo">
+          <span class="simulador-badge">{{ icone("grafico") }} Simulador Interativo</span>
+          <h3 class="simulador-titulo">Simule sua Oferta & Retorno Líquido</h3>
+        </div>
+        <p class="simulador-desc">Arraste para ajustar o valor que quer oferecer e veja o lucro líquido em tempo real após a taxa da Steam.</p>
+
+        <div class="simulador-controles">
+          <div class="simulador-campo-grupo">
+            <label for="sim-input-encomenda" class="simulador-label">Quanto quero pagar (R$):</label>
+            <div class="simulador-input-wrap">
+              <span class="simulador-moeda">R$</span>
+              <input type="number" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" step="0.01" min="0.03" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}">
+            </div>
+          </div>
+          <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
+        </div>
+
+        <div class="simulador-presets" role="group" aria-label="Ofertas rápidas com desconto">
+          <span class="simulador-presets-rotulo">Oferta rápida:</span>
+          <button type="button" class="btn-sim-preset" data-pct="0.95" title="Oferta 5% abaixo do preço atual">-5%</button>
+          <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
+          <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
+          <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
+          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Preço exato de oferta para recuperar 100% na revenda de hoje">No Empate</button>
+        </div>
+
+        <div class="simulador-metricas-grid">
+          <div class="simulador-metrica-card">
+            <span class="simulador-metrica-rotulo">Ponto de Empate</span>
+            <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
+            <span class="simulador-metrica-sub">Venda mínima p/ não perder</span>
+          </div>
+          <div class="simulador-metrica-card card-destaque-lucro">
+            <span class="simulador-metrica-rotulo">Lucro ao Preço de Hoje</span>
+            <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
+            <span class="simulador-metrica-sub" id="sim-retorno-pct">+0,0% líquido</span>
+          </div>
+          <div class="simulador-metrica-card">
+            <span class="simulador-metrica-rotulo">Fila no Mercado</span>
+            <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
+            <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
+          </div>
+        </div>
+      </div>
+
       {% include "partials/_aviso_prazo_steam.html" %}
       {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
@@ -167,7 +215,10 @@
         {% endfor %}
       </div>
       {% if grafico %}
-      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
+      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">
+        {{ grafico|safe }}
+        <div class="grafico-tooltip" hidden aria-hidden="true"></div>
+      </div>
       {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
       {% else %}
       <p class="texto-sem-dado">Sem preços registrados nesse período.</p>
@@ -196,8 +247,30 @@
     </div>
 
     {% if variantes %}
-    <h2 class="secao-titulo">Outras versões desta skin</h2>
-    <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam (não é o menor anúncio). Vêm na mesma consulta deste item, sem custo extra.</p>
+    <h2 class="secao-titulo">Outras versões desta skin (Matriz de Desgastes)</h2>
+    <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam. Vêm na mesma consulta deste item, sem custo extra.</p>
+    
+    <div class="wear-matrix-grid">
+      {% for v in variantes %}
+      {% set tag_desgaste = "FN" if "(Factory New)" in v.name else ("MW" if "(Minimal Wear)" in v.name else ("FT" if "(Field-Tested)" in v.name else ("WW" if "(Well-Worn)" in v.name else ("BS" if "(Battle-Scarred)" in v.name else "STD")))) %}
+      {% set is_st = "StatTrak" in v.name %}
+      {% set is_atual = (v.name == item.name) %}
+      <a class="wear-matrix-card{{ ' wear-matrix-card-st' if is_st else '' }}{{ ' wear-matrix-card-atual' if is_atual else '' }}" href="{{ url_for('item_detail', name=v.name) if v.tem_pagina else v.market_url }}" {% if not v.tem_pagina %}target="_blank" rel="noopener"{% endif %}>
+        <div class="wear-matrix-header">
+          <span class="wear-matrix-tag">{{ tag_desgaste }}{% if is_st %} ST{% endif %}</span>
+          {% if is_atual %}
+          <span class="wear-matrix-badge-atual">Versão atual</span>
+          {% elif v.compras_24h is not none and v.compras_24h > 0 %}
+          <span class="wear-matrix-compras">{{ v.compras_24h }} vendas/24h</span>
+          {% endif %}
+        </div>
+        <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
+        <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
+        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗") }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
     <div class="tabela-wrap" role="region" tabindex="0" aria-label="Outras versões desta skin, com rolagem lateral">
     <table class="tabela-candidatos tabela-variantes">
       <thead>
@@ -273,6 +346,8 @@
   <footer class="rodape">
     {% include "partials/_rodape_links.html" %}
   </footer>
+
+  <div id="toast-notificacao" class="toast-notificacao" hidden aria-live="polite"></div>
 
   <script src="{{ static_v('app.js') }}" defer></script>
   <script src="{{ static_v('copiar_preco.js') }}" defer></script>

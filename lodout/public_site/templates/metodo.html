@@ -58,56 +58,68 @@
       <h1 class="titulo-pagina">Como funciona a nota</h1>
       <p class="descricao-pagina">O que a nota mede, de onde vêm os números, e o que ela não é.</p>
     </header>
-    <h2 class="secao-titulo">O que a nota é</h2>
-    <p>Um número de 0 a 100 que resume vários sinais factuais sobre um
-    item. Ele é refeito a cada coleta de preço, só com os dados até
-    aquele momento; os períodos citados abaixo contam sempre a partir
-    da coleta. Os sinais que mais pesam:</p>
-    <ul>
-      <li><strong>Se é fácil de comprar e vender</strong>: a diferença
-      entre o que os compradores oferecem e o menor anúncio, e se há mais
-      gente querendo comprar do que vender.</li>
-      <li><strong>Se o preço está abaixo do que costuma valer</strong>,
-      comparado com o preço típico do próprio item.</li>
-      <li><strong>Para onde o preço andou</strong>: se vem subindo ou
-      caindo, de um dia a um mês antes da coleta. Nas skins, uma queda que
-      aparece em todos esses períodos <em>soma</em> pontos, porque no
-      histórico skins que caíram assim costumaram voltar a subir; nas
-      caixas e cápsulas isso não se repetiu, e lá a queda tira pontos.</li>
-      <li><strong>Quanto se vende perto do que há à venda</strong>, e a
-      distância do maior preço já registrado.</li>
-      <li><strong>Caixas e cápsulas</strong>: se ainda saem no jogo e o
-      nível do preço (veja abaixo).</li>
-      <li><strong>Alta rápida demais</strong>, que é tratada como risco,
-      não como bônus.</li>
-    </ul>
-    <p>Cada fator soma ou subtrai pontos. O cartão de cada item mostra o
-    fator que mais pesou; “ver mais” no cartão, ou a seção “Por quê” na
-    página do item, mostra a lista completa, positivos e negativos. Por
-    exemplo: <em>"Preço 14% abaixo do típico (+17); Fácil de comprar e
-    vender (+25); Não sai mais no jogo (+5)"</em> — cada número entre
-    parênteses é quanto aquele fator somou (ou subtraiu) da nota final.</p>
+    <section class="metodo-secao metodo-sinais">
+      <h2 class="secao-titulo">O que a nota é</h2>
+      <p class="metodo-intro">Um número de 0 a 100 que resume vários sinais factuais sobre um
+      item. Ele é refeito a cada coleta de preço, só com os dados até
+      aquele momento; os períodos citados abaixo contam sempre a partir
+      da coleta. Os sinais que mais pesam:</p>
+      <ul class="metodo-sinais-lista">
+        <li><strong>Se é fácil de comprar e vender</strong>: a diferença
+        entre o que os compradores oferecem e o menor anúncio, e se há mais
+        gente querendo comprar do que vender.</li>
+        <li><strong>Se o preço está abaixo do que costuma valer</strong>,
+        comparado com o preço típico do próprio item.</li>
+        <li><strong>Para onde o preço andou</strong>: se vem subindo ou
+        caindo, de um dia a um mês antes da coleta. Nas skins, uma queda que
+        aparece em todos esses períodos <em>soma</em> pontos, porque no
+        histórico skins que caíram assim costumaram voltar a subir; nas
+        caixas e cápsulas isso não se repetiu, e lá a queda tira pontos.</li>
+        <li><strong>Quanto se vende perto do que há à venda</strong>, e a
+        distância do maior preço já registrado.</li>
+        <li><strong>Caixas e cápsulas</strong>: se ainda saem no jogo e o
+        nível do preço (veja abaixo).</li>
+        <li><strong>Alta rápida demais</strong>, que é tratada como risco,
+        não como bônus.</li>
+      </ul>
+      <p class="metodo-exemplo">Cada fator soma ou subtrai pontos. O cartão de cada item mostra o
+      fator que mais pesou; “ver mais” no cartão, ou a seção “Por quê” na
+      página do item, mostra a lista completa, positivos e negativos. Por
+      exemplo: <em>"Preço 14% abaixo do típico (+17); Fácil de comprar e
+      vender (+25); Não sai mais no jogo (+5)"</em> — cada número entre
+      parênteses é quanto aquele fator somou (ou subtraiu) da nota final.</p>
+    </section>
 
-    <h2 class="secao-titulo">O que ela não é</h2>
-    <p>Não é previsão. A nota descreve o que já foi medido até agora —
-    nunca o que vai acontecer. Nenhum fator aqui promete retorno, e
-    desempenho passado não garante nada no futuro.</p>
+    <aside class="metodo-secao metodo-disclaimer-card" aria-label="O que ela não é">
+      <h2 class="secao-titulo">O que ela não é</h2>
+      <p>Não é previsão. A nota descreve o que já foi medido até agora —
+      nunca o que vai acontecer. Nenhum fator aqui promete retorno, e
+      desempenho passado não garante nada no futuro.</p>
+    </aside>
 
-    <h2 class="secao-titulo">Dois achados que valeram a pena contar</h2>
-    <p><strong>Caixas que pararam de ser sorteadas valorizaram mais</strong> —
-    medido comparando caixas ainda ativas com caixas já aposentadas, na
-    mesma janela de tempo. A amostra é pequena, o efeito foi mais forte
-    logo depois da aposentadoria e diminuiu com o tempo. Foi o único
-    fator, dos medidos até hoje, em que a diferença passou com folga dos
-    15% que a Steam cobra numa venda. Isso mostra o tamanho do efeito no
-    passado, não uma garantia de lucro.</p>
-    <p><strong>Itens muito caros valorizaram menos, em proporção</strong> —
-    no histórico, itens mais baratos subiram mais em percentual do que
-    itens caros. Por isso o nível do preço entra na nota das caixas e
-    cápsulas: não porque "barato é melhor", mas porque é o que os dados
-    mostraram quando comparados de forma justa (mesma data, itens
-    diferentes). Nas skins o efeito foi pequeno demais nos testes, então
-    lá o preço não conta.</p>
+    <section class="metodo-secao metodo-achados">
+      <h2 class="secao-titulo">Dois achados que valeram a pena contar</h2>
+      <div class="metodo-achados-grid">
+        <article class="metodo-achado-card">
+          <h3 class="achado-titulo">Caixas que pararam de ser sorteadas valorizaram mais</h3>
+          <p>Medido comparando caixas ainda ativas com caixas já aposentadas, na
+          mesma janela de tempo. A amostra é pequena, o efeito foi mais forte
+          logo depois da aposentadoria e diminuiu com o tempo. Foi o único
+          fator, dos medidos até hoje, em que a diferença passou com folga dos
+          15% que a Steam cobra numa venda. Isso mostra o tamanho do efeito no
+          passado, não uma garantia de lucro.</p>
+        </article>
+        <article class="metodo-achado-card">
+          <h3 class="achado-titulo">Itens muito caros valorizaram menos, em proporção</h3>
+          <p>No histórico, itens mais baratos subiram mais em percentual do que
+          itens caros. Por isso o nível do preço entra na nota das caixas e
+          cápsulas: não porque "barato é melhor", mas porque é o que os dados
+          mostraram quando comparados de forma justa (mesma data, itens
+          diferentes). Nas skins o efeito foi pequeno demais nos testes, então
+          lá o preço não conta.</p>
+        </article>
+      </div>
+    </section>
 
     <h2 class="secao-titulo">Os limites, com honestidade</h2>
     <ul>

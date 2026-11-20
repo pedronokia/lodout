@@ -23,7 +23,7 @@ from pathlib import Path
 
 from lodout import (
     gamedata, ranking, scan_engine, scan_store, scan_targets, signals,
-    steam_news,
+    steam_api, steam_news,
 )
 from lodout import _paths
 from lodout._paths import atomic_write_text, load_json_record
@@ -453,6 +453,7 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
     tinham_historico = {
         r["name"] for r in (anterior or {}).get("results") or []
         if ((r.get("data_quality") or {}).get("n") or 0) > 0}
+    steam_api.limpar_cache_paginas()
     _escaneando = True
     try:
         novos = scan_engine.run_full_scan(
