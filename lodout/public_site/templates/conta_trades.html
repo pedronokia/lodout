@@ -103,11 +103,13 @@
           </div>
           {% endfor %}
         </div>
+        <div class="troca-fim">
         <p class="troca-saldo">No dia: <strong class="{{ 'valor-positivo' if t.saldo > 0 else ('valor-negativo' if t.saldo < 0 else '') }}">{{ t.saldo_fmt }}</strong>{% if t.hoje is not none %} · Hoje: <strong class="{{ 'valor-positivo' if t.hoje > 0 else ('valor-negativo' if t.hoje < 0 else '') }}">{{ t.hoje_fmt }}</strong> <span class="status-muted">(deu {{ t.deu_hoje_fmt }}, recebeu {{ t.recebeu_hoje_fmt }})</span>{% endif %}</p>
         <form method="post" action="{{ url_for('trades.remover', index=t.index) }}" class="form-inline form-remover" data-nome="a troca de {{ t.data }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button type="submit" class="botao-link botao-remover" aria-label="Apagar a troca de {{ t.data }}">apagar</button>
         </form>
+        </div>
       </li>
       {% endfor %}
     </ul>

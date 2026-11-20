@@ -9,7 +9,7 @@
     <span>Watchlist</span>
   </a>
   <a href="{{ url_for('trades.listar') }}"{% if request.endpoint == 'trades.listar' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'trades.listar' else '' }}">
-    {{ icone("mais") }}
+    {{ icone("troca") }}
     <span>Trades</span>
   </a>
   <a href="{{ url_for('history.listar') }}"{% if request.endpoint == 'history.listar' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'history.listar' else '' }}">

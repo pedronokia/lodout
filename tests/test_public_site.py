@@ -1378,6 +1378,9 @@ def test_api_docs_page(client):
     assert "HTTP 429" in body
     assert "sem limite de taxa específico" not in body
     assert '"api_version": 1' in body
+    # Bloco de código rola no celular: precisa receber foco pelo teclado.
+    assert '<pre class="bloco-codigo" tabindex="0"' in body
+    assert "dashboard" not in body
     assert '"icon_url": "/icone/' in body
     assert "community.cloudflare.steamstatic.com" not in body
     assert "o valor é <code>null</code> quando" in body

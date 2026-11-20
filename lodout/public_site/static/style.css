@@ -12863,3 +12863,59 @@ footer.rodape a:hover {
    do cartão com área de toque maior sem mudar o desenho. */
 .filtros-ativos .botao-link { font-size: var(--fs-sm); }
 .cartao-item-steam { padding-block: 5px; margin-block: -5px; }
+
+/* ── Revisão 20/11 (2): conta, comparar e trocas ── */
+
+/* Comparar: a tabela rola dentro do quadro no celular, em vez de
+   empurrar a página toda para o lado. */
+.tabela-wrap:has(> .tabela-comparar) { overflow-x: auto; }
+
+/* Destaque da melhor célula: só o fundo, sem a faixa lateral grossa. */
+.valor-destaque-linha { box-shadow: none; }
+
+/* Abas da conta no celular: as 4 cabem na tela (o "Histórico" ficava
+   escondido para fora, só aparecia arrastando). */
+@media (max-width: 640px) {
+  .subnav-conta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+    border-radius: 16px;
+  }
+  .subnav-conta-link {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-height: 52px;
+    padding: 6px 2px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+}
+
+/* Conta: "cada" dentro do campo com contraste para ler; "confira" com
+   área de toque de 24px. */
+.tabela-conta .campo-reais-sufixo,
+.campo-reais-sufixo { color: var(--text-muted); }
+button.confira { min-height: 24px; padding-block: 3px; }
+
+/* Trocas: saldo à esquerda, "apagar" à direita, na mesma linha. */
+.troca-fim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px var(--sp-3);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.troca-fim .troca-saldo {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.troca-fim .form-remover { margin: 0; }

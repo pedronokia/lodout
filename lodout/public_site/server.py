@@ -690,6 +690,10 @@ def create_app() -> Flask:
                 preco_empate=fmt.brl(portfolio.break_even_price(item_cat["price"])),
                 encomenda=encomenda.info(item_cat.get("price"), None,
                                          encomenda.meta_do_visitante()),
+                # Sem fila de encomendas no catálogo. Passar None evita que
+                # o partial pegue a função global de mesmo nome (revisão 20/11:
+                # aparecia um botão de copiar vazio e "…encomenda, , e %").
+                encomenda_sugestao=None,
                 taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
                 na_conta=na_conta), na_conta)
         # Mesmo achado de performance do index() (2026-11-09): ícone só

@@ -8,7 +8,7 @@
 {% if encomenda %}
 <section class="conta-revenda encomenda" aria-labelledby="titulo-encomenda">
   <h2 class="conta-revenda-titulo" id="titulo-encomenda">Comprar por encomenda</h2>
-  {% if encomenda_sugestao %}
+  {% if encomenda_sugestao is mapping %}
   {% set sug = encomenda_sugestao %}
   <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. As encomendas maiores são atendidas primeiro. Para ficar na frente da fila, encomende por</p>
   <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida">{{ sug.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>

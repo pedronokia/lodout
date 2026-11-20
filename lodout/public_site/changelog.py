@@ -22,6 +22,8 @@ ENTRADAS = [
             "Visual mais limpo: sem brilho laranja em volta de botões e ícones, título da página inicial sem degradê, selos e preço da encomenda nos cartões com letra maior, e o simulador sem quadros dentro de quadros.",
             "Glossário: os atalhos para cada termo não ficam mais encavalados, e cada termo virou um cartão inteiro. O rodapé ganhou margem nos lados, a lupa da busca voltou para o lugar, e as páginas de texto (Método, FAQ, Mudanças) ficaram alinhadas à esquerda, sem palavras partidas no fim da linha.",
             "Mudanças: data por extenso embaixo de cada título e as mais antigas recolhidas em “Ver mudanças mais antigas”. Status: as visitas por dia viraram barras com a data e o número.",
+            "Minha conta no celular: as quatro abas (Meus Itens, Watchlist, Trades e Histórico) cabem na tela, sem o Histórico escondido, e Trades ganhou um ícone de troca. Em cada troca, o saldo e o “apagar” ficam na mesma linha.",
+            "Página de item que ainda não tem nota: o quadro “Comprar por encomenda” mostrava um botão vazio e uma frase incompleta; agora mostra só o valor para lucrar a sua meta. Comparar itens: no celular, a tabela desliza dentro do quadro em vez de arrastar a página toda para o lado.",
         ],
     },
     {
