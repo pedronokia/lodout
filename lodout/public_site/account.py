@@ -604,7 +604,7 @@ def separar_lote(name: str):
     lote = (request.form.get("lote") or "").strip() or None
     if user_portfolio.separar(steamid, name, quantidade, lote=lote):
         flash(f"Separado: {quantidade} {'unidade ficou' if quantidade == 1 else 'unidades ficaram'} "
-              "numa linha própria, sem valor pago. Informe quanto você pagou nela.", "success")
+              "numa linha própria. Informe o valor pago.", "success")
     else:
         flash("Não foi possível separar: escolha de 1 até uma unidade a menos que o total.", "error")
     return redirect(url_for("account.conta"))
@@ -621,8 +621,7 @@ def juntar_lotes(name: str):
     if resultado == "ok":
         flash("Lotes juntados numa linha só, com o valor médio que você pagou.", "success")
     elif resultado == "misto":
-        flash("Para juntar, informe o valor pago de todos os lotes desse item "
-              "(ou de nenhum): sem o valor de um lote, o Lodout teria que inventar um preço.", "error")
+        flash("Para juntar, informe o valor pago de todos os lotes (ou de nenhum).", "error")
     return redirect(url_for("account.conta"))
 
 
@@ -672,7 +671,7 @@ def atualizar_inventario():
     elif time.time() - float(est.get("ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S:
         flash("Seu inventário acabou de ser atualizado. Tente de novo em alguns minutos.", "info")
     elif steam_api.em_cooldown("inventory"):
-        flash("A Steam pediu uma pausa agora. O Lodout tenta de novo sozinho mais tarde.", "info")
+        flash("A Steam pediu uma pausa. Tentaremos de novo mais tarde.", "info")
     else:
         inventario.sincronizar_em_segundo_plano(steamid)
     return redirect(url_for("account.conta"))
@@ -716,8 +715,8 @@ def adicionar_posicao():
         return redirect(url_for("account.conta"))
 
     user_portfolio.add_position(steamid, name, cost, quantity)
-    flash(f"{localize_name(name)} entrou na sua lista. Se aparecer “sem preço”, confira se o nome "
-          "está igual ao do Mercado da Steam.", "success")
+    flash(f"{localize_name(name)} entrou na sua lista. Se aparecer “sem preço”, confira o nome.",
+          "success")
     return redirect(url_for("account.conta"))
 
 
@@ -803,11 +802,11 @@ def remover_posicao(name: str):
     # recarregava, sem dizer nada). Item fora do inventário não "volta na
     # próxima atualização" (revisão 16/11, rodada 2).
     if alvos and all(p.get("fora_desde") for p in alvos):
-        flash(f"{localize_name(name)} saiu da sua lista. Se ele voltar ao seu "
-              "inventário da Steam (anúncio cancelado), volta sem o valor pago.", "success")
+        flash(f"{localize_name(name)} saiu da sua lista. Se voltar ao inventário, "
+              "volta sem o valor pago.", "success")
     else:
         flash(f"{localize_name(name)} saiu da sua lista. "
-              "Se ainda estiver no seu inventário da Steam, volta na próxima atualização.", "success")
+              "Se ainda estiver no inventário, volta na próxima atualização.", "success")
     return redirect(url_for("account.conta"))
 
 
@@ -863,7 +862,7 @@ def marcar_vendido(name: str):
     except ValueError:
         quantidade = 0
     if preco is None or not math.isfinite(preco) or preco <= 0:
-        flash("Informe por quanto vendeu (o valor que o comprador pagou, ex.: 35,10).", "error")
+        flash("Informe o valor que o comprador pagou (ex.: 35,10).", "error")
         return redirect(url_for("account.conta"))
     # Segunda confirmação (pedido do usuário, 16/11): a janela só envia
     # depois do "Sim, vendi"; sem JavaScript, a caixa "Confirmo que vendi".
@@ -872,8 +871,8 @@ def marcar_vendido(name: str):
         return redirect(url_for("account.conta"))
     vendido = user_portfolio.tirar_vendidas(steamid, name, quantidade, lote=lote)
     if vendido is None:
-        flash("Não foi possível marcar como vendido: confira a quantidade e se o item "
-              "tem o valor pago.", "error")
+        flash("Não foi possível registrar a venda: confira a quantidade e o valor pago.",
+              "error")
         return redirect(url_for("account.conta"))
     venda = user_vendidos.adicionar(steamid, name, float(vendido["cost"]), preco, quantidade,
                                     posicao=vendido)
@@ -929,8 +928,7 @@ def recuperar_apagados():
         steamid, atuais, backups, agora, ignorar=recuperar_posicoes.ignorados(steamid))
     voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
     if not voltaram:
-        flash("Nada para devolver: nenhum item com valor pago sumiu da sua lista "
-              "nos últimos dias.", "info")
+        flash("Nada para devolver.", "info")
         return redirect(url_for("account.conta"))
     copia = Path(_paths.DATA_DIR) / "backups" / time.strftime(
         f"recuperacao-{steamid}-%Y%m%d-%H%M%S.json", time.gmtime(agora))
@@ -938,9 +936,8 @@ def recuperar_apagados():
     user_store.save_user_json(steamid, "portfolio", novas)
     recuperar_posicoes._CACHE_PREVIA.pop(steamid, None)
     n = len(voltaram)
-    flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago. "
-          "Eles estão destacados na lista, como “fora do inventário”: marque “Está anunciado” ou "
-          "“Vendi” em cada um.", "success")
+    flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago, "
+          "como “fora do inventário”. Marque “Está anunciado” ou “Vendi” em cada um.", "success")
     return redirect(url_for("account.conta", filtro="fora"))
 
 
@@ -957,7 +954,7 @@ def dispensar_recuperar():
     nomes = [r["item"] for r in prev["voltam"] + prev["conferir"]]
     if nomes:
         recuperar_posicoes.ignorar(steamid, nomes)
-        flash("Pronto: esses itens não vão voltar para a sua lista e o aviso não aparece mais.",
+        flash("Pronto. Esses itens não voltam mais.",
               "success")
     return redirect(url_for("account.conta"))
 

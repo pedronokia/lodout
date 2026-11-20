@@ -616,7 +616,7 @@ def test_recuperar_nao_oferece_vendido_removido_nem_dispensado(client):
     r = client.post("/conta/posicoes/Removida/remover", data={"csrf_token": token},
                     follow_redirects=True)
     texto = r.data.decode("utf-8")
-    assert "(anúncio cancelado), volta sem o valor pago." in texto
+    assert "Se voltar ao inventário, volta sem o valor pago." in texto
     assert "saiu da sua lista. Se ainda estiver" not in texto
     pagina = client.get("/conta").data.decode("utf-8")
     assert "Achamos" not in pagina
@@ -647,7 +647,7 @@ def test_recuperar_nao_quero_de_volta(client):
     r = client.post("/conta/recuperar/dispensar", data={"csrf_token": token},
                     follow_redirects=True)
     texto = r.data.decode("utf-8")
-    assert "o aviso não aparece mais" in texto and "Achamos" not in texto
+    assert "Esses itens não voltam mais" in texto and "Achamos" not in texto
     assert user_portfolio.load_positions(sid) == []
     assert recuperar_posicoes.ignorados(sid) == {"Velha"}
     assert client.post("/conta/recuperar/dispensar", data={}).status_code in (400, 403)

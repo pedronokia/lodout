@@ -207,7 +207,7 @@ def test_regra_invalida_preserva_regras_existentes(client, monkeypatch):
         "csrf_token": token,
     })
     pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
-    assert "As regras não foram salvas" in pagina
+    assert "Alertas não salvos" in pagina
     assert "queda de 10%" in pagina
 
 
