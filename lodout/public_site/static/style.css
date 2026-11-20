@@ -10757,7 +10757,7 @@ h3,
 }
 
 /* 3. Cards Resumo / KPIs (Tema Executivo Global) */
-.resumo-cards,
+.resumo-cards:not(.resumo-cards-item),
 .resumo-cards-conta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -10765,7 +10765,7 @@ h3,
   margin-bottom: var(--sp-6);
 }
 
-.resumo-cards .card,
+.resumo-cards:not(.resumo-cards-item) .card,
 .resumo-cards-conta .card {
   display: flex;
   flex-direction: column;
@@ -10781,7 +10781,7 @@ h3,
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.resumo-cards .card:hover,
+.resumo-cards:not(.resumo-cards-item) .card:hover,
 .resumo-cards-conta .card:hover {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%);
   border-color: rgba(255, 255, 255, 0.16);
@@ -10789,7 +10789,7 @@ h3,
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
-.resumo-cards .card-label,
+.resumo-cards:not(.resumo-cards-item) .card-label,
 .resumo-cards-conta .card-label {
   display: block;
   font-size: 0.6875rem;
@@ -10800,7 +10800,7 @@ h3,
   margin-bottom: 4px;
 }
 
-.resumo-cards .card-valor,
+.resumo-cards:not(.resumo-cards-item) .card-valor,
 .resumo-cards-conta .card-valor {
   display: block;
   font-size: 1.625rem;
@@ -10812,7 +10812,7 @@ h3,
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.resumo-cards .card-sub,
+.resumo-cards:not(.resumo-cards-item) .card-sub,
 .resumo-cards-conta .card-sub {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.50);
@@ -12030,6 +12030,29 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-top: auto;
 }
 
+.pulse-card-img-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.35) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 3px;
+}
+
+.pulse-card-img-wrap .icone-item-placeholder {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 1.25rem;
+}
+
 /* Barra de Busca & Filtros Expansíveis */
 .barra-busca-vitrine {
   border-radius: 12px;
@@ -12403,6 +12426,73 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
+}
+
+/* Ficha Técnica / KPIs do Item */
+.resumo-cards.resumo-cards-item {
+  display: flex !important;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: var(--sp-5);
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.resumo-cards.resumo-cards-item .card {
+  flex: 1 1 120px;
+  justify-content: center;
+  min-height: auto !important;
+  gap: 4px;
+  padding: 12px 18px;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.resumo-cards.resumo-cards-item .card:last-of-type {
+  border-right: 0 !important;
+}
+
+.resumo-cards.resumo-cards-item .card-nota-destaque {
+  flex: 0 0 auto;
+  padding: 10px 22px;
+}
+
+.resumo-cards.resumo-cards-item .card-valor.nota {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+}
+
+.resumo-cards.resumo-cards-item .card-valor.nota .nota-numero {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  line-height: 1;
+}
+
+.resumo-cards.resumo-cards-item .card-caixa {
+  flex: 2.2 1 200px;
+}
+
+.resumo-cards.resumo-cards-item .card-liquidez {
+  flex: 1.3 1 150px;
+}
+
+.resumo-cards.resumo-cards-item .card-valor {
+  font-size: 0.9375rem !important;
+  font-weight: 600;
+  white-space: normal !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .conta-revenda {
