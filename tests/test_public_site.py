@@ -1550,7 +1550,7 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
     (G maiúsculo). O resto do texto do site continua "lodout"."""
-    assert "<title>Lodout — análise do mercado de skins de CS2</title>" in client.get("/").data.decode("utf-8")
+    assert "<title>Lodout — análise do mercado de skins de Counter-Strike 2</title>" in client.get("/").data.decode("utf-8")
     ranking = client.get("/ranking").data.decode("utf-8")
     assert "<title>Ranking — Lodout</title>" in ranking
     assert "— lodout</title>" not in ranking
@@ -4895,7 +4895,7 @@ def test_index_traduz_caixa_igual_coluna_item(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
 
     assert ">Caixa CS:GO Weapon (descontinuada, 2013)</span>" in body
-    assert "<title>Lodout — análise do mercado de skins de CS2</title>" in body
+    assert "<title>Lodout — análise do mercado de skins de Counter-Strike 2</title>" in body
 
 
 def test_feed_e_api_nao_leem_historico_de_todos_os_itens(
@@ -6062,7 +6062,7 @@ def test_desde_txt_diz_ontem_ou_a_data():
 def test_home_mostra_a_tese_do_site(client):
     """Revisão 17/11: o <h1> era oculto e o celular não dizia o que é o site."""
     body = client.get("/").data.decode("utf-8")
-    assert '<h1 class="home-tese-titulo">Entenda o mercado de skins de CS2</h1>' in body
+    assert '<h1 class="home-tese-titulo">Entenda o mercado de skins de Counter-Strike 2</h1>' in body
     assert "e o motivo de cada nota" in body and 'href="/metodo"' in body
 
 
@@ -6268,3 +6268,14 @@ def test_queda_recente_usa_virgula_e_sinal_de_menos():
     t = (_P(server.__file__).parent / "templates" / "index.html").read_text(encoding="utf-8")
     trecho = t.split('class="pulse-delta-pct negativo">', 1)[1].split("</span>", 1)[0]
     assert 'replace(".", ",")' in trecho and "−" in trecho
+
+
+def test_nome_do_jogo_por_extenso(client):
+    """No texto do site, "Counter-Strike 2" por extenso, nunca a sigla
+    (pedido do usuário, 20/11)."""
+    import re as _re
+    for url in ("/", "/ranking", "/metodo", "/faq", "/glossario", "/sobre",
+                "/status", "/privacidade"):
+        body = client.get(url).data.decode("utf-8")
+        visivel = _re.sub(r"<script.*?</script>|<!--.*?-->", "", body, flags=_re.S)
+        assert not _re.search(r"(?<![\w:])CS2\b", visivel), url

@@ -70,7 +70,7 @@
     {% include "partials/_encomenda.html" %}
 
     <h2 class="secao-titulo">Por que ainda não tem nota?</h2>
-    <p>O Lodout mostra o preço do dia de todo o Mercado de CS2, mas a nota exige o histórico de cada item, uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
+    <p>O Lodout mostra o preço do dia de todo o Mercado de Counter-Strike 2, mas a nota exige o histórico de cada item, uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
 
     {% if item.category %}
     <p class="status"><a class="link-com-seta" href="{{ url_for('index', categoria=item.category) }}">Ver os itens com nota de “{{ item.category }}” {{ icone("seta-direita") }}</a></p>

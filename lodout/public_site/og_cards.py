@@ -113,7 +113,7 @@ def cartao_padrao() -> bytes:
     d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
     _aspas(img, 100, 96, 110)
     d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
-    frase = "Análise do mercado de skins de CS2,\ncom dados públicos da Steam."
+    frase = "Análise do mercado de skins\nde Counter-Strike 2."
     y = 430
     for linha in frase.split("\n"):
         d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)

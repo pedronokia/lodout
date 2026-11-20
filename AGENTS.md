@@ -177,7 +177,8 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
 - Tese do site, numa frase: o Lodout analisa o mercado de skins de CS2
   com dados públicos da Steam; cada skin tem uma nota com o porquê, além de
   preços e encomendas, sem prometer lucro. Título da home (20/11): "Entenda
-  o mercado de skins de CS2". A escala da nota (0 a 100) NÃO aparece no
+  o mercado de skins de Counter-Strike 2". No texto do site, sempre
+  "Counter-Strike 2" por extenso, nunca "CS2" (pedido do usuário, 20/11). A escala da nota (0 a 100) NÃO aparece no
   texto do site, nem como "/100" (pedido do usuário, 20/11).
   Público: iniciantes em skins de CS2 (tom baixo-médio, termos explicados).
 - Função de cada página: Home = ver as notas de hoje e achar um item;

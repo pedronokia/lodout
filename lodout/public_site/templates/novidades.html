@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Novidades do CS2 — Lodout</title>
-  <meta name="description" content="Mudanças nos arquivos do CS2 (drops, Armory, caixas novas) e anúncios oficiais da Valve.">
+  <title>Novidades do Counter-Strike 2 — Lodout</title>
+  <meta name="description" content="Mudanças nos arquivos do Counter-Strike 2 (drops, Armory, caixas novas) e anúncios oficiais da Valve.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -32,13 +32,13 @@
 
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Novidades do CS2</h1>
+      <h1 class="titulo-pagina">Novidades do Counter-Strike 2</h1>
       <p class="descricao-pagina">O que mudou no jogo e o que a Valve anunciou. Mudanças na oferta afetam o mercado.</p>
     </header>
 
     <section aria-labelledby="titulo-arquivos">
       <h2 class="secao-titulo" id="titulo-arquivos">Mudanças nos arquivos do jogo</h2>
-      <p class="status-muted secao-intro">A cada coleta, o Lodout compara os arquivos do CS2 com a versão anterior e registra coleções que entram ou saem do drop semanal, mudanças no Armory e caixas novas.{% if arquivos_conferidos_txt %} Arquivos conferidos {{ arquivos_conferidos_txt }}.{% endif %}</p>
+      <p class="status-muted secao-intro">A cada coleta, o Lodout compara os arquivos do Counter-Strike 2 com a versão anterior e registra coleções que entram ou saem do drop semanal, mudanças no Armory e caixas novas.{% if arquivos_conferidos_txt %} Arquivos conferidos {{ arquivos_conferidos_txt }}.{% endif %}</p>
       {% if eventos %}
       <ol class="lista-novidades">
         {% for ev in eventos %}
@@ -59,7 +59,7 @@
 
     <section aria-labelledby="titulo-anuncios">
       <h2 class="secao-titulo" id="titulo-anuncios">Anúncios oficiais</h2>
-      <p class="status-muted secao-intro">Os últimos anúncios do CS2 publicados pela Valve. Servem de contexto e não entram na nota.</p>
+      <p class="status-muted secao-intro">Os últimos anúncios do Counter-Strike 2 publicados pela Valve. Servem de contexto e não entram na nota.</p>
       {% if noticias %}
       <ol class="lista-novidades">
         {% for n in noticias %}

@@ -66,7 +66,8 @@ carteira) serve a essa decisão explicada.
   deu para"; nada de "sem enrolação", "Devagar aí" e outras gírias. Termo
   técnico só com explicação ao lado. Fatos, limites e o aviso de que a nota
   não é previsão nem promessa de lucro sempre ficam, mesmo encurtando.
-- Posicionamento: "Entenda o mercado de skins de CS2". Não escrever "de 0 a
+- Posicionamento: "Entenda o mercado de skins de Counter-Strike 2". No site,
+  "Counter-Strike 2" por extenso, nunca a sigla "CS2". Não escrever "de 0 a
   100" nem "/100" no site (a escala fica implícita nas próprias notas).
 
 ## Evidence on Hand

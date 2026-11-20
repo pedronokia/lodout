@@ -1,7 +1,7 @@
 {
   "name": "Lodout",
   "short_name": "Lodout",
-  "description": "Análise do mercado de skins de CS2, com dados públicos da Steam.",
+  "description": "Análise do mercado de skins de Counter-Strike 2, com dados públicos da Steam.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

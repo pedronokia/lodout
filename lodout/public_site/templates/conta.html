@@ -130,7 +130,7 @@
     {% elif inv.status == "private" %}
     <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado. Para mostrar seus itens, na Steam abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a>{{ atualizar_agora("Já deixei público: tentar de novo") }}</p>
     {% elif inv.status == "empty" %}
-    <p class="status-inventario">Seu inventário de CS2 não tem itens que possam ser vendidos no Mercado da Steam.{{ atualizar_agora() }}</p>
+    <p class="status-inventario">Seu inventário de Counter-Strike 2 não tem itens que possam ser vendidos no Mercado da Steam.{{ atualizar_agora() }}</p>
     {% elif inv.status in ("rate_limited", "error") %}
     <p class="status-inventario">Não foi possível ler seu inventário agora (a Steam pediu uma pausa). O Lodout tenta de novo mais tarde.</p>
     {% else %}
@@ -359,7 +359,7 @@
          "Nenhum item ainda" ao mesmo tempo se contradizia (revisão 16/11). #}
       {% if not inv.em_andamento %}
       <div class="conta-vazia">
-        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens de CS2 aparecem aqui automaticamente.</p>
+        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens de Counter-Strike 2 aparecem aqui automaticamente.</p>
         <p>O inventário público é lido a cada login e uma vez por dia. Informe quanto pagou em cada item para ver por quanto vender sem prejuízo.</p>
         <p>Não apareceu nada? Confira se o inventário está Público na Steam (Perfil → Editar perfil → Privacidade) ou adicione um item à mão abaixo.</p>
       </div>
