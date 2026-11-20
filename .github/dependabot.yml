@@ -26,6 +26,12 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 2
+    # A imagem roda a mesma versão do Python que a CI testa (tests.yml).
+    # Trocar de versão (3.12 -> 3.13...) é decisão manual, feita junto com
+    # a matriz da CI; aqui só entram os patches da imagem 3.12-slim.
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
