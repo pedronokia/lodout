@@ -23,7 +23,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Minha watchlist</h1>
-      <p class="descricao-pagina">Itens que você acompanha, com o preço de hoje e alertas no valor que você escolher.</p>
+      <p class="descricao-pagina">Itens que você acompanha, com alertas de preço.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
@@ -44,7 +44,7 @@
 
     <details class="adicionar-manual alerta-discord"{% if erro_webhook %} open{% endif %}>
       <summary>Receber os alertas no Discord (opcional)</summary>
-      <p class="status">Cole a URL de um webhook de um canal seu. Cada alerta vira uma mensagem lá, no máximo uma por item por hora.</p>
+      <p class="status">Cole o webhook de um canal seu. No máximo uma mensagem por item por hora.</p>
       {% if erro_webhook %}
       <p class="status status-erro" role="alert">Essa URL não parece um webhook do Discord (precisa começar com <code>https://discord.com/api/webhooks/</code>) e não foi salva.</p>
       {% endif %}
@@ -147,7 +147,7 @@
   </main>
 
   <footer class="rodape">
-    <p>Calculado com o preço, as vendas e a nota da última coleta de cada item.</p>
+    <p>Dados da última coleta de cada item.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% with dialogo_titulo="Deixar de acompanhar", dialogo_texto="O item sai da sua watchlist junto com as regras de alerta dele." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}

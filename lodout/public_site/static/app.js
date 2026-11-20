@@ -641,15 +641,15 @@ if ("serviceWorker" in navigator) {
         } else if (Math.abs(valorPago - maiorEncomenda) < 0.01) {
           elFila.textContent = "Empatado no topo";
           elFila.className = "simulador-metrica-val texto-alerta";
-          elFilaDesc.textContent = "Empata com a maior encomenda da Steam";
+          elFilaDesc.textContent = "Igual à maior encomenda";
         } else {
           elFila.textContent = "Atrás da fila";
           elFila.className = "simulador-metrica-val texto-muted";
-          elFilaDesc.textContent = "A maior encomenda atual é " + formatarBrl(maiorEncomenda);
+          elFilaDesc.textContent = "Maior encomenda: " + formatarBrl(maiorEncomenda);
         }
       } else {
         elFila.textContent = "Oferta aberta";
-        elFilaDesc.textContent = "Sem fila conhecida no momento";
+        elFilaDesc.textContent = "Fila desconhecida";
       }
     }
   }

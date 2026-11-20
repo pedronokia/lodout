@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Como funciona a nota — Lodout</title>
-  <meta name="description" content="O que a nota do Lodout mede, de onde vêm os dados e o que ela não é.">
+  <meta name="description" content="O que a nota do Lodout mede e o que ela não é.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -56,42 +56,33 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Como funciona a nota</h1>
-      <p class="descricao-pagina">O que ela mede, de onde vêm os dados e o que ela não é.</p>
+      <p class="descricao-pagina">O que ela mede e o que ela não é.</p>
     </header>
     <section class="metodo-secao metodo-sinais">
-      <h2 class="secao-titulo">O que a nota é</h2>
-      <p class="metodo-intro">Um número que resume os dados de mercado de um item: quanto maior, mais fatores positivos.
-      É recalculado a cada coleta de preço, só com os dados até aquele momento.
-      Os fatores que mais pesam:</p>
+      <h2 class="secao-titulo">O que a nota mede</h2>
+      <p class="metodo-intro">Um resumo dos dados de mercado do item, recalculado a cada coleta.
+      Quanto maior, mais fatores positivos. Os principais:</p>
       <ul class="metodo-sinais-lista">
-        <li><strong>Facilidade de comprar e vender</strong>: a distância entre a
-        maior oferta de compra e o menor anúncio, e se há mais compradores
-        que vendedores.</li>
-        <li><strong>Preço abaixo do habitual</strong>, comparado com o preço
-        típico do próprio item.</li>
-        <li><strong>Tendência do preço</strong>, de um dia a um mês antes da
-        coleta. Nas skins, uma queda em todos esses períodos <em>soma</em>
-        pontos, porque no histórico elas costumaram se recuperar. Nas caixas
-        e cápsulas isso não se repetiu, e a queda tira pontos.</li>
-        <li><strong>Vendas perto do preço anunciado</strong> e a distância do
-        maior preço já registrado.</li>
-        <li><strong>Caixas e cápsulas</strong>: se ainda saem no jogo e o nível
-        do preço (veja abaixo).</li>
-        <li><strong>Alta rápida demais</strong>, tratada como risco, não como
-        bônus.</li>
+        <li><strong>Facilidade de comprar e vender</strong>: distância entre a maior
+        oferta de compra e o menor anúncio, e se há mais compradores que vendedores.</li>
+        <li><strong>Preço</strong> em relação ao típico do próprio item.</li>
+        <li><strong>Tendência</strong> de um dia a um mês. Nas skins, uma queda em
+        todos os períodos <em>soma</em> pontos (no histórico, elas se recuperaram);
+        em caixas e cápsulas, tira.</li>
+        <li><strong>Vendas</strong> perto do preço anunciado e distância do maior
+        preço registrado.</li>
+        <li><strong>Caixas e cápsulas</strong>: se ainda saem no jogo e o nível do
+        preço.</li>
+        <li><strong>Alta rápida demais</strong>: conta como risco, não bônus.</li>
       </ul>
-      <p class="metodo-exemplo">Cada fator soma ou tira pontos. O cartão do item mostra o
-      que mais pesou; a seção “Por quê”, na página do item, mostra todos.
-      Exemplo: <em>"Preço 14% abaixo do típico (+17); Fácil de comprar e
-      vender (+25); Não sai mais no jogo (+5)"</em>. O número entre parênteses
-      é quanto o fator somou ou tirou.</p>
+      <p class="metodo-exemplo">Cada fator soma ou tira pontos. Exemplo: <em>"Preço 14% abaixo
+      do típico (+17); Fácil de comprar e vender (+25)"</em>. A lista completa fica
+      em “Por quê”, na página do item.</p>
     </section>
 
     <aside class="metodo-secao metodo-disclaimer-card" aria-label="O que ela não é">
       <h2 class="secao-titulo">O que ela não é</h2>
-      <p>Não é previsão. A nota descreve o que já aconteceu, não o que vai
-      acontecer. Nenhum fator promete retorno, e resultado passado não garante
-      resultado futuro.</p>
+      <p>Previsão. A nota descreve o passado e não promete retorno.</p>
     </aside>
 
     <section class="metodo-secao metodo-achados">
@@ -99,46 +90,32 @@
       <div class="metodo-achados-grid">
         <article class="metodo-achado-card">
           <h3 class="achado-titulo">Caixas que saíram do jogo valorizaram mais</h3>
-          <p>Comparamos caixas ativas e aposentadas no mesmo período. A amostra
-          é pequena, e o efeito foi mais forte logo após a saída, diminuindo com
-          o tempo. Foi o único fator medido que superou com folga os 15% de taxa
-          de uma venda. Mostra o passado, não garante lucro.</p>
+          <p>Mais forte logo após a saída, enfraquecendo com o tempo. Amostra
+          pequena. Foi o único fator que superou com folga os 15% de taxa, o que não garante lucro.</p>
         </article>
         <article class="metodo-achado-card">
           <h3 class="achado-titulo">Itens caros valorizaram menos, em proporção</h3>
-          <p>No histórico, itens mais baratos subiram mais em percentual. Por isso
-          o nível do preço entra na nota de caixas e cápsulas, com base em
-          comparações na mesma data. Nas skins o efeito foi pequeno demais, e o
-          preço não conta.</p>
+          <p>Por isso o nível do preço entra na nota de caixas e cápsulas. Nas
+          skins, o efeito foi pequeno demais e não conta.</p>
         </article>
       </div>
     </section>
 
     <h2 class="secao-titulo">Limites</h2>
     <ul>
-      <li>A amostra são os itens que o Lodout acompanha, não todo o jogo.</li>
-      <li>“Risco” mede só alta de preço rápida e possivelmente artificial. Não
-      cobre outros riscos, como mudanças da Valve no jogo.</li>
-      <li>Os fatores são recalibrados conforme os dados crescem, e os pesos
-      podem mudar.</li>
-      <li>A soma dos fatores pode passar dos limites da escala. A nota para no limite,
-      e um número ao lado (por exemplo, “+23”) mostra quanto passou. A ordem
-      entre notas iguais já considera isso.</li>
-      <li>Tendência, distância do maior preço e alerta de alta artificial só
-      contam com histórico suficiente. Com pouco histórico, ou vendas antigas,
-      a nota usa menos fatores e mostra o selo “Dado limitado”. A tendência
-      compara o preço médio do dia com o de uma semana antes e só conta se
-      houve vendas na maior parte da semana. O fator “subindo/caindo em todos
-      os períodos” também usa o preço médio diário: uma venda isolada fora do
-      normal não muda a nota.</li>
-      <li>Nem todo item tem nota. A busca mostra todo o Mercado de Counter-Strike 2 com o
-      preço do dia, mas a nota exige o histórico de cada item, uma consulta
-      mais pesada. Por enquanto, ela existe para os itens mais negociados; os
-      outros aparecem como
+      <li>Vale só para os itens que o Lodout acompanha.</li>
+      <li>“Risco” mede apenas alta rápida e possivelmente artificial.</li>
+      <li>Os pesos podem mudar conforme os dados crescem.</li>
+      <li>Quando a soma passa do limite, a nota para no máximo e um número ao
+      lado (ex.: “+23”) mostra o excedente.</li>
+      <li>Com pouco histórico, a nota usa menos fatores e mostra “Dado limitado”.
+      Tendências usam o preço médio diário, então uma venda isolada não muda a
+      nota.</li>
+      <li>Itens menos negociados ainda não têm nota e aparecem como
       <a href="{{ url_for('glossario') }}#termo-sem-nota">“sem nota ainda”</a>.</li>
     </ul>
 
-    <p>A nota não substitui seu julgamento. A decisão é sempre sua.</p>
+    <p>A decisão é sempre sua.</p>
   </main>
 
   <footer class="rodape">

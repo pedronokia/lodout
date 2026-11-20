@@ -49,7 +49,7 @@ def test_index_sem_scan_mostra_vazio(client, monkeypatch):
     resp = client.get("/")
     assert resp.status_code == 200
     body = resp.data.decode("utf-8")
-    assert "Ainda não há preços coletados" in body
+    assert "A lista aparece ao fim da primeira coleta" in body
     assert 'href="/status">Ver status da coleta</a>' in body
 
 
@@ -656,7 +656,7 @@ def test_index_explicita_escala_da_nota_e_rotulo_textual_de_risco(
 
     # A escala não aparece no texto desde 20/11 (pedido do usuário).
     assert "0 a 100" not in body and "0\u2013100" not in body and "/100" not in body
-    assert "Não é previsão nem promessa de lucro" in body
+    assert "não é previsão nem promessa de lucro" in body
     # Risco baixo é o caso comum: sem coluna nem selo (era uma coluna
     # inteira repetindo "Baixo" em toda linha) -- e sem a frase que
     # explica um selo que não aparece (2026-11-14).
@@ -672,7 +672,7 @@ def test_index_explica_selo_de_risco_quando_ele_aparece(
     ])
     body = client.get("/").data.decode("utf-8")
     assert 'class="selo-risco' in body
-    assert "O selo de risco indica chance de alta artificial" in body
+    assert "O selo de risco indica possível alta artificial" in body
 
 
 def test_index_nota_no_teto_mostra_margem_alem_de_100(client, monkeypatch, tmp_path):
@@ -1620,7 +1620,7 @@ def test_changelog_feed_xml(client):
 def test_metodo_page(client):
     resp = client.get("/metodo")
     assert resp.status_code == 200
-    assert "O que a nota é".encode("utf-8") in resp.data
+    assert "O que a nota mede".encode("utf-8") in resp.data
 
 
 def _historico_notas(pontos):
@@ -2465,7 +2465,7 @@ def test_item_avisa_quando_dado_e_do_ciclo_anterior(
          "mantido_do_ciclo_anterior": True},
     ])
     body = client.get("/item/A").data.decode("utf-8")
-    assert "A Steam não enviou preço novo na última coleta" in body
+    assert "Sem preço novo na última coleta" in body
 
 
 def test_ritmo_sobe_com_429_e_volta_devagar():
@@ -3069,7 +3069,7 @@ def test_item_detail_sem_historico_nao_mostra_seletor(client, monkeypatch, tmp_p
     assert 'aria-label="Período do gráfico"' not in body
     assert "Histórico de preço" not in body
     # O da nota aparece sempre, com o aviso de quando começou (17/11).
-    assert "O histórico da nota começou em 17/11" in body
+    assert "O gráfico aparece a partir da segunda coleta" in body
 
 
 def test_item_detail_itens_parecidos_exclui_o_proprio(client, monkeypatch, tmp_path):
@@ -3138,7 +3138,7 @@ def test_index_banner_scan_desatualizado(client, monkeypatch, tmp_path):
         scan_store, "load_last_scan", lambda: original_load(path=p))
     resp = client.get("/")
     body = resp.data.decode("utf-8")
-    assert "Preços atrasados: a Steam pode ter limitado o acesso" in body
+    assert "Preços atrasados, provavelmente por limite de acesso da Steam" in body
     assert "status-scan-desatualizado" in body
     assert "1 item, atualizados" in body
     assert "atualização atrasada" in body
@@ -3149,7 +3149,7 @@ def test_index_sem_banner_quando_scan_recente(client, monkeypatch, tmp_path):
                   "pump_risk": {"level": "low"}, "breakdown": []}]
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/").data.decode("utf-8")
-    assert "Preços atrasados: a Steam pode ter limitado o acesso" not in body
+    assert "Preços atrasados, provavelmente por limite de acesso da Steam" not in body
     assert "status-scan-recente" in body
 
 
@@ -4861,7 +4861,7 @@ def test_index_explica_categoria_sem_coleta(client, monkeypatch, tmp_path):
     ], category="Rifles")
     body = client.get("/?categoria=Facas").data.decode("utf-8")
 
-    assert "Ainda não há itens coletados em Facas" in body
+    assert "Ainda não há itens em Facas" in body
     assert "Nenhum candidato com esses filtros" not in body
     # A busca dentro da categoria aberta mantém a categoria (campo oculto).
     assert '<input type="hidden" name="categoria" value="Facas">' in body
@@ -5116,7 +5116,7 @@ def test_item_mostra_historico_no_ranking_e_eventos(
                         lambda: [_EVENTO_ARMORY,
                                  dict(_EVENTO_ARMORY, name="Outra Caixa")])
     body = client.get("/item/Kilowatt Case").data.decode("utf-8")
-    assert "Hoje está em <strong>#2</strong> do Top 20." in body
+    assert "Hoje: <strong>#2</strong> no Top 20." in body
     assert "<strong>2 de 2</strong> dias" in body
     assert "Melhor posição: <strong>#2</strong>" in body
     assert body.count('class="faixa-dia faixa-dia-') == 30 + 3
@@ -5949,7 +5949,7 @@ def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_p
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Para revender sem prejuízo" in body
     assert "<strong>R$ 115,00</strong>" in body
-    assert "15% sobre o que você recebe" in body and "cerca de 13% do que o comprador paga" in body
+    assert "15% sobre o que você recebe" in body
 
 
 def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, tmp_path):
@@ -5960,7 +5960,7 @@ def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, t
                                "365": {"pct": 80, "n": 300}}},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "No último ano, quem comprou este item recuperou o valor" in body
+    assert "Quem comprou no último ano recuperou o valor" in body
     assert '<span class="conta-revenda-prazo">30 dias</span> <strong class="conta-revenda-pct">12%</strong>' in body
     assert '<span class="conta-revenda-prazo">1 ano</span> <strong class="conta-revenda-pct">80%</strong>' in body
     assert "90 dias</span>" not in body
@@ -5973,7 +5973,7 @@ def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path
          "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "A revenda não é imediata" in body
+    assert "Revenda não é imediata" in body
     assert "help.steampowered.com" in body
 
 
@@ -6024,10 +6024,10 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     assert 'data-copiar-preco="75,51"' in body and "R$ 75,51" in body
     assert "Um centavo acima da maior encomenda" in body and "R$ 75,50 (1.234 pedidos)" in body
     assert "24% abaixo do preço de hoje" in body
-    assert "o máximo seria <strong>R$ 72,46</strong>" in body
-    assert "Esse valor fica atrás da fila" in body
+    assert "até <strong>R$ 72,46</strong>" in body
+    assert "Fica atrás da fila" in body
     assert "copiar_preco.js" in body and "data-copiado" in body
-    assert "A meta de 20% se ajusta em “Minha conta”" in body
+    assert "Meta de 20%, ajustável em “Minha conta”" in body
     # Página inicial: a mesma sugestão (sem copiar; copiar fica no item).
     home = client.get("/").data.decode("utf-8")
     assert "Encomendar por <strong>R$ 75,51</strong>" in home

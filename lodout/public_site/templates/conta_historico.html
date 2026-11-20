@@ -22,7 +22,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Meu histórico</h1>
-      <p class="descricao-pagina">O valor dos seus itens a cada visita a “Minha conta” e, <a href="#vendidos">abaixo</a>, os itens vendidos.</p>
+      <p class="descricao-pagina">Valor dos seus itens ao longo do tempo e <a href="#vendidos">itens vendidos</a>.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
@@ -33,7 +33,7 @@
       <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
       {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
     {% else %}
-      <p class="status status-vazio">Ainda não há pontos para o gráfico. Abra “Minha conta” de novo quando o valor mudar.</p>
+      <p class="status status-vazio">O gráfico aparece quando o valor da conta mudar.</p>
     {% endif %}
 
     <h2 class="secao-titulo">Pontos registrados</h2>
@@ -104,12 +104,12 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item vendido. Ao vender, marque “Vendi” na sua conta e ele aparece aqui, com o lucro.</p>
+      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” na sua conta para registrar.</p>
     {% endif %}
   </main>
 
   <footer class="rodape">
-    <p>Cada ponto é o valor de mercado no momento da visita. Não é projeção nem recomendação.</p>
+    <p>Valor de mercado no momento de cada visita.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}

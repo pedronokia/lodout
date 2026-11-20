@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ranking — Lodout</title>
-  <meta name="description" content="Os itens com as melhores notas de forma consistente: nota média em 7, 30, 90 dias ou 1 ano, e o que mudou no Top 20 desde ontem.">
+  <meta name="description" content="As melhores notas médias em 7, 30, 90 dias ou 1 ano, e o que mudou no Top 20 desde ontem.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -90,7 +90,7 @@
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Ranking</h1>
-      <p class="descricao-pagina">Os itens com as melhores notas médias no período, não só hoje.</p>
+      <p class="descricao-pagina">As melhores notas médias do período.</p>
       {% if quando %}<p class="cabecalho-meta">Última coleta completa {{ quando }}.</p>{% endif %}
     </header>
     <div class="ranking-controles">
@@ -105,9 +105,9 @@
     {% if lista %}{% include "partials/_legenda_raridade.html" %}{% endif %}
     </div>
     {% if modo == "presenca" %}
-    <p class="aviso-periodo-ranking status-muted">O histórico de notas começou em 17/11. Até completar {{ dias_minimos }} dias, a ordem é pela frequência no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
+    <p class="aviso-periodo-ranking status-muted">Até completar {{ dias_minimos }} dias de histórico, a ordem é pela frequência no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
     {% elif modo == "media" and desde %}
-    <p class="status-muted ranking-base">Média de {{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }} desde {{ desde }}. Entram só itens presentes em pelo menos metade delas.</p>
+    <p class="status-muted ranking-base">Média de {{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }} desde {{ desde }}. Só itens presentes em metade delas ou mais.</p>
     {% endif %}
     {% if lista %}
     <section class="ranking-top20" aria-labelledby="titulo-top20">
@@ -121,7 +121,7 @@
             <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
             <th title="Nota na última coleta">Nota hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
-            <th class="th-encomenda" title="R$ 0,01 acima da maior encomenda na Steam, que é atendida primeiro. Clique para copiar.">Encomenda sugerida<span class="th-sub">frente da fila</span></th>
+            <th class="th-encomenda" title="R$ 0,01 acima da maior encomenda. Clique para copiar.">Encomenda sugerida<span class="th-sub">frente da fila</span></th>
           </tr>
         </thead>
         <tbody>
@@ -148,7 +148,7 @@
       </table>
       </div>
       <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
-      <p class="status-muted ranking-nota-encomenda">Encomenda sugerida: R$ 0,01 acima da maior encomenda na Steam, que é atendida primeiro. Copie, abra o item pelo ícone da Steam e cole. Fila da última coleta{% if quando %} ({{ quando }}){% endif %}. Não é previsão de lucro: com a taxa, revender pelo preço de hoje pode dar prejuízo.</p>
+      <p class="status-muted ranking-nota-encomenda">Encomenda sugerida: R$ 0,01 acima da maior encomenda{% if quando %} ({{ quando }}){% endif %}. Copie e cole na Steam pelo ícone ao lado. Não é previsão de lucro: com a taxa, revender pelo preço de hoje pode dar prejuízo.</p>
     </section>
     {% else %}
       <p class="status status-vazio">Ainda não há notas para esse período.</p>
@@ -157,7 +157,7 @@
     {% if movimento %}
     {% set novos = movimento.entraram|length %}
     <h2 class="secao-titulo ranking-mudou-titulo">O que mudou no Top 20 desde ontem</h2>
-    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}. A nota muda bastante de um dia para o outro; por isso a lista de cima usa a média.{% endif %}</p>
+    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}. A nota varia muito de um dia para outro; por isso a lista de cima usa a média.{% endif %}</p>
     {# Entraram ao lado de Saíram, Subiram ao lado de Caíram; cada bloco
        mostra até `visiveis_por_bloco` e guarda o resto em "Ver mais"
        (17/11: 17 entradas num dia deixavam um bloco 3x mais alto). #}
@@ -184,7 +184,7 @@
   </main>
 
   <footer class="rodape">
-    <p>A média usa as notas de cada coleta. Nota alta não garante lucro.</p>
+    <p>Nota alta não garante lucro.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   <script src="{{ static_v('copiar_preco.js') }}" defer></script>

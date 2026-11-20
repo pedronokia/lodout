@@ -466,9 +466,8 @@
     </p>
     {% endif %}
     {% if scan and scan_desatualizado %}
-    <p class="banner-aviso">{{ icone("aviso") }} Preços atrasados: a Steam pode ter limitado o acesso por um tempo
-    (ver <a href="{{ url_for('status') }}">status</a>). Os valores abaixo são da última coleta e podem
-    não ser os de agora.</p>
+    <p class="banner-aviso">{{ icone("aviso") }} Preços atrasados, provavelmente por limite de acesso da Steam
+    (<a href="{{ url_for('status') }}">status</a>). Valores da última coleta.</p>
     {% endif %}
 
     {% macro url_sem_filtro(remover) -%}
@@ -514,7 +513,7 @@
             </label>
           </div>
           <label><span class="filtro-campo-label">Liquidez mínima</span>
-            <select name="liquidez_min" data-enviar-ao-mudar title="Quanto tempo levaria para vender o que está à venda, no ritmo atual. Itens sem esse dado ficam de fora.">
+            <select name="liquidez_min" data-enviar-ao-mudar title="Rapidez de venda no ritmo atual. Itens sem esse dado ficam de fora.">
               <option value="">Qualquer liquidez</option>
               {% for banda in liquidez_opcoes %}
               <option value="{{ banda }}" {{ "selected" if banda == liquidez_min_sel else "" }}>{{ banda|liquidez_label }} ou melhor</option>
@@ -641,7 +640,7 @@
          página tem o selo (risco baixo não mostra selo nenhum). #}
       {% set ns_risco = namespace(tem=false) %}
       {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
-      <p class="ajuda-nota">A nota resume dados já medidos. Não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica chance de alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
+      <p class="ajuda-nota">A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
       {% include "partials/_legenda_raridade.html" %}
     </div>
     {% endif %}
@@ -687,7 +686,7 @@
     {% endif %}
 
     <div id="msg-sem-favoritos" class="status status-vazio" hidden>
-      <p id="texto-sem-favoritos">Nenhum favorito ainda. Toque na estrela de um item para salvar.</p>
+      <p id="texto-sem-favoritos">Nenhum favorito. Toque na estrela de um item.</p>
       <ul id="lista-favoritos-fora" class="lista-favoritos-fora" hidden></ul>
     </div>
 
@@ -701,7 +700,7 @@
       <tbody>
         {% for c in candidatos %}{{ linha_candidato(c, pagina == 1 and loop.first) }}{% endfor %}
         {% if itens_catalogo %}
-        <tr class="linha-divisor-catalogo"><td colspan="6">Sem nota ainda: outros itens do Mercado da Steam que combinam com a busca, com o preço do dia.</td></tr>
+        <tr class="linha-divisor-catalogo"><td colspan="6">Sem nota ainda: outros itens da busca, com o preço do dia.</td></tr>
         {% for c in itens_catalogo %}{{ linha_catalogo(c) }}{% endfor %}
         {% endif %}
       </tbody>
@@ -714,7 +713,7 @@
     <ul class="grade-cards" aria-label="Vitrine de itens">
       {% for c in candidatos %}{{ cartao_candidato(c, loop.index0) }}{% endfor %}
       {% if itens_catalogo %}
-      <li class="divisor-catalogo">Sem nota ainda: outros itens do Mercado da Steam que combinam com a busca, com o preço do dia.</li>
+      <li class="divisor-catalogo">Sem nota ainda: outros itens da busca, com o preço do dia.</li>
       {% for c in itens_catalogo %}{{ cartao_catalogo(c) }}{% endfor %}
       {% endif %}
     </ul>
@@ -751,7 +750,7 @@
       </div>
     </nav>
     {% elif scan and categoria_sel and not contagem_categorias.get(categoria_sel) %}
-      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>Ainda não há itens coletados em {{ categoria_sel }}. Só as categorias com número no filtro têm itens. <a href="{{ url_for('index') }}">Ver todas as categorias</a></p>
+      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>Ainda não há itens em {{ categoria_sel }}. <a href="{{ url_for('index') }}">Ver todas as categorias</a></p>
     {% elif scan %}
       {# Diz o que foi buscado, quantos itens o site acompanha e como acertar
          a busca -- "Nenhum candidato com esses filtros" era jargão e não
@@ -760,7 +759,7 @@
     {% else %}
       <section class="status status-vazio">
         <span class="status-vazio-icone" aria-hidden="true">{{ icone("grafico") }}</span>
-        <p>Ainda não há preços coletados. A lista aparece ao fim da próxima coleta.</p>
+        <p>A lista aparece ao fim da primeira coleta.</p>
         <a class="botao-link" href="{{ url_for('status') }}">Ver status da coleta</a>
       </section>
     {% endif %}

@@ -33,7 +33,7 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Status</h1>
-      <p class="descricao-pagina">Como está a coleta de preços, inclusive quando falha.</p>
+      <p class="descricao-pagina">A coleta de preços, inclusive quando falha.</p>
     </header>
     <section class="resumo-cards resumo-cards-status">
       <div class="card"><span class="card-label">No ar</span><span class="card-valor">{{ no_ar_desde_txt }}</span></div>
@@ -89,12 +89,9 @@
     {% if rodada_top %}
     <p class="status-muted">Entre as coletas completas, o Top 20 é atualizado a cada 2 horas. Última atualização {{ rodada_top.quando }}: {{ rodada_top.itens }} de {{ rodada_top.alvos }} itens.</p>
     {% endif %}
-    <p>A cada 6 horas, o Lodout busca na Steam o preço de cada item que
-    acompanha. Se a Steam pede pausa, a coleta espera e continua de onde
-    parou; se a pausa passa de 45 minutos, ela termina antes, e os itens que
-    faltaram mantêm o preço anterior. Se a Steam não responde aos primeiros
-    itens (numa manutenção, por exemplo), a coleta tenta de novo em 1 hora.
-    Coletas sem nenhum preço novo aparecem aqui como “sem sucesso”.</p>
+    <p>A cada 6 horas, os preços são atualizados. Se a Steam pede pausa, a
+    coleta espera; após 45 minutos, termina e os itens restantes mantêm o
+    preço anterior. Sem resposta da Steam, tenta de novo em 1 hora.</p>
 
     {% if ciclos %}
     <div class="saude-ciclos" aria-hidden="true">
@@ -158,7 +155,7 @@
   </main>
 
   <footer class="rodape">
-    <p>Esta página mostra quando os dados estão atrasados. É o mesmo histórico que a coleta registra.</p>
+    
     {% include "partials/_rodape_links.html" %}
   </footer>
 </body>

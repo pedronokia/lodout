@@ -34,6 +34,7 @@ ENTRADAS = [
             "Novo título na página inicial: “Entenda o mercado de skins de CS2”. A expressão “de 0 a 100” saiu do site inteiro, inclusive do “/100” ao lado da nota nas imagens de compartilhamento.",
             "Topo da página inicial em uma frase só, linha da coleta mais curta (“37 itens, atualizados há 2 h”) e links para a Steam em português: “Ver na Steam” e “Ver no Mercado da Steam”. A queda no Termômetro aparece como “−6,8%”.",
             "O nome do jogo aparece por extenso no site inteiro: “Counter-Strike 2”, em vez da sigla.",
+            "Mais uma revisão dos textos: o site tem cerca de 27% menos palavras que antes desta rodada. Método, Glossário, Perguntas frequentes, página do item, Minha conta e Status ficaram mais diretos, com as mesmas informações e os mesmos avisos.",
         ],
     },
     {

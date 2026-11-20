@@ -15,17 +15,17 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {"@type": "Question", "name": "O que é o Lodout?", "acceptedAnswer": {"@type": "Answer", "text": "Um site que analisa o mercado de skins de Counter-Strike 2 com dados públicos da Steam: cada item tem uma nota, com o motivo, além de preços e encomendas."}},
-      {"@type": "Question", "name": "É seguro usar?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. Para ver as notas, não é preciso conta. O login opcional usa o Steam OpenID: você entra pelo site da Steam e nunca digita sua senha aqui."}},
-      {"@type": "Question", "name": "Preciso de conta para usar?", "acceptedAnswer": {"@type": "Answer", "text": "Não. As notas são públicas. O login serve só para Minha conta (seus itens e quanto pagou), trades e watchlist."}},
-      {"@type": "Question", "name": "O Lodout vê o meu inventário da Steam?", "acceptedAnswer": {"@type": "Answer", "text": "Só o inventário público, que qualquer pessoa vê no seu perfil. Ele é lido quando você entra, quando clica em Atualizar agora e uma vez por dia. O Lodout nunca pede senha nem chave da Steam, não vê seu histórico de compras (por isso você digita o valor pago) e não faz nada na sua conta."}},
-      {"@type": "Question", "name": "Anunciei um item no Mercado. O que acontece na minha conta?", "acceptedAnswer": {"@type": "Answer", "text": "Enquanto o item está anunciado, a Steam o tira do inventário público, e o Lodout não sabe se foi anunciado ou vendido. Se ele tem valor pago, fica na conta com a etiqueta 'fora do inventário', e você escolhe: marcar 'Está anunciado' (ele fica até você desmarcar) ou clicar em 'Vendi' e informar o valor; a venda vai para 'Itens vendidos', no Histórico, com o lucro já sem a taxa. Se você cancelar o anúncio, o item volta ao normal sozinho. O Lodout não identifica vendas por conta própria, porque o histórico de vendas e trocas da Steam não é público."}},
-      {"@type": "Question", "name": "A nota é recomendação de investimento?", "acceptedAnswer": {"@type": "Answer", "text": "Não. A nota descreve dados já medidos e não prevê o futuro. A decisão de comprar ou vender é sempre sua."}},
-      {"@type": "Question", "name": "De onde vêm os preços?", "acceptedAnswer": {"@type": "Answer", "text": "Do Mercado da Steam: os mesmos preços públicos que qualquer pessoa vê lá. O Lodout não é afiliado à Valve."}},
-      {"@type": "Question", "name": "Por que os dados às vezes atrasam?", "acceptedAnswer": {"@type": "Answer", "text": "A Steam limita quantas consultas um endereço pode fazer por minuto. Quando o limite é atingido, a coleta pausa por um tempo, e o site mostra um aviso no topo."}},
-      {"@type": "Question", "name": "Posso instalar o Lodout como app no celular?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. No Chrome ou Edge (Android) ou no Safari (iOS), use Adicionar à tela inicial. O site abre como app, sem baixar nada."}},
+      {"@type": "Question", "name": "O que é o Lodout?", "acceptedAnswer": {"@type": "Answer", "text": "Um site que analisa o mercado de skins de Counter-Strike 2 com dados públicos da Steam: notas com o motivo, preços e encomendas."}},
+      {"@type": "Question", "name": "É seguro usar?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. O login é opcional e usa o Steam OpenID: você entra pelo site da Steam e nunca digita sua senha aqui."}},
+      {"@type": "Question", "name": "Preciso de conta para usar?", "acceptedAnswer": {"@type": "Answer", "text": "Não. O login só é necessário para Minha conta, trades e watchlist."}},
+      {"@type": "Question", "name": "O Lodout vê o meu inventário da Steam?", "acceptedAnswer": {"@type": "Answer", "text": "Só o inventário público: ao entrar, ao clicar em Atualizar agora e uma vez por dia. Nunca pede senha nem chave, não vê suas compras (por isso você digita o valor pago) e não age na sua conta."}},
+      {"@type": "Question", "name": "Anunciei um item no Mercado. O que acontece na minha conta?", "acceptedAnswer": {"@type": "Answer", "text": "A Steam tira o item anunciado do inventário público. Se ele tem valor pago, fica na sua conta como 'fora do inventário'. Você escolhe 'Está anunciado' (fica na lista com essa etiqueta) ou 'Vendi' (informe o valor; a venda vai para o Histórico, com o lucro já sem a taxa). Se cancelar o anúncio, o item volta ao normal. O Lodout não vê vendas: o histórico da Steam não é público."}},
+      {"@type": "Question", "name": "A nota é recomendação de investimento?", "acceptedAnswer": {"@type": "Answer", "text": "Não. A nota descreve o passado e não prevê o futuro. A decisão é sua."}},
+      {"@type": "Question", "name": "De onde vêm os preços?", "acceptedAnswer": {"@type": "Answer", "text": "Do Mercado da Steam, os mesmos preços públicos que você vê lá. O Lodout não é afiliado à Valve."}},
+      {"@type": "Question", "name": "Por que os dados às vezes atrasam?", "acceptedAnswer": {"@type": "Answer", "text": "A Steam limita as consultas por minuto. Quando o limite é atingido, a coleta pausa e o site avisa no topo."}},
+      {"@type": "Question", "name": "Posso instalar o Lodout como app no celular?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. No menu do navegador, use Adicionar à tela inicial."}},
       {"@type": "Question", "name": "O Lodout é gratuito?", "acceptedAnswer": {"@type": "Answer", "text": "Sim."}},
-      {"@type": "Question", "name": "Quem mantém o Lodout?", "acceptedAnswer": {"@type": "Answer", "text": "Um projeto independente, de uma pessoa, com código aberto no GitHub."}}
+      {"@type": "Question", "name": "Quem mantém o Lodout?", "acceptedAnswer": {"@type": "Answer", "text": "Um projeto independente de uma pessoa, com código aberto no GitHub."}}
     ]
   }
   </script>
@@ -49,68 +49,68 @@
       <article class="faq-item">
         <h2 class="secao-titulo">O que é o Lodout?</h2>
         <div class="faq-resposta">
-          <p>Um site que analisa o mercado de skins de Counter-Strike 2 com dados públicos da Steam: cada item tem uma nota, com o motivo, além de preços e encomendas.</p>
+          <p>Um site que analisa o mercado de skins de Counter-Strike 2 com dados públicos da Steam: notas com o motivo, preços e encomendas.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">É seguro usar?</h2>
         <div class="faq-resposta">
-          <p>Sim. Para ver as notas, não é preciso conta. O login opcional usa o <strong>Steam OpenID</strong>: você entra pelo site da Steam e nunca digita sua senha aqui. Detalhes em <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
+          <p>Sim. O login é opcional e usa o <strong>Steam OpenID</strong>: você entra pelo site da Steam e nunca digita sua senha aqui. Detalhes em <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">Preciso de conta para usar?</h2>
         <div class="faq-resposta">
-          <p>Não. As notas são públicas. O login serve só para Minha conta (seus itens e quanto pagou), trades e watchlist.</p>
+          <p>Não. O login só é necessário para Minha conta, trades e watchlist.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">O Lodout vê o meu inventário da Steam?</h2>
         <div class="faq-resposta">
-          <p>Só o inventário <strong>público</strong>, que qualquer pessoa vê no seu perfil. Ele é lido quando você entra, quando clica em “Atualizar agora” e uma vez por dia. O Lodout nunca pede senha nem chave da Steam, não vê seu histórico de compras (por isso você digita o valor pago) e não faz nada na sua conta. Detalhes em <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
+          <p>Só o inventário <strong>público</strong>: ao entrar, ao clicar em “Atualizar agora” e uma vez por dia. Nunca pede senha nem chave, não vê suas compras (por isso você digita o valor pago) e não age na sua conta. Detalhes em <a href="{{ url_for('privacidade') }}">privacidade</a>.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">Anunciei um item no Mercado. O que acontece na minha conta?</h2>
         <div class="faq-resposta">
-          <p>Enquanto o item está anunciado, a Steam o tira do inventário público, e o Lodout não sabe se foi anunciado ou vendido. Se ele tem valor pago, fica na conta com a etiqueta “fora do inventário”, e você escolhe:</p>
+          <p>A Steam tira o item anunciado do inventário público. Se ele tem valor pago, fica na sua conta como “fora do inventário”, e você escolhe:</p>
           <ul>
-            <li><strong>Está anunciado:</strong> marque a caixa. Ele fica na lista com a etiqueta “anunciado” até você desmarcar.</li>
-            <li><strong>Vendi:</strong> informe o valor. A venda vai para “Itens vendidos”, no Histórico, com o lucro já sem a taxa da Steam.</li>
+            <li><strong>Está anunciado:</strong> fica na lista com a etiqueta “anunciado”.</li>
+            <li><strong>Vendi:</strong> informe o valor; a venda vai para o Histórico, com o lucro já sem a taxa.</li>
           </ul>
-          <p>Se você cancelar o anúncio, o item volta ao normal sozinho. O Lodout não identifica vendas por conta própria, porque o histórico de vendas e trocas da Steam não é público.</p>
+          <p>Se cancelar o anúncio, o item volta ao normal. O Lodout não vê vendas: o histórico da Steam não é público.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">A nota é recomendação de investimento?</h2>
         <div class="faq-resposta">
-          <p>Não. A nota descreve dados já medidos e não prevê o futuro. A decisão de comprar ou vender é sempre sua. Veja os limites em <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</p>
+          <p>Não. A nota descreve o passado e não prevê o futuro. A decisão é sua. Veja os limites em <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">De onde vêm os preços?</h2>
         <div class="faq-resposta">
-          <p>Do Mercado da Steam: os mesmos preços públicos que qualquer pessoa vê lá. O Lodout não é afiliado à Valve.</p>
+          <p>Do Mercado da Steam, os mesmos preços públicos que você vê lá. O Lodout não é afiliado à Valve.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">Por que os dados às vezes atrasam?</h2>
         <div class="faq-resposta">
-          <p>A Steam limita quantas consultas um endereço pode fazer por minuto. Quando o limite é atingido, a coleta pausa por um tempo, e o site mostra um aviso no topo. O histórico das coletas fica em <a href="{{ url_for('status') }}">status</a>.</p>
+          <p>A Steam limita as consultas por minuto. Quando o limite é atingido, a coleta pausa e o site avisa no topo. Detalhes em <a href="{{ url_for('status') }}">status</a>.</p>
         </div>
       </article>
 
       <article class="faq-item">
         <h2 class="secao-titulo">Posso instalar o Lodout como app no celular?</h2>
         <div class="faq-resposta">
-          <p>Sim. No Chrome ou Edge (Android) ou no Safari (iOS), use “Adicionar à tela inicial”. O site abre como app, sem baixar nada.</p>
+          <p>Sim. No menu do navegador, use “Adicionar à tela inicial”.</p>
         </div>
       </article>
 
@@ -124,7 +124,7 @@
       <article class="faq-item">
         <h2 class="secao-titulo">Quem mantém o Lodout?</h2>
         <div class="faq-resposta">
-          <p>Um projeto independente, de uma pessoa, com código aberto no GitHub. Veja <a href="{{ url_for('sobre') }}">sobre</a>.</p>
+          <p>Um projeto independente de uma pessoa, com código aberto no GitHub. Veja <a href="{{ url_for('sobre') }}">sobre</a>.</p>
         </div>
       </article>
     </div>

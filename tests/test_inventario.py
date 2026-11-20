@@ -180,7 +180,7 @@ def test_conta_explica_inventario_privado(client):
     user_portfolio.add_position(SID, "Meu item", 10.0)
     _logado(client)
     pagina = client.get("/conta").data.decode("utf-8")
-    assert "Seu inventário da Steam está privado" in pagina
+    assert "Seu inventário está privado" in pagina
     assert "steamcommunity.com/my/edit/settings" in pagina
 
 

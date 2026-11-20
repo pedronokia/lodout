@@ -63,14 +63,14 @@
     {% include "partials/_na_sua_conta.html" %}
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
-      <p class="conta-revenda-texto">Comprando por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para recuperar o valor. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), ou cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga.</p>
+      <p class="conta-revenda-texto">Comprou por <strong>{{ item.price_fmt }}</strong>? Venda por pelo menos <strong>{{ preco_empate }}</strong> para não perder. A taxa da Steam é de {{ taxa_steam_pct }}% sobre o que você recebe.</p>
       {% include "partials/_aviso_prazo_steam.html" %}
     </section>
     {% endif %}
     {% include "partials/_encomenda.html" %}
 
     <h2 class="secao-titulo">Por que ainda não tem nota?</h2>
-    <p>O Lodout mostra o preço do dia de todo o Mercado de Counter-Strike 2, mas a nota exige o histórico de cada item, uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
+    <p>A nota exige o histórico de preço do item. Por enquanto, existe só para os mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
 
     {% if item.category %}
     <p class="status"><a class="link-com-seta" href="{{ url_for('index', categoria=item.category) }}">Ver os itens com nota de “{{ item.category }}” {{ icone("seta-direita") }}</a></p>

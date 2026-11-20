@@ -113,9 +113,9 @@
       <div class="card"><span class="card-label">Aposentada há</span><span class="card-valor">{{ tempo_aposentadoria }}</span></div>
       {% endif %}
       {% if preco_coletado_txt %}
-      <p class="card-coleta">Preço deste item coletado {{ preco_coletado_txt }}.{% if item.mantido_do_ciclo_anterior %} A Steam não enviou preço novo na última coleta; estes são os anteriores.{% endif %}</p>
+      <p class="card-coleta">Preço coletado {{ preco_coletado_txt }}.{% if item.mantido_do_ciclo_anterior %} Sem preço novo na última coleta; valores anteriores.{% endif %}</p>
       {% elif item.mantido_do_ciclo_anterior %}
-      <p class="card-coleta">A Steam não enviou preço novo na última coleta; estes são os anteriores.</p>
+      <p class="card-coleta">Sem preço novo na última coleta; valores anteriores.</p>
       {% endif %}
     </section>
 
@@ -123,13 +123,13 @@
     {% include "partials/_na_sua_conta.html" %}
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
-      <p class="conta-revenda-texto">Comprando por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para recuperar o valor. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), ou cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga.</p>
+      <p class="conta-revenda-texto">Comprou por <strong>{{ item.price_fmt }}</strong>? Venda por pelo menos <strong>{{ preco_empate }}</strong> para não perder. A taxa da Steam é de {{ taxa_steam_pct }}% sobre o que você recebe.</p>
 
       <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
         <div class="simulador-topo">
           <h3 class="simulador-titulo">Simule sua encomenda</h3>
         </div>
-        <p class="simulador-desc">Escolha quanto oferecer e veja o resultado revendendo pelo preço de hoje, já com a taxa.</p>
+        <p class="simulador-desc">Resultado revendendo pelo preço de hoje, já com a taxa.</p>
 
         <div class="simulador-controles">
           <div class="simulador-campo-grupo">
@@ -175,13 +175,13 @@
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
       {% set rh = item.revenda_historica or {} %}
       {% if rh %}
-      <p class="conta-revenda-pergunta">No último ano, quem comprou este item recuperou o valor ao vender depois de…</p>
+      <p class="conta-revenda-pergunta">Quem comprou no último ano recuperou o valor vendendo depois de:</p>
       <ul class="conta-revenda-lista">
         {% for h, rotulo in [("30", "30 dias"), ("90", "90 dias"), ("365", "1 ano")] if h in rh %}
         <li><span class="conta-revenda-prazo">{{ rotulo }}</span> <strong class="conta-revenda-pct">{{ rh[h].pct }}%</strong> <span class="conta-revenda-desc">das vezes</span></li>
         {% endfor %}
       </ul>
-      <p class="conta-revenda-nota">Preço médio de cada dia comparado ao de 30, 90 ou 365 dias depois, já com a taxa. Mostra o passado, não prevê o futuro.</p>
+      <p class="conta-revenda-nota">Já com a taxa. Mostra o passado, não prevê o futuro.</p>
       {% endif %}
     </section>
     {% endif %}
@@ -240,14 +240,14 @@
     <div class="card grafico-card grafico-nota">{{ grafico_nota|safe }}</div>
     {% if legenda_nota %}<p class="status-muted">{{ legenda_nota }}</p>{% endif %}
     {% else %}
-    <p class="texto-sem-dado">O histórico da nota começou em 17/11 (4 pontos por dia). O gráfico aparece a partir da segunda coleta.</p>
+    <p class="texto-sem-dado">O gráfico aparece a partir da segunda coleta.</p>
     {% endif %}
       </div>
     </div>
 
     {% if variantes %}
     <h2 class="secao-titulo">Outras versões desta skin</h2>
-    <p class="status-muted">Desgastes, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente na Steam.</p>
+    <p class="status-muted">Preço mediano da venda mais recente de cada versão.</p>
     
     <div class="wear-matrix-grid">
       {% for v in variantes %}
@@ -292,8 +292,8 @@
     <h2 class="secao-titulo">No ranking</h2>
     {% if hr.dias_com_ranking %}
     <p class="historico-ranking-resumo">
-      {% if hr.posicao_atual %}Hoje está em <strong>#{{ hr.posicao_atual }}</strong> do Top 20.{% else %}Fora do Top 20 na última coleta.{% endif %}
-      {% if hr.dias_no_top %}Apareceu no Top 20 em <strong>{{ hr.dias_no_top }} de {{ hr.dias_com_ranking }}</strong> {{ "dia" if hr.dias_com_ranking == 1 else "dias" }} com ranking nos últimos {{ hr.dias|length }} dias. Melhor posição: <strong>#{{ hr.melhor_posicao }}</strong>.{% else %}Não apareceu no Top 20 nos {{ hr.dias_com_ranking }} {{ "dia" if hr.dias_com_ranking == 1 else "dias" }} com ranking dos últimos {{ hr.dias|length }} dias.{% endif %}
+      {% if hr.posicao_atual %}Hoje: <strong>#{{ hr.posicao_atual }}</strong> no Top 20.{% else %}Hoje: fora do Top 20.{% endif %}
+      {% if hr.dias_no_top %}No Top 20 em <strong>{{ hr.dias_no_top }} de {{ hr.dias_com_ranking }}</strong> {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}. Melhor posição: <strong>#{{ hr.melhor_posicao }}</strong>.{% else %}Fora do Top 20 nos últimos {{ hr.dias_com_ranking }} {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}.{% endif %}
     </p>
     <ol class="faixa-dias" aria-hidden="true">
       {% for d in hr.dias %}
