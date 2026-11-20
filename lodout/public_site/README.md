@@ -114,42 +114,56 @@ por cima do `docker-compose.public-site.yml`, sem alterar `web`/`worker`.
 ## Backup
 
 `db_backup.py` roda a cada ciclo do `worker` (chamado de dentro de
-`run_once`) e faz um backup rotativo LOCAL de `public_site.db` em
+`run_once`) e faz um backup rotativo LOCAL de `public_site.db` e de
+`notas_historico.sqlite3` (histórico de até 400 dias de notas) em
 `DATA_DIR/backups/`, via `sqlite3.Connection.backup()` (seguro mesmo com
 o `web` escrevendo ao mesmo tempo) -- no máximo 1 por dia, guarda os
-últimos 7. O mesmo ciclo também zipa `scanner_last.json`/
+últimos 7 de cada. O mesmo ciclo também zipa `scanner_last.json`/
 `scan_historico.json`/`rankings.json` (os JSON globais do dashboard) em
-`DATA_DIR/backups/json-*.zip`, mesma cadência -- até a 2a rodada
-(2026-10-25) só o banco de contas tinha backup; perder esses JSON
-significava perder o scan atual sem nenhum jeito de recuperar sem
-esperar o próximo ciclo. Isso protege contra corrupção/bug de
-aplicação, **não** contra perder a VM inteira: pra isso, copiar os
-arquivos de `DATA_DIR/backups/` pra fora da VM periodicamente (`scp`)
-continua sendo manual -- um destino externo de verdade (S3, Backblaze)
-pediria credenciais que não dá pra configurar sem uma conta.
+`DATA_DIR/backups/json-*.zip`, mesma cadência. Isso protege contra
+corrupção/bug de aplicação.
+
+Para proteger também contra perda total da VM, `.github/workflows/backup-offsite.yml`
+roda 1x/dia (04:30 UTC), empacota o backup mais recente de cada família,
+cifra na própria VM com AES-256-CBC + PBKDF2 (`scripts/backup_offsite.py`)
+e envia via HTTPS PUT. Fica inativo sem erro até você configurar dois
+secrets no GitHub:
+- `BACKUP_UPLOAD_URL`: URL de escrita (ex.: uma *Pre-Authenticated Request*
+  com permissão só de escrita num bucket privado do Oracle Object Storage
+  Always Free de 20 GB, terminando em `/o/`).
+- `BACKUP_PASSPHRASE`: senha longa (12+ caracteres) usada para cifrar e
+  decifrar o pacote.
+
+Para restaurar um arquivo baixado do bucket:
+```bash
+BACKUP_PASSPHRASE='sua-senha' python scripts/backup_offsite.py decifrar lodout-backup-AAAAMMDD-HHMMSS.tar.gz.enc -o restaurar.tar.gz
+tar -xzf restaurar.tar.gz
+```
 
 ## Monitoramento externo (uptime)
 
-`/healthz` já existe pronto pra isso -- responde `{"ok": true}` sempre
-que o processo `web` está de pé (não verifica se o scan está fresco; pra
-isso, ver `/api/health`). Serviços gratuitos como
-[UptimeRobot](https://uptimerobot.com/) ou
-[Better Uptime](https://betteruptime.com/) checam essa URL a cada alguns
-minutos e avisam por e-mail se parar de responder. Precisa de conta num
-desses serviços -- passo que só o dono do site pode fazer (criação de
-conta de terceiros não é algo que um agente de IA deveria fazer por
-você).
+`.github/workflows/health-check.yml` roda de hora em hora fora da VM via
+`scripts/check_site_health.py`, conferindo `/readyz` (site + banco) e
+`/api/health` (frescor do último scan do worker). Se detectar queda ou
+atraso prolongado, falha o job e envia alerta pro `ADMIN_DISCORD_WEBHOOK`
+(independente do `worker`, que não conseguiria avisar se estivesse morto).
+Além disso, `/healthz` e `/readyz` podem ser monitorados em serviços
+como [UptimeRobot](https://uptimerobot.com/) ou
+[Better Uptime](https://betteruptime.com/) para checagens por minuto.
 
 ## Deploy automático (CI/CD)
 
 `.github/workflows/deploy.yml` roda depois que `tests.yml` passa em push
-pra `main`, e faz SSH na VM pra atualizar só o `web` (nunca o `worker` --
-reiniciá-lo dispara um scan na hora, o que não deve acontecer num horário
-imprevisível por causa de um deploy). Precisa de 3 secrets no repositório
-(Settings → Secrets and variables → Actions, só o dono configura):
+pra `main` (e também pode ser disparado manualmente via `workflow_dispatch`
+com opções pra reiniciar `worker`, recriar `caddy` ou forçar `--build`).
+Só reconstrói a imagem Docker quando `Dockerfile.public-site`,
+`requirements-public-site.txt`, `entrypoint.sh` ou `scripts/minify_static.py`
+mudam (ou com `[rebuild]` no commit) — nos demais deploys usa o bind mount
+`./lodout:/app/lodout:ro` e recria o `web` em segundos. Em seguida limpa
+imagens/cache Docker com mais de 7 dias, valida `/readyz` + `scripts/smoke_test.py`
+e, só então, atualiza o `worker` se `[restart-worker]` foi pedido.
+Precisa de 3 secrets no repositório (Settings → Secrets and variables → Actions):
 `ORACLE_HOST`, `ORACLE_SSH_KEY` (conteúdo do `.key` da VM), `SITE_DOMAIN`.
-Sem os secrets configurados, o workflow falha sem fazer nada (não quebra
-o deploy manual, que continua funcionando do mesmo jeito de sempre).
 
 ## Painel admin
 
@@ -204,11 +218,11 @@ endpoint sensível de sempre) e cacheia; todas as próximas são leitura
 local. Falha de rede nunca derruba a página: cai no redirect pro CDN
 direto.
 
-## Scripts de apoio (manuais, não automáticos)
+## Scripts de apoio
 
-- `scripts/check_env_drift.py` -- compara as env vars esperadas (tabela
-  acima) contra o ambiente atual. Rodar via SSH na VM ou
-  `docker compose exec web python scripts/check_env_drift.py`.
+- `scripts/check_env_drift.py [--servico web|worker|caddy|todos]` --
+  compara as env vars esperadas contra o ambiente atual. Rodar via SSH
+  na VM (`python scripts/check_env_drift.py --servico web`).
 - `scripts/check_tls_expiry.py <dominio> [dias_limite]` -- confere
   quantos dias faltam pro certificado TLS expirar (conecta de verdade
   na porta 443, sem dependência nova). `.github/workflows/tls-check.yml`
@@ -219,9 +233,9 @@ direto.
   `Dockerfile.public-site` no build da imagem; nunca roda sobre o
   código-fonte do repositório.
 - `scripts/smoke_test.py <url>` -- confirma que as rotas principais
-  respondem com o status esperado, contra o site de verdade depois de
-  um deploy. Pega erro de config/infra que só aparece em produção
-  (`python scripts/smoke_test.py https://seudominio.com`).
+  respondem com o status esperado (incluindo `/readyz` e proteção de
+  `/admin`). Roda automaticamente no `deploy.yml` após cada publicação
+  e também pode ser chamado manualmente (`python scripts/smoke_test.py https://seudominio.com`).
 - `scripts/check_broken_links.py <url> [--limite N]` -- varre o site
   implantado a partir de `/`, seguindo só links do mesmo domínio, e
   reporta qualquer link que devolva 4xx/5xx. Mesmo espírito do

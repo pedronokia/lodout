@@ -16,12 +16,15 @@ from __future__ import annotations
 import logging
 import re
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
 from lodout import _paths
 
 _logger = logging.getLogger(__name__)
+_INIT_LOCK = threading.Lock()
+_INICIALIZADOS: set[tuple[str, int, int]] = set()
 
 JANELA_S = 180.0   # "agora" = deu sinal nos últimos 3 min (aviso a cada 1 min)
 GUARDA_S = 600.0   # nada fica guardado mais que 10 min
@@ -32,10 +35,32 @@ def _caminho() -> Path:
     return Path(_paths.DATA_DIR) / "online.sqlite3"
 
 
+def _chave_arquivo(p: Path) -> "tuple[str, int, int] | None":
+    try:
+        st = p.stat()
+    except OSError:
+        return None
+    if st.st_size == 0:
+        return None
+    return (str(p.resolve()), st.st_dev, st.st_ino)
+
+
 def _conectar() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_caminho()), timeout=2)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("CREATE TABLE IF NOT EXISTS presenca (id TEXT PRIMARY KEY, ts REAL NOT NULL)")
+    p = _caminho()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    chave = _chave_arquivo(p)
+    conn = sqlite3.connect(str(p), timeout=2)
+    conn.execute("PRAGMA busy_timeout=2000")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    if chave is None or chave not in _INICIALIZADOS:
+        with _INIT_LOCK:
+            if chave is None or chave not in _INICIALIZADOS:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("CREATE TABLE IF NOT EXISTS presenca (id TEXT PRIMARY KEY, ts REAL NOT NULL)")
+                conn.commit()
+                nova_chave = _chave_arquivo(p)
+                if nova_chave is not None:
+                    _INICIALIZADOS.add(nova_chave)
     return conn
 
 

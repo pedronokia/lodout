@@ -89,5 +89,8 @@ RUN date -u +%Y%m%d-%H%M%S > BUILD_ID
 # páginas na fila -- home e Ranking chegaram a 25-30 s depois do deploy
 # que trocou o cache de ícones. Com linhas, a espera de rede não bloqueia
 # o resto. Banco: cada chamada abre a própria conexão (db.py);
-# rate_limit tem trava.
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 lodout.public_site.wsgi:app
+# --max-requests + jitter: recicla cada worker periodicamente pra conter
+# crescimento lento de memória (ex. buffers do Pillow) sem derrubar os
+# dois processos ao mesmo tempo; --graceful-timeout casa com o
+# stop_grace_period do Compose no deploy.
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 60 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 100 lodout.public_site.wsgi:app

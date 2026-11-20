@@ -6,13 +6,38 @@ um widget futuro) com "o que a galera mais procura".
 """
 from __future__ import annotations
 
+import contextlib
 import json
+import threading
 from pathlib import Path
 
 from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
 
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
 _DEFAULT_PATH = DATA_DIR / "buscas.json"
 _CAP = 200  # termos distintos guardados -- evita crescimento sem limite
+_LOCK = threading.Lock()
+
+
+@contextlib.contextmanager
+def _lock_arquivo(alvo: Path):
+    """Serializa leitura-modificação-escrita entre threads e workers do gunicorn."""
+    with _LOCK:
+        if fcntl is None:
+            yield
+            return
+        lock_path = Path(f"{alvo}.lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(lock_path, "a") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def registrar(termo: str, path: "Path | str | None" = None) -> None:
@@ -22,18 +47,19 @@ def registrar(termo: str, path: "Path | str | None" = None) -> None:
     if not termo:
         return
     p = Path(path) if path is not None else _DEFAULT_PATH
-    data = load_json_record(p, {})
-    if not isinstance(data, dict):
-        data = {}
-    data[termo] = int(data.get(termo, 0)) + 1
-    if len(data) > _CAP:
-        # Descarta os menos buscados primeiro -- mantém o topo relevante.
-        mais_buscados = sorted(data.items(), key=lambda kv: -kv[1])[:_CAP]
-        data = dict(mais_buscados)
-    try:
-        atomic_write_text(p, json.dumps(data, ensure_ascii=False))
-    except OSError:
-        pass
+    with _lock_arquivo(p):
+        data = load_json_record(p, {})
+        if not isinstance(data, dict):
+            data = {}
+        data[termo] = int(data.get(termo, 0)) + 1
+        if len(data) > _CAP:
+            # Descarta os menos buscados primeiro -- mantém o topo relevante.
+            mais_buscados = sorted(data.items(), key=lambda kv: -kv[1])[:_CAP]
+            data = dict(mais_buscados)
+        try:
+            atomic_write_text(p, json.dumps(data, ensure_ascii=False))
+        except OSError:
+            pass
 
 
 def mais_buscados(limite: int = 10,

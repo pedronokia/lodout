@@ -1,0 +1,32 @@
+name: health-check
+
+# Monitoramento externo independente da VM e do worker: roda de hora em
+# hora pra detectar site fora do ar, banco indisponível (/readyz) ou
+# worker parado há tempo demais (/api/health). Se falhar e o secret
+# ADMIN_DISCORD_WEBHOOK estiver configurado, avisa direto no Discord.
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: health-check-externo
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verifica /readyz e /api/health
+        env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+        run: |
+          set -euo pipefail
+          dominio="${SITE_DOMAIN:-lodout.com}"
+          python3 scripts/check_site_health.py "https://${dominio}"

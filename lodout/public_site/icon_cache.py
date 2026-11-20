@@ -213,3 +213,67 @@ def obter(hash_icone: str, tamanho: int = TAMANHO_PADRAO) -> "bytes | None":
         except OSError:
             pass
     return _gerar(hash_seguro, tamanho, com_rede=True)
+
+
+_CACHE_MAX_ARQUIVOS = 4000
+_LEGADO_DIAS_MAX = 30
+
+
+def limpar_antigos(
+        cache_dir: "Path | str | None" = None,
+        max_arquivos: int = _CACHE_MAX_ARQUIVOS,
+        dias_legado: int = _LEGADO_DIAS_MAX,
+        now: "float | None" = None) -> int:
+    """Mantém `icon_cache/` sob controle de disco (chamado no pós-ciclo
+    do worker):
+    1. Remove arquivos de versões antigas (ex. `.v3.`) quando o `.v4.`
+       equivalente já existe ou quando passaram de `dias_legado` dias.
+    2. Se os `.v4.*.webp` passarem de `max_arquivos`, apaga os mais
+       antigos por `mtime`.
+    Retorna quantos arquivos foram removidos."""
+    import time
+
+    pasta = Path(cache_dir) if cache_dir is not None else _CACHE_DIR
+    if not pasta.exists():
+        return 0
+    agora = time.time() if now is None else now
+    corte_legado = agora - dias_legado * 86400
+    removidos = 0
+    v4_ativos: list[tuple[float, Path]] = []
+
+    try:
+        entradas = list(pasta.iterdir())
+    except OSError:
+        return 0
+
+    nomes_v4 = {p.name for p in entradas if ".v4." in p.name and p.suffix == ".webp"}
+    for p in entradas:
+        if not p.is_file():
+            continue
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            continue
+        if p.name in nomes_v4:
+            v4_ativos.append((mtime, p))
+            continue
+        # Legado (.v3., .v2., .jpg etc.): apaga se já tem v4 correspondente ou se envelheceu.
+        equivalente_v4 = p.name.replace(".v3.", ".v4.")
+        if (".v3." in p.name and equivalente_v4 in nomes_v4) or mtime < corte_legado:
+            try:
+                p.unlink(missing_ok=True)
+                removidos += 1
+            except OSError:
+                pass
+
+    if max_arquivos >= 0 and len(v4_ativos) > max_arquivos:
+        v4_ativos.sort(key=lambda par: par[0])
+        excesso = len(v4_ativos) - max_arquivos
+        for _mtime, antigo in v4_ativos[:excesso]:
+            try:
+                antigo.unlink(missing_ok=True)
+                removidos += 1
+            except OSError:
+                pass
+
+    return removidos
