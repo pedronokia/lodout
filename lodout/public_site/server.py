@@ -376,6 +376,7 @@ def create_app() -> Flask:
     app.jinja_env.filters["liquidez_label"] = _liquidez_label
     app.jinja_env.filters["titulo_sem_pipe_orfao"] = _titulo_sem_pipe_orfao
     app.jinja_env.filters["nome_pt"] = localize_name
+    app.jinja_env.filters["data_extenso"] = _data_extenso
     app.jinja_env.globals["encomenda_sugestao"] = encomenda.sugestao
 
     @app.before_request
@@ -1535,7 +1536,8 @@ def create_app() -> Flask:
         for c in ciclos:
             c["quando"] = scan_store.idade_txt(c["ts"])
         desde = uptime.no_ar_desde()
-        serie = visits.serie_por_dia()
+        # Últimos 30 dias: com mais que isso as barras ficam finas demais.
+        serie = visits.serie_por_dia()[-30:]
         valores_visitas = [qtd for _dia, qtd in serie]
         # Mesmo padrão de tooltip por ponto (<title> nativo do SVG) já
         # usado no gráfico de preço de /item/<name> e no de /conta/historico
@@ -1545,10 +1547,15 @@ def create_app() -> Flask:
             f"{date.fromisoformat(dia).strftime('%d/%m/%Y')} — {qtd} "
             f"{'visita' if qtd == 1 else 'visitas'}"
             for dia, qtd in serie]
-        grafico_visitas = charts.line_chart_svg(
-            [{"total": v} for v in valores_visitas], rotulos=rotulos_visitas)
+        # Barras com o dia embaixo e o número em cima (revisão 20/11): a
+        # linha solta, sem datas nem valores, não dizia nada.
+        grafico_visitas = charts.bar_chart_svg(
+            valores_visitas,
+            [date.fromisoformat(dia).strftime("%d/%m") for dia, _q in serie],
+            rotulos_visitas)
         grafico_visitas_legenda = (
-            f"{min(valores_visitas)} – {max(valores_visitas)} visitas por dia no período"
+            f"De {min(valores_visitas)} a {max(valores_visitas)} visitas por dia "
+            f"nos últimos {len(valores_visitas)} dias."
             if len(valores_visitas) >= 2 else None)
         ciclos_ok = sum(1 for c in ciclos if c.get("sucesso"))
         rodada_top = scan_store.load_rodada_top()
@@ -1872,6 +1879,20 @@ def _titulo_sem_pipe_orfao(nome_fmt: "str | None") -> Markup:
         return Markup.escape(nome_fmt)
     pedaco = Markup('<span class="pipe-colado">|\xa0{}</span>').format(palavra)
     return Markup("{}{}{}{}").format(antes, pedaco, " " if resto else "", resto)
+
+
+_MESES_PT = ("janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+             "agosto", "setembro", "outubro", "novembro", "dezembro")
+
+
+def _data_extenso(iso: str) -> str:
+    """"2026-11-20" -> "20 de novembro de 2026" (texto da página Mudanças).
+    Data inválida volta como veio, em vez de quebrar a página."""
+    try:
+        d = date.fromisoformat(str(iso))
+    except ValueError:
+        return str(iso)
+    return f"{d.day} de {_MESES_PT[d.month - 1]} de {d.year}"
 
 
 def _nota_classe(score: "int | float | None") -> str:

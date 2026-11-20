@@ -10484,6 +10484,8 @@ h3,
 .form-filtros .campo-busca-rotulo .icone-ui-lupa {
   position: absolute;
   left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 13px;
   height: 13px;
   color: rgba(255, 255, 255, 0.4);
@@ -12614,12 +12616,12 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .indice-glossario a {
-  width: 32px;
-  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.80);
@@ -12675,7 +12677,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 footer.rodape-global,
 footer.rodape {
   margin-top: var(--sp-8);
-  padding: 36px 0 54px;
+  padding-top: 36px;
+  padding-bottom: 54px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -12751,3 +12754,112 @@ footer.rodape a:hover {
   border-radius: 0;
   box-shadow: none;
 }
+
+/* ── Revisão 20/11: páginas de texto, glossário, mudanças e status ── */
+
+/* Texto alinhado à esquerda: o justificado abria buracos entre as
+   palavras e quebrava palavras no meio ("ofere-cem"). */
+.pagina-texto p,
+.pagina-texto li { text-align: left; hyphens: manual; }
+
+/* Glossário: o cartão é o par termo + explicação inteiro, sem a faixa
+   entre o título e o texto; cartões da mesma linha com a mesma altura. */
+.lista-glossario { gap: var(--sp-3); align-items: stretch; }
+.termo-glossario {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+.pagina-glossario dl dt,
+.pagina-glossario dt {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.pagina-glossario dl dd,
+.pagina-glossario dd {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.indice-glossario { gap: 8px; margin-bottom: var(--sp-5); }
+
+/* Método: título sem o vão no topo do quadro; os fatores viram uma lista
+   com fios, não cartões dentro do cartão. */
+.metodo-sinais > .secao-titulo:first-child { margin-top: 0; }
+.metodo-sinais-lista { gap: 0; padding-left: 0; }
+.metodo-sinais-lista li {
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+  font-size: 0.9375rem;
+}
+.metodo-sinais-lista li:first-child { border-top: 0; padding-top: 4px; }
+.metodo-exemplo {
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+/* Mudanças: a bolinha da linha do tempo acompanha a 1ª linha do título,
+   a data por extenso fica embaixo dele, e as antigas ficam recolhidas. */
+.changelog-entrada::before { content: none; }
+.changelog-entrada .secao-titulo { position: relative; margin-bottom: 4px; }
+.changelog-entrada .secao-titulo::before {
+  content: "";
+  position: absolute;
+  top: 0.32em;
+  left: -22px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.changelog-data {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.changelog-antigas { margin-top: var(--sp-7); }
+.changelog-antigas > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  list-style: none;
+}
+.changelog-antigas > summary::-webkit-details-marker { display: none; }
+.changelog-antigas > summary:hover { border-color: var(--border-strong); color: var(--text-bright); }
+.changelog-antigas[open] > summary { margin-bottom: var(--sp-2); }
+
+/* Status: quadros na altura do conteúdo e gráfico de barras com datas. */
+.resumo-cards.resumo-cards-status .card { min-height: 0; }
+.grafico-barras { display: block; width: 100%; height: auto; color: var(--accent); }
+.grafico-barras .barra { fill: currentColor; opacity: 0.85; }
+.grafico-barras .barra-grupo:hover .barra { opacity: 1; }
+.grafico-barras .barra-valor { fill: var(--text); font-size: 12px; font-weight: 600; }
+.grafico-barras .barra-dia { fill: var(--text-muted); font-size: 11px; }
+.grafico-barras .barra-base { stroke: var(--border); stroke-width: 1; }
+
+/* Página inicial: "Limpar todos" no tamanho dos chips; "Ver na Steam"
+   do cartão com área de toque maior sem mudar o desenho. */
+.filtros-ativos .botao-link { font-size: var(--fs-sm); }
+.cartao-item-steam { padding-block: 5px; margin-block: -5px; }

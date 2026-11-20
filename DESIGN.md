@@ -294,3 +294,4 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 - **Don't** usar texto em degradê; destaque vem do peso e do tamanho.
 - **Don't** pôr faixa colorida grossa (mais de 1px) na lateral de quadros, avisos ou itens de lista.
 - **Don't** pôr um cartão dentro de outro; dentro de um quadro, separe partes com um fio de 1px.
+- **Don't** justificar texto nem partir palavras com hífen automático; texto corrido é alinhado à esquerda.

@@ -20,6 +20,8 @@ ENTRADAS = [
             "Página inicial: textos sem jargão, preços na mesma fonte do site, sem repetir o item da nota mais alta no Termômetro e com menos efeito de vidro, que deixava a rolagem pesada no celular.",
             "No celular, o botão de busca não mostra mais o atalho de teclado “Ctrl K”.",
             "Visual mais limpo: sem brilho laranja em volta de botões e ícones, título da página inicial sem degradê, selos e preço da encomenda nos cartões com letra maior, e o simulador sem quadros dentro de quadros.",
+            "Glossário: os atalhos para cada termo não ficam mais encavalados, e cada termo virou um cartão inteiro. O rodapé ganhou margem nos lados, a lupa da busca voltou para o lugar, e as páginas de texto (Método, FAQ, Mudanças) ficaram alinhadas à esquerda, sem palavras partidas no fim da linha.",
+            "Mudanças: data por extenso embaixo de cada título e as mais antigas recolhidas em “Ver mudanças mais antigas”. Status: as visitas por dia viraram barras com a data e o número.",
         ],
     },
     {

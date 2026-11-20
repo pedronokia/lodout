@@ -1336,6 +1336,23 @@ def test_index_dica_expandir_so_aparece_com_breakdown(client, monkeypatch,
     assert body.count("botao-recolher-motivo") == 1
 
 
+def test_changelog_data_por_extenso_e_antigas_recolhidas(client):
+    body = client.get("/changelog").data.decode("utf-8")
+    primeira = changelog.ENTRADAS[0]["data"]
+    assert f'<time datetime="{primeira}">' in body
+    assert "de novembro de 2026" in body
+    assert f'id="em-{primeira}"' in body
+    if len(changelog.ENTRADAS) > 6:
+        assert '<details class="changelog-antigas">' in body
+        assert f"Ver mudanças mais antigas ({len(changelog.ENTRADAS) - 6})" in body
+
+
+def test_data_extenso_filtro():
+    from lodout.public_site.server import _data_extenso
+    assert _data_extenso("2026-03-05") == "5 de março de 2026"
+    assert _data_extenso("não é data") == "não é data"
+
+
 def test_changelog_page(client):
     resp = client.get("/changelog")
     assert resp.status_code == 200
@@ -2030,7 +2047,10 @@ def test_status_mostra_grafico_e_buscas_populares(client, monkeypatch):
         "lodout.public_site.server.scan_store.load_last_scan",
         lambda: {"results": [{"name": "AK-47 | Redline (Field-Tested)"}]})
     body = client.get("/status").data.decode("utf-8")
-    assert "grafico-historico" in body
+    # Barras com o dia embaixo (revisão 20/11; era uma linha sem datas).
+    assert "grafico-barras" in body
+    assert ">24/10<" in body and ">25/10<" in body
+    assert "De 3 a 5 visitas por dia nos últimos 2 dias." in body
     assert "ak-47 — 4x" in body
     # Só termos que acham item: testes de sondagem não viram vitrine
     # pública (o admin continua vendo a lista crua).
