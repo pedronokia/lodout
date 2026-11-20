@@ -315,3 +315,19 @@ def test_rotulos_de_venda_por_nao_quebram_no_computador():
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
     assert ".tabela-conta .venda-por-linha { white-space: normal; }" not in css
     assert "@media (min-width: 641px) and (max-width: 64em)" in css
+
+
+def test_superficies_sem_tom_azulado():
+    """Fundos ficaram azul-marinho em 19/11 (rgba(18, 24, 38)); o DESIGN.md
+    pede cinza neutro. Revisão 20/11: só o botão da Steam pode ser azul."""
+    import re as _re
+    css = _css()
+    assert "rgba(18, 24, 38" not in css
+    for cor in ("#0d121c", "#111827"):
+        assert cor not in css.lower()
+    azuladas = []
+    for m in _re.finditer(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)", css):
+        r, g, b = map(int, m.groups())
+        if b - r >= 12 and b >= g and max(r, g, b) < 60:
+            azuladas.append(m.group(0))
+    assert not azuladas, azuladas
