@@ -372,3 +372,62 @@ def test_disco_info_inclui_catalogo_notas_e_icones():
         assert isinstance(info[chave], str)
 
 
+def test_429_envia_cabecalho_retry_after():
+    from lodout.public_site import rate_limit
+
+    app = server.create_app()
+    client = app.test_client()
+    for _ in range(rate_limit.API_MAX_HITS):
+        client.get("/api/recommendations")
+    resp = client.get("/api/recommendations")
+    assert resp.status_code == 429
+    assert resp.headers.get("Retry-After") == "60"
+
+
+def test_admin_lista_e_baixa_backups_de_notas_e_json(monkeypatch, tmp_path):
+    from werkzeug.security import generate_password_hash
+
+    (tmp_path / "notas_historico-20261120-120000.sqlite3").write_bytes(b"notas-bytes")
+    (tmp_path / "json-20261120-120000.zip").write_bytes(b"zip-bytes")
+    (tmp_path / "intruso.txt").write_bytes(b"nao-listar")
+
+    monkeypatch.setattr(server, "_ADMIN_PASSWORD_HASH", generate_password_hash("segredo-123456"))
+    monkeypatch.setattr(server.db_backup, "_BACKUP_DIR", tmp_path)
+    app = server.create_app()
+    client = app.test_client()
+    client.post("/admin/login", data={"senha": "segredo-123456"})
+
+    body = client.get("/admin").data.decode("utf-8")
+    assert "notas_historico-20261120-120000.sqlite3" in body
+    assert "json-20261120-120000.zip" in body
+    assert "intruso.txt" not in body
+
+    r1 = client.get("/admin/backup/notas_historico-20261120-120000.sqlite3")
+    assert r1.status_code == 200 and r1.data == b"notas-bytes"
+    r2 = client.get("/admin/backup/json-20261120-120000.zip")
+    assert r2.status_code == 200 and r2.data == b"zip-bytes"
+    assert client.get("/admin/backup/intruso.txt").status_code == 404
+
+
+def test_readyz_falha_quando_notas_historico_corrompido(monkeypatch, tmp_path):
+    from lodout.public_site import notas_historico
+
+    corrompido = tmp_path / "notas_historico.sqlite3"
+    corrompido.write_bytes(b"nao e sqlite")
+    monkeypatch.setattr(notas_historico, "_caminho", lambda: corrompido)
+    app = server.create_app()
+    resp = app.test_client().get("/readyz")
+    assert resp.status_code == 503
+    dados = resp.get_json()
+    assert dados["ready"] is False
+    assert any(m.startswith("notas:") for m in dados["motivos"])
+
+
+def test_dependabot_configurado_para_pip_docker_e_actions():
+    dep = (_REPO_ROOT / ".github" / "dependabot.yml").read_text(encoding="utf-8")
+    assert 'package-ecosystem: "pip"' in dep
+    assert 'package-ecosystem: "docker"' in dep
+    assert 'package-ecosystem: "github-actions"' in dep
+
+
+

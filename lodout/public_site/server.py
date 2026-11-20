@@ -939,18 +939,25 @@ def create_app() -> Flask:
         levanta exceção por design (ver `load_last_scan`), então só o
         banco é checado de fato."""
         motivos = []
-        db_path = db_backup._DB_PATH
-        if db_path.exists():
-            try:
-                conn = sqlite3.connect(str(db_path))
-                # Força ler o cabeçalho/schema de verdade -- "SELECT 1"
-                # não toca em nenhuma página do arquivo, então um banco
-                # corrompido passava como "pronto" (achado escrevendo o
-                # teste, 2026-10-25).
-                conn.execute("SELECT count(*) FROM sqlite_master")
-                conn.close()
-            except sqlite3.Error as e:
-                motivos.append(f"banco: {e}")
+        for rotulo, caminho_db in (
+            ("banco", db_backup._DB_PATH),
+            ("notas", notas_historico._caminho()),
+        ):
+            if caminho_db.exists():
+                conn = None
+                try:
+                    conn = sqlite3.connect(str(caminho_db), timeout=3.0)
+                    conn.execute("PRAGMA busy_timeout=3000")
+                    # Força ler o cabeçalho/schema de verdade -- "SELECT 1"
+                    # não toca em nenhuma página do arquivo, então um banco
+                    # corrompido passava como "pronto" (achado escrevendo o
+                    # teste, 2026-10-25).
+                    conn.execute("SELECT count(*) FROM sqlite_master")
+                except sqlite3.Error as e:
+                    motivos.append(f"{rotulo}: {e}")
+                finally:
+                    if conn is not None:
+                        conn.close()
         if motivos:
             return jsonify({"ready": False, "motivos": motivos}), 503
         return jsonify({"ready": True})
@@ -1237,9 +1244,15 @@ def create_app() -> Flask:
         # programaticamente (ver /api) recebia uma página inteira em vez
         # de JSON num erro, quebrando qualquer client que só espera JSON.
         if request.path.startswith("/api/"):
-            return jsonify({"api_version": 1, "erro": "limite_excedido",
-                            "mensagem": "Muitas tentativas. Tente de novo mais tarde."}), 429
-        return render_template("429.html"), 429
+            resp = make_response(jsonify({
+                "api_version": 1,
+                "erro": "limite_excedido",
+                "mensagem": "Muitas tentativas. Tente de novo mais tarde.",
+            }), 429)
+        else:
+            resp = make_response(render_template("429.html"), 429)
+        resp.headers["Retry-After"] = "60"
+        return resp
 
     @app.route("/privacidade")
     def privacidade():
@@ -1458,8 +1471,14 @@ def create_app() -> Flask:
                     f"{date.fromisoformat(dia).strftime('%d/%m/%Y')} — {qtd} "
                     f"{'erro' if qtd == 1 else 'erros'}"
                     for dia, qtd in serie_erros])
-        backups = sorted(db_backup._BACKUP_DIR.glob("public_site-*.db")) \
-            if db_backup._BACKUP_DIR.exists() else []
+        _backup_re = re.compile(
+            r"^(?:public_site-\d{8}-\d{6}\.db|notas_historico-\d{8}-\d{6}\.sqlite3|json-\d{8}-\d{6}\.zip)$"
+        )
+        backups = sorted(
+            (p for p in db_backup._BACKUP_DIR.iterdir()
+             if p.is_file() and _backup_re.match(p.name)),
+            key=lambda p: p.stat().st_mtime,
+        ) if db_backup._BACKUP_DIR.exists() else []
         progresso = scan_progress.carregar()
         if progresso:
             progresso = dict(progresso, idade=scan_store.idade_txt(progresso["ts"]))
@@ -1521,12 +1540,13 @@ def create_app() -> Flask:
     @app.route("/admin/backup/<nome>")
     @_admin_required
     def admin_backup_download(nome: str):
-        """Download de um backup do SQLite -- o painel já lista os nomes
-        (`backups=`, acima) desde a rodada anterior, mas sem link nenhum
-        pra baixar nenhum deles. Valida `nome` contra o formato EXATO que
-        `db_backup.fazer_backup_se_necessario` gera (whitelist por regex,
-        não só confiar no `send_from_directory` resolver o path)."""
-        if not re.fullmatch(r"public_site-\d{8}-\d{6}\.db", nome):
+        """Download de um backup gerado por `db_backup.py` -- valida `nome`
+        contra os formatos EXATOS (whitelist por regex, não só confiar no
+        `send_from_directory` resolver o path)."""
+        if not re.fullmatch(
+            r"(?:public_site-\d{8}-\d{6}\.db|notas_historico-\d{8}-\d{6}\.sqlite3|json-\d{8}-\d{6}\.zip)",
+            nome,
+        ):
             return render_template("404.html"), 404
         caminho = db_backup._BACKUP_DIR / nome
         if not caminho.is_file():
@@ -1813,13 +1833,17 @@ def _contagem_usuarios() -> int:
     ainda não existe (site sem nenhum login ainda)."""
     if not db_backup._DB_PATH.exists():
         return 0
+    conn = None
     try:
-        conn = sqlite3.connect(str(db_backup._DB_PATH))
+        conn = sqlite3.connect(str(db_backup._DB_PATH), timeout=3.0)
+        conn.execute("PRAGMA busy_timeout=3000")
         n = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        conn.close()
         return int(n)
     except sqlite3.Error:
         return 0
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 _RISCO_LABELS = {"low": "Baixo", "medium": "Médio", "high": "Alto"}

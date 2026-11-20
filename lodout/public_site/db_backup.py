@@ -79,6 +79,9 @@ def _backup_sqlite_rotativo(
         destino_conn = sqlite3.connect(str(destino), timeout=10.0)
         with destino_conn:
             origem_conn.backup(destino_conn)
+        check = destino_conn.execute("PRAGMA quick_check").fetchone()
+        if not check or check[0] != "ok":
+            raise sqlite3.DatabaseError(f"quick_check falhou: {check}")
     except sqlite3.Error:
         if destino_conn is not None:
             destino_conn.close()
