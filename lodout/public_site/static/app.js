@@ -91,14 +91,16 @@ document.addEventListener("error", function (e) {
       .trim();
   }
 
-  var cards = document.querySelectorAll(".vitrine-itens .cartao-item");
-  var rows = document.querySelectorAll(".tabela-precos tbody tr");
+  var cards = document.querySelectorAll(".grade-cards .cartao-item, .cartao-item");
+  var rows = document.querySelectorAll(".tabela-itens tbody tr, .tabela-candidatos tbody tr");
+  var hero = document.querySelector(".hero-destaque");
+  var heroNomeNorm = hero ? normalizar(hero.querySelector(".hero-destaque-nome") ? hero.querySelector(".hero-destaque-nome").textContent : "") : "";
   var itens = [];
 
   // Pré-indexa os cards da vitrine
   cards.forEach(function (el) {
     var nomeEl = el.querySelector(".cartao-item-nome, .link-item");
-    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || "";
+    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || el.textContent || "";
     itens.push({
       el: el,
       tipo: "card",
@@ -109,7 +111,7 @@ document.addEventListener("error", function (e) {
   // Pré-indexa as linhas da tabela
   rows.forEach(function (el) {
     var nomeEl = el.querySelector(".link-item");
-    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || "";
+    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || el.textContent || "";
     itens.push({
       el: el,
       tipo: "row",
@@ -122,6 +124,26 @@ document.addEventListener("error", function (e) {
     var termo = normalizar(campo.value);
     var termos = termo ? termo.split(/\s+/).filter(Boolean) : [];
     var visiveis = 0;
+
+    // Filtra o hero card em destaque se presente
+    if (hero) {
+      var heroBateu = true;
+      if (termos.length > 0) {
+        for (var ht = 0; ht < termos.length; ht++) {
+          if (heroNomeNorm.indexOf(termos[ht]) === -1) {
+            heroBateu = false;
+            break;
+          }
+        }
+      }
+      if (heroBateu || termos.length === 0) {
+        hero.removeAttribute("hidden");
+        hero.style.removeProperty("display");
+      } else {
+        hero.setAttribute("hidden", "");
+        hero.style.setProperty("display", "none", "important");
+      }
+    }
 
     for (var i = 0; i < itens.length; i++) {
       var it = itens[i];
@@ -138,11 +160,11 @@ document.addEventListener("error", function (e) {
 
       if (bateu) {
         it.el.removeAttribute("hidden");
-        it.el.style.display = "";
+        it.el.style.removeProperty("display");
         visiveis++;
       } else {
-        it.el.setAttribute("hidden", "until-found");
-        it.el.style.display = "none";
+        it.el.setAttribute("hidden", "");
+        it.el.style.setProperty("display", "none", "important");
       }
     }
 
@@ -165,7 +187,7 @@ document.addEventListener("error", function (e) {
         avisoVazio.style.margin = "20px 0";
         avisoVazio.style.textAlign = "center";
         avisoVazio.style.padding = "24px 16px";
-        var container = document.querySelector(".vitrine-itens, .tabela-wrap");
+        var container = document.querySelector(".grade-cards, .tabela-wrap, .tabela-candidatos");
         if (container && container.parentNode) {
           container.parentNode.insertBefore(avisoVazio, container);
         }
