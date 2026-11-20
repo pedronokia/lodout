@@ -10635,8 +10635,8 @@ h3,
    27. Supreme Polish para Minha Conta (/conta) - Organização Visual Total
    ========================================================================== */
 
-/* 1. Cabeçalho de Perfil e Identidade */
-.cabecalho-pagina.cabecalho-conta-com-itens {
+/* 1. Cabeçalho de Perfil e Identidade (Tema Executivo Global) */
+.cabecalho-pagina {
   margin-bottom: var(--sp-4);
   padding: 24px 28px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
@@ -10645,12 +10645,32 @@ h3,
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.cabecalho-pagina.cabecalho-conta-com-itens .titulo-pagina {
+.cabecalho-pagina .titulo-pagina {
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #ffffff;
   margin: 0 0 10px;
+}
+
+.cabecalho-pagina .descricao-pagina {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 680px;
+}
+
+.cabecalho-pagina .descricao-pagina a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.cabecalho-pagina .descricao-pagina a:hover {
+  color: var(--accent-bright, #ea580c);
+  text-decoration: underline;
 }
 
 .conta-identidade {
@@ -10736,7 +10756,8 @@ h3,
   color: var(--accent);
 }
 
-/* 3. Cards Resumo / KPIs (/conta) */
+/* 3. Cards Resumo / KPIs (Tema Executivo Global) */
+.resumo-cards,
 .resumo-cards-conta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -10744,6 +10765,7 @@ h3,
   margin-bottom: var(--sp-6);
 }
 
+.resumo-cards .card,
 .resumo-cards-conta .card {
   display: flex;
   flex-direction: column;
@@ -10759,6 +10781,7 @@ h3,
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.resumo-cards .card:hover,
 .resumo-cards-conta .card:hover {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%);
   border-color: rgba(255, 255, 255, 0.16);
@@ -10766,6 +10789,7 @@ h3,
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
 }
 
+.resumo-cards .card-label,
 .resumo-cards-conta .card-label {
   display: block;
   font-size: 0.6875rem;
@@ -10776,6 +10800,7 @@ h3,
   margin-bottom: 4px;
 }
 
+.resumo-cards .card-valor,
 .resumo-cards-conta .card-valor {
   display: block;
   font-size: 1.625rem;
@@ -10787,6 +10812,7 @@ h3,
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
+.resumo-cards .card-sub,
 .resumo-cards-conta .card-sub {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.50);
@@ -11155,8 +11181,10 @@ h3,
   color: #ffffff;
 }
 
-/* 7. Tabela de Posições (/conta) */
-.tabela-wrap:has(> .tabela-conta) {
+/* 7. Tabela de Posições e Dados (Tema Executivo Global) */
+.tabela-wrap:has(> .tabela-conta),
+.tabela-wrap:has(> .tabela-conta-lista),
+.tabela-wrap:has(> .tabela-comparar) {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(18, 24, 38, 0.35);
@@ -11164,13 +11192,17 @@ h3,
   overflow: visible;
 }
 
-table.tabela-conta {
+table.tabela-conta,
+table.tabela-conta-lista,
+table.tabela-comparar {
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
 }
 
-table.tabela-conta th {
+table.tabela-conta th,
+table.tabela-conta-lista th,
+table.tabela-comparar th {
   background: #0d121c;
   padding: 12px 14px;
   font-size: 0.6875rem;
@@ -11181,17 +11213,23 @@ table.tabela-conta th {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-table.tabela-conta tbody td {
+table.tabela-conta tbody td,
+table.tabela-conta-lista tbody td,
+table.tabela-comparar tbody td {
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   vertical-align: middle;
 }
 
-table.tabela-conta tbody tr {
+table.tabela-conta tbody tr,
+table.tabela-conta-lista tbody tr,
+table.tabela-comparar tbody tr {
   transition: background-color 0.15s ease;
 }
 
-table.tabela-conta tbody tr:hover {
+table.tabela-conta tbody tr:hover,
+table.tabela-conta-lista tbody tr:hover,
+table.tabela-comparar tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.035);
 }
 
@@ -11651,4 +11689,182 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #f87171;
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* 9. Tema Unificado para Watchlist, Trades, Histórico e Componentes Gerais */
+
+/* Watchlist: Card de Adição de Item */
+.card-adicionar-watchlist {
+  margin-bottom: var(--sp-5);
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.card-adicionar-watchlist .secao-titulo {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 0.9375rem;
+}
+
+.card-adicionar-watchlist .form-adicionar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+/* Discord Webhook Disclosure */
+.alerta-discord {
+  margin-bottom: var(--sp-5);
+}
+
+.alerta-discord .input-webhook {
+  flex: 1 1 320px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 0.8125rem;
+  transition: all 0.18s ease;
+}
+
+.alerta-discord .input-webhook:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+  outline: none;
+}
+
+.badge-disparado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  font-size: 0.71875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Trades: Cards de Troca */
+.lista-trocas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-4) 0;
+}
+
+.troca-card {
+  padding: 20px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.40);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20);
+}
+
+.troca-data {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.50);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px;
+}
+
+.troca-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.troca-coluna {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.troca-coluna-titulo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.troca-coluna-total {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.troca-itens {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.troca-itens li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8125rem;
+}
+
+.troca-saldo {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.75);
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Histórico: Card do Gráfico */
+.grafico-card {
+  padding: 20px;
+  border-radius: 14px;
+  background: rgba(18, 24, 38, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  margin-bottom: var(--sp-4);
+}
+
+/* Links com Seta Voltar */
+.link-com-seta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  margin-bottom: var(--sp-3);
+}
+
+.link-com-seta:hover {
+  color: var(--accent-bright, #ea580c);
+  transform: translateX(-2px);
 }
