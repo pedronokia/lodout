@@ -295,4 +295,4 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 - **Don't** pôr faixa colorida grossa (mais de 1px) na lateral de quadros, avisos ou itens de lista.
 - **Don't** pôr um cartão dentro de outro; dentro de um quadro, separe partes com um fio de 1px.
 - **Don't** justificar texto nem partir palavras com hífen automático; texto corrido é alinhado à esquerda.
-- **Don't** usar fundo azulado (azul-marinho, ardósia) em quadros, cartões ou tabelas; superfícies são cinza neutro (#1e1e1e, #161616, #121212). O único azul é o do botão "Entrar com Steam", que é a cor da Steam.
+- **Don't** usar fundo azulado (azul-marinho, ardósia) em quadros, cartões ou tabelas; superfícies são cinza neutro (#1e1e1e, #161616, #121212). O único azul é o do botão "Entrar com Steam", que é a cor da Steam. Selos, etiquetas e medidores também não usam azul: neutro (cinza claro) ou laranja.

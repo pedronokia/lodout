@@ -342,3 +342,18 @@ def test_um_verde_um_vermelho_um_amarelo_sem_cinza_azulado():
                 "#ef4444", "#f87171", "#ff8a80", "#facc15", "#94a3b8",
                 "rgba(16, 185, 129", "rgba(239, 68, 68", "rgba(148, 163, 184"):
         assert cor not in css, cor
+
+
+def test_unico_azul_e_o_botao_da_steam():
+    """Opção C (pedido do usuário, 20/11): "Mais negociado", "anunciado",
+    barrinha de liquidez, faixa "Subiram" e o link "Steam Market" saíram do
+    azul-céu. O único azul que fica é o do botão "Entrar com Steam"."""
+    import re as _re
+    css = _css().lower()
+    for cor in ("#38bdf8", "rgba(56, 189, 248", "#0ea5e9", "#0284c7"):
+        assert cor not in css, cor
+    usos = [m.start() for m in _re.finditer(r"102, 192, 244|#66c0f4", css)]
+    for pos in usos:
+        inicio = css.rfind("}", 0, pos)
+        seletor = css[inicio + 1:css.find("{", inicio)]
+        assert ":root" in seletor or "conta-link-entrar" in seletor, seletor.strip()[-80:]
