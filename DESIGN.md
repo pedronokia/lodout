@@ -290,3 +290,7 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 - **Don't** usar fonte monoespaçada em preços e números (use a Inter com algarismos tabulares); monoespaçada só em código e teclas ("Ctrl K").
 - **Don't** usar cores fora do sistema para texto (ex.: cinza-azulado #64748b, que reprova contraste); texto apagado é #b3b3b3.
 - **Don't** escrever jargão ("pontuação algorítmica", "giro", "retorno líquido"): o público é iniciante, ver PRODUCT.md.
+- **Don't** usar brilho colorido em volta de botões, ícones ou números (sombra laranja sem deslocamento); sombra é sempre escura e com deslocamento. O anel de foco (0 0 0 3px) é a única exceção.
+- **Don't** usar texto em degradê; destaque vem do peso e do tamanho.
+- **Don't** pôr faixa colorida grossa (mais de 1px) na lateral de quadros, avisos ou itens de lista.
+- **Don't** pôr um cartão dentro de outro; dentro de um quadro, separe partes com um fio de 1px.
