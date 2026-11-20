@@ -791,3 +791,17 @@ if ("serviceWorker" in navigator) {
     });
   });
 })();
+
+// Alternador suave para painel de "+ Filtros" do catálogo
+(function () {
+  var btnFiltros = document.getElementById("gatilho-filtros-toggle");
+  var detFiltros = document.querySelector(".filtros-mais");
+  if (!btnFiltros || !detFiltros) return;
+  btnFiltros.addEventListener("click", function () {
+    detFiltros.open = !detFiltros.open;
+    btnFiltros.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
+  });
+  detFiltros.addEventListener("toggle", function () {
+    btnFiltros.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
+  });
+})();

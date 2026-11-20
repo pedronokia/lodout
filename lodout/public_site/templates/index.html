@@ -486,13 +486,24 @@
 
     {% set n_filtros = (1 if exterior_sel else 0) + (1 if raridade_filtro_sel else 0) + (1 if nota_min_sel is not none else 0) + (1 if preco_max_sel is not none else 0) + (1 if liquidez_min_sel else 0) + (1 if versao_sel else 0) %}
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
-      <details class="filtros-mais"{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %} open{% endif %}>
-        <summary class="filtros-mais-toggle" title="Filtros avançados do catálogo">
+      <div class="filtros-barra-acoes">
+        <button type="button" class="filtros-mais-toggle" id="gatilho-filtros-toggle" aria-expanded="{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %}true{% else %}false{% endif %}" title="Filtros avançados do catálogo">
           {{ icone("filtro") }}
           <span class="filtros-mais-rotulo">+ Filtros</span>
           {% if n_filtros > 0 %}<span class="badge-contagem-filtros">{{ n_filtros }}</span>{% endif %}
           {{ icone("chevron-baixo") }}
-        </summary>
+        </button>
+        <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só os itens que você favoritou (só neste navegador) — atalho: f">
+          {{ icone("favorito") }}<span id="texto-botao-favoritos">Só favoritos</span> <span id="contagem-favoritos" class="contagem-favoritos" hidden>0</span>
+        </button>
+        <label class="campo-busca-rotulo"><span class="visualmente-oculto">Filtrar por nome</span>
+          {{ icone("lupa") }}
+          <input type="text" name="q" id="campo-busca" placeholder="Filtrar nesta lista... (atalho: /)" value="{{ busca_sel or '' }}">
+        </label>
+      </div>
+
+      <details class="filtros-mais"{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %} open{% endif %}>
+        <summary class="filtros-mais-toggle-nativo visualmente-oculto">Mais filtros {{ icone("chevron-baixo") }}</summary>
         <div class="filtros-mais-corpo">
           <div class="filtros-numericos">
             <label><span class="filtro-campo-label">Nota mínima</span>
