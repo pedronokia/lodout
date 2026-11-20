@@ -121,9 +121,24 @@ o `web` escrevendo ao mesmo tempo) -- no máximo 1 por dia, guarda os
 últimos 7 de cada. O mesmo ciclo também zipa `scanner_last.json`/
 `scan_historico.json`/`rankings.json` (os JSON globais do dashboard) em
 `DATA_DIR/backups/json-*.zip`, mesma cadência. Isso protege contra
-corrupção/bug de aplicação, **não** contra perder a VM inteira: pra
-isso, copiar os arquivos de `DATA_DIR/backups/` pra fora da VM
-periodicamente (`scp`) continua sendo manual.
+corrupção/bug de aplicação.
+
+Para proteger também contra perda total da VM, `.github/workflows/backup-offsite.yml`
+roda 1x/dia (04:30 UTC), empacota o backup mais recente de cada família,
+cifra na própria VM com AES-256-CBC + PBKDF2 (`scripts/backup_offsite.py`)
+e envia via HTTPS PUT. Fica inativo sem erro até você configurar dois
+secrets no GitHub:
+- `BACKUP_UPLOAD_URL`: URL de escrita (ex.: uma *Pre-Authenticated Request*
+  com permissão só de escrita num bucket privado do Oracle Object Storage
+  Always Free de 20 GB, terminando em `/o/`).
+- `BACKUP_PASSPHRASE`: senha longa (12+ caracteres) usada para cifrar e
+  decifrar o pacote.
+
+Para restaurar um arquivo baixado do bucket:
+```bash
+BACKUP_PASSPHRASE='sua-senha' python scripts/backup_offsite.py decifrar lodout-backup-AAAAMMDD-HHMMSS.tar.gz.enc -o restaurar.tar.gz
+tar -xzf restaurar.tar.gz
+```
 
 ## Monitoramento externo (uptime)
 

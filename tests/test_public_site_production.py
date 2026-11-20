@@ -500,5 +500,57 @@ def test_visits_e_buscas_concorrentes_nao_perdem_contagem(tmp_path):
     assert buscas.mais_buscados(limite=5, path=buscas_path) == [("ak-47", 20)]
 
 
+def test_backup_offsite_empacota_cifra_e_decifra_roundtrip(tmp_path):
+    import shutil
+    import tarfile
+
+    bo = _carregar_script("backup_offsite.py")
+    backups = tmp_path / "backups"
+    backups.mkdir()
+    (backups / "public_site-20261119-030000.db").write_bytes(b"antigo")
+    (backups / "public_site-20261120-030000.db").write_bytes(b"novo-db")
+    (backups / "notas_historico-20261120-030000.sqlite3").write_bytes(b"novo-notas")
+    (backups / "json-20261120-030000.zip").write_bytes(b"novo-json")
+    (backups / "ignorar.txt").write_bytes(b"nao-entra")
+
+    escolhidos = bo.selecionar_mais_recentes(backups)
+    assert [p.name for p in escolhidos] == [
+        "public_site-20261120-030000.db",
+        "notas_historico-20261120-030000.sqlite3",
+        "json-20261120-030000.zip",
+    ]
+
+    tar_orig = bo.criar_pacote_tar_gz(escolhidos, tmp_path / "orig.tar.gz")
+    if shutil.which("openssl"):
+        with pytest.raises(ValueError):
+            bo.cifrar_arquivo(tar_orig, tmp_path / "x.enc", "curta")
+        enc = bo.cifrar_arquivo(tar_orig, tmp_path / "backup.tar.gz.enc", "senha-super-segura-123")
+        assert enc.read_bytes() != tar_orig.read_bytes()
+        dec = bo.decifrar_arquivo(enc, tmp_path / "restaurado.tar.gz", "senha-super-segura-123")
+        with tarfile.open(dec, "r:gz") as tf:
+            assert sorted(tf.getnames()) == [
+                "json-20261120-030000.zip",
+                "notas_historico-20261120-030000.sqlite3",
+                "public_site-20261120-030000.db",
+            ]
+            assert tf.extractfile("public_site-20261120-030000.db").read() == b"novo-db"
+
+    with pytest.raises(ValueError):
+        bo.enviar_http_put(tar_orig, "http://inseguro.example/o/")
+
+
+def test_backup_offsite_workflow_endurecido():
+    wf = (_REPO_ROOT / ".github" / "workflows" / "backup-offsite.yml").read_text(encoding="utf-8")
+    assert "permissions:\n  contents: read" in wf
+    assert "timeout-minutes: 10" in wf
+    assert "envs: BACKUP_UPLOAD_URL,BACKUP_PASSPHRASE" in wf
+    assert "set -euo pipefail" in wf
+    assert "trap 'rm -rf \"$TMPDIR\"' EXIT" in wf
+    for linha in wf.splitlines():
+        if linha.lstrip().startswith("if:"):
+            assert "secrets." not in linha
+
+
+
 
 

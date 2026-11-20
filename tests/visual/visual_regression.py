@@ -519,6 +519,7 @@ def _capturar(porta: int, destino: Path) -> None:
                 pagina = contexto.new_page()
                 url = f"http://127.0.0.1:{porta}{caminho}"
                 pagina.goto(url, wait_until="networkidle", timeout=30000)
+                pagina.evaluate("() => document.fonts.ready")
                 pagina.wait_for_timeout(300)
                 acao, seletor, inteira = ACOES.get(nome, (None, None, False))
                 if acao:
