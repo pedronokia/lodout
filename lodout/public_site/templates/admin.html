@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -43,7 +43,7 @@
     </ul>
 
     <h2 class="secao-titulo" id="alertas">Alertas no Discord</h2>
-    <p>Mensagens pro seu canal quando a coleta de preços fica horas sem trazer nada, quando uma coleta volta com menos de 85% dos itens ou com bloqueio disfarçado da Steam, e quando o disco do servidor está enchendo.</p>
+    <p>Mensagens para o seu canal quando a coleta de preços fica horas sem trazer nada, quando uma coleta volta com menos de 85% dos itens ou com bloqueio disfarçado da Steam, e quando o disco do servidor está enchendo.</p>
     {% if teste_webhook_msg %}
       <p class="status" role="status">{{ teste_webhook_msg }}</p>
     {% endif %}
@@ -113,7 +113,7 @@
     {% if grafico_erros %}
       <div class="card grafico-card grafico-erros">{{ grafico_erros|safe }}</div>
     {% else %}
-      <p class="status status-vazio">Sem erro suficiente pra gráfico ainda.</p>
+      <p class="status status-vazio">Sem erro suficiente para gráfico ainda.</p>
     {% endif %}
 
     <h2 class="secao-titulo">Erros por tipo</h2>
@@ -137,7 +137,7 @@
   </main>
 
   <footer class="rodape">
-    <p class="versao">Lodout · <a href="{{ url_for('index') }}">Voltar pro dashboard</a></p>
+    <p class="versao">Lodout · <a href="{{ url_for('index') }}">Voltar para o dashboard</a></p>
     {% include "partials/_rodape_links.html" %}
   </footer>
 </html>

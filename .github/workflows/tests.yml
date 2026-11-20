@@ -11,6 +11,17 @@ on:
         type: boolean
         default: false
 
+# Cancela o run anterior do mesmo branch/PR quando chega um commit novo --
+# sem isso, dois pushes seguidos rodavam os dois workflows até o fim.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Nenhum job daqui escreve no repositório (artefatos e PRs não contam) --
+# leitura basta.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -72,6 +83,15 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-public-site.txt
       - run: python -m pip install -r requirements-public-site.txt -r tests/visual/requirements.txt
+      # O binário do Chromium (~150 MB) não muda entre runs enquanto a
+      # versão do Playwright (tests/visual/requirements.txt) for a mesma --
+      # cachear corta o download; o apt install dos libs de sistema
+      # continua rodando sempre (a VM do runner é efêmera a cada run).
+      - name: Cache do Chromium do Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/visual/requirements.txt') }}
       - name: Instala o Chromium do Playwright
         run: python -m playwright install --with-deps chromium
       - name: Captura e compara as telas

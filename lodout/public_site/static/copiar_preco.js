@@ -14,7 +14,7 @@
       botao.setAttribute("data-dica", ok ? "copiado" : "não deu: copie à mão");
       if (aviso) aviso.textContent = ok
         ? "Copiado: " + numero + ". Na Steam, cole no preço da encomenda."
-        : "Não deu para copiar. O valor é " + numero + ".";
+        : "Não foi possível copiar. O valor é " + numero + ".";
       clearTimeout(botao._copiadoT);
       botao._copiadoT = setTimeout(function () {
         botao.classList.remove("copiado");

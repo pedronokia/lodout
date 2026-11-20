@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Devagar aí — Lodout</title>
+  <title>Muitos acessos — Lodout</title>
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static_v('favicon-32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static_v('favicon-16.png') }}">
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <div class="titulo-logo">{% include "partials/_logo.html" %}</div>
@@ -18,10 +18,8 @@
 
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Devagar aí</h1>
-      <p class="descricao-pagina">Foram muitos pedidos em pouco tempo. Para
-      evitar abuso, cada página tem um limite por minuto. Espere um minuto e
-      tente de novo.</p>
+      <h1 class="titulo-pagina">Muitos acessos</h1>
+      <p class="descricao-pagina">Muitos pedidos em pouco tempo. Espere um minuto e tente de novo.</p>
     </header>
     <div class="acoes-erro">
       <a class="botao-acao" href="{{ request.path if request.method == 'GET' else url_for('index') }}">Tentar de novo</a>

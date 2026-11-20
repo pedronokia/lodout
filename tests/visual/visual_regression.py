@@ -520,8 +520,17 @@ def _capturar(porta: int, destino: Path) -> None:
                 url = f"http://127.0.0.1:{porta}{caminho}"
                 pagina.goto(url, wait_until="networkidle", timeout=30000)
                 pagina.evaluate("() => document.fonts.ready")
-                pagina.wait_for_timeout(300)
                 acao, seletor, inteira = ACOES.get(nome, (None, None, False))
+                if inteira:
+                    # `style.css` usa `content-visibility: auto; contain-intrinsic-size: auto 180px`
+                    # nos cartões mobile de /conta: em captura `full_page`, o Chromium pulava
+                    # cartões fora da viewport (ou pintava 1 a mais de forma não determinística,
+                    # gerando flake de +109 px: 3969 vs 3860). Forçar `visible` só na captura
+                    # garante altura 100% determinística e testa todos os cartões de verdade.
+                    pagina.add_style_tag(
+                        content="* { content-visibility: visible !important; }"
+                    )
+                pagina.wait_for_timeout(300)
                 if acao:
                     acao(pagina)
                     pagina.wait_for_timeout(300)

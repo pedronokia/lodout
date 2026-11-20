@@ -4,4 +4,4 @@
 # Chromium que o CI instala (`playwright install --with-deps chromium`)
 # precisa bater com a biblioteca, e uma subida de versão do Chromium
 # mudaria a renderização (antialiasing) sem um commit de base novo.
-playwright==1.60.0
+playwright==1.65.2

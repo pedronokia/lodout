@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ranking — Lodout</title>
-  <meta name="description" content="Os itens com as melhores notas de forma consistente no Lodout: a nota média em 7 dias, 30 dias, 90 dias ou 1 ano, e o que mudou no Top 20 desde ontem.">
+  <meta name="description" content="As melhores notas médias em 7, 30, 90 dias ou 1 ano, e o que mudou no Top 20 desde ontem.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -23,7 +23,7 @@
   </script>
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -90,7 +90,7 @@
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Ranking</h1>
-      <p class="descricao-pagina">Os itens que se mantêm com as melhores notas, pela nota média no período, e não só pela nota de hoje.</p>
+      <p class="descricao-pagina">As melhores notas médias do período.</p>
       {% if quando %}<p class="cabecalho-meta">Última coleta completa {{ quando }}.</p>{% endif %}
     </header>
     <div class="ranking-controles">
@@ -105,9 +105,9 @@
     {% if lista %}{% include "partials/_legenda_raridade.html" %}{% endif %}
     </div>
     {% if modo == "presenca" %}
-    <p class="aviso-periodo-ranking status-muted">A nota de todos os itens começou a ser guardada em 17/11. Até completar {{ dias_minimos }} dias, a ordem é por quantas vezes cada item esteve no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
+    <p class="aviso-periodo-ranking status-muted">Até completar {{ dias_minimos }} dias de histórico, a ordem é pela frequência no Top 20{% if desde %} desde {{ desde }}{% endif %} ({{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }}).</p>
     {% elif modo == "media" and desde %}
-    <p class="status-muted ranking-base">Média de {{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }} desde {{ desde }}. Só entram itens que apareceram em pelo menos metade delas.</p>
+    <p class="status-muted ranking-base">Média de {{ coletas }} {{ "coleta" if coletas == 1 else "coletas" }} desde {{ desde }}. Só itens presentes em metade delas ou mais.</p>
     {% endif %}
     {% if lista %}
     <section class="ranking-top20" aria-labelledby="titulo-top20">
@@ -121,7 +121,7 @@
             <th title="{{ 'Nota média no período' if modo == 'media' else 'Em quantas coletas do período o item esteve no Top 20' }}">{{ "Nota média" if modo == "media" else "Frequência" }}</th>
             <th title="Nota na última coleta">Nota hoje</th>
             <th title="Em quantos dias do período o item esteve no Top 20">No Top 20</th>
-            <th class="th-encomenda" title="R$ 0,01 acima da maior encomenda que já existe na Steam: as maiores são atendidas primeiro. Clique no valor para copiar; mudar fica a seu critério.">Encomenda sugerida<span class="th-sub">frente da fila</span></th>
+            <th class="th-encomenda" title="R$ 0,01 acima da maior encomenda. Clique para copiar.">Encomenda sugerida<span class="th-sub">frente da fila</span></th>
           </tr>
         </thead>
         <tbody>
@@ -141,23 +141,23 @@
             <td class="celula-valor-ranking" data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
             <td class="celula-hoje" data-label="Nota hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>
             <td class="celula-no-top" data-label="No Top 20">{{ it.dias_no_top }} {{ "dia" if it.dias_no_top == 1 else "dias" }}</td>
-            <td class="celula-encomenda" data-label="Encomendar por">{% if it.encomenda %}<span class="encomenda-acoes"><button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda.copiar }}" title="Copiar {{ it.encomenda.copiar }}: na Steam, cole no preço da encomenda. Maior encomenda hoje: {{ it.encomenda.maior_fmt }}{% if it.encomenda.pedidos %} ({{ it.encomenda.pedidos }} {{ 'pedido' if it.encomenda.pedidos == 1 else 'pedidos' }}){% endif %}." aria-label="Copiar {{ it.encomenda.valor_fmt }}, encomenda sugerida para {{ it.name_fmt }}">{{ it.encomenda.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button><a class="encomenda-steam" href="{{ it.market_url }}" target="_blank" rel="noopener" title="Abrir no Mercado da Steam para encomendar" aria-label="Abrir {{ it.name_fmt }} no Mercado da Steam (nova aba)">{{ icone("steam") }}</a></span><span class="encomenda-preco-hoje" title="Preço de hoje: {{ it.preco_hoje_fmt }}">{{ it.encomenda.abaixo_pct }}% abaixo de hoje</span>{% else %}<span class="status-muted encomenda-sem-dado" title="A última coleta não trouxe a fila de encomendas deste item.">sem dado</span>{% endif %}</td>
+            <td class="celula-encomenda" data-label="Encomendar por">{% if it.encomenda %}<span class="encomenda-acoes"><button type="button" class="copiar-preco" data-copiar-preco="{{ it.encomenda.copiar }}" title="Copiar {{ it.encomenda.copiar }} para colar na encomenda da Steam. Maior encomenda hoje: {{ it.encomenda.maior_fmt }}{% if it.encomenda.pedidos %} ({{ it.encomenda.pedidos }} {{ 'pedido' if it.encomenda.pedidos == 1 else 'pedidos' }}){% endif %}." aria-label="Copiar {{ it.encomenda.valor_fmt }}, encomenda sugerida para {{ it.name_fmt }}">{{ it.encomenda.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button><a class="encomenda-steam" href="{{ it.market_url }}" target="_blank" rel="noopener" title="Abrir no Mercado da Steam para encomendar" aria-label="Abrir {{ it.name_fmt }} no Mercado da Steam (nova aba)">{{ icone("steam") }}</a></span><span class="encomenda-preco-hoje" title="Preço de hoje: {{ it.preco_hoje_fmt }}">{{ it.encomenda.abaixo_pct }}% abaixo de hoje</span>{% else %}<span class="status-muted encomenda-sem-dado" title="A última coleta não trouxe a fila de encomendas deste item.">sem dado</span>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       </div>
       <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
-      <p class="status-muted ranking-nota-encomenda">Encomenda sugerida: R$ 0,01 acima da maior encomenda que já existe na Steam, porque as maiores são atendidas primeiro. Copie, abra o item na Steam pelo ícone ao lado e cole; mudar o valor fica a seu critério. A fila é a da última coleta completa{% if quando %} ({{ quando }}){% endif %}. Não é previsão de lucro: com a taxa da Steam, revender pelo preço de hoje pode dar prejuízo.</p>
+      <p class="status-muted ranking-nota-encomenda">Encomenda sugerida: R$ 0,01 acima da maior encomenda{% if quando %} ({{ quando }}){% endif %}. Copie e cole na Steam pelo ícone ao lado. Não é previsão de lucro: com a taxa, revender pelo preço de hoje pode dar prejuízo.</p>
     </section>
     {% else %}
-      <p class="status status-vazio">Ainda não há notas guardadas para esse período. Volte em breve.</p>
+      <p class="status status-vazio">Ainda não há notas para esse período.</p>
     {% endif %}
 
     {% if movimento %}
     {% set novos = movimento.entraram|length %}
     <h2 class="secao-titulo ranking-mudou-titulo">O que mudou no Top 20 desde ontem</h2>
-    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}: a nota de um item muda bastante de um dia para o outro, e por isso a lista de cima usa a média.{% endif %}</p>
+    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}. A nota varia muito de um dia para outro; por isso a lista de cima usa a média.{% endif %}</p>
     {# Entraram ao lado de Saíram, Subiram ao lado de Caíram; cada bloco
        mostra até `visiveis_por_bloco` e guarda o resto em "Ver mais"
        (17/11: 17 entradas num dia deixavam um bloco 3x mais alto). #}
@@ -184,7 +184,7 @@
   </main>
 
   <footer class="rodape">
-    <p>A nota média vem das notas guardadas a cada coleta de preços. Nota alta não é garantia de lucro.</p>
+    <p>Nota alta não garante lucro.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   <script src="{{ static_v('copiar_preco.js') }}" defer></script>

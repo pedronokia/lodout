@@ -61,6 +61,14 @@ carteira) serve a essa decisão explicada.
 - Marca: aspas laranja do topo da página, também usadas no ícone do site.
 - Voz: português simples, tom de quem explica para iniciante; diz a idade
   dos dados e os limites da conta em vez de esconder.
+- Escrita (revisão 20/11): curta, clara e profissional. Uma ideia por frase;
+  "para" e "para o" (nunca "pra"/"pro"); "Não foi possível" em vez de "Não
+  deu para"; nada de "sem enrolação", "Devagar aí" e outras gírias. Termo
+  técnico só com explicação ao lado. Fatos, limites e o aviso de que a nota
+  não é previsão nem promessa de lucro sempre ficam, mesmo encurtando.
+- Posicionamento: "Entenda o mercado de skins de Counter-Strike 2". No site,
+  "Counter-Strike 2" por extenso, nunca a sigla "CS2". Não escrever "de 0 a
+  100" nem "/100" no site (a escala fica implícita nas próprias notas).
 
 ## Evidence on Hand
 

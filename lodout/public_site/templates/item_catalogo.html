@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -29,7 +29,7 @@
   </header>
 
   <main id="conteudo" class="pagina-texto pagina-item">
-    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pra lista</a></p>
+    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar à lista</a></p>
 
     <div class="hero-item{{ ' ' ~ item.raridade_classe if item.raridade_classe else '' }}">
       <div class="hero-item-grade">
@@ -37,8 +37,8 @@
           {% if item.raridade_titulo %}<p class="hero-item-tag">{{ item.raridade_titulo }}</p>{% endif %}
           <h1 class="titulo-item" translate="no">{{ item.name_fmt|titulo_sem_pipe_orfao }}</h1>
           <p class="hero-item-acoes">
-            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
-            <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
+            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
+            <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>
         <div class="hero-item-imagem">
@@ -56,21 +56,21 @@
       <div class="card"><span class="card-label">Nota</span><span class="card-valor card-valor-texto">Sem nota ainda</span></div>
       <div class="card"><span class="card-label">Preço hoje</span><span class="card-valor">{{ item.price_fmt }}</span></div>
       <div class="card"><span class="card-label">À venda na Steam</span><span class="card-valor">{{ item.a_venda }}</span></div>
-      {% if item.atualizado_txt %}<p class="card-coleta">Preço coletado {{ item.atualizado_txt }}, da busca do Mercado da Steam (menor anúncio).</p>{% endif %}
+      {% if item.atualizado_txt %}<p class="card-coleta">Menor anúncio no Mercado da Steam, coletado {{ item.atualizado_txt }}.</p>{% endif %}
     </section>
 
     {% if preco_empate %}
     {% include "partials/_na_sua_conta.html" %}
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
-      <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga. Por isso o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+      <p class="conta-revenda-texto">Comprou por <strong>{{ item.price_fmt }}</strong>? Venda por pelo menos <strong>{{ preco_empate }}</strong> para não perder. A taxa da Steam é de {{ taxa_steam_pct }}% sobre o que você recebe.</p>
       {% include "partials/_aviso_prazo_steam.html" %}
     </section>
     {% endif %}
     {% include "partials/_encomenda.html" %}
 
     <h2 class="secao-titulo">Por que ainda não tem nota?</h2>
-    <p>O Lodout acompanha todo o Mercado de CS2 com o preço do dia, mas a nota de 0 a 100 precisa do histórico de preço de cada item, que é uma consulta mais pesada à Steam. Por enquanto, ela existe para os itens mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
+    <p>A nota exige o histórico de preço do item. Por enquanto, existe só para os mais negociados; outros entram aos poucos. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
 
     {% if item.category %}
     <p class="status"><a class="link-com-seta" href="{{ url_for('index', categoria=item.category) }}">Ver os itens com nota de “{{ item.category }}” {{ icone("seta-direita") }}</a></p>
