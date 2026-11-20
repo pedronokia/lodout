@@ -80,7 +80,7 @@
           <p class="hero-item-tag">{{ item.raridade_titulo }}</p>
           {% endif %}
           <p class="hero-item-acoes">
-            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
+            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
             <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
@@ -265,7 +265,7 @@
         </div>
         <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
         <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
-        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗") }}</span>
+        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Ver na Steam ↗") }}</span>
       </a>
       {% endfor %}
     </div>
@@ -278,7 +278,7 @@
       <tbody>
         {% for v in variantes %}
         <tr>
-          <td>{% if v.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=v.name) }}" translate="no">{{ v.name_fmt }}</a>{% else %}<a class="link-item" href="{{ v.market_url }}" target="_blank" rel="noopener" translate="no">{{ v.name_fmt }}<span class="visualmente-oculto"> (abre no Steam Market, em nova aba)</span></a>{% endif %}</td>
+          <td>{% if v.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=v.name) }}" translate="no">{{ v.name_fmt }}</a>{% else %}<a class="link-item" href="{{ v.market_url }}" target="_blank" rel="noopener" translate="no">{{ v.name_fmt }}<span class="visualmente-oculto"> (abre no Mercado da Steam, em nova aba)</span></a>{% endif %}</td>
           <td{% if v.quando %} title="Venda registrada {{ v.quando }}"{% endif %}>{{ v.mediana_fmt }}</td>
           <td>{{ v.compras_24h if v.compras_24h is not none else "—" }}</td>
         </tr>

@@ -37,7 +37,7 @@
           {% if item.raridade_titulo %}<p class="hero-item-tag">{{ item.raridade_titulo }}</p>{% endif %}
           <h1 class="titulo-item" translate="no">{{ item.name_fmt|titulo_sem_pipe_orfao }}</h1>
           <p class="hero-item-acoes">
-            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
+            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>

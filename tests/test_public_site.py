@@ -2811,7 +2811,7 @@ def test_item_detail_tem_hero_cinematografico(client, monkeypatch, tmp_path):
     assert 'class="hero-item-imagem"' in body
     assert 'class="icone-item-quadro hero-item-quadro' in body
     assert 'class="titulo-item"' in body
-    assert "Ver no Steam Market" in body
+    assert "Ver no Mercado da Steam" in body
 
 
 def test_item_detail_fileira_de_stats_com_nota_em_destaque(
@@ -3140,7 +3140,7 @@ def test_index_banner_scan_desatualizado(client, monkeypatch, tmp_path):
     body = resp.data.decode("utf-8")
     assert "Preços atrasados: a Steam pode ter limitado o acesso" in body
     assert "status-scan-desatualizado" in body
-    assert "Preços de 1 item, coletados" in body
+    assert "1 item, atualizados" in body
     assert "atualização atrasada" in body
 
 
@@ -5790,7 +5790,7 @@ def test_index_status_conta_itens_ocultos_por_risco_alto(
          "pump_risk": {"level": "high"}, "breakdown": []},
     ])
     body = client.get("/").data.decode("utf-8")
-    assert "Preços de 2 itens, coletados" in body
+    assert "2 itens, atualizados" in body
     assert "(1 oculto por <a" in body
     assert "#termo-risco" in body
 
@@ -6063,7 +6063,7 @@ def test_home_mostra_a_tese_do_site(client):
     """Revisão 17/11: o <h1> era oculto e o celular não dizia o que é o site."""
     body = client.get("/").data.decode("utf-8")
     assert '<h1 class="home-tese-titulo">Entenda o mercado de skins de CS2</h1>' in body
-    assert "Cada nota mostra o motivo" in body and 'href="/metodo"' in body
+    assert "e o motivo de cada nota" in body and 'href="/metodo"' in body
 
 
 def test_pessoas_no_site_agora(client):

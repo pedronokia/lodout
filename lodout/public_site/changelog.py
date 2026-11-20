@@ -32,6 +32,7 @@ ENTRADAS = [
             "A imagem que aparece ao compartilhar o Lodout no WhatsApp, Discord ou X agora mostra as aspas do logo como no topo do site (antes eram dois traços retos). O mesmo vale para a imagem de item que ainda não tem foto.",
             "Textos revisados no site inteiro: mais curtos e diretos, sem gírias, com as mesmas informações. O Método ficou cerca de 30% menor, e o Glossário e as Perguntas frequentes, uns 15% a 20%. A Privacidade agora descreve as trocas como elas são hoje (o que você deu e recebeu), e a página de excluir conta lista também os itens vendidos entre o que é apagado.",
             "Novo título na página inicial: “Entenda o mercado de skins de CS2”. A expressão “de 0 a 100” saiu do site inteiro, inclusive do “/100” ao lado da nota nas imagens de compartilhamento.",
+            "Topo da página inicial em uma frase só, linha da coleta mais curta (“37 itens, atualizados há 2 h”) e links para a Steam em português: “Ver na Steam” e “Ver no Mercado da Steam”. A queda no Termômetro aparece como “−6,8%”.",
         ],
     },
     {

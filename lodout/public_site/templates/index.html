@@ -213,7 +213,7 @@
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa(c.name) }}</span>
         {% endif %}
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam Market {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>
@@ -245,7 +245,7 @@
       </div>
       <div class="cartao-item-selos">
         <span class="cartao-item-caixa">Preço do dia</span>
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam Market {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>
@@ -268,7 +268,7 @@
     <td class="celula-sparkline" data-label="Histórico">—</td>
     <td class="celula-nota" data-label="Nota"><span class="selo-sem-nota">sem nota ainda</span></td>
     <td data-label="Caixa/Cápsula">—</td>
-    <td data-label="Por quê">{{ c.a_venda }} à venda · <a href="{{ c.market_url }}" target="_blank" rel="noopener">Steam Market</a></td>
+    <td data-label="Por quê">{{ c.a_venda }} à venda · <a href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam</a></td>
   </tr>
   {% endmacro %}
 
@@ -307,7 +307,7 @@
        linha, com o link para o Método. #}
     <header class="home-tese">
       <h1 class="home-tese-titulo">Entenda o mercado de skins de CS2</h1>
-      <p class="home-tese-texto">Notas, preços e encomendas com dados públicos da Steam. Cada nota mostra o motivo: se é fácil vender, quanto o preço oscila e se há risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">Notas, preços e encomendas com dados públicos da Steam, e o motivo de cada nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
@@ -461,7 +461,7 @@
        duas barras laranja pra duas frases curtas. #}
     <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
       <span class="status-coleta-ponto" aria-hidden="true"></span>
-      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com risco alto de alta artificial ficam fora da lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="A coleta é automática e não depende de visitas, para não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
+      {% if scan %}<span>{{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, atualizados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com risco alto de alta artificial ficam fora da lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="A coleta é automática e não depende de visitas, para não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
       {% if resumo_do_dia %}<span class="resumo-do-dia">{% if resumo_do_dia.novos_no_top == 0 %}Nenhum item novo entrou no Top 20{% elif resumo_do_dia.novos_no_top == 1 %}1 item entrou no Top 20{% else %}{{ resumo_do_dia.novos_no_top }} itens entraram no Top 20{% endif %} {{ resumo_do_dia.desde }}</span>{% endif %}
     </p>
     {% endif %}
