@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -25,7 +25,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Meus trades</h1>
-      <p class="descricao-pagina">As trocas que você fez com outros jogadores: o que deu, o que recebeu e quanto valia cada lado. Troca direta não paga a taxa da Steam. Vendas ficam em <a href="{{ url_for('history.listar') }}#vendidos">Itens vendidos</a>, no Histórico.</p>
+      <p class="descricao-pagina">O que você deu e recebeu em trocas, e quanto valia cada lado. Troca direta não paga taxa. Vendas ficam em <a href="{{ url_for('history.listar') }}#vendidos">Itens vendidos</a>, no Histórico.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
@@ -72,7 +72,7 @@
             </fieldset>
             {% endfor %}
           </div>
-          <p class="status-muted troca-ajuda">Escolher um item da lista de sugestões já preenche o valor com o preço de hoje; troque pelo valor do dia da troca, se souber.</p>
+          <p class="status-muted troca-ajuda">O valor vem com o preço de hoje; ajuste para o do dia da troca.</p>
           <div class="troca-rodape">
             <label class="campo-adicionar"><span>Data da troca</span>
               <input type="date" name="data" max="{{ hoje }}" value="{{ hoje }}"></label>
@@ -103,16 +103,18 @@
           </div>
           {% endfor %}
         </div>
+        <div class="troca-fim">
         <p class="troca-saldo">No dia: <strong class="{{ 'valor-positivo' if t.saldo > 0 else ('valor-negativo' if t.saldo < 0 else '') }}">{{ t.saldo_fmt }}</strong>{% if t.hoje is not none %} · Hoje: <strong class="{{ 'valor-positivo' if t.hoje > 0 else ('valor-negativo' if t.hoje < 0 else '') }}">{{ t.hoje_fmt }}</strong> <span class="status-muted">(deu {{ t.deu_hoje_fmt }}, recebeu {{ t.recebeu_hoje_fmt }})</span>{% endif %}</p>
         <form method="post" action="{{ url_for('trades.remover', index=t.index) }}" class="form-inline form-remover" data-nome="a troca de {{ t.data }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button type="submit" class="botao-link botao-remover" aria-label="Apagar a troca de {{ t.data }}">apagar</button>
         </form>
+        </div>
       </li>
       {% endfor %}
     </ul>
     {% else %}
-      <p class="status status-vazio">Nenhuma troca registrada ainda. Trocou um item com alguém? Registre acima o que você deu e o que recebeu para ver se a troca foi boa.</p>
+      <p class="status status-vazio">Nenhuma troca registrada.</p>
     {% endif %}
   </main>
 

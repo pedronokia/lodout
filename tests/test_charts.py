@@ -106,3 +106,26 @@ def test_rotulo_escapa_caracteres_especiais_de_xml():
         rotulos=["R$ 1,00 & cia <teste>", "R$ 2,00"])
     assert "R$ 1,00 &amp; cia &lt;teste&gt;</title>" in svg
     assert "<teste>" not in svg
+
+
+def test_barras_menos_de_2_valores_devolve_vazio():
+    assert charts.bar_chart_svg([], []) == ""
+    assert charts.bar_chart_svg([5], ["01/11"]) == ""
+    assert charts.bar_chart_svg([5, 6], ["01/11"]) == ""
+
+
+def test_barras_tem_uma_barra_por_dia_com_rotulos():
+    svg = charts.bar_chart_svg([3, 0, 7], ["01/11", "02/11", "03/11"],
+                               ["1 — 3 visitas", "2 — 0", "3 — <7>"])
+    assert svg.startswith("<svg") and "preserveAspectRatio" not in svg
+    assert svg.count('class="barra"') == 3
+    assert ">01/11<" in svg and ">03/11<" in svg
+    assert ">7<" in svg
+    assert "&lt;7&gt;" in svg  # título escapado
+
+
+def test_barras_muitos_dias_rotula_so_parte():
+    dias = [f"{d:02d}/11" for d in range(1, 31)]
+    svg = charts.bar_chart_svg(list(range(30)), dias)
+    assert svg.count('class="barra"') == 30
+    assert 2 <= svg.count('class="barra-dia"') <= 9

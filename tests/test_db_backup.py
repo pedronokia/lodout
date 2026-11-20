@@ -137,3 +137,39 @@ def test_json_mantem_apenas_os_7_mais_recentes(tmp_path):
         db_backup.fazer_backup_json_se_necessario(
             paths, out, now=1000.0 + i * 21 * 3600)
     assert len(list(out.glob("json-*.zip"))) == db_backup._MANTER
+
+
+# ── Backup de notas_historico.sqlite3 e limpeza em erro ─────
+
+def test_notas_backup_cria_respeita_janela_e_rotaciona(tmp_path):
+    notas_db = tmp_path / "notas_historico.sqlite3"
+    _cria_db(notas_db)
+    out = tmp_path / "backups"
+
+    primeiro = db_backup.fazer_backup_notas_se_necessario(notas_db, out, now=1000.0)
+    assert primeiro is not None
+    assert primeiro.name.startswith("notas_historico-")
+    assert primeiro.suffix == ".sqlite3"
+    conn = sqlite3.connect(str(primeiro))
+    assert conn.execute("SELECT x FROM t").fetchone() == (1,)
+    conn.close()
+
+    # Dentro da janela de 20h não duplica
+    assert db_backup.fazer_backup_notas_se_necessario(
+        notas_db, out, now=1000.0 + 3600) is None
+
+    # Rotaciona em _MANTER
+    for i in range(1, 10):
+        db_backup.fazer_backup_notas_se_necessario(
+            notas_db, out, now=1000.0 + i * 21 * 3600)
+    assert len(list(out.glob("notas_historico-*.sqlite3"))) == db_backup._MANTER
+
+
+def test_backup_sqlite_falho_nao_deixa_arquivo_parcial(tmp_path):
+    corrompido = tmp_path / "public_site.db"
+    corrompido.write_bytes(b"nao e um banco sqlite valido")
+    out = tmp_path / "backups"
+
+    assert db_backup.fazer_backup_se_necessario(corrompido, out, now=1000.0) is None
+    assert list(out.glob("public_site-*.db")) == []
+

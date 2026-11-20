@@ -566,8 +566,8 @@
       : r.falha === "pressa"
         ? "Muitos valores em pouco tempo: espere alguns segundos e aperte Enter de novo."
       : r.falha === "servidor"
-        ? "Não deu para salvar agora. Tente de novo em instantes."
-        : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
+        ? "Não foi possível salvar agora. Tente de novo em instantes."
+        : (r.dados && r.dados.erro) || "Não foi possível salvar. Tente de novo.";
     // Aba velha (saiu e entrou de novo) ou item que saiu em outra aba:
     // só recarregar resolve (revisão 2026-11-16).
     if (r.dados && r.dados.recarregar) {
@@ -991,7 +991,7 @@
         if (dica) dica.textContent = "Já vem o preço do seu anúncio. Corrija se vendeu por outro valor.";
       } else if (empateVenda > 0) {
         campoPreco.value = (Math.round(empateVenda * (1 + metaVenda / 100) * 100) / 100).toFixed(2).replace(".", ",");
-        if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se anunciou por outro valor.";
+        if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se vendeu por outro valor.";
       } else {
         campoPreco.value = d.getAttribute("data-vendi-preco") || "";
         if (dica) dica.textContent = "Já vem o preço de hoje. Corrija se vendeu por outro valor.";

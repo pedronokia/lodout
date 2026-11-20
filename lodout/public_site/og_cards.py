@@ -74,10 +74,19 @@ def _quebrar(texto: str, fonte, largura_max: int, linhas_max: int) -> "list[str]
     return linhas
 
 
-def _aspas(d: ImageDraw.ImageDraw, x: int, y: int, tamanho: int,
+_MASCARA_ASPAS = Path(__file__).parent / "static" / "logo-aspas-mascara.png"
+
+
+def _aspas(img: Image.Image, x: int, y: int, altura: int,
            cor=_LARANJA) -> None:
-    """As aspas do logo: o caractere “ da própria Inter, em negrito."""
-    d.text((x, y), "\u201c", font=_fonte(tamanho, 800), fill=cor)
+    """As aspas do logo, com o mesmo desenho do topo do site (revisão 20/11:
+    antes era o caractere “ da Inter, reto e inclinado, diferente do logo).
+    A máscara é o traço do partials/_logo_aspas.html em PNG; (x, y) é o
+    canto de cima à esquerda e `altura` a altura das aspas em pixels."""
+    mascara = Image.open(_MASCARA_ASPAS).convert("L")
+    largura = round(mascara.width * altura / mascara.height)
+    mascara = mascara.resize((largura, altura), Image.LANCZOS)
+    img.paste(Image.new("RGB", mascara.size, cor), (x, y), mascara)
 
 
 def _estrela(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,
@@ -102,9 +111,9 @@ def cartao_padrao() -> bytes:
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
-    _aspas(d, 92, 70, 220)
+    _aspas(img, 100, 96, 110)
     d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
-    frase = "Notas e preços de skins de CS2,\ncom dados públicos da Steam."
+    frase = "Análise do mercado de skins\nde Counter-Strike 2."
     y = 430
     for linha in frase.split("\n"):
         d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)
@@ -141,7 +150,9 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
         except Exception:
             icone = None
     if not icone:
-        _aspas(d, qx + qt // 2 - 75, qy + qt // 2 - 120, 260,
+        alt = 130
+        larg = round(alt * 640 / 576)
+        _aspas(img, qx + (qt - larg) // 2, qy + (qt - alt) // 2, alt,
                cor=(90, 90, 90))
 
     x = qx + qt + 60
@@ -164,14 +175,12 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
         d.text((x, y), "Nota", font=_fonte(30, 500), fill=_TEXTO_FRACO)
         d.text((x, y + 34), f"{int(nota)}", font=_fonte(120, 800),
                fill=_CORES_NOTA[_nota_classe(nota)])
-        d.text((x + _fonte(120, 800).getlength(f"{int(nota)}") + 14, y + 104),
-               "/100", font=_fonte(34, 500), fill=_TEXTO_FRACO)
     if preco_fmt:
-        # Depois do "87 /100" de verdade: nota 100 tem 3 dígitos.
+        # Depois da nota de verdade: nota 100 tem 3 dígitos. Sem "/100"
+        # desde 20/11 (pedido do usuário: a escala fica implícita).
         fim_nota = x
         if nota is not None:
-            fim_nota = (x + _fonte(120, 800).getlength(f"{int(nota)}") + 14
-                        + _fonte(34, 500).getlength("/100"))
+            fim_nota = x + _fonte(120, 800).getlength(f"{int(nota)}")
         px = max(x + 300, int(fim_nota) + 50)
         tam = 56
         while tam > 34 and _fonte(tam, 700).getlength(preco_fmt) > LARGURA - 60 - px:
@@ -200,7 +209,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v3"]).encode("utf-8")).hexdigest()
+        "v5"]).encode("utf-8")).hexdigest()  # v5: sem "/100" (20/11)
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:

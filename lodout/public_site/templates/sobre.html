@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sobre — Lodout</title>
-  <meta name="description" content="Por que o Lodout existe e pra quem ele foi feito.">
+  <meta name="description" content="O que é o Lodout, para quem é e quem mantém.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -22,7 +22,7 @@
   </script>
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -33,33 +33,25 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Sobre</h1>
-      <p class="descricao-pagina">Por que o Lodout existe, pra quem é e quem o mantém.</p>
+      <p class="descricao-pagina">O que é, para quem é e quem mantém.</p>
     </header>
     <h2 class="secao-titulo">O que é</h2>
-    <p>Um site que dá uma nota de 0 a 100 a skins de CS2 com dados
-    públicos da Steam e mostra o porquê de cada nota. A busca traz o
-    preço de todo o Mercado, e quem entra com a Steam acompanha os
-    próprios itens, com o lucro já sem a taxa e o preço para revender
-    sem prejuízo.</p>
-    <p>Começou como uma ferramenta pessoal para organizar skins de CS2
-    e virou um site aberto a todos, sem precisar instalar nada.</p>
+    <p>Análise do mercado de skins de Counter-Strike 2 com dados públicos da
+    Steam: notas com o motivo, preços de todo o Mercado e, com login, seus
+    itens com lucro e preço de venda.</p>
 
-    <h2 class="secao-titulo">Pra quem é</h2>
-    <p>Pra quem está começando em skins e quer uma segunda opinião
-    factual antes de comprar ou vender — não uma dica de "vai subir",
-    mas um resumo do que já foi medido, com os termos explicados no
-    <a href="{{ url_for('glossario') }}">Glossário</a>. Ver
-    <a href="{{ url_for('metodo') }}">como a nota funciona</a> pra
-    entender os limites disso.</p>
+    <h2 class="secao-titulo">Para quem é</h2>
+    <p>Para quem quer dados antes de comprar ou vender skins. Termos no
+    <a href="{{ url_for('glossario') }}">Glossário</a>; limites em
+    <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</p>
 
     <h2 class="secao-titulo">Como é mantido</h2>
-    <p>Um projeto de uma pessoa só, rodando numa VM gratuita (ver
-    <a href="{{ url_for('status') }}">status</a> pra transparência sobre
-    os limites disso). Código aberto — sugestões e problemas vão pro
+    <p>Projeto independente de uma pessoa, num servidor gratuito (veja o
+    <a href="{{ url_for('status') }}">status</a>). Código aberto: sugestões e
+    problemas vão para o
     <a href="https://github.com/pedronokia/lodout" target="_blank" rel="noopener">GitHub</a>.</p>
 
-    <p>Não é afiliado à Valve nem à Steam. Não é recomendação de
-    investimento.</p>
+    <p>Não é afiliado à Valve nem à Steam. Não é recomendação de investimento.</p>
   </main>
 
   <footer class="rodape">

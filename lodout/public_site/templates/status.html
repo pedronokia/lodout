@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Status — Lodout</title>
-  <meta name="description" content="Transparência: últimas coletas de preços, no ar desde quando, visitas.">
+  <meta name="description" content="Últimas coletas de preços, tempo no ar e visitas do Lodout.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -22,7 +22,7 @@
   </script>
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -33,9 +33,9 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Status</h1>
-      <p class="descricao-pagina">Status do site, com transparência — inclusive quando a coleta de preços falha.</p>
+      <p class="descricao-pagina">A coleta de preços, inclusive quando falha.</p>
     </header>
-    <section class="resumo-cards">
+    <section class="resumo-cards resumo-cards-status">
       <div class="card"><span class="card-label">No ar</span><span class="card-valor">{{ no_ar_desde_txt }}</span></div>
       <div class="card"><span class="card-label">Visitas ao site</span><span class="card-valor">{{ visitas }}</span></div>
     </section>
@@ -48,7 +48,7 @@
 
     {% if mais_buscados %}
       <h2 class="secao-titulo">O que mais se busca aqui</h2>
-      <p>Termos agregados, sem ligação com quem buscou (ver <a href="{{ url_for('privacidade') }}">privacidade</a>).</p>
+      <p>Termos somados, sem ligação com quem buscou (veja <a href="{{ url_for('privacidade') }}">privacidade</a>).</p>
       <ul class="busca-tags-grid">
         {% for termo, qtd in mais_buscados %}
         <li class="busca-tag-chip">{{ termo }} — {{ qtd }}x</li>
@@ -60,7 +60,7 @@
     {# Catálogo amplo (plans/archive/catalogo-grande.md): todo o Mercado de
        CS2 com o preço do dia, sem nota -- é o que a busca usa. #}
     <h2 class="secao-titulo">Catálogo do Mercado</h2>
-    <p>Além dos itens com nota, o Lodout guarda o preço do dia de todo o Mercado de CS2 (skins, facas, luvas, caixas, cápsulas e adesivos) para a busca e para a sua conta. A coleta é lenta de propósito, uma consulta a cada ~20 segundos, e para sozinha se a Steam pedir pausa.</p>
+    <p>Além dos itens com nota, o Lodout guarda o preço do dia de todo o Mercado de Counter-Strike 2 (skins, facas, luvas, caixas, cápsulas e adesivos), usado na busca e na sua conta. A coleta é lenta de propósito, uma consulta a cada ~20 segundos, e pausa sozinha se a Steam pedir.</p>
     <ul class="lista-status-catalogo">
       <li><strong>{{ catalogo_estado.itens_fmt }}</strong> itens no catálogo</li>
       {% if catalogo_estado.ultima_completa_txt %}
@@ -71,7 +71,7 @@
       {% endif %}
       <li>{% if catalogo_estado.bloqueios %}Pausas pedidas pela Steam: {{ catalogo_estado.bloqueios }} (a última {{ catalogo_estado.ultimo_bloqueio_txt }}){% else %}Nenhuma pausa pedida pela Steam até agora{% endif %}</li>
       {% if catalogo_estado.cotacao_fmt %}
-      <li>A busca do Mercado responde em dólar; o Lodout converte para reais com a mesma cotação que a Steam usa: <strong>R$ {{ catalogo_estado.cotacao_fmt }}</strong> por dólar{% if catalogo_estado.cotacao_pares %}, medida em {{ catalogo_estado.cotacao_pares }} itens que têm preço nas duas moedas{% endif %}.</li>
+      <li>A busca do Mercado responde em dólar, convertido para reais pela cotação da Steam: <strong>R$ {{ catalogo_estado.cotacao_fmt }}</strong> por dólar{% if catalogo_estado.cotacao_pares %}, medida em {{ catalogo_estado.cotacao_pares }} itens que têm preço nas duas moedas{% endif %}.</li>
       {% endif %}
     </ul>
     {% endif %}
@@ -81,22 +81,17 @@
     <div class="card estado-scan">
       <p class="estado-scan-titulo"><span class="estado-scan-ponto" aria-hidden="true"></span><span>Coleta em andamento: item <strong>{{ estado_scan.indice }} de {{ estado_scan.total }}</strong>{% if estado_scan.faltam_txt %}, termina em {{ estado_scan.faltam_txt }}{% endif %}.</span></p>
       <progress class="estado-scan-barra" value="{{ estado_scan.indice }}" max="{{ estado_scan.total }}" aria-label="Progresso da coleta: {{ estado_scan.indice }} de {{ estado_scan.total }} itens"></progress>
-      <p class="status-muted">Agora: {{ estado_scan.item_fmt }}. Os preços do site mudam quando a coleta termina.</p>
+      <p class="status-muted">Agora: {{ estado_scan.item_fmt }}. Os preços mudam no site ao fim da coleta.</p>
     </div>
     {% elif estado_scan.proximo_txt %}
     <p class="estado-scan-proximo">Próxima coleta {{ estado_scan.proximo_txt }}.</p>
     {% endif %}
     {% if rodada_top %}
-    <p class="status-muted">Entre as coletas completas, os 20 primeiros do ranking têm o preço atualizado a cada 2 horas. Última atualização {{ rodada_top.quando }}: {{ rodada_top.itens }} de {{ rodada_top.alvos }} itens.</p>
+    <p class="status-muted">Entre as coletas completas, o Top 20 é atualizado a cada 2 horas. Última atualização {{ rodada_top.quando }}: {{ rodada_top.itens }} de {{ rodada_top.alvos }} itens.</p>
     {% endif %}
-    <p>A cada 6 horas, o Lodout busca de novo na Steam o preço de cada item
-    que acompanha. Se a Steam pede uma pausa, a coleta espera e continua de
-    onde parou. Se a pausa passar de 45 minutos, a coleta termina antes, e
-    os itens que faltaram continuam no site com o preço da coleta anterior.
-    Se a Steam não responde a nenhum dos primeiros itens (numa manutenção,
-    por exemplo), a coleta para cedo e tenta de novo em 1 hora, em vez de 6.
-    Uma coleta sem nenhum preço novo aparece aqui como "sem sucesso": o
-    erro fica à vista, não escondido.</p>
+    <p>A cada 6 horas, os preços são atualizados. Se a Steam pede pausa, a
+    coleta espera; após 45 minutos, termina e os itens restantes mantêm o
+    preço anterior. Sem resposta da Steam, tenta de novo em 1 hora.</p>
 
     {% if ciclos %}
     <div class="saude-ciclos" aria-hidden="true">
@@ -107,14 +102,14 @@
     <p class="status-muted">{{ ciclos_sucesso_txt }} (mais antigo à esquerda, mais recente à direita)</p>
     {% set ultimo = ciclos[0] %}
     {% if ultimo.alvos %}
-    <p class="cobertura-ciclo">Na última coleta, <strong>{{ ultimo.itens }} de {{ ultimo.alvos }}</strong> itens vieram com preço novo{% if ultimo.mantidos %}; {{ ultimo.mantidos }} {{ "continua" if ultimo.mantidos == 1 else "continuam" }} no site com o preço da coleta anterior, marcado como tal{% endif %}.</p>
+    <p class="cobertura-ciclo">Na última coleta, <strong>{{ ultimo.itens }} de {{ ultimo.alvos }}</strong> itens vieram com preço novo{% if ultimo.mantidos %}; {{ ultimo.mantidos }} {{ "mantém" if ultimo.mantidos == 1 else "mantêm" }} o preço anterior, com aviso{% endif %}.</p>
     {% if ultimo.ritmo and ultimo.ritmo > 1 %}
-    <p class="status-muted">Esta coleta andou mais devagar ({{ "%.2f"|format(ultimo.ritmo)|replace(".", ",") }}× o intervalo normal entre itens) porque a anterior levou pausas da Steam. O ritmo volta ao normal sozinho depois de coletas sem pausa.</p>
+    <p class="status-muted">Esta coleta andou mais devagar ({{ "%.2f"|format(ultimo.ritmo)|replace(".", ",") }}× o intervalo normal entre itens) porque a anterior teve pausas da Steam. O ritmo volta ao normal depois de coletas sem pausa.</p>
     {% endif %}
     {% if ultimo.em_espera %}
     <details class="falhas-ciclo">
       <summary>Itens em espera ({{ ultimo.em_espera|length }})</summary>
-      <p class="status-muted">Ficaram sem preço em 3 coletas seguidas, sem a Steam ter bloqueado nada, o que costuma indicar que ninguém está vendendo esses itens no Market. Pra não consultar a Steam à toa, eles são tentados uma vez por dia e voltam ao normal assim que aparecer preço.</p>
+      <p class="status-muted">Sem preço em 3 coletas seguidas, sem bloqueio da Steam: em geral, ninguém está vendendo. São consultados uma vez por dia até aparecer preço.</p>
       <ul>
         {% for nome in ultimo.em_espera %}<li>{{ nome|nome_pt }}</li>{% endfor %}
       </ul>
@@ -123,7 +118,7 @@
     {% if ultimo.falhas %}
     <details class="falhas-ciclo">
       <summary>Itens que ficaram sem preço novo ({{ ultimo.falhas|length }})</summary>
-      <p class="status-muted">A Steam não devolveu preço pra estes itens nesta coleta (pausa momentânea ou ninguém vendendo). Eles são tentados de novo na próxima coleta.</p>
+      <p class="status-muted">A Steam não enviou preço para estes itens nesta coleta (pausa ou ninguém vendendo). A próxima coleta tenta de novo.</p>
       <ul>
         {% for nome in ultimo.falhas %}<li>{{ nome|nome_pt }}</li>{% endfor %}
       </ul>
@@ -131,7 +126,7 @@
     {% endif %}
     {% endif %}
 
-    <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
+    <p class="dica-rolagem-tabela">Deslize a tabela para ver mais colunas.</p>
     <div class="tabela-wrap" role="region" tabindex="0" aria-label="Tabela das últimas coletas de preços, com rolagem lateral">
     <table class="tabela-candidatos tabela-status">
       <thead>
@@ -160,9 +155,7 @@
   </main>
 
   <footer class="rodape">
-    <p>Esta página existe pra ser honesta sobre quando os dados estão
-    desatualizados. Não é um painel de monitoramento completo: é o mesmo
-    histórico que a própria coleta de preços registra.</p>
+    
     {% include "partials/_rodape_links.html" %}
   </footer>
 </body>

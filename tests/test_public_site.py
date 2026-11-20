@@ -49,8 +49,8 @@ def test_index_sem_scan_mostra_vazio(client, monkeypatch):
     resp = client.get("/")
     assert resp.status_code == 200
     body = resp.data.decode("utf-8")
-    assert "Ainda não há dados de coleta publicados" in body
-    assert 'href="/status">Acompanhar status da coleta</a>' in body
+    assert "A lista aparece ao fim da primeira coleta" in body
+    assert 'href="/status">Ver status da coleta</a>' in body
 
 
 def test_navegacao_principal_indica_pagina_atual(client):
@@ -423,7 +423,7 @@ def test_index_vitrine_de_cards_e_o_modo_padrao(client, monkeypatch, tmp_path):
     assert 'class="cartao-item-imagem-link"' in body
     assert 'class="cartao-item-nota nota-alta"' in body
     assert '<table class="tabela-candidatos tabela-itens"' not in body
-    assert "Deslize a tabela para o lado" not in body
+    assert "Deslize a tabela para ver mais colunas" not in body
 
 
 def test_index_vitrine_so_os_6_primeiros_cards_carregam_eager(
@@ -458,7 +458,7 @@ def test_index_modo_lista_mostra_a_tabela_e_nao_a_vitrine(
     ])
     body = client.get("/?ver=lista").data.decode("utf-8")
     assert '<table class="tabela-candidatos tabela-itens">' in body
-    assert "Deslize a tabela para o lado" in body
+    assert "Deslize a tabela para ver mais colunas" in body
     assert '<ul class="grade-cards"' not in body
     assert 'class="cartao-item' not in body
 
@@ -654,8 +654,9 @@ def test_index_explicita_escala_da_nota_e_rotulo_textual_de_risco(
     ])
     body = client.get("/").data.decode("utf-8")
 
-    assert "Nota (0\u2013100)" in body
-    assert "não é promessa nem previsão de lucro" in body
+    # A escala não aparece no texto desde 20/11 (pedido do usuário).
+    assert "0 a 100" not in body and "0\u2013100" not in body and "/100" not in body
+    assert "não é previsão nem promessa de lucro" in body
     # Risco baixo é o caso comum: sem coluna nem selo (era uma coluna
     # inteira repetindo "Baixo" em toda linha) -- e sem a frase que
     # explica um selo que não aparece (2026-11-14).
@@ -671,7 +672,7 @@ def test_index_explica_selo_de_risco_quando_ele_aparece(
     ])
     body = client.get("/").data.decode("utf-8")
     assert 'class="selo-risco' in body
-    assert "O selo de risco aponta chance de alta artificial no preço" in body
+    assert "O selo de risco indica possível alta artificial" in body
 
 
 def test_index_nota_no_teto_mostra_margem_alem_de_100(client, monkeypatch, tmp_path):
@@ -804,7 +805,7 @@ def test_index_organiza_filtros_no_celular_e_avisa_rolagem_da_tabela(
     body = client.get("/?ver=lista").data.decode("utf-8")
 
     assert '<div class="filtros-numericos">' in body
-    assert "Deslize a tabela para o lado" in body
+    assert "Deslize a tabela para ver mais colunas" in body
 
 
 def test_index_exibe_cartoes_mobile_com_rotulos_e_historico_acessivel(
@@ -829,7 +830,7 @@ def test_index_exibe_cartoes_mobile_com_rotulos_e_historico_acessivel(
     for label in ("Item", "Preço", "Histórico", "Nota", "Caixa/Cápsula",
                   "Por quê"):
         assert f'data-label="{label}"' in body
-    assert "Deslize a tabela para o lado" in body
+    assert "Deslize a tabela para ver mais colunas" in body
     assert 'aria-label="Ver histórico completo de AK-47 | Redline (Testada em Campo)"' in body
     assert ".pagina-inicial table.tabela-itens tbody tr" in css_text
     assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in css_text
@@ -1336,6 +1337,23 @@ def test_index_dica_expandir_so_aparece_com_breakdown(client, monkeypatch,
     assert body.count("botao-recolher-motivo") == 1
 
 
+def test_changelog_data_por_extenso_e_antigas_recolhidas(client):
+    body = client.get("/changelog").data.decode("utf-8")
+    primeira = changelog.ENTRADAS[0]["data"]
+    assert f'<time datetime="{primeira}">' in body
+    assert "de novembro de 2026" in body
+    assert f'id="em-{primeira}"' in body
+    if len(changelog.ENTRADAS) > 6:
+        assert '<details class="changelog-antigas">' in body
+        assert f"Ver mudanças mais antigas ({len(changelog.ENTRADAS) - 6})" in body
+
+
+def test_data_extenso_filtro():
+    from lodout.public_site.server import _data_extenso
+    assert _data_extenso("2026-03-05") == "5 de março de 2026"
+    assert _data_extenso("não é data") == "não é data"
+
+
 def test_changelog_page(client):
     resp = client.get("/changelog")
     assert resp.status_code == 200
@@ -1361,6 +1379,9 @@ def test_api_docs_page(client):
     assert "HTTP 429" in body
     assert "sem limite de taxa específico" not in body
     assert '"api_version": 1' in body
+    # Bloco de código rola no celular: precisa receber foco pelo teclado.
+    assert '<pre class="bloco-codigo" tabindex="0"' in body
+    assert "dashboard" not in body
     assert '"icon_url": "/icone/' in body
     assert "community.cloudflare.steamstatic.com" not in body
     assert "o valor é <code>null</code> quando" in body
@@ -1529,7 +1550,7 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
     (G maiúsculo). O resto do texto do site continua "lodout"."""
-    assert "<title>Lodout</title>" in client.get("/").data.decode("utf-8")
+    assert "<title>Lodout — análise do mercado de skins de Counter-Strike 2</title>" in client.get("/").data.decode("utf-8")
     ranking = client.get("/ranking").data.decode("utf-8")
     assert "<title>Ranking — Lodout</title>" in ranking
     assert "— lodout</title>" not in ranking
@@ -1599,7 +1620,7 @@ def test_changelog_feed_xml(client):
 def test_metodo_page(client):
     resp = client.get("/metodo")
     assert resp.status_code == 200
-    assert "O que a nota é".encode("utf-8") in resp.data
+    assert "O que a nota mede".encode("utf-8") in resp.data
 
 
 def _historico_notas(pontos):
@@ -1615,7 +1636,7 @@ def _historico_notas(pontos):
 def test_ranking_sem_nada_guardado(client, monkeypatch):
     monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda: [])
     body = client.get("/ranking").data.decode("utf-8")
-    assert "Ainda não há notas guardadas para esse período" in body
+    assert "Ainda não há notas para esse período" in body
 
 
 def test_ranking_ordena_pela_nota_media_e_nao_pelo_pico(client, monkeypatch, tmp_path):
@@ -1920,7 +1941,7 @@ def test_429_customizado(client, monkeypatch):
     assert resp.status_code == 429
     corpo = resp.data.decode("utf-8")
     # Revisão de 16/11: sem "Voltar pro dashboard"; tentar de novo.
-    assert "Devagar aí" in corpo and "dashboard" not in corpo
+    assert "Muitos acessos" in corpo and "dashboard" not in corpo
     assert 'href="/__limite">Tentar de novo</a>' in corpo
 
 
@@ -2030,7 +2051,10 @@ def test_status_mostra_grafico_e_buscas_populares(client, monkeypatch):
         "lodout.public_site.server.scan_store.load_last_scan",
         lambda: {"results": [{"name": "AK-47 | Redline (Field-Tested)"}]})
     body = client.get("/status").data.decode("utf-8")
-    assert "grafico-historico" in body
+    # Barras com o dia embaixo (revisão 20/11; era uma linha sem datas).
+    assert "grafico-barras" in body
+    assert ">24/10<" in body and ">25/10<" in body
+    assert "De 3 a 5 visitas por dia nos últimos 2 dias." in body
     assert "ak-47 — 4x" in body
     # Só termos que acham item: testes de sondagem não viram vitrine
     # pública (o admin continua vendo a lista crua).
@@ -2417,7 +2441,7 @@ def test_status_mostra_cobertura_e_falhas_do_ultimo_ciclo(client, monkeypatch):
                   "falhas": ["Kilowatt Case", "<b>x</b>"]}])
     body = client.get("/status").data.decode("utf-8")
     assert "<strong>180 de 185</strong> itens vieram com preço novo" in body
-    assert "5 continuam no site com o preço da coleta anterior" in body
+    assert "5 mantêm o preço anterior" in body
     assert "Itens que ficaram sem preço novo (2)" in body
     assert "&lt;b&gt;x&lt;/b&gt;" in body
     assert "(+5 mantidos)" in body
@@ -2441,7 +2465,7 @@ def test_item_avisa_quando_dado_e_do_ciclo_anterior(
          "mantido_do_ciclo_anterior": True},
     ])
     body = client.get("/item/A").data.decode("utf-8")
-    assert "A Steam não devolveu preço novo no último ciclo" in body
+    assert "Sem preço novo na última coleta" in body
 
 
 def test_ritmo_sobe_com_429_e_volta_devagar():
@@ -2787,7 +2811,7 @@ def test_item_detail_tem_hero_cinematografico(client, monkeypatch, tmp_path):
     assert 'class="hero-item-imagem"' in body
     assert 'class="icone-item-quadro hero-item-quadro' in body
     assert 'class="titulo-item"' in body
-    assert "Ver no Steam Market" in body
+    assert "Ver no Mercado da Steam" in body
 
 
 def test_item_detail_fileira_de_stats_com_nota_em_destaque(
@@ -3045,7 +3069,7 @@ def test_item_detail_sem_historico_nao_mostra_seletor(client, monkeypatch, tmp_p
     assert 'aria-label="Período do gráfico"' not in body
     assert "Histórico de preço" not in body
     # O da nota aparece sempre, com o aviso de quando começou (17/11).
-    assert "A nota deste item começou a ser guardada em 17/11" in body
+    assert "O gráfico aparece a partir da segunda coleta" in body
 
 
 def test_item_detail_itens_parecidos_exclui_o_proprio(client, monkeypatch, tmp_path):
@@ -3114,9 +3138,9 @@ def test_index_banner_scan_desatualizado(client, monkeypatch, tmp_path):
         scan_store, "load_last_scan", lambda: original_load(path=p))
     resp = client.get("/")
     body = resp.data.decode("utf-8")
-    assert "Os preços estão mais antigos que o normal" in body
+    assert "Preços atrasados, provavelmente por limite de acesso da Steam" in body
     assert "status-scan-desatualizado" in body
-    assert "Preços de 1 item, coletados" in body
+    assert "1 item, atualizados" in body
     assert "atualização atrasada" in body
 
 
@@ -3125,7 +3149,7 @@ def test_index_sem_banner_quando_scan_recente(client, monkeypatch, tmp_path):
                   "pump_risk": {"level": "low"}, "breakdown": []}]
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/").data.decode("utf-8")
-    assert "Os preços estão mais antigos que o normal" not in body
+    assert "Preços atrasados, provavelmente por limite de acesso da Steam" not in body
     assert "status-scan-recente" in body
 
 
@@ -3500,7 +3524,7 @@ def test_comparar_com_1_item_mostra_aviso_pra_adicionar_mais(
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/comparar?nomes=Item A").data.decode("utf-8")
     assert "Só 1 item selecionado" in body
-    assert "comparação fica mais útil com 2 ou 3" in body
+    assert "Compare 2 ou 3" in body
 
 
 def test_comparar_com_2_itens_nao_mostra_aviso(client, monkeypatch, tmp_path):
@@ -4837,7 +4861,7 @@ def test_index_explica_categoria_sem_coleta(client, monkeypatch, tmp_path):
     ], category="Rifles")
     body = client.get("/?categoria=Facas").data.decode("utf-8")
 
-    assert "A categoria Facas ainda não tem itens coletados" in body
+    assert "Ainda não há itens em Facas" in body
     assert "Nenhum candidato com esses filtros" not in body
     # A busca dentro da categoria aberta mantém a categoria (campo oculto).
     assert '<input type="hidden" name="categoria" value="Facas">' in body
@@ -4871,7 +4895,7 @@ def test_index_traduz_caixa_igual_coluna_item(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
 
     assert ">Caixa CS:GO Weapon (descontinuada, 2013)</span>" in body
-    assert "<title>Lodout</title>" in body
+    assert "<title>Lodout — análise do mercado de skins de Counter-Strike 2</title>" in body
 
 
 def test_feed_e_api_nao_leem_historico_de_todos_os_itens(
@@ -5092,9 +5116,9 @@ def test_item_mostra_historico_no_ranking_e_eventos(
                         lambda: [_EVENTO_ARMORY,
                                  dict(_EVENTO_ARMORY, name="Outra Caixa")])
     body = client.get("/item/Kilowatt Case").data.decode("utf-8")
-    assert "Hoje está em <strong>#2</strong> do Top 20." in body
+    assert "Hoje: <strong>#2</strong> no Top 20." in body
     assert "<strong>2 de 2</strong> dias" in body
-    assert "melhor posição: <strong>#2</strong>" in body
+    assert "Melhor posição: <strong>#2</strong>" in body
     assert body.count('class="faixa-dia faixa-dia-') == 30 + 3
     assert "Mudanças no jogo" in body
     assert "saiu do Armory" in body
@@ -5110,7 +5134,7 @@ def test_item_sem_ranking_salvo_avisa(client, monkeypatch, tmp_path):
         "lodout.public_site.server.ranking.load_snapshots", lambda: [])
     monkeypatch.setattr(server.gamedata, "load_events_log", lambda: [])
     body = client.get("/item/A").data.decode("utf-8")
-    assert "Ainda não há ranking salvo nos últimos 30 dias" in body
+    assert "Sem ranking nos últimos 30 dias" in body
     assert "Mudanças no jogo" not in body
 
 
@@ -5323,9 +5347,9 @@ def test_home_marca_item_com_preco_do_ciclo_anterior(client, monkeypatch, tmp_pa
     ])
     for ver in ("vitrine", "lista"):
         body = client.get(f"/?ver={ver}").data.decode("utf-8")
-        rotulo = ">Preço do ciclo anterior<" if ver == "vitrine" else ">Ciclo anterior<"
+        rotulo = ">Preço anterior<"
         assert body.count(rotulo) == 1
-        assert "(coletado há 7 h)" in body
+        assert "(há 7 h)" in body
 
 
 def test_fonte_do_ciclo_desligada_por_padrao(monkeypatch):
@@ -5437,7 +5461,7 @@ def test_textos_sem_jargao_e_sem_promessa(client, monkeypatch):
     raiz = _P(server.__file__).parent / "templates"
     metodo = (raiz / "metodo.html").read_text(encoding="utf-8")
     assert "tende a valorizar" not in metodo
-    assert "não uma garantia de lucro" in metodo
+    assert "não garante lucro" in metodo
     glossario = (raiz / "glossario.html").read_text(encoding="utf-8")
     assert "tendem a\n      valorizar" not in glossario
     assert "Não é garantia" in glossario
@@ -5499,9 +5523,12 @@ def test_deploy_repassa_senha_do_admin_sem_aspas_manuais():
     from pathlib import Path as _P
     wf = (_P(server.__file__).parents[2] / ".github" / "workflows"
           / "deploy.yml").read_text(encoding="utf-8")
-    assert wf.count("envs: ADMIN_PASSWORD") == 3
-    assert wf.count('LODOUT_ADMIN_PASSWORD="$ADMIN_PASSWORD"') == 3
+    # Todos os passos SSH passam secrets via `envs:` (nunca interpolados
+    # dentro do `script:` com aspas manuais).
+    assert wf.count("ADMIN_PASSWORD") >= 6
+    assert wf.count('LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"') == 4
     assert "${{ secrets.ADMIN_PASSWORD }}'" not in wf
+    assert "${{ secrets.ADMIN_DISCORD_WEBHOOK }}'" not in wf
 
 
 def test_arquivo_de_verificacao_do_google(client):
@@ -5597,7 +5624,7 @@ def test_status_mostra_rodada_top(client, monkeypatch):
                         lambda: {"ts": time.time() - 600, "itens": 20,
                                  "alvos": 20, "duracao_min": 3.1})
     body = client.get("/status").data.decode("utf-8")
-    assert "20 primeiros do ranking" in body and "há 10 min" in body
+    assert "o Top 20 é atualizado a cada 2 horas" in body and "há 10 min" in body
 
 
 # ── imagens de prévia ao compartilhar ───────────────────────────
@@ -5676,7 +5703,7 @@ def test_busca_sem_resultado_explica_e_sugere(client, monkeypatch, tmp_path):
     ])
     body = client.get("/?q=xyzabc").data.decode("utf-8")
     assert "Nenhum item com “xyzabc”" in body
-    assert "O Lodout acompanha 1 item —" in body
+    assert "Tente parte do nome" in body
     assert "Limpar busca</a>" in body
     assert "candidato" not in body.split("<main", 1)[1].lower()
 
@@ -5763,7 +5790,7 @@ def test_index_status_conta_itens_ocultos_por_risco_alto(
          "pump_risk": {"level": "high"}, "breakdown": []},
     ])
     body = client.get("/").data.decode("utf-8")
-    assert "Preços de 2 itens, coletados" in body
+    assert "2 itens, atualizados" in body
     assert "(1 oculto por <a" in body
     assert "#termo-risco" in body
 
@@ -5922,7 +5949,7 @@ def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_p
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Para revender sem prejuízo" in body
     assert "<strong>R$ 115,00</strong>" in body
-    assert "15% sobre o que você recebe" in body and "cerca de 13% do que o comprador paga" in body
+    assert "15% sobre o que você recebe" in body
 
 
 def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, tmp_path):
@@ -5933,11 +5960,11 @@ def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, t
                                "365": {"pct": 80, "n": 300}}},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Isso já aconteceu antes?" in body
+    assert "Quem comprou no último ano recuperou o valor" in body
     assert '<span class="conta-revenda-prazo">30 dias</span> <strong class="conta-revenda-pct">12%</strong>' in body
     assert '<span class="conta-revenda-prazo">1 ano</span> <strong class="conta-revenda-pct">80%</strong>' in body
     assert "90 dias</span>" not in body
-    assert "não o que vai acontecer" in body
+    assert "Mostra o passado, não prevê o futuro" in body
 
 
 def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path):
@@ -5946,7 +5973,7 @@ def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path
          "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Não dá para revender na hora" in body
+    assert "Revenda não é imediata" in body
     assert "help.steampowered.com" in body
 
 
@@ -5997,10 +6024,10 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     assert 'data-copiar-preco="75,51"' in body and "R$ 75,51" in body
     assert "Um centavo acima da maior encomenda" in body and "R$ 75,50 (1.234 pedidos)" in body
     assert "24% abaixo do preço de hoje" in body
-    assert "o máximo seria <strong>R$ 72,46</strong>" in body
-    assert "Esse valor fica atrás da fila" in body
+    assert "até <strong>R$ 72,46</strong>" in body
+    assert "Fica atrás da fila" in body
     assert "copiar_preco.js" in body and "data-copiado" in body
-    assert "A meta de 20% muda em “Minha conta”" in body
+    assert "Meta de 20%, ajustável em “Minha conta”" in body
     # Página inicial: a mesma sugestão (sem copiar; copiar fica no item).
     home = client.get("/").data.decode("utf-8")
     assert "Encomendar por <strong>R$ 75,51</strong>" in home
@@ -6035,8 +6062,8 @@ def test_desde_txt_diz_ontem_ou_a_data():
 def test_home_mostra_a_tese_do_site(client):
     """Revisão 17/11: o <h1> era oculto e o celular não dizia o que é o site."""
     body = client.get("/").data.decode("utf-8")
-    assert '<h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>' in body
-    assert "mostra o porquê da nota" in body and 'href="/metodo"' in body
+    assert '<h1 class="home-tese-titulo">Entenda o mercado de skins de Counter-Strike 2</h1>' in body
+    assert "e o motivo de cada nota" in body and 'href="/metodo"' in body
 
 
 def test_pessoas_no_site_agora(client):
@@ -6167,3 +6194,88 @@ def test_api_sugestoes_spotlight_retorna_metadados(client, monkeypatch, tmp_path
     assert "/icone/hash123.webp" in it["icon_url"]
     assert it["url"] == "/item/AK-47%20%7C%20Redline%20(Field-Tested)"
 
+
+
+def test_popover_fecha_com_esc_em_todas_as_paginas_que_o_usam(client):
+    """O balão "Cores da borda" do Ranking não fechava com Esc: o Ranking
+    não carrega o app.js (revisão 20/11). O fechamento mora no popover.js,
+    carregado por toda página que tem o balão."""
+    import re as _re
+    js = client.get("/static/popover.js").data.decode("utf-8")
+    assert '".menu-acoes-item[open], .popover-legenda[open]"' in js
+    assert '"Escape"' in js
+    for url in ("/", "/ranking"):
+        body = client.get(url).data.decode("utf-8")
+        if 'class="popover-legenda"' in body or "menu-acoes-item" in body:
+            assert _re.search(r'src="/static/popover\.js\?v=', body), url
+
+
+def test_janela_vendi_fala_em_venda_nao_em_anuncio():
+    from pathlib import Path as _P
+    js = (_P(server.__file__).parent / "static" / "conta.js").read_text(encoding="utf-8")
+    bloco = js.split("data-janela-vendi-dica", 1)[1].split("custoVendi", 1)[0]
+    assert "Corrija se anunciou" not in bloco
+    assert "Corrija se vendeu por outro valor." in bloco
+
+
+def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
+    """Em produção a pasta do código é montada por cima da imagem, então a
+    minificação do build não chegava ao visitante (revisão 20/11: 362 KB de
+    CSS, 60 KB disso comentário). O site entrega a versão enxugada."""
+    from pathlib import Path as _P
+    pasta = _P(server.__file__).parent / "static"
+    for nome in ("style.css", "app.js"):
+        fonte = (pasta / nome).read_text(encoding="utf-8")
+        resp = client.get(f"/static/{nome}?v=teste")
+        assert resp.status_code == 200
+        corpo = resp.data.decode("utf-8")
+        assert "/*" not in corpo
+        assert len(corpo) < len(fonte)
+        assert "max-age=31536000" in resp.headers["Cache-Control"]
+        etag = resp.headers["ETag"]
+        r304 = client.get(f"/static/{nome}?v=teste", headers={"If-None-Match": etag})
+        assert r304.status_code == 304
+    css = client.get("/static/style.css").data.decode("utf-8")
+    assert "@media (prefers-reduced-motion: reduce)" in css
+    assert css.count("{") == css.count("}")
+    # arquivos que não estão na lista seguem o caminho normal do Flask
+    assert client.get("/static/popover.js").status_code == 200
+
+
+def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
+    """A imagem do WhatsApp/Discord desenhava o “ da fonte Inter (reto e
+    inclinado), diferente do logo (revisão 20/11). Agora usa a máscara do
+    mesmo traço do topo do site, e o og-image.png publicado está em dia."""
+    import io as _io
+    from pathlib import Path as _P
+    from PIL import Image as _Img, ImageChops as _Ch
+    from lodout.public_site import og_cards
+    assert og_cards._MASCARA_ASPAS.exists()
+    novo = _Img.open(_io.BytesIO(og_cards.cartao_padrao())).convert("RGB")
+    publicado = _Img.open(_P(og_cards.__file__).parent / "static" / "og-image.png").convert("RGB")
+    assert _Ch.difference(novo, publicado).getbbox() is None
+    # aspas laranja na área do logo, à esquerda e acima do nome
+    area = novo.crop((90, 90, 240, 215))
+    laranja = sum(1 for x in range(area.width) for y in range(area.height)
+                  if (lambda px: px[0] > 200 and 90 < px[1] < 140 and px[2] < 60)(area.getpixel((x, y))))
+    assert laranja > 3000
+
+
+def test_queda_recente_usa_virgula_e_sinal_de_menos():
+    """O cartão "Queda recente" mostrava "-6.8%" (ponto e hífen); o resto
+    do site usa "−6,8%" (revisão 20/11)."""
+    from pathlib import Path as _P
+    t = (_P(server.__file__).parent / "templates" / "index.html").read_text(encoding="utf-8")
+    trecho = t.split('class="pulse-delta-pct negativo">', 1)[1].split("</span>", 1)[0]
+    assert 'replace(".", ",")' in trecho and "−" in trecho
+
+
+def test_nome_do_jogo_por_extenso(client):
+    """No texto do site, "Counter-Strike 2" por extenso, nunca a sigla
+    (pedido do usuário, 20/11)."""
+    import re as _re
+    for url in ("/", "/ranking", "/metodo", "/faq", "/glossario", "/sobre",
+                "/status", "/privacidade"):
+        body = client.get(url).data.decode("utf-8")
+        visivel = _re.sub(r"<script.*?</script>|<!--.*?-->", "", body, flags=_re.S)
+        assert not _re.search(r"(?<![\w:])CS2\b", visivel), url

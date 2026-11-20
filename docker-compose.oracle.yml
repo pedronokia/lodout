@@ -11,9 +11,6 @@ services:
   web:
     environment:
       - LODOUT_PUBLIC_SITE_SECURE_COOKIES=1
-    volumes:
-      - skinvault_data:/data
-      - ./lodout:/app/lodout:ro
 
   # Catálogo amplo (plans/archive/catalogo-grande.md): só em produção. Para
   # desligar, troque por 0 e faça deploy com [restart-worker].
@@ -24,10 +21,6 @@ services:
       - LODOUT_INVENTARIO_DIARIO=1
       # Backtest diário da nota (só cálculo, sem consulta à Steam).
       - LODOUT_BACKTEST_DIARIO=1
-      - LODOUT_ITENS_EXTRAS=350
-    volumes:
-      - skinvault_data:/data
-      - ./lodout:/app/lodout:ro
 
   caddy:
     image: caddy:2-alpine
@@ -40,8 +33,14 @@ services:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    init: true
+    mem_limit: 256m
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: json-file

@@ -24,12 +24,15 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
 from lodout import _paths
 
 _logger = logging.getLogger(__name__)
+_INIT_LOCK = threading.Lock()
+_INICIALIZADOS: set[tuple[str, int, int]] = set()
 
 DIAS_COMPLETOS = 35
 DIAS_MAX = 400
@@ -40,14 +43,36 @@ def _caminho() -> Path:
     return Path(_paths.DATA_DIR) / "notas_historico.sqlite3"
 
 
+def _chave_arquivo(p: Path) -> "tuple[str, int, int] | None":
+    try:
+        st = p.stat()
+    except OSError:
+        return None
+    if st.st_size == 0:
+        return None
+    return (str(p.resolve()), st.st_dev, st.st_ino)
+
+
 def _conectar() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_caminho()), timeout=5)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("""CREATE TABLE IF NOT EXISTS pontos (
-        name TEXT NOT NULL, ts REAL NOT NULL, score INTEGER NOT NULL,
-        position INTEGER, completo INTEGER NOT NULL DEFAULT 1,
-        PRIMARY KEY (name, ts))""")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_pontos_ts ON pontos (ts)")
+    p = _caminho()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    chave = _chave_arquivo(p)
+    conn = sqlite3.connect(str(p), timeout=5)
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    if chave is None or chave not in _INICIALIZADOS:
+        with _INIT_LOCK:
+            if chave is None or chave not in _INICIALIZADOS:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("""CREATE TABLE IF NOT EXISTS pontos (
+                    name TEXT NOT NULL, ts REAL NOT NULL, score INTEGER NOT NULL,
+                    position INTEGER, completo INTEGER NOT NULL DEFAULT 1,
+                    PRIMARY KEY (name, ts))""")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_pontos_ts ON pontos (ts)")
+                conn.commit()
+                nova_chave = _chave_arquivo(p)
+                if nova_chave is not None:
+                    _INICIALIZADOS.add(nova_chave)
     return conn
 
 

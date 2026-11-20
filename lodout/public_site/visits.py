@@ -6,16 +6,41 @@ Não é analytics de verdade, é um termômetro.
 """
 from __future__ import annotations
 
+import contextlib
 import datetime
 import json
+import threading
 import time
 from pathlib import Path
 
 from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
 from lodout.public_site.fmt import FUSO_BR
 
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
 _DEFAULT_PATH = DATA_DIR / "visitas.json"
 _DIAS_MANTIDOS = 60
+_LOCK = threading.Lock()
+
+
+@contextlib.contextmanager
+def _lock_arquivo(alvo: Path):
+    """Serializa leitura-modificação-escrita entre threads e workers do gunicorn."""
+    with _LOCK:
+        if fcntl is None:
+            yield
+            return
+        lock_path = Path(f"{alvo}.lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(lock_path, "a") as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def dia_local(ts: "float | None" = None) -> str:
@@ -37,21 +62,22 @@ def registrar(path: "Path | str | None" = None,
     para que testes possam apontar para um arquivo isolado.
     """
     p = Path(path) if path is not None else _DEFAULT_PATH
-    data = load_json_record(p, {"total": 0, "por_dia": {}})
-    total = int(data.get("total") or 0) + 1
-    por_dia = data.get("por_dia") or {}
-    hoje = dia_local(now)
-    por_dia[hoje] = int(por_dia.get(hoje, 0)) + 1
-    # Mantém só os últimos N dias -- série de visitas não precisa crescer
-    # sem limite (diferente do histórico de ciclos, que já tem cap próprio).
-    if len(por_dia) > _DIAS_MANTIDOS:
-        for dia_antigo in sorted(por_dia)[:-_DIAS_MANTIDOS]:
-            del por_dia[dia_antigo]
-    try:
-        atomic_write_text(p, json.dumps({"total": total, "por_dia": por_dia}))
-    except OSError:
-        pass
-    return total
+    with _lock_arquivo(p):
+        data = load_json_record(p, {"total": 0, "por_dia": {}})
+        total = int(data.get("total") or 0) + 1
+        por_dia = data.get("por_dia") or {}
+        hoje = dia_local(now)
+        por_dia[hoje] = int(por_dia.get(hoje, 0)) + 1
+        # Mantém só os últimos N dias -- série de visitas não precisa crescer
+        # sem limite (diferente do histórico de ciclos, que já tem cap próprio).
+        if len(por_dia) > _DIAS_MANTIDOS:
+            for dia_antigo in sorted(por_dia)[:-_DIAS_MANTIDOS]:
+                del por_dia[dia_antigo]
+        try:
+            atomic_write_text(p, json.dumps({"total": total, "por_dia": por_dia}))
+        except OSError:
+            pass
+        return total
 
 
 def total(path: "Path | str | None" = None) -> int:

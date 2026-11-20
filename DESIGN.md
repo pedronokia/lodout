@@ -218,7 +218,7 @@ No celular (até 640px), tabelas viram cartões: o nome e a figurinha da nota em
 
 ## Elevation & Depth
 
-O sistema é plano e tonal: a profundidade vem de camadas de cinza (moldura → caderno → folha → rebaixo) e de bordas finas (#4a4a4a), não de sombras. As sombras existentes são quase imperceptíveis e servem só para separar o que flutua (popover, janela de diálogo) do que está na página.
+O sistema é tonal: a profundidade vem de camadas de cinza (moldura → caderno → folha → rebaixo) e de bordas finas, com um toque de "vidro" (19/11): cartões em cinza levemente translúcido com borda clara e gradiente sutil, e o pódio do Ranking com fundo dourado/prata/bronze bem suave. O desfoque de fundo (backdrop-filter) fica só no que flutua por cima da página — topo, barra de baixo do celular, busca, dicas e avisos —, nunca em cartões ou selos repetidos (cada um é uma camada que o navegador recalcula ao rolar).
 
 ### Shadow Vocabulary
 - **Sutil** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04)`): cartões do celular.
@@ -227,6 +227,8 @@ O sistema é plano e tonal: a profundidade vem de camadas de cinza (moldura → 
 
 ### Named Rules
 **The Border-Not-Shadow Rule.** Um quadro se separa do fundo pela borda e pelo tom, nunca por borda e sombra larga juntas.
+
+**The Glass Only Floats Rule.** Desfoque de fundo só no que flutua (topo, barra de baixo, busca, popovers, avisos). Em cartões e selos, fundo escuro quase sólido, que dá a mesma leitura sem custo ao rolar.
 
 ## Shapes
 
@@ -285,3 +287,12 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 - **Don't** pôr etiqueta ou sobretítulo em cima de um título; informação extra vai abaixo dele.
 - **Don't** juntar borda e sombra larga no mesmo quadro.
 - **Don't** escrever explicação com mais de ~75 letras por linha.
+- **Don't** usar fonte monoespaçada em preços e números (use a Inter com algarismos tabulares); monoespaçada só em código e teclas ("Ctrl K").
+- **Don't** usar cores fora do sistema para texto (ex.: cinza-azulado #64748b, que reprova contraste); texto apagado é #b3b3b3.
+- **Don't** escrever jargão ("pontuação algorítmica", "giro", "retorno líquido"): o público é iniciante, ver PRODUCT.md.
+- **Don't** usar brilho colorido em volta de botões, ícones ou números (sombra laranja sem deslocamento); sombra é sempre escura e com deslocamento. O anel de foco (0 0 0 3px) é a única exceção.
+- **Don't** usar texto em degradê; destaque vem do peso e do tamanho.
+- **Don't** pôr faixa colorida grossa (mais de 1px) na lateral de quadros, avisos ou itens de lista.
+- **Don't** pôr um cartão dentro de outro; dentro de um quadro, separe partes com um fio de 1px.
+- **Don't** justificar texto nem partir palavras com hífen automático; texto corrido é alinhado à esquerda.
+- **Don't** usar fundo azulado (azul-marinho, ardósia) em quadros, cartões ou tabelas; superfícies são cinza neutro (#1e1e1e, #161616, #121212). O único azul é o do botão "Entrar com Steam", que é a cor da Steam. Selos, etiquetas e medidores também não usam azul: neutro (cinza claro) ou laranja.

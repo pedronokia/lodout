@@ -136,6 +136,17 @@ _REVERSAL_IN_CONTAINERS = False
 # dSp +0.007 / +0.0002 / -0.003 em 7d/90d/365d. Negative finding: fica.
 _DRAWDOWN_AT_HIGH_ENABLED = True
 
+# Pesos de dois fatores SÓ em caixas/cápsulas (18/11, proposta aprovada
+# pelo usuário para MEDIR, não para aplicar): o backtest diário com medição
+# por fator mostrou, nas duas metades dos itens, que o bônus de "abaixo do
+# típico" (mediana+) anda junto com retorno PIOR em caixas a 1 ano
+# (-11/-10 pp) e que "longe do maior preço já registrado" (rel_ath) anda
+# junto com retorno muito melhor (+39/+54 pp a 1 ano, +6 a 90 d). 1.0 =
+# nota de hoje. O backtest diário mede a variante (0.5 e 2.0) contra a
+# atual; só muda aqui depois de o usuário ver o antes e o depois.
+_MEDIANA_BONUS_CAIXAS = 1.0
+_REL_ATH_PESO_CAIXAS = 1.0
+
 # relative_to_ath (fator rel_ath + flag de ATH do pump_risk) com o topo da
 # série DIÁRIA ponderada por volume em vez do ponto bruto.
 # Medido ON x OFF em 2026-10-17 (373 series): dSp 0.0000 em 7d/90d/365d,
@@ -1231,6 +1242,8 @@ def enhanced_score(verdict: dict, volume: int | None = None,
     diff = verdict.get("diff_pct") or 0
     if diff < 0:
         bonus = min(abs(diff) * 1.2, 35)
+        if is_container:
+            bonus *= _MEDIANA_BONUS_CAIXAS
         # `diff` perto de 0 arredonda o `%` pra "0" e os pontos pra "+0"
         # -- com 1 casa o rótulo some com a confusão de "0%... mas com
         # bônus" (achado 2026-11-01). Não muda `bonus`, só o texto.
@@ -1384,18 +1397,15 @@ def enhanced_score(verdict: dict, volume: int | None = None,
         if rta:
             band = rta["band"]
             pct = rta["pct_of_ath"]
-            if band == "very_deep":
-                _add("rel_ath", 5,
-                     f"Está em {pct:.0%} do maior preço já registrado (+5)")
-            elif band == "deep_below":
-                _add("rel_ath", 2,
-                     f"Está em {pct:.0%} do maior preço já registrado (+2)")
-            elif band == "near_ath":
-                _add("rel_ath", -8,
-                     f"Já em {pct:.0%} do maior preço já registrado (-8)")
-            elif band == "at_ath":
-                _add("rel_ath", -10,
-                     f"Está em {pct:.0%} do maior preço já registrado (-10)")
+            peso = _REL_ATH_PESO_CAIXAS if is_container else 1.0
+            pontos = {"very_deep": 5, "deep_below": 2,
+                      "near_ath": -8, "at_ath": -10}.get(band)
+            if pontos is not None:
+                d = round(pontos * peso, 1)
+                d_txt = f"{d:+.0f}" if d == int(d) else f"{d:+.1f}"
+                verbo = "Já em" if band == "near_ath" else "Está em"
+                _add("rel_ath", d,
+                     f"{verbo} {pct:.0%} do maior preço já registrado ({d_txt})")
 
     # Nivel de preco absoluto (2026-07-30). O preco vem do ULTIMO ponto do
     # prefixo, entao no backtest e' o preco no instante simulado -- sem

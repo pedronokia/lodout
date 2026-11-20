@@ -10,9 +10,19 @@ on:
     - cron: "0 12 * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - run: python scripts/check_tls_expiry.py "${{ secrets.SITE_DOMAIN }}" 14
+      - name: Confere validade do certificado TLS
+        env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+        run: |
+          set -euo pipefail
+          dominio="${SITE_DOMAIN:-lodout.com}"
+          python3 scripts/check_tls_expiry.py "${dominio}" 14

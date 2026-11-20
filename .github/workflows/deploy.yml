@@ -1,28 +1,43 @@
 name: deploy
 
 # Roda só DEPOIS que o workflow "tests" (tests.yml) passar em push pra
-# main -- nunca deploya código que não passou na suite. Pedido do
-# usuário (2026-10-25): até aqui, todo deploy era manual (scp + ssh +
-# docker compose). Precisa de 3 secrets no repositório (Settings →
-# Secrets and variables → Actions), que só o dono pode configurar --
-# a chave privada nunca deve ser colada em lugar nenhum além do campo
-# de secret do próprio GitHub:
+# main -- nunca deploya código que não passou na suite. Também pode ser
+# acionado manualmente via workflow_dispatch (ex.: reiniciar worker/caddy
+# ou forçar rebuild sem precisar de commit vazio).
+#
+# Secrets necessários no repositório (Settings → Secrets and variables → Actions):
 #   ORACLE_HOST       -- IP ou domínio da VM (ex. pedronokia.duckdns.org)
-#   ORACLE_SSH_KEY     -- conteúdo do arquivo .key baixado na criação da VM
-#   SITE_DOMAIN        -- mesmo valor usado hoje no deploy manual
-# Opcional:
-#   ADMIN_DISCORD_WEBHOOK -- URL do webhook do Discord do DONO pros
-#                            alertas do worker (atraso, scan degradado,
-#                            disco). Sem ele, os alertas ficam desligados.
-#   ADMIN_PASSWORD        -- senha do /admin (12+ caracteres). Vai pela
-#                            opção `envs` da ação de SSH (sem aspas
-#                            montadas à mão: qualquer caractere serve).
-#                            Sem ela, o /admin devolve 404.
+#   ORACLE_SSH_KEY    -- conteúdo do arquivo .key baixado na criação da VM
+#   SITE_DOMAIN       -- domínio público servido pelo Caddy (ex. lodout.com)
+# Opcionais:
+#   ADMIN_DISCORD_WEBHOOK -- URL do webhook do Discord do DONO pros alertas
+#                            do worker (atraso, scan degradado, disco).
+#   ADMIN_PASSWORD        -- senha do /admin (12+ caracteres). Sem ela, o
+#                            /admin devolve 404.
 on:
   workflow_run:
     workflows: ["tests"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      restart_worker:
+        description: "Reiniciar o serviço worker após validar o site"
+        type: boolean
+        default: false
+      restart_caddy:
+        description: "Recriar o container do Caddy (reler Caddyfile)"
+        type: boolean
+        default: false
+      force_rebuild:
+        description: "Forçar docker build mesmo sem mudança em Dockerfile/requirements"
+        type: boolean
+        default: false
+
+# Princípio do menor privilégio: este workflow só lê o repo para rodar o
+# smoke test pós-deploy (nenhum step escreve no GitHub).
+permissions:
+  contents: read
 
 # Um deploy por vez: dois pushes seguidos disparavam dois deploys
 # simultâneos e o segundo `docker compose up` falhava com "container
@@ -33,104 +48,235 @@ concurrency:
 
 jobs:
   deploy:
-    # `event == 'push'`: o workflow de tests também roda a pedido
-    # (workflow_dispatch, pra regerar as imagens-base da regressão
-    # visual) -- um run manual bem-sucedido NÃO é deploy.
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    # Em workflow_run, exige tests com sucesso vindos de push pra main
+    # (um workflow_dispatch de tests pra regerar baselines NÃO é deploy).
+    # Em workflow_dispatch direto neste workflow, executa sempre.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Deploy via SSH na VM
+      - name: Checkout do commit deployado (para smoke test)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Deploy web (+ Caddy se pedido) e limpeza na VM
+        id: deploy_web
         uses: appleboy/ssh-action@v1.0.3
         env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          RESTART_CADDY: ${{ inputs.restart_caddy == true || contains(github.event.workflow_run.head_commit.message, '[restart-caddy]') }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild == true || contains(github.event.workflow_run.head_commit.message, '[rebuild]') }}
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: opc
           key: ${{ secrets.ORACLE_SSH_KEY }}
-          envs: ADMIN_PASSWORD
+          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY,FORCE_REBUILD
           script: |
+            set -euo pipefail
             cd ~/skinvault
-            # Repositório renomeado skinvault -> galaseca -> lodout. O GitHub
-            # redireciona os nomes antigos (a VM ainda usava "skinvault"), mas
-            # o remote passa a apontar direto pro atual. Troca SÓ o nome no
-            # endereço que já existe (mantém protocolo/credencial);
-            # idempotente. Não imprime a URL (podia conter credencial), só se
-            # ficou certa.
+            # Mantém o remote apontando pro nome atual do repo (idempotente).
             git remote set-url origin "$(git remote get-url origin | sed -E 's#pedronokia/(skinvault|galaseca)#pedronokia/lodout#')"
-            git remote get-url origin | grep -q 'pedronokia/lodout' && echo "remote da VM: pedronokia/lodout"
-            # fetch + reset --hard (nunca "pull"): um merge imprevisível
-            # se o checkout da VM tiver divergido (já aconteceu com scp
-            # manual) é pior que simplesmente igualar a origin/main --
-            # mesma lição já aplicada no fluxo de deploy manual.
+            if git remote get-url origin | grep -q 'pedronokia/lodout'; then
+              echo "remote da VM: pedronokia/lodout"
+            fi
+
+            # fetch + reset --hard (nunca "pull"): evita divergência na VM.
+            # Guarda o SHA anterior fora do repo para rollback automático caso
+            # /readyz ou smoke_test falhem após a troca.
             git fetch origin
+            PREV_SHA="$(git rev-parse HEAD)"
+            TARGET_SHA="$(git rev-parse origin/main)"
+            if [ "$PREV_SHA" != "$TARGET_SHA" ]; then
+              printf '%s\n' "$PREV_SHA" > "$HOME/.lodout-prev-sha"
+            fi
             git reset --hard origin/main
             git clean -fd
-            # Só "web". O worker NÃO pega o código novo sozinho -- é um
-            # processo de longa duração (`while True` em worker.main) numa
-            # imagem que só é reconstruída com [restart-worker] no commit.
-            # Desde 2026-10-29 o worker espera o próximo ciclo ao subir
-            # (`espera_ate_proximo_ciclo`), então reiniciá-lo fora de um
-            # scan não custa requisição; desde 2026-11-13 reiniciar NO
-            # MEIO de um scan retoma do checkpoint (data/scan_parcial.json)
-            # em vez de perder a coleta, mas segue opt-in.
-            SITE_DOMAIN=${{ secrets.SITE_DOMAIN }} \
-              LODOUT_ADMIN_DISCORD_WEBHOOK='${{ secrets.ADMIN_DISCORD_WEBHOOK }}' \
-              LODOUT_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+
+            # Como ./lodout é montado via bind mount (:ro), só reconstruímos a
+            # imagem Docker quando alguma entrada de build mudou (ou [rebuild]).
+            # A gravação do carimbo só acontece após o compose subir com sucesso.
+            BUILD_HASH=$(sha256sum Dockerfile.public-site requirements-public-site.txt entrypoint.sh scripts/minify_static.py | sha256sum | awk '{print $1}')
+            STAMP_FILE="$HOME/.lodout-web-build.sha256"
+            BUILD_FLAG=""
+            if [ "${FORCE_REBUILD:-false}" = "true" ] \
+               || [ ! -f "$STAMP_FILE" ] \
+               || [ "$(cat "$STAMP_FILE")" != "$BUILD_HASH" ]; then
+              echo "Reconstruindo imagem Docker do web..."
+              BUILD_FLAG="--build"
+            else
+              echo "Imagem Docker inalterada — deploy rápido via bind mount."
+            fi
+
+            BUILD_ID="$(date -u +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+            SITE_DOMAIN="${SITE_DOMAIN:-}" \
+              LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
+              LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+              LODOUT_BUILD_ID="$BUILD_ID" \
               sudo -E docker compose \
               -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
-              up --build -d web
+              up $BUILD_FLAG -d --force-recreate web
+            printf '%s\n' "$BUILD_HASH" > "$STAMP_FILE"
 
-      # Antes da checagem abaixo: ela bate no domínio que o Caddy novo serve.
-      - name: Recria o Caddy quando o commit solicitar
-        if: ${{ contains(github.event.workflow_run.head_commit.message, '[restart-caddy]') }}
-        uses: appleboy/ssh-action@v1.0.3
+            # Recria o Caddy antes do smoke test quando solicitado.
+            if [ "${RESTART_CADDY:-false}" = "true" ]; then
+              echo "Recriando container do Caddy..."
+              SITE_DOMAIN="${SITE_DOMAIN:-}" \
+                LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
+                LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+                sudo -E docker compose \
+                -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
+                up -d --force-recreate caddy
+            fi
+
+            # Só limpa imagens/cache Docker antigos (>7 dias) quando houve
+            # rebuild de imagem — em deploy rápido via bind mount, evita
+            # ~4 min de varredura desnecessária do BuildKit cache na VM.
+            if [ -n "$BUILD_FLAG" ]; then
+              sudo docker image prune -f --filter "until=168h" || true
+              sudo docker builder prune -f --filter "until=168h" || true
+            fi
+            df -h /
+
+      - name: Confirma que o site subiu (/readyz)
         env:
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        with:
-          host: ${{ secrets.ORACLE_HOST }}
-          username: opc
-          key: ${{ secrets.ORACLE_SSH_KEY }}
-          envs: ADMIN_PASSWORD
-          script: |
-            cd ~/skinvault
-            # `caddy reload` já reportou sucesso sem aplicar mudança de
-            # cabeçalho; recriar o container relê o Caddyfile com certeza.
-            SITE_DOMAIN=${{ secrets.SITE_DOMAIN }} \
-              LODOUT_ADMIN_DISCORD_WEBHOOK='${{ secrets.ADMIN_DISCORD_WEBHOOK }}' \
-              LODOUT_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-              sudo -E docker compose \
-              -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
-              up -d --force-recreate caddy
-
-      - name: Confirma que o site subiu (2a rodada, 2026-10-26)
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
         run: |
-          # Até ~60s: no primeiro deploy de um domínio o Caddy ainda está
-          # emitindo o certificado quando esta checagem começa.
+          set -euo pipefail
+          dominio="${SITE_DOMAIN:-lodout.com}"
+          # Até ~60s: cobre recriação do Caddy ou emissão inicial de certificado.
           for i in $(seq 1 12); do
             sleep 5
-            if curl -sf "https://lodout.com/healthz" | grep -q '"ok": *true'; then
-              echo "OK: /healthz respondeu"; exit 0
+            if curl -sf "https://${dominio}/readyz" | grep -q '"ready": *true'; then
+              echo "OK: https://${dominio}/readyz respondeu ready=true"
+              exit 0
             fi
           done
-          echo "FALHOU: /healthz não respondeu como esperado"; exit 1
+          echo "FALHOU: https://${dominio}/readyz não respondeu como esperado"
+          exit 1
 
-      - name: Atualiza o worker quando o commit solicitar
-        if: ${{ contains(github.event.workflow_run.head_commit.message, '[restart-worker]') }}
+      - name: Smoke test pós-deploy nas rotas principais
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Executa scripts/smoke_test.py
+        env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet httpx
+          dominio="${SITE_DOMAIN:-lodout.com}"
+          python scripts/smoke_test.py "https://${dominio}"
+
+      - name: Rollback automático do web em caso de falha na validação
+        if: ${{ failure() && steps.deploy_web.outcome == 'success' }}
         uses: appleboy/ssh-action@v1.0.3
         env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: opc
           key: ${{ secrets.ORACLE_SSH_KEY }}
-          envs: ADMIN_PASSWORD
+          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD
           script: |
+            set -euo pipefail
+            cd ~/skinvault
+            PREV_FILE="$HOME/.lodout-prev-sha"
+            if [ ! -f "$PREV_FILE" ]; then
+              echo "Sem SHA anterior salvo para rollback."
+              exit 0
+            fi
+            PREV_SHA="$(cat "$PREV_FILE")"
+            CUR_SHA="$(git rev-parse HEAD)"
+            if [ -z "$PREV_SHA" ] || [ "$PREV_SHA" = "$CUR_SHA" ]; then
+              echo "HEAD já está no SHA anterior ($CUR_SHA); nada a reverter."
+              exit 0
+            fi
+            git cat-file -e "${PREV_SHA}^{commit}"
+            echo "Revertendo web de ${CUR_SHA:0:7} para ${PREV_SHA:0:7}..."
+            git reset --hard "$PREV_SHA"
+            git clean -fd
+
+            BUILD_HASH=$(sha256sum Dockerfile.public-site requirements-public-site.txt entrypoint.sh scripts/minify_static.py | sha256sum | awk '{print $1}')
+            STAMP_FILE="$HOME/.lodout-web-build.sha256"
+            BUILD_FLAG=""
+            if [ ! -f "$STAMP_FILE" ] || [ "$(cat "$STAMP_FILE")" != "$BUILD_HASH" ]; then
+              BUILD_FLAG="--build"
+            fi
+
+            SITE_DOMAIN="${SITE_DOMAIN:-}" \
+              LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
+              LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+              LODOUT_BUILD_ID="rollback-${PREV_SHA:0:7}" \
+              sudo -E docker compose \
+              -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
+              up $BUILD_FLAG -d --force-recreate web
+            printf '%s\n' "$BUILD_HASH" > "$STAMP_FILE"
+            echo "Rollback concluído para ${PREV_SHA:0:7}."
+
+      - name: Avisa no Discord se o deploy falhou
+        if: ${{ failure() && steps.deploy_web.outcome == 'success' }}
+        env:
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          python3 -c '
+          import json, os, urllib.request
+          url = os.environ.get("ADMIN_DISCORD_WEBHOOK", "").strip()
+          if not url:
+              raise SystemExit(0)
+          sha = os.environ["COMMIT_SHA"][:7]
+          msg = f"🚨 Lodout: deploy do commit `{sha}` falhou em /readyz ou smoke_test e o web foi revertido automaticamente para a versão anterior."
+          req = urllib.request.Request(
+              url,
+              data=json.dumps({"content": msg}).encode("utf-8"),
+              method="POST",
+              headers={"Content-Type": "application/json", "User-Agent": "Lodout-Deploy/1.0"},
+          )
+          urllib.request.urlopen(req, timeout=5)
+          ' || true
+
+      - name: Atualiza o worker quando solicitado
+        if: ${{ inputs.restart_worker == true || contains(github.event.workflow_run.head_commit.message, '[restart-worker]') }}
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild == true || contains(github.event.workflow_run.head_commit.message, '[rebuild]') }}
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: opc
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,FORCE_REBUILD
+          script: |
+            set -euo pipefail
             cd ~/skinvault
             # Ao subir, o worker espera o próximo ciclo (conta do último
             # registrado); só escaneia na hora se o ciclo já estiver atrasado.
-            SITE_DOMAIN=${{ secrets.SITE_DOMAIN }} \
-              LODOUT_ADMIN_DISCORD_WEBHOOK='${{ secrets.ADMIN_DISCORD_WEBHOOK }}' \
-              LODOUT_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            BUILD_HASH=$(sha256sum Dockerfile.public-site requirements-public-site.txt entrypoint.sh scripts/minify_static.py | sha256sum | awk '{print $1}')
+            STAMP_FILE="$HOME/.lodout-worker-build.sha256"
+            BUILD_FLAG=""
+            if [ "${FORCE_REBUILD:-false}" = "true" ] \
+               || [ ! -f "$STAMP_FILE" ] \
+               || [ "$(cat "$STAMP_FILE")" != "$BUILD_HASH" ]; then
+              echo "Reconstruindo imagem Docker do worker..."
+              BUILD_FLAG="--build"
+            else
+              echo "Imagem Docker inalterada — recriando worker via bind mount."
+            fi
+
+            SITE_DOMAIN="${SITE_DOMAIN:-}" \
+              LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
+              LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
               sudo -E docker compose \
               -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
-              up --build -d worker
+              up $BUILD_FLAG -d --force-recreate worker
+            printf '%s\n' "$BUILD_HASH" > "$STAMP_FILE"

@@ -5,19 +5,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ item.name_fmt }} — Lodout</title>
-  <meta name="description" content="Nota {{ item.score }}/100 pra {{ item.name_fmt }} — {{ item.price_fmt }}, dado público da Steam Community Market.">
+  <meta name="description" content="{{ item.name_fmt }}: nota {{ item.score }} e preço de {{ item.price_fmt }} no Mercado da Steam.">
   <meta property="og:title" content="{{ item.name_fmt }} — Lodout">
-  <meta property="og:description" content="Nota {{ item.score }}/100 · {{ item.price_fmt }}{% if item.reasons %} · {{ item.reasons|join('; ') }}{% endif %}">
+  <meta property="og:description" content="Nota {{ item.score }} · {{ item.price_fmt }}{% if item.reasons %} · {{ item.reasons|join('; ') }}{% endif %}">
   <meta property="og:type" content="website">
   <meta property="og:image" content="{{ request.url_root.rstrip('/') ~ url_for('og_item', nome=item.name) }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="{{ item.name_fmt }}: nota {{ item.score }}/100, {{ item.price_fmt }}">
+  <meta property="og:image:alt" content="{{ item.name_fmt }}: nota {{ item.score }}, {{ item.price_fmt }}">
   <meta property="og:url" content="{{ request.url }}">
   <meta property="og:locale" content="pt_BR">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ item.name_fmt }} — Lodout">
-  <meta name="twitter:description" content="Nota {{ item.score }}/100 · {{ item.price_fmt }}">
+  <meta name="twitter:description" content="Nota {{ item.score }} · {{ item.price_fmt }}">
   <meta name="twitter:image" content="{{ request.url_root.rstrip('/') ~ url_for('og_item', nome=item.name) }}">
   <link rel="canonical" href="{{ request.url }}">
   <script type="application/ld+json">
@@ -26,7 +26,7 @@
     "@type": "Product",
     "name": "{{ item.name_fmt }}",
     "image": "{{ request.url_root.rstrip('/') ~ (item.icon_url_2x if item.icon_url_2x else url_for('static', filename='og-image.png')) }}",
-    "description": {{ (item.reasons|join('; ') if item.reasons else 'Nota neutra: nenhum fator se destacou')|tojson }}
+    "description": {{ (item.reasons|join('; ') if item.reasons else 'Sem fator em destaque')|tojson }}
     {%- if item.price is not none %},
     "offers": {
       "@type": "Offer",
@@ -53,7 +53,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -62,7 +62,7 @@
   </header>
 
   <main id="conteudo" class="pagina-texto pagina-item">
-    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pra lista</a></p>
+    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar à lista</a></p>
 
     {# Hero cinematográfico (revisão de direção visual 2026-11-08, rodada
        2): a página do item é o "momento orquestrado" do site -- listras
@@ -80,11 +80,11 @@
           <p class="hero-item-tag">{{ item.raridade_titulo }}</p>
           {% endif %}
           <p class="hero-item-acoes">
-            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Steam Market</a>
+            <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
-            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link da análise" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
-            <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
+            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
+            <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>
         <div class="hero-item-imagem">
@@ -99,9 +99,9 @@
     </div>
 
     <section class="resumo-cards resumo-cards-item" aria-label="Resumo do item">
-      <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
+      <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da nota: sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
       <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span></div>
-      <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Quantas skins desta caixa já estão mapeadas no Lodout — não é a contagem oficial do jogo">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
+      <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Skins desta caixa que o Lodout já acompanha (não é o total do jogo)">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
       <div class="card card-risco"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}"><span class="gauge-barras gauge-risco gauge-risco-{{ item.pump_risk|risco_nivel }}" aria-hidden="true"><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span></span>{{ item.pump_risk|risco_label }}</span></div>
       {% if item.liquidity_depth and item.liquidity_depth.band %}
       <div class="card card-liquidez" title="{{ item.liquidity_depth.label }}">
@@ -113,9 +113,9 @@
       <div class="card"><span class="card-label">Aposentada há</span><span class="card-valor">{{ tempo_aposentadoria }}</span></div>
       {% endif %}
       {% if preco_coletado_txt %}
-      <p class="card-coleta">Preço deste item coletado {{ preco_coletado_txt }}.{% if item.mantido_do_ciclo_anterior %} A Steam não devolveu preço novo no último ciclo, então os números são do ciclo anterior; o item é tentado de novo no próximo.{% endif %}</p>
+      <p class="card-coleta">Preço coletado {{ preco_coletado_txt }}.{% if item.mantido_do_ciclo_anterior %} Sem preço novo na última coleta; valores anteriores.{% endif %}</p>
       {% elif item.mantido_do_ciclo_anterior %}
-      <p class="card-coleta">A Steam não devolveu preço novo no último ciclo, então os números são do ciclo anterior; o item é tentado de novo no próximo.</p>
+      <p class="card-coleta">Sem preço novo na última coleta; valores anteriores.</p>
       {% endif %}
     </section>
 
@@ -123,21 +123,20 @@
     {% include "partials/_na_sua_conta.html" %}
     <section class="conta-revenda" aria-labelledby="titulo-revenda">
       <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
-      <p class="conta-revenda-texto">Comprando hoje por <strong>{{ item.price_fmt }}</strong>, você precisa vender por pelo menos <strong>{{ preco_empate }}</strong> para receber de volta o que pagou. A taxa é de {{ taxa_steam_pct }}% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de {{ (taxa_steam_pct * 100 / (100 + taxa_steam_pct))|round|int }}% do que o comprador paga. Por isso o preço precisa subir uns {{ taxa_steam_pct }}% só para empatar.</p>
+      <p class="conta-revenda-texto">Comprou por <strong>{{ item.price_fmt }}</strong>? Venda por pelo menos <strong>{{ preco_empate }}</strong> para não perder. A taxa da Steam é de {{ taxa_steam_pct }}% sobre o que você recebe.</p>
 
       <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
         <div class="simulador-topo">
-          <span class="simulador-badge">{{ icone("grafico") }} Simulador Interativo</span>
-          <h3 class="simulador-titulo">Simule sua Oferta & Retorno Líquido</h3>
+          <h3 class="simulador-titulo">Simule sua encomenda</h3>
         </div>
-        <p class="simulador-desc">Arraste para ajustar o valor que quer oferecer e veja o lucro líquido em tempo real após a taxa da Steam.</p>
+        <p class="simulador-desc">Resultado revendendo pelo preço de hoje, já com a taxa.</p>
 
         <div class="simulador-controles">
           <div class="simulador-campo-grupo">
-            <label for="sim-input-encomenda" class="simulador-label">Quanto quero pagar (R$):</label>
+            <label for="sim-input-encomenda" class="simulador-label">Sua oferta (R$)</label>
             <div class="simulador-input-wrap">
               <span class="simulador-moeda">R$</span>
-              <input type="number" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" step="0.01" min="0.03" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}">
+              <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
             </div>
           </div>
           <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
@@ -149,22 +148,22 @@
           <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
           <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
           <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
-          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Preço exato de oferta para recuperar 100% na revenda de hoje">No Empate</button>
+          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Oferta que empata revendendo pelo preço de hoje">No empate</button>
         </div>
 
         <div class="simulador-metricas-grid">
           <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Ponto de Empate</span>
+            <span class="simulador-metrica-rotulo">Ponto de empate</span>
             <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
-            <span class="simulador-metrica-sub">Venda mínima p/ não perder</span>
+            <span class="simulador-metrica-sub">Venda mínima para não perder</span>
           </div>
           <div class="simulador-metrica-card card-destaque-lucro">
-            <span class="simulador-metrica-rotulo">Lucro ao Preço de Hoje</span>
+            <span class="simulador-metrica-rotulo">Lucro revendendo hoje</span>
             <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
-            <span class="simulador-metrica-sub" id="sim-retorno-pct">+0,0% líquido</span>
+            <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
           </div>
           <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Fila no Mercado</span>
+            <span class="simulador-metrica-rotulo">Fila de encomendas</span>
             <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
             <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
           </div>
@@ -219,13 +218,13 @@
          histórico completo da Steam (scan_engine/signals.revenda_historica). #}
       {% set rh = item.revenda_historica or {} %}
       {% if rh %}
-      <p class="conta-revenda-pergunta">Isso já aconteceu antes? No último ano, quem comprou este item recuperou o que pagou, vendendo depois de…</p>
+      <p class="conta-revenda-pergunta">Quem comprou no último ano recuperou o valor vendendo depois de:</p>
       <ul class="conta-revenda-lista">
         {% for h, rotulo in [("30", "30 dias"), ("90", "90 dias"), ("365", "1 ano")] if h in rh %}
         <li><span class="conta-revenda-prazo">{{ rotulo }}</span> <strong class="conta-revenda-pct">{{ rh[h].pct }}%</strong> <span class="conta-revenda-desc">das vezes</span></li>
         {% endfor %}
       </ul>
-      <p class="conta-revenda-nota">Compara o preço médio de cada dia com o de 30, 90 ou 365 dias depois, já com a taxa da Steam. Mostra o que aconteceu no passado, não o que vai acontecer.</p>
+      <p class="conta-revenda-nota">Já com a taxa. Mostra o passado, não prevê o futuro.</p>
       {% endif %}
     </section>
     {% endif %}
@@ -235,7 +234,7 @@
        entender a nota deste item; antes ele vinha só depois do gráfico. #}
     <h2 class="secao-titulo">Por quê</h2>
     {% if not item.breakdown %}
-    <p>{{ item.reasons|join("; ") if item.reasons else "Nota neutra: nenhum fator se destacou" }}</p>
+    <p>{{ item.reasons|join("; ") if item.reasons else "Sem fator em destaque" }}</p>
     {% endif %}
     {% if item.breakdown %}
     <ul class="lista-breakdown lista-motivos">
@@ -245,7 +244,7 @@
       {% endfor %}
     </ul>
     {% endif %}
-    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como cada fator da nota é calculado {{ icone("seta-direita") }}</a></p>
+    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como cada fator é calculado {{ icone("seta-direita") }}</a></p>
 
     {% if tem_historico %}
       <div class="faixa faixa-grafico">
@@ -284,14 +283,14 @@
     <div class="card grafico-card grafico-nota">{{ grafico_nota|safe }}</div>
     {% if legenda_nota %}<p class="status-muted">{{ legenda_nota }}</p>{% endif %}
     {% else %}
-    <p class="texto-sem-dado">A nota deste item começou a ser guardada em 17/11, com um ponto a cada coleta (4 por dia). O gráfico aparece a partir da segunda coleta.</p>
+    <p class="texto-sem-dado">O gráfico aparece a partir da segunda coleta.</p>
     {% endif %}
       </div>
     </div>
 
     {% if variantes %}
-    <h2 class="secao-titulo">Outras versões desta skin (Matriz de Desgastes)</h2>
-    <p class="status-muted">Desgaste, StatTrak™ e Souvenir da mesma skin, com o preço mediano da venda mais recente registrada pela Steam. Vêm na mesma consulta deste item, sem custo extra.</p>
+    <h2 class="secao-titulo">Outras versões desta skin</h2>
+    <p class="status-muted">Preço mediano da venda mais recente de cada versão.</p>
     
     <div class="wear-matrix-grid">
       {% for v in variantes %}
@@ -309,7 +308,7 @@
         </div>
         <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
         <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
-        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Steam Market ↗") }}</span>
+        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Ver na Steam ↗") }}</span>
       </a>
       {% endfor %}
     </div>
@@ -322,7 +321,7 @@
       <tbody>
         {% for v in variantes %}
         <tr>
-          <td>{% if v.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=v.name) }}" translate="no">{{ v.name_fmt }}</a>{% else %}<a class="link-item" href="{{ v.market_url }}" target="_blank" rel="noopener" translate="no">{{ v.name_fmt }}<span class="visualmente-oculto"> (abre no Steam Market, em nova aba)</span></a>{% endif %}</td>
+          <td>{% if v.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=v.name) }}" translate="no">{{ v.name_fmt }}</a>{% else %}<a class="link-item" href="{{ v.market_url }}" target="_blank" rel="noopener" translate="no">{{ v.name_fmt }}<span class="visualmente-oculto"> (abre no Mercado da Steam, em nova aba)</span></a>{% endif %}</td>
           <td{% if v.quando %} title="Venda registrada {{ v.quando }}"{% endif %}>{{ v.mediana_fmt }}</td>
           <td>{{ v.compras_24h if v.compras_24h is not none else "—" }}</td>
         </tr>
@@ -336,17 +335,17 @@
     <h2 class="secao-titulo">No ranking</h2>
     {% if hr.dias_com_ranking %}
     <p class="historico-ranking-resumo">
-      {% if hr.posicao_atual %}Hoje está em <strong>#{{ hr.posicao_atual }}</strong> do Top 20.{% else %}Não está no Top 20 do último scan.{% endif %}
-      {% if hr.dias_no_top %}Apareceu no Top 20 em <strong>{{ hr.dias_no_top }} de {{ hr.dias_com_ranking }}</strong> {{ "dia" if hr.dias_com_ranking == 1 else "dias" }} com ranking salvo nos últimos {{ hr.dias|length }} dias; melhor posição: <strong>#{{ hr.melhor_posicao }}</strong>.{% else %}Não apareceu no Top 20 nos {{ hr.dias_com_ranking }} {{ "dia" if hr.dias_com_ranking == 1 else "dias" }} com ranking salvo dos últimos {{ hr.dias|length }} dias.{% endif %}
+      {% if hr.posicao_atual %}Hoje: <strong>#{{ hr.posicao_atual }}</strong> no Top 20.{% else %}Hoje: fora do Top 20.{% endif %}
+      {% if hr.dias_no_top %}No Top 20 em <strong>{{ hr.dias_no_top }} de {{ hr.dias_com_ranking }}</strong> {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}. Melhor posição: <strong>#{{ hr.melhor_posicao }}</strong>.{% else %}Fora do Top 20 nos últimos {{ hr.dias_com_ranking }} {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}.{% endif %}
     </p>
     <ol class="faixa-dias" aria-hidden="true">
       {% for d in hr.dias %}
       <li class="faixa-dia faixa-dia-{{ d.estado }}" title="{{ d.data.strftime('%d/%m') }}: {% if d.estado == 'top' %}#{{ d.melhor }} no Top 20{% elif d.estado == 'fora' %}fora do Top 20{% else %}sem ranking salvo{% endif %}"></li>
       {% endfor %}
     </ol>
-    <p class="faixa-dias-legenda status-muted" aria-hidden="true"><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-top"></span> no Top 20</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-fora"></span> fora</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-sem_dado"></span> sem ranking salvo</span><span class="faixa-dias-legenda-item">do mais antigo (esquerda) pro de hoje</span></p>
+    <p class="faixa-dias-legenda status-muted" aria-hidden="true"><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-top"></span> no Top 20</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-fora"></span> fora</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-sem_dado"></span> sem dado</span><span class="faixa-dias-legenda-item">do mais antigo ao de hoje</span></p>
     {% else %}
-    <p class="texto-sem-dado">Ainda não há ranking salvo nos últimos {{ hr.dias|length }} dias.</p>
+    <p class="texto-sem-dado">Sem ranking nos últimos {{ hr.dias|length }} dias.</p>
     {% endif %}
 
     {% if eventos_jogo %}

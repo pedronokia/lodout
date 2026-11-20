@@ -11,6 +11,34 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-20",
+        "titulo": "Preço certo nos desgastes, textos mais simples e site mais leve no celular",
+        "itens": [
+            "Quando a coleta aproveita a página de um item para os outros desgastes dele, agora busca também o preço de agora de cada um (antes vinha do último ponto do histórico).",
+            "Simulador da encomenda, na página do item: aceita vírgula (“58,95”), mostra prejuízo como “−R$ 2,82”, igual ao resto do site, e fala em português simples.",
+            "Ranking: textos cinza com contraste suficiente para ler e a posição (1, 2, 3…) centralizada na linha.",
+            "Página inicial: textos sem jargão, preços na mesma fonte do site, sem repetir o item da nota mais alta no Termômetro e com menos efeito de vidro, que deixava a rolagem pesada no celular.",
+            "No celular, o botão de busca não mostra mais o atalho de teclado “Ctrl K”.",
+            "Visual mais limpo: sem brilho laranja em volta de botões e ícones, título da página inicial sem degradê, selos e preço da encomenda nos cartões com letra maior, e o simulador sem quadros dentro de quadros.",
+            "Glossário: os atalhos para cada termo não ficam mais encavalados, e cada termo virou um cartão inteiro. O rodapé ganhou margem nos lados, a lupa da busca voltou para o lugar, e as páginas de texto (Método, FAQ, Mudanças) ficaram alinhadas à esquerda, sem palavras partidas no fim da linha.",
+            "Mudanças: data por extenso embaixo de cada título e as mais antigas recolhidas em “Ver mudanças mais antigas”. Status: as visitas por dia viraram barras com a data e o número.",
+            "Minha conta no celular: as quatro abas (Meus Itens, Watchlist, Trades e Histórico) cabem na tela, sem o Histórico escondido, e Trades ganhou um ícone de troca. Em cada troca, o saldo e o “apagar” ficam na mesma linha.",
+            "Página de item que ainda não tem nota: o quadro “Comprar por encomenda” mostrava um botão vazio e uma frase incompleta; agora mostra só o valor para lucrar a sua meta. Comparar itens: no celular, a tabela desliza dentro do quadro em vez de arrastar a página toda para o lado.",
+            "O balão “Cores da borda” do Ranking agora fecha com Esc ou tocando fora, como na página inicial. Com a letra do celular ampliada, os cartões da página inicial passam a uma coluna e o preço da encomenda não some mais. Na janela “Vendi”, a dica diz “corrija se vendeu por outro valor” (antes falava em anúncio).",
+            "Cores de volta ao cinza do Lodout: quadros, cartões, tabelas e painéis tinham ganhado um fundo azul-marinho; agora são cinza neutro, com o laranja como única cor de destaque. O botão “Entrar com Steam” continua com o azul da Steam.",
+            "Um verde, um vermelho e um amarelo só: o site usava quatro tons de verde, três de vermelho e dois de amarelo; agora todos são os da casa. O texto de apoio da página inicial, os subtítulos das páginas e o seletor de período do Ranking deixaram um cinza puxado para o azul. Link com o mouse em cima fica laranja claro, mais fácil de ler.",
+            "Sem azul-céu: o selo “Mais negociado” e a etiqueta “anunciado” da sua conta ficaram cinza claro, a barrinha de liquidez do item ficou laranja e o quadro “Subiram” do Ranking ganhou o verde de alta. O único azul do site é o botão “Entrar com Steam”.",
+            "Site mais leve: o estilo e o script das páginas chegam sem os comentários internos do código (o estilo comprimido caiu de cerca de 72 KB para 43 KB), então a primeira página abre mais rápido, principalmente no celular. A aba da página inicial agora diz o que o site é: “Lodout — notas de 0 a 100 para skins de CS2”.",
+            "A imagem que aparece ao compartilhar o Lodout no WhatsApp, Discord ou X agora mostra as aspas do logo como no topo do site (antes eram dois traços retos). O mesmo vale para a imagem de item que ainda não tem foto.",
+            "Textos revisados no site inteiro: mais curtos e diretos, sem gírias, com as mesmas informações. O Método ficou cerca de 30% menor, e o Glossário e as Perguntas frequentes, uns 15% a 20%. A Privacidade agora descreve as trocas como elas são hoje (o que você deu e recebeu), e a página de excluir conta lista também os itens vendidos entre o que é apagado.",
+            "Novo título na página inicial: “Entenda o mercado de skins de CS2”. A expressão “de 0 a 100” saiu do site inteiro, inclusive do “/100” ao lado da nota nas imagens de compartilhamento.",
+            "Topo da página inicial em uma frase só, linha da coleta mais curta (“37 itens, atualizados há 2 h”) e links para a Steam em português: “Ver na Steam” e “Ver no Mercado da Steam”. A queda no Termômetro aparece como “−6,8%”.",
+            "O nome do jogo aparece por extenso no site inteiro: “Counter-Strike 2”, em vez da sigla.",
+            "Mais uma revisão dos textos: o site tem cerca de 27% menos palavras que antes desta rodada. Método, Glossário, Perguntas frequentes, página do item, Minha conta e Status ficaram mais diretos, com as mesmas informações e os mesmos avisos.",
+            "Privacidade reescrita em um terço do tamanho, com os mesmos compromissos: o que guardamos, por quanto tempo, como exportar e como apagar.",
+        ],
+    },
+    {
         "data": "2026-11-18",
         "titulo": "Letra grande no celular e menu que mostra onde você está",
         "itens": [

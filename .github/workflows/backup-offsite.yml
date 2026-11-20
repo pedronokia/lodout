@@ -1,0 +1,101 @@
+name: backup-offsite
+
+# Copia os backups mais recentes da VM (public_site-*.db,
+# notas_historico-*.sqlite3 e json-*.zip), cifra com AES-256-CBC + PBKDF2
+# na própria VM e envia via HTTPS PUT para um bucket externo (ex.: Oracle
+# Object Storage Always Free 20 GB com PAR só-escrita, ou Cloudflare R2).
+#
+# Opt-in sem ruído: enquanto os dois secrets abaixo não forem configurados
+# em Settings → Secrets and variables → Actions, o workflow apenas registra
+# um aviso informativo e sai com sucesso (0):
+#   BACKUP_UPLOAD_URL  -- URL HTTPS prefixo de upload (ex. PAR da Oracle
+#                         terminando em /o/)
+#   BACKUP_PASSPHRASE  -- senha longa (>=12 chars) pra cifrar antes do envio
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-offsite
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verifica se secrets de backup off-site estão configurados
+        id: config
+        env:
+          BACKUP_UPLOAD_URL: ${{ secrets.BACKUP_UPLOAD_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "${BACKUP_UPLOAD_URL:-}" ] || [ -z "${BACKUP_PASSPHRASE:-}" ]; then
+            echo "::notice::Backup off-site inativo: configure os secrets BACKUP_UPLOAD_URL e BACKUP_PASSPHRASE para ativar o envio diário cifrado."
+            echo "ativo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ativo=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Empacota, cifra e envia backup mais recente a partir da VM
+        if: ${{ steps.config.outputs.ativo == 'true' }}
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          BACKUP_UPLOAD_URL: ${{ secrets.BACKUP_UPLOAD_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: opc
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          envs: BACKUP_UPLOAD_URL,BACKUP_PASSPHRASE
+          script: |
+            set -euo pipefail
+            cd ~/skinvault
+            TMPDIR="$(mktemp -d)"
+            trap 'rm -rf "$TMPDIR"' EXIT
+
+            # Extrai apenas o backup mais recente de cada família direto do
+            # volume /data/backups do container `web` (sem copiar 7 dias).
+            mkdir -p "$TMPDIR/backups"
+            sudo docker compose \
+              -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
+              exec -T web python -c '
+            import pathlib, tarfile, sys
+            bdir = pathlib.Path("/data/backups")
+            arqs = []
+            for pat in ("public_site-*.db", "notas_historico-*.sqlite3", "json-*.zip"):
+                encontrados = sorted(p for p in bdir.glob(pat) if p.is_file()) if bdir.exists() else []
+                if encontrados:
+                    arqs.append(encontrados[-1])
+            if not arqs:
+                raise SystemExit("nenhum backup encontrado em /data/backups")
+            with tarfile.open(fileobj=sys.stdout.buffer, mode="w|") as tf:
+                for a in arqs:
+                    tf.add(a, arcname=a.name)
+            ' | tar -xf - -C "$TMPDIR/backups"
+
+            python3 scripts/backup_offsite.py enviar "$TMPDIR/backups"
+
+      - name: Avisa no Discord se o backup off-site falhar
+        if: ${{ failure() && steps.config.outputs.ativo == 'true' }}
+        env:
+          ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+        run: |
+          python3 -c '
+          import json, os, urllib.request
+          url = os.environ.get("ADMIN_DISCORD_WEBHOOK", "").strip()
+          if not url:
+              raise SystemExit(0)
+          msg = "⚠️ Lodout: o backup off-site diário falhou. Ver aba Actions (backup-offsite)."
+          req = urllib.request.Request(
+              url,
+              data=json.dumps({"content": msg}).encode("utf-8"),
+              method="POST",
+              headers={"Content-Type": "application/json", "User-Agent": "Lodout-BackupOffsite/1.0"},
+          )
+          urllib.request.urlopen(req, timeout=5)
+          ' || true

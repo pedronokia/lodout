@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -31,7 +31,7 @@
       {# Quem é o dono da conta, com o avatar da Steam (2026-11-15). #}
       <p class="descricao-pagina conta-identidade">
         {% if avatar_local %}<img class="conta-identidade-avatar" src="{{ url_for('account.avatar') }}" alt="" width="32" height="32">{% endif %}
-        <span>{% if usuario and usuario.persona_name %}<strong class="conta-identidade-nome" translate="no">{{ usuario.persona_name }}</strong><span class="conta-identidade-frase"> · </span>{% endif %}<span class="conta-identidade-frase">seus itens da Steam, quanto valem hoje e por quanto vender para não ter prejuízo.</span></span>
+        <span>{% if usuario and usuario.persona_name %}<strong class="conta-identidade-nome" translate="no">{{ usuario.persona_name }}</strong><span class="conta-identidade-frase"> · </span>{% endif %}<span class="conta-identidade-frase">seus itens, quanto valem e por quanto vender.</span></span>
       </p>
     </header>
 
@@ -81,7 +81,7 @@
         <span class="card-label">Vale hoje</span>
         <span class="card-valor" data-total="valor">{{ tx.valor }}</span>
         <span class="card-sub" data-total="valor_sub">{{ tx.valor_sub }}</span>
-        <span class="card-sub" data-total="liquido_sub" title="A Steam cobra uma taxa em cada venda; este é o valor que sobra para você se vender tudo pelo preço de hoje.">{{ tx.liquido_sub }}</span>
+        <span class="card-sub" data-total="liquido_sub" title="O que sobra para você vendendo tudo pelo preço de hoje, já sem a taxa da Steam.">{{ tx.liquido_sub }}</span>
         {% if mudanca_valor %}<span class="card-sub card-mudanca" title="Comparado com o valor da sua conta {{ mudanca_valor.quando }}. Inclui preços que mudaram e itens que entraram ou saíram."><span class="{{ mudanca_valor.classe }}">{{ mudanca_valor.texto }}</span> {{ mudanca_valor.periodo }}{% if mudanca_valor.nota %}, {{ mudanca_valor.nota }}{% endif %}</span>{% endif %}
       </div>
       <div class="card">
@@ -124,15 +124,15 @@
     {% if inv.em_andamento %}
     {# A página se atualiza sozinha (conta.js lê de novo esta página do
        próprio site, sem consultar a Steam) até a busca terminar. #}
-    <p class="status-inventario status-inventario-buscando" data-recarregar-enquanto-busca>Buscando seu inventário da Steam… a lista aparece aqui em alguns segundos.</p>
+    <p class="status-inventario status-inventario-buscando" data-recarregar-enquanto-busca>Buscando seu inventário…</p>
     {% elif inv.status == "ok" %}
     <p class="status-inventario">Inventário da Steam atualizado {{ inventario_idade }}.{% if idade_precos %} {{ idade_precos }}{% endif %}{% if inv.resumo and inv.resumo.novos %} {{ inv.resumo.novos }} {{ "item novo" if inv.resumo.novos == 1 else "itens novos" }}: informe quanto pagou.{% endif %}{% if avaliacao.fora_n == 1 %} 1 item não aparece no inventário agora (anunciado no Mercado ou vendido). <button type="button" class="acao-texto" data-ir-fora hidden>Ver qual</button>{% elif avaliacao.fora_n %} {{ avaliacao.fora_n }} itens não aparecem no inventário agora (anunciados no Mercado ou vendidos). <button type="button" class="acao-texto" data-ir-fora hidden>Ver quais</button>{% endif %}{{ atualizar_agora() }} <a class="acao-texto" href="https://steamcommunity.com/my/inventory/#730" target="_blank" rel="noopener">Abrir na Steam<span class="visualmente-oculto"> (seu inventário, em nova aba)</span></a></p>
     {% elif inv.status == "private" %}
-    <p class="status-inventario status-inventario-alerta">Seu inventário da Steam está privado, então o Lodout não consegue ver seus itens. Para mostrar: na Steam, abra Perfil → Editar perfil → Privacidade e deixe “Inventário” como Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a>{{ atualizar_agora("Já deixei público: tentar de novo") }}</p>
+    <p class="status-inventario status-inventario-alerta">Seu inventário está privado. Na Steam: Perfil → Editar perfil → Privacidade → Inventário: Público. <a href="https://steamcommunity.com/my/edit/settings" target="_blank" rel="noopener">Abrir as configurações de privacidade</a>{{ atualizar_agora("Já deixei público: tentar de novo") }}</p>
     {% elif inv.status == "empty" %}
-    <p class="status-inventario">Seu inventário de CS2 não tem itens que possam ser vendidos no Mercado da Steam.{{ atualizar_agora() }}</p>
+    <p class="status-inventario">Seu inventário de Counter-Strike 2 não tem itens que possam ser vendidos no Mercado da Steam.{{ atualizar_agora() }}</p>
     {% elif inv.status in ("rate_limited", "error") %}
-    <p class="status-inventario">Não deu para ler seu inventário agora (a Steam pediu uma pausa). O Lodout tenta de novo sozinho mais tarde.</p>
+    <p class="status-inventario">A Steam pediu uma pausa. O inventário será lido mais tarde.</p>
     {% else %}
     <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.{{ atualizar_agora("Buscar meus itens agora") }}</p>
     {% endif %}
@@ -142,7 +142,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     </form>
     {% if avaliacao.rows %}
-    <p class="visualmente-oculto" id="explica-meta">Muda o preço de venda para lucrar em cada item. O preço já inclui a taxa de {{ taxa_steam_pct }}% da Steam.</p>
+    <p class="visualmente-oculto" id="explica-meta">Ajusta o preço de venda à meta, já com a taxa de {{ taxa_steam_pct }}%.</p>
     {# Ferramentas da lista (2026-11-15): com o inventário inteiro, achar
        o que importa sem rolar a lista toda. Tudo no navegador (conta.js),
        sem consulta nova; sem JavaScript fica escondida e a lista aparece
@@ -177,14 +177,14 @@
     <details class="como-ler">
       <summary><span class="como-ler-icone" aria-hidden="true">{{ icone("ajuda") }}</span>Como ler esta tabela</summary>
       <dl class="como-ler-lista">
-        <div><dt>Venda por</dt><dd>O preço que o <strong>comprador paga</strong>, por unidade, já com a taxa de {{ taxa_steam_pct }}% da Steam. Na tela de venda da Steam, cole em “O comprador paga”, não em “Você recebe”.</dd></div>
-        <div><dt>Você pagou</dt><dd>Quanto você pagou em cada unidade. Só você sabe: a Steam não mostra esse valor para ninguém.</dd></div>
-        <div><dt>Vale hoje</dt><dd>O preço do item no Mercado da Steam, o último que o Lodout coletou.</dd></div>
-        <div><dt>Lucro hoje</dt><dd>O que sobraria vendendo hoje por esse preço, já sem os {{ taxa_steam_pct }}% da Steam, menos o que você pagou. Negativo quer dizer prejuízo.</dd></div>
-        <div><dt>Sem prejuízo</dt><dd>O preço para anunciar e receber de volta exatamente o que pagou, depois da taxa da Steam. Na Steam, é o valor do campo “O comprador paga”.</dd></div>
-        <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% a mais do que pagou, também já com a taxa. Também vai no campo “O comprador paga”; em “Você recebe”, a Steam mostra o que sobra para você. Mude a porcentagem em “Quero lucrar”.</dd></div>
-        <div><dt>Inventário</dt><dd>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Item sem valor pago deixa a lista sozinho quando sai do inventário; com valor pago, fica marcado “fora do inventário” para você dizer se anunciou ou vendeu (trocou ou deu? use “remover”). “Atualizar agora” busca na hora.</dd></div>
-        <div><dt>Atalhos</dt><dd>Clique num preço de venda para copiar e cole em “O comprador paga” na Steam. No valor pago: Enter salva e vai ao próximo sem valor, ↑ e ↓ mudam de item, e apagar o número + Enter tira o valor. Logo depois de salvar dá para desfazer.</dd></div>
+        <div><dt>Venda por</dt><dd>Preço por unidade, com a taxa de {{ taxa_steam_pct }}%. Na Steam, cole em “O <strong>comprador paga</strong>”.</dd></div>
+        <div><dt>Você pagou</dt><dd>Valor por unidade. Só você sabe, por isso digita.</dd></div>
+        <div><dt>Vale hoje</dt><dd>Último preço coletado.</dd></div>
+        <div><dt>Lucro hoje</dt><dd>Venda hoje, menos a taxa e o que você pagou.</dd></div>
+        <div><dt>Sem prejuízo</dt><dd>Preço de anúncio para recuperar o que pagou.</dd></div>
+        <div><dt data-meta-rotulo>Lucrar {{ meta_lucro }}%</dt><dd>O preço para anunciar e ficar com <span data-meta-num>{{ meta_lucro }}</span>% acima do que pagou. Ajuste em “Quero lucrar”.</dd></div>
+        <div><dt>Inventário</dt><dd>Lido a cada login e uma vez por dia. Item com valor pago que some fica como “fora do inventário”: marque se anunciou ou vendeu (trocou ou deu? “remover”).</dd></div>
+        <div><dt>Atalhos</dt><dd>Clique num preço para copiar. No valor pago: Enter salva, ↑ ↓ mudam de item.</dd></div>
       </dl>
     </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
@@ -236,7 +236,7 @@
                       <input type="number" name="quantidade" min="1" max="{{ row.quantity - 1 }}" value="1" inputmode="numeric" class="input-compacto input-quantidade" aria-describedby="explica-separar-{{ loop.index }}">
                       de {{ row.quantity }}</label>
                     <button type="submit" class="botao-link">separar</button>
-                    <span class="explica-separar" id="explica-separar-{{ loop.index }}">As unidades separadas viram uma linha própria, para você informar quanto pagou nelas.</span>
+                    <span class="explica-separar" id="explica-separar-{{ loop.index }}">As unidades separadas ganham linha e valor próprios.</span>
                   </form>
                 </details>
                 {% endif %}
@@ -290,7 +290,7 @@
                 </details>
                 {# "remover" em todo item fora (rodada 3): quem trocou ou deu
                    o item não tem "Vendi" para marcar. #}
-                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}" data-dialogo-texto="O item sai da sua lista junto com o valor que você informou. Serve para item que você trocou ou deu; se vendeu, use “Vendi”, que guarda a venda no Histórico. Se ele voltar ao seu inventário da Steam, volta sem o valor pago." data-confirmar="Remover {{ row.name_fmt }} da sua lista? Se você vendeu, use “Vendi”.">
+                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}" data-dialogo-texto="O item sai da lista com o valor informado. Use para item que você trocou ou deu; se vendeu, use “Vendi”, que guarda a venda no Histórico. Se voltar ao inventário, volta sem o valor pago." data-confirmar="Remover {{ row.name_fmt }} da sua lista? Se você vendeu, use “Vendi”.">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                   {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
                   <button type="submit" class="botao-link botao-remover botao-fora-remover" aria-label="Remover {{ row.name_fmt }}">remover</button>
@@ -316,7 +316,7 @@
             </form>
             {# Toque mostra o porquê (no celular não há "passar o mouse"). #}
             <button type="button" class="confira" data-campo="confira" aria-expanded="false" aria-controls="confira-explica-{{ loop.index }}">{{ row.confira or "" }}</button>
-            <span class="confira-explica" id="confira-explica-{{ loop.index }}" hidden>O valor pago está muito longe do preço de hoje. Pode estar certo (o preço mudou muito) ou ter sido digitado errado.</span>
+            <span class="confira-explica" id="confira-explica-{{ loop.index }}" hidden>Muito longe do preço de hoje. Confira se digitou certo.</span>
           </td>
           {% if row.price is not none %}
           {% if row.quantity and row.quantity > 1 %}
@@ -359,9 +359,9 @@
          "Nenhum item ainda" ao mesmo tempo se contradizia (revisão 16/11). #}
       {% if not inv.em_andamento %}
       <div class="conta-vazia">
-        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens de CS2 aparecem aqui sozinhos.</p>
-        <p>O Lodout lê o seu inventário público da Steam a cada login e uma vez por dia. Depois é só informar quanto pagou em cada item para ver por quanto vender sem prejuízo.</p>
-        <p>Não apareceu nada? Confira se o inventário está como Público na Steam (Perfil → Editar perfil → Privacidade). Se preferir, adicione um item à mão abaixo.</p>
+        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens aparecem aqui automaticamente.</p>
+        <p>Depois, informe quanto pagou para ver por quanto vender.</p>
+        <p>Não apareceu? Deixe o inventário público na Steam ou adicione à mão abaixo.</p>
       </div>
       {% endif %}
     {% endif %}
@@ -374,7 +374,7 @@
         {# Rótulos visíveis (revisão 2026-11-16): no celular o campo de
            quantidade era só um "1" solto. #}
         <label class="campo-adicionar campo-adicionar-nome"><span>Item (comece a digitar o nome)</span>
-          <input type="text" name="name" data-sugerir autocomplete="off" spellcheck="false" placeholder="ex.: AK-47 | Redline (Field-Tested)" title="Precisa ser o nome exato como aparece no Steam Market, incluindo o desgaste entre parênteses" maxlength="200" required></label>
+          <input type="text" name="name" data-sugerir autocomplete="off" spellcheck="false" placeholder="ex.: AK-47 | Redline (Field-Tested)" title="O nome exato do Mercado da Steam, com o desgaste entre parênteses" maxlength="200" required></label>
         <label class="campo-adicionar"><span>Você pagou, cada (opcional)</span>
           <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="ex.: 35,10" title="Valor em reais, por exemplo 35,10"></label>
         <label class="campo-adicionar"><span>Quantidade</span>
@@ -392,7 +392,7 @@
   </main>
 
   <footer class="rodape">
-    <p>O preço é o último que o Lodout coletou da Steam. Se o item não está entre os que o Lodout acompanha, o preço pode estar desatualizado.</p>
+    <p>Preços da última coleta.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% include "partials/_dialogo_vendi.html" %}

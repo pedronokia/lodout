@@ -315,3 +315,45 @@ def test_rotulos_de_venda_por_nao_quebram_no_computador():
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
     assert ".tabela-conta .venda-por-linha { white-space: normal; }" not in css
     assert "@media (min-width: 641px) and (max-width: 64em)" in css
+
+
+def test_superficies_sem_tom_azulado():
+    """Fundos ficaram azul-marinho em 19/11 (rgba(18, 24, 38)); o DESIGN.md
+    pede cinza neutro. Revisão 20/11: só o botão da Steam pode ser azul."""
+    import re as _re
+    css = _css()
+    assert "rgba(18, 24, 38" not in css
+    for cor in ("#0d121c", "#111827"):
+        assert cor not in css.lower()
+    azuladas = []
+    for m in _re.finditer(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)", css):
+        r, g, b = map(int, m.groups())
+        if b - r >= 12 and b >= g and max(r, g, b) < 60:
+            azuladas.append(m.group(0))
+    assert not azuladas, azuladas
+
+
+def test_um_verde_um_vermelho_um_amarelo_sem_cinza_azulado():
+    """Revisão 20/11: o CSS tinha 4 verdes, 3 vermelhos e 2 amarelos além
+    dos oficiais (--positive, --danger, --warn), e um cinza-azulado
+    (#94a3b8) em textos de apoio. Fica um de cada, como no DESIGN.md."""
+    css = _css().lower()
+    for cor in ("#10b981", "#22c55e", "#34d399", "#4ade80",
+                "#ef4444", "#f87171", "#ff8a80", "#facc15", "#94a3b8",
+                "rgba(16, 185, 129", "rgba(239, 68, 68", "rgba(148, 163, 184"):
+        assert cor not in css, cor
+
+
+def test_unico_azul_e_o_botao_da_steam():
+    """Opção C (pedido do usuário, 20/11): "Mais negociado", "anunciado",
+    barrinha de liquidez, faixa "Subiram" e o link "Steam Market" saíram do
+    azul-céu. O único azul que fica é o do botão "Entrar com Steam"."""
+    import re as _re
+    css = _css().lower()
+    for cor in ("#38bdf8", "rgba(56, 189, 248", "#0ea5e9", "#0284c7"):
+        assert cor not in css, cor
+    usos = [m.start() for m in _re.finditer(r"102, 192, 244|#66c0f4", css)]
+    for pos in usos:
+        inicio = css.rfind("}", 0, pos)
+        seletor = css[inicio + 1:css.find("{", inicio)]
+        assert ":root" in seletor or "conta-link-entrar" in seletor, seletor.strip()[-80:]

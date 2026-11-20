@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subsistema de Nota/Score — Lodout</title>
+<style>
+  :root{
+    --bg:#0d0f14; --surface:#161923; --surface2:#1c2030; --border:#252a3a;
+    --text:#e6e8ec; --text2:#9aa3b2; --text3:#6b7280; --hc:#845ef7;
+    --l0:#5d6478; --l1:#845ef7; --l2:#ff6b6b; --l3:#fab005;
+    --l4:#20c997; --l5:#4dabf7; --l6:#e64980; --l7:#868e96;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5}
+  .layout{display:flex;height:100vh}
+  main{flex:1;overflow-y:auto;padding:24px 28px;position:relative}
+  #edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+  #edges path{fill:none;stroke:var(--border);stroke-width:1.2;opacity:.3;transition:.15s}
+  #edges path.hi-out{stroke:var(--hc);stroke-width:2;opacity:.95}
+  #edges path.hi-in{stroke:var(--hc);stroke-width:1.6;opacity:.7;stroke-dasharray:4 3}
+  #edges path.dim{opacity:.04}
+  .content{position:relative;z-index:2}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:8px}
+  .hint{color:var(--text3);font-size:11.5px;margin-bottom:18px}
+  .hint b{color:var(--text2)}
+  .lane{margin-bottom:20px;border-left:3px solid var(--lc);padding-left:14px}
+  .lane-h{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--lc);margin-bottom:2px}
+  .lane-sub{color:var(--text3);font-size:11.5px;margin-bottom:10px}
+  .nodes{display:flex;flex-wrap:wrap;gap:8px}
+  .node{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;transition:.12s;min-width:0;position:relative}
+  .node:hover{border-color:var(--lc);background:var(--surface2)}
+  .node.sel{border-color:var(--lc);background:var(--surface2);box-shadow:0 0 0 2px var(--lc)}
+  .node.neigh-out{border-color:var(--hc)}
+  .node.neigh-in{border-color:var(--hc);border-style:dashed}
+  .node.faded{opacity:.28}
+  .node .lbl{font-family:"SFMono-Regular",Menlo,monospace;font-size:12.5px}
+  .node .deg{color:var(--text3);font-size:10.5px;margin-top:2px}
+  aside{width:390px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:22px 20px;z-index:3}
+  .p-empty{color:var(--text3);font-size:13px;line-height:1.7}
+  .p-file{font-family:monospace;font-size:11px;color:var(--text3);word-break:break-all;margin-bottom:12px}
+  .p-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin:14px 0 4px}
+  .p-val{font-size:13.5px;line-height:1.6}
+  .p-deg{display:flex;gap:16px;margin:10px 0 4px}
+  .p-deg span{font-size:12px;color:var(--text2)}
+  .p-deg b{color:var(--text);font-size:15px}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:var(--lc);color:#0d0f14}
+  .rel{font-size:12px;color:var(--text2);margin:3px 0;cursor:pointer}
+  .rel:hover{color:var(--text)}
+  .rel .arrow{color:var(--text3);font-family:monospace}
+  .rel .rt{color:var(--text3);font-size:10px;margin-left:4px}
+  .warn{background:#2a1e14;border-left:3px solid var(--l3);padding:10px 12px;border-radius:6px;font-size:12.5px;margin-top:16px;color:#ffd8a8}
+  .clr{float:right;font-size:11px;color:var(--text3);cursor:pointer;border:1px solid var(--border);border-radius:5px;padding:2px 8px}
+  .clr:hover{color:var(--text)}
+  .searchbar{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  #search{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 12px;outline:none}
+  #search:focus{border-color:var(--l1)}
+  .scount{font-size:11.5px;color:var(--text3);white-space:nowrap}
+  .cbox{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+  .results{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .results:empty{display:none}
+  .rchip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:"SFMono-Regular",Menlo,monospace;font-size:12px;display:flex;align-items:center;gap:6px}
+  .rchip:hover{border-color:var(--l1)}
+  .rchip .rlayer{width:8px;height:8px;border-radius:2px}
+  .rchip .rfile{color:var(--text3);font-size:10px}
+  .node .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#3a4152}
+  .node.curated .dot{background:#20c997}
+  .node.hit{outline:2px solid var(--l1);outline-offset:1px}
+  .node.hidden{display:none}
+  .filterbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .fl{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}
+  .fchip{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;user-select:none}
+  .fchip.on{color:var(--text);border-color:var(--fc);background:color-mix(in srgb, var(--fc) 16%, var(--surface))}
+  .fchip .fdot{width:8px;height:8px;border-radius:2px;background:var(--fc)}
+  .fchip:not(.on) .fdot{opacity:.3}
+  .btn{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer}
+  .btn:hover{color:var(--text);border-color:var(--l1)}
+  .lane.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="layout">
+  <main>
+    <svg id="edges"></svg>
+    <div class="content">
+      <h1>Subsistema de Nota/Score — Lodout</h1>
+      <div class="sub">Como a nota de 0 a 100 é calculada (signals.py), de onde vêm os dados que a alimentam, como ela é calibrada/validada sem lookahead (score_backtest, backtest_diario) e quem consome o resultado.</div>
+      <div class="hint">As linhas são as dependências reais entre arquivos (vindas do AST, não inventadas). Clique num nó: <b>sólidas</b> = o que ele usa, <b>pontilhadas</b> = quem usa ele.</div>
+      <div class="searchbar">
+        <input id="search" type="text" placeholder="Buscar arquivo por nome…" autocomplete="off">
+        <span id="searchcount" class="scount"></span>
+        <label class="cbox"><input type="checkbox" id="onlyuncurated"> só sem curadoria</label>
+      </div>
+      <div class="filterbar">
+        <span class="fl">Camadas</span>
+        <span id="layerchips"></span>
+        <span class="fl" style="margin-left:14px">Arestas</span>
+        <span id="relchips"></span>
+        <span class="btn" id="resetfilters">Limpar filtros</span>
+      </div>
+      <div id="results" class="results"></div>
+      <div id="lanes"></div>
+    </div>
+  </main>
+  <aside id="panel">
+    <div class="p-empty" id="panel-empty">Selecione um nó para ver seu papel e destacar suas conexões.</div>
+  </aside>
+</div>
+
+<script id="data" type="application/json">{"nodes": [{"id": "lodout__paths", "label": "_paths.py", "file": "lodout/_paths.py", "layer": 0, "in": 8, "out": 1}, {"id": "lodout__ambiente", "label": "_ambiente.py", "file": "lodout/_ambiente.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_cases", "label": "cases.py", "file": "lodout/cases.py", "layer": 1, "in": 5, "out": 1}, {"id": "lodout_retirements", "label": "retirements.py", "file": "lodout/retirements.py", "layer": 1, "in": 2, "out": 1}, {"id": "lodout_valve_events", "label": "valve_events.py", "file": "lodout/valve_events.py", "layer": 1, "in": 1, "out": 0}, {"id": "lodout_gamedata", "label": "gamedata.py", "file": "lodout/gamedata.py", "layer": 1, "in": 0, "out": 3}, {"id": "lodout_signals", "label": "signals.py", "file": "lodout/signals.py", "layer": 2, "in": 8, "out": 3}, {"id": "lodout_score_backtest", "label": "score_backtest.py", "file": "lodout/score_backtest.py", "layer": 3, "in": 1, "out": 3}, {"id": "lodout_public_site_backtest_diario", "label": "backtest_diario.py", "file": "lodout/public_site/backtest_diario.py", "layer": 3, "in": 0, "out": 7}, {"id": "lodout_scan_store", "label": "scan_store.py", "file": "lodout/scan_store.py", "layer": 3, "in": 2, "out": 1}, {"id": "lodout_steam_api", "label": "steam_api.py", "file": "lodout/steam_api.py", "layer": 3, "in": 2, "out": 1}, {"id": "lodout_scan_engine", "label": "scan_engine.py", "file": "lodout/scan_engine.py", "layer": 4, "in": 1, "out": 4}, {"id": "lodout_ranking", "label": "ranking.py", "file": "lodout/ranking.py", "layer": 4, "in": 0, "out": 2}, {"id": "lodout_recommendations", "label": "recommendations.py", "file": "lodout/recommendations.py", "layer": 4, "in": 0, "out": 2}, {"id": "lodout_alerts", "label": "alerts.py", "file": "lodout/alerts.py", "layer": 4, "in": 2, "out": 2}, {"id": "lodout_public_site_watchlist_routes", "label": "watchlist_routes.py", "file": "lodout/public_site/watchlist_routes.py", "layer": 4, "in": 0, "out": 3}], "edges": [{"s": "lodout_signals", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_retirements", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_gamedata", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_scan_store", "t": "lodout__paths", "r": "calls"}, {"s": "lodout__paths", "t": "lodout__ambiente", "r": "imports_from"}, {"s": "lodout_alerts", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_ranking", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_signals", "t": "lodout_valve_events", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout__ambiente", "r": "calls"}, {"s": "lodout_signals", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_score_backtest", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_score_backtest", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_score_backtest", "t": "lodout_steam_api", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout_scan_engine", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout_scan_store", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout_score_backtest", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout_signals", "r": "imports_from"}, {"s": "lodout_cases", "t": "lodout_retirements", "r": "calls"}, {"s": "lodout_gamedata", "t": "lodout_alerts", "r": "calls"}, {"s": "lodout_gamedata", "t": "lodout_retirements", "r": "calls"}, {"s": "lodout_scan_engine", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_scan_engine", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_scan_engine", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_scan_engine", "t": "lodout_steam_api", "r": "calls"}, {"s": "lodout_steam_api", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_recommendations", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_recommendations", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_alerts", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_alerts", "r": "calls"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_scan_store", "r": "calls"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_signals", "r": "calls"}, {"s": "lodout_ranking", "t": "lodout_signals", "r": "calls"}]}</script>
+<script id="curation" type="application/json">{"lodout/signals.py": {"what": "O motor da nota (0-100): `enhanced_score()` soma deltas de ~10 fatores (diferença vs. mediana, spread, livro de ofertas, tendência de 7 dias, oferta/demanda, drawdown, momentum, concordância multi-período, distância do all-time-high, nível de preço absoluto em containers, status de caixa/cápsula, risco de pump) e devolve (nota, breakdown). Também tem os sinais descritivos usados fora do score: `pump_risk`, `data_quality`, `relative_to_ath`, `exit_context`, `revenda_historica`, `liquidity_depth`, `volume_anomaly`.", "why": "Cada fator carrega, em comentário, o experimento que o calibrou ou reprovou (V1...V6 do vintage bonus, V1-V3B do pump risk) com o Spearman/Pearson medido — é a 'ata' do modelo, não só o código. Dois fatores já têm sinal INVERTIDO de propósito (`_MOMENTUM_SIGN = -1`, `_MULTI_PERIOD_SIGN = -1`): o backtest de 2026-07-28 achou reversão à média em skins em vez de continuação de tendência.", "gotcha": "`enhanced_score(now_ts=...)` existe só por causa de um bug real: a idade do vintage bonus era calculada como `hoje - ano`, então uma amostra de 2013 numa caixa de 2013 já nascia com o bônus — o fator virava constante por item e 'confirmava' lookahead. O backtest tem que passar `now_ts` (o instante simulado), nunca confiar no `date.today()` default."}, "lodout/score_backtest.py": {"what": "Reconstrói, sem olhar o futuro, o score que `enhanced_score()` teria dado num instante passado (`score_at`/`amostras`), compara com o retorno realmente observado depois (`forward_return`) e agrega em Spearman/Pearson (`avaliar`/`relatorio`), com bootstrap de intervalo de confiança. `split_itens()` separa itens de calibração (70%) e confirmação (30%), por ITEM e estratificado por `is_container`.", "why": "Existe por um achado de auditoria (skill backtesting-frameworks, 2026-11-05): todo fator já calibrado no projeto (vintage bonus, pump risk) foi testado e aprovado NA MESMA amostra — overfitting por tentativa repetida. `split_itens` é o remédio: só se reporta o número de uma confirmação rodada UMA vez, depois de já ter decidido o fator na calibração.", "gotcha": "Dois fatores do score (spread ±25, livro de ofertas ±20) NUNCA passam por este backtest: dependem do livro de ofertas AO VIVO, que a Steam não guarda em histórico. Todo Spearman/Pearson medido aqui é só sobre os fatores derivados de `price_history`."}, "lodout/public_site/backtest_diario.py": {"what": "Roda `score_backtest.relatorio()` 1x por dia, no servidor, usando as cópias de página que a coleta já guarda (`data/rodizio_paginas/`, via `scan_engine._ler_pagina_guardada`) — nenhuma consulta nova à Steam. Grava em `data/backtest_resultado.json`, mostrado em `/api/health`. Também tem um experimento desligado por padrão (`LODOUT_EXPERIMENTO_CAIXAS`) que mede variantes do score só em caixas.", "why": "É a única forma de obter, em produção, 'será que a nota ordena bem o retorno real' sem rodar um script manual — e sem gastar rate limit da Steam, porque reaproveita o histórico que o worker já coletou pelo motivo oposto (o rodízio de página, AGENTS.md)."}, "lodout/retirements.py": {"what": "Registro factual de QUANDO cada caixa saiu de circulação (`SEED` com fonte confirmada + o que o watcher do jogo grava em disco, `record_from_events`). Idempotente: `record()` nunca move uma data já gravada pra depois.", "why": "O estudo de coortes (AGENTS.md) achou que o retorno de caixa aposentada depende de ANOS DESDE A APOSENTADORIA, não do ano de lançamento — e `cases.py` só sabia o ano de lançamento e o status de hoje. Sem data exata, esse fator nem podia ser medido honestamente (todo backtest veria a caixa como 'sempre foi aposentada').", "gotcha": "Só entra aqui o que sai do Armory (bloco xpshop do jogo, com nota de patch da Valve). O drop semanal (Care Package) fica fora de propósito: não há arquivo nem anúncio de patch que confirme quando uma caixa some dali — 'sem fonte confiável, fica de fora até existir uma', não uma estimativa."}, "lodout/valve_events.py": {"what": "Catálogo (lista Python, com data e categorias afetadas) dos updates da Valve que mexeram no mercado de skins — ex.: abolição das cápsulas de Major em 2026-05-22, remoção dos rare case drops em 2025-12-17. `latest_regime_change(categoria)` devolve o evento mais recente que bate com ela.", "why": "`signals.pump_risk()` usa isto pra NÃO marcar como 'subida suspeita' um movimento que tem causa conhecida e legítima (um evento da Valve recente) — sem isso, toda cápsula teria disparado o alerta de pump no dia da abolição, quando a causa era um anúncio oficial, não especulação."}, "lodout/cases.py": {"what": "Banco de caixas/cápsulas/coleções com status (active/discontinued/rare/collection) e o mapa skin→caixa; `case_status()` e `is_container()` são usados como DADO DE ENTRADA pelo score (não como dependência de import direta do `signals.py` na maior parte dos casos — é passado como parâmetro pelo chamador).", "why": "Caixas reagem a sinais diferentes de skins (oferta finita que só cresce vs. drop contínuo); o score aplica vintage bonus e nível de preço absoluto só quando `is_container` é verdadeiro."}, "lodout/gamedata.py": {"what": "Compara os arquivos públicos do CS2 a cada ciclo do worker e, quando mudam, grava eventos (caixa nova, saída do Armory). `check_for_updates()` alimenta `retirements.record_from_events` automaticamente.", "why": "É a fonte que dá a `retirements.py` a data exata de aposentadoria, sem precisar de um humano conferindo nota de patch item por item.", "gotcha": "`record_events_as_alerts()` (grava eventos do jogo no log de alertas da watchlist, via `alerts.record_alert`) existe e tem teste próprio, mas nenhum caminho de produção chama essa função — só `retirements.record_from_events` está de fato ligado em `check_for_updates`. Um evento de jogo hoje atualiza a aposentadoria sozinho, mas não aparece como alerta pra quem tem o item na watchlist."}, "lodout/scan_engine.py": {"what": "`scan_item()` é quem de fato chama `signals.enhanced_score()` ao vivo, a cada coleta — repassa o veredito de preço, volume, oferta, tendência multi-período e `case_status`/`is_container` (vindos de `cases.py`) pros fatores do score. Também guarda a cópia diária da página de cada item que o `backtest_diario` relê depois.", "why": "É a ponte entre a coleta de preço (outro subsistema) e o motor da nota: sem ele, `enhanced_score` nunca seria chamado com dado real."}, "lodout/scan_store.py": {"what": "Persiste o último scan completo; `backtest_diario.montar_itens()` lê daqui a lista de itens (nome + se é container) pra montar o dataset do backtest do dia."}, "lodout/steam_api.py": {"what": "`fair_value_verdict()` é usado tanto ao vivo (scan_engine) quanto dentro do replay do backtest (`score_backtest.score_at`) — é o mesmo veredito (preço vs. mediana) que vira o fator 'mediana' do score nos dois casos."}, "lodout/ranking.py": {"what": "Usa só `signals.raw_score()` (a nota antes do corte em [0,100]) como critério de desempate ao ordenar o Top 20 — dois itens empatados em 100 de nota exibida podem ter mérito bem diferente por baixo do corte."}, "lodout/recommendations.py": {"what": "Cruza o último scan com o portfólio do usuário: compra = melhores notas que a pessoa ainda não tem (descontando risco de pump); venda = posições já possuídas perto do all-time-high ou com o mesmo alerta de subida rápida.", "why": "Não inventa sinal novo de propósito — só reusa `signals`/`cases` e o que o Scanner já persiste, mesma regra do projeto de nunca prever, só descrever (AGENTS.md)."}, "lodout/alerts.py": {"what": "Motor de alertas da watchlist: avalia regras por item (preço abaixo de X, queda de X%, pico de volume, queda de oferta, nota acima de X) contra os sinais já calculados em `signals.py`, e grava o log de alertas (`data/alerts_log.json`, cap 500)."}, "lodout/public_site/watchlist_routes.py": {"what": "Rotas Flask da watchlist: liga `alerts.py` (avaliação de regras) e `signals.py`/`scan_store.py` (dado do último scan) à tela onde a pessoa configura o que quer ser avisada."}, "lodout/_paths.py": {"what": "Escrita atômica de arquivo e `load_json_record` (JSON malformado vai pra quarentena em vez de virar vazio em silêncio) — usado por quase todo arquivo deste grafo que persiste algo (histórico de preço do `signals`, registro de aposentadoria, resultado do backtest, log de alertas)."}, "lodout/_ambiente.py": {"what": "Lê variável de ambiente com fallback pelos prefixos antigos do projeto (LODOUT_ → GALASECA_ → SKINVAULT_), sempre em tempo de chamada — usado aqui para ligar/desligar o backtest diário e o experimento das caixas."}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const CUR = JSON.parse(document.getElementById('curation').textContent);
+// Las capas vienen de meta (una por grupo del Paso 4). Cada {id, name, sub}.
+// El color se asigna por indice desde la paleta, no fijo — asi sirve con cualquier
+// numero de capas. NADA especifico de un proyecto se hardcodea aqui (ver Paso 7b).
+const LAYER_PALETTE = ['--l0','--l1','--l2','--l3','--l4','--l5','--l6','--l7'];
+const LAYERS = ([{"id": 0, "name": "Infra compartilhada", "sub": "usado por quase tudo abaixo"}, {"id": 1, "name": "Fatos de mercado", "sub": "dados que alimentam o modelo"}, {"id": 2, "name": "O motor da nota", "sub": "signals.py — o score em si"}, {"id": 3, "name": "Calibração / backtest", "sub": "mede se a nota acerta, sem mudar a nota"}, {"id": 4, "name": "Consumidores", "sub": "quem usa a nota pra decidir algo"}]).map((l, i) => ({ ...l, c: LAYER_PALETTE[i % LAYER_PALETTE.length] }));
+const byId = Object.fromEntries(DATA.nodes.map(n=>[n.id,n]));
+const layerColor = id => `var(${(LAYERS.find(l=>l.id===id)||LAYERS[0]).c})`;
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Nombres genericos (index.js, styles.js...) no dicen a que se refieren: los prefijamos con la carpeta padre.
+const GENERIC = new Set(['index.js','index.ios.js','index.android.js','styles.js','package.json','actions.js','reducer.js']);
+const displayLabel = n => {
+  if(!GENERIC.has(n.label)) return n.label;
+  const parts = n.file.split('/');
+  const parent = parts.length>=2 ? parts[parts.length-2] : '';
+  return parent ? `${parent}/${n.label}` : n.label;
+};
+const nodeEls = {};
+const outMap = {}, inMap = {};
+DATA.edges.forEach(e=>{ (outMap[e.s]=outMap[e.s]||[]).push(e); (inMap[e.t]=inMap[e.t]||[]).push(e); });
+
+const lanesEl = document.getElementById('lanes');
+LAYERS.forEach(L=>{
+  const ns = DATA.nodes.filter(n=>n.layer===L.id).sort((a,b)=>b.out-a.out);
+  if(!ns.length) return;
+  const lane = document.createElement('div');
+  lane.className='lane'; lane.dataset.layer=L.id; lane.style.setProperty('--lc',`var(${L.c})`);
+  lane.innerHTML = `<div class="lane-h">${L.id} · ${L.name}</div><div class="lane-sub">${L.sub}</div>`;
+  const wrap = document.createElement('div'); wrap.className='nodes';
+  ns.forEach(n=>{
+    const el = document.createElement('div');
+    const isCur = !!(CUR[n.file] && CUR[n.file].what);
+    el.className='node'+(isCur?' curated':''); el.style.setProperty('--lc',`var(${L.c})`); el.dataset.id=n.id;
+    el.innerHTML=`<span class="dot" title="${isCur?'curado':'sin curar'}"></span><div class="lbl">${esc(displayLabel(n))}</div><div class="deg">in ${n.in} · out ${n.out}</div>`;
+    el.onclick=(ev)=>{ev.stopPropagation();select(n.id);};
+    wrap.appendChild(el); nodeEls[n.id]=el;
+  });
+  lane.appendChild(wrap); lanesEl.appendChild(lane);
+});
+
+const svg = document.getElementById('edges');
+const SVGNS='http://www.w3.org/2000/svg';
+function drawEdges(){
+  svg.innerHTML='';
+  const main = document.querySelector('main');
+  const ox = main.scrollLeft, oy = main.scrollTop;
+  const base = main.getBoundingClientRect();
+  const box = el => { const r=el.getBoundingClientRect(); return {x:r.left-base.left+ox+r.width/2, top:r.top-base.top+oy, bot:r.top-base.top+oy+r.height}; };
+  DATA.edges.forEach(e=>{
+    const a=nodeEls[e.s], b=nodeEls[e.t]; if(!a||!b) return;
+    const p1=box(a), p2=box(b);
+    let y1, y2;
+    if(p2.top >= p1.bot){ y1=p1.bot; y2=p2.top; }
+    else if(p1.top >= p2.bot){ y1=p1.top; y2=p2.bot; }
+    else { y1=p1.bot; y2=p2.bot; }
+    const dy=Math.abs(y2-y1);
+    const c=Math.min(Math.max(dy*0.4,24),110);
+    const cy1 = y1<=y2 ? y1+c : y1-c;
+    const cy2 = y2>=y1 ? y2-c : y2+c;
+    const path=document.createElementNS(SVGNS,'path');
+    path.setAttribute('d',`M ${p1.x} ${y1} C ${p1.x} ${cy1}, ${p2.x} ${cy2}, ${p2.x} ${y2}`);
+    path.dataset.s=e.s; path.dataset.t=e.t;
+    svg.appendChild(path);
+  });
+  if(curSel) paintPaths(curSel);
+}
+window.addEventListener('load',drawEdges);
+window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(drawEdges,150);});
+document.querySelector('main').addEventListener('scroll',()=>{clearTimeout(window._st);window._st=setTimeout(drawEdges,50);});
+
+let curSel=null;
+function paintPaths(id){
+  const hc=layerColor(byId[id].layer);
+  document.documentElement.style.setProperty('--hc',hc);
+  svg.querySelectorAll('path').forEach(p=>{
+    p.classList.remove('hi-out','hi-in','dim');
+    if(p.dataset.s===id) p.classList.add('hi-out');
+    else if(p.dataset.t===id) p.classList.add('hi-in');
+    else p.classList.add('dim');
+  });
+}
+// Ejemplos generados desde los datos (top-3 por out) — nunca hardcodeados.
+function emptyPanelHTML(){
+  const top = [...DATA.nodes].sort((a,b)=>b.out-a.out).slice(0,3)
+    .map(n=>`<b>${esc(displayLabel(n))}</b> (out ${n.out})`).join(', ');
+  const hint = top ? `<br><br>Comece pelos de maior <b>out</b>: ${top}.` : '';
+  return `<div class="p-empty">Selecione um nó para ver seu papel e destacar suas conexões.${hint}</div>`;
+}
+function clearSel(){
+  curSel=null;
+  Object.values(nodeEls).forEach(el=>el.classList.remove('sel','neigh-out','neigh-in','faded'));
+  svg.querySelectorAll('path').forEach(p=>p.classList.remove('hi-out','hi-in','dim'));
+  document.getElementById('panel').innerHTML=emptyPanelHTML();
+}
+document.querySelector('main').addEventListener('click',clearSel);
+
+function select(id){
+  curSel=id;
+  const n=byId[id], hc=layerColor(n.layer);
+  const outs=outMap[id]||[], ins=inMap[id]||[];
+  const neighOut=new Set(outs.map(e=>e.t)), neighIn=new Set(ins.map(e=>e.s));
+  Object.entries(nodeEls).forEach(([nid,el])=>{
+    el.classList.remove('sel','neigh-out','neigh-in','faded');
+    el.style.setProperty('--hc',hc);
+    if(nid===id) el.classList.add('sel');
+    else if(neighOut.has(nid)) el.classList.add('neigh-out');
+    else if(neighIn.has(nid)) el.classList.add('neigh-in');
+    else el.classList.add('faded');
+  });
+  paintPaths(id);
+  renderPanel(n,outs,ins);
+}
+
+function renderPanel(n,outs,ins){
+  const cur=CUR[n.file]||{};
+  const L=LAYERS.find(l=>l.id===n.layer)||LAYERS[0];
+  let h=`<span class="clr" onclick="clearSel()">✕ limpar</span><span class="badge" style="--lc:var(${L.c})">${L.id} · ${L.name}</span>`;
+  h+=`<div class="p-file" style="margin-top:10px">${esc(n.file)}</div>`;
+  h+=`<div class="p-deg"><span><b>${n.in}</b> usam</span><span><b>${n.out}</b> usa</span></div>`;
+  if(cur.what){ h+=`<div class="p-lbl">O que faz</div><div class="p-val">${esc(cur.what)}</div>`; }
+  if(cur.why){ h+=`<div class="p-lbl">Por quê</div><div class="p-val">${esc(cur.why)}</div>`; }
+  if(cur.gotcha){ h+=`<div class="warn">${esc(cur.gotcha)}</div>`; }
+  if(!cur.what){ h+=`<div class="warn">Arquivo sem curadoria ainda — fora do escopo deste grafo.</div>`; }
+  if(outs.length){ h+=`<div class="p-lbl">Usa (${outs.length})</div>`+outs.map(e=>{const o=byId[e.t];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">→</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  if(ins.length){ h+=`<div class="p-lbl">É usado por (${ins.length})</div>`+ins.map(e=>{const o=byId[e.s];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">←</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  document.getElementById('panel').innerHTML=h;
+}
+
+// ── Buscador ──────────────────────────────────────────────────
+const isCurated = n => !!(CUR[n.file] && CUR[n.file].what);
+const totalCurated = DATA.nodes.filter(isCurated).length;
+const searchEl = document.getElementById('search');
+const resultsEl = document.getElementById('results');
+const countEl = document.getElementById('searchcount');
+const onlyUncEl = document.getElementById('onlyuncurated');
+
+function updateCount(){
+  countEl.textContent = `${totalCurated}/${DATA.nodes.length} com curadoria`;
+}
+function jumpTo(id){
+  const el = nodeEls[id]; if(!el) return;
+  Object.values(nodeEls).forEach(e=>e.classList.remove('hit'));
+  el.classList.add('hit');
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  select(id);
+}
+function runSearch(){
+  const q = searchEl.value.trim().toLowerCase();
+  const onlyUnc = onlyUncEl.checked;
+  resultsEl.innerHTML='';
+  if(!q && !onlyUnc){ return; }
+  let matches = DATA.nodes.filter(n=>{
+    const hit = !q || n.label.toLowerCase().includes(q) || n.file.toLowerCase().includes(q);
+    const unc = !onlyUnc || !isCurated(n);
+    return hit && unc;
+  }).sort((a,b)=>b.out-a.out).slice(0,40);
+  matches.forEach(n=>{
+    const chip=document.createElement('div'); chip.className='rchip';
+    chip.innerHTML=`<span class="rlayer" style="background:${layerColor(n.layer)}"></span>${esc(displayLabel(n))}<span class="dot" style="position:static;width:6px;height:6px;background:${isCurated(n)?'#20c997':'#3a4152'}"></span><span class="rfile">${esc(n.file.replace(/^(core|components)\//,''))}</span>`;
+    chip.onclick=()=>jumpTo(n.id);
+    resultsEl.appendChild(chip);
+  });
+  if(!matches.length){ resultsEl.innerHTML='<div class="rfile" style="padding:4px">Sem resultados</div>'; }
+}
+searchEl.addEventListener('input', runSearch);
+onlyUncEl.addEventListener('change', runSearch);
+updateCount();
+
+// ── Filtros de capa y tipo de arista ──────────────────────────
+const activeLayers = new Set(LAYERS.map(l=>l.id));
+const REL_TYPES = [...new Set(DATA.edges.map(e=>e.r))];
+const activeRels = new Set(REL_TYPES);
+
+function buildFilterChips(){
+  const lc = document.getElementById('layerchips');
+  LAYERS.forEach(L=>{
+    if(!DATA.nodes.some(n=>n.layer===L.id)) return;
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc',`var(${L.c})`);
+    c.innerHTML=`<span class="fdot"></span>${L.id}·${L.name}`;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeLayers.add(L.id):activeLayers.delete(L.id); applyFilters(); };
+    lc.appendChild(c);
+  });
+  const rc = document.getElementById('relchips');
+  REL_TYPES.forEach(r=>{
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc','var(--l1)');
+    c.textContent=r;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeRels.add(r):activeRels.delete(r); applyFilters(); };
+    rc.appendChild(c);
+  });
+}
+function applyFilters(){
+  // nodos: ocultar los de capas apagadas
+  Object.entries(nodeEls).forEach(([id,el])=>{
+    el.classList.toggle('hidden', !activeLayers.has(byId[id].layer));
+  });
+  // carriles: ocultar el carril entero si su capa esta apagada
+  document.querySelectorAll('.lane').forEach(lane=>{
+    const lid = Number(lane.dataset.layer);
+    lane.classList.toggle('hidden', !activeLayers.has(lid));
+  });
+  // aristas: ocultar las de tipo apagado o que tocan un nodo oculto
+  svg.querySelectorAll('path').forEach(p=>{
+    const e = DATA.edges.find(x=>x.s===p.dataset.s && x.t===p.dataset.t);
+    const relOff = e && !activeRels.has(e.r);
+    const nodeOff = !activeLayers.has(byId[p.dataset.s]?.layer) || !activeLayers.has(byId[p.dataset.t]?.layer);
+    p.style.display = (relOff || nodeOff) ? 'none' : '';
+  });
+  drawEdges();
+}
+document.getElementById('resetfilters').onclick=()=>{
+  LAYERS.forEach(l=>activeLayers.add(l.id)); REL_TYPES.forEach(r=>activeRels.add(r));
+  document.querySelectorAll('#layerchips .fchip, #relchips .fchip').forEach(c=>c.classList.add('on'));
+  applyFilters();
+};
+buildFilterChips();
+// Panel inicial con los ejemplos top-3 generados desde los datos.
+document.getElementById('panel').innerHTML = emptyPanelHTML();
+</script>
+</body>
+</html>

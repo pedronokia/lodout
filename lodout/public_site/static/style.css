@@ -287,7 +287,7 @@ a {
 
 /* Link da casa: #9a3412 no corpo, escurece no hover. */
 a:hover {
-  color: var(--accent-hover);
+  color: #fb923c;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -690,7 +690,7 @@ header.topo h1 {
 }
 
 .conta-sair:hover {
-  color: #ff8a80;
+  color: #ff6e70;
   background: rgba(255, 255, 255, 0.12);
   text-decoration: none;
 }
@@ -1093,7 +1093,7 @@ footer.rodape .rodape-base a:hover {
   gap: var(--sp-1) var(--sp-2);
   margin: 0 0 var(--sp-4);
   padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
-  border-left: 2px solid var(--border-strong);
+  border-left: 1px solid var(--border-strong);
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
@@ -1110,6 +1110,7 @@ footer.rodape .rodape-base a:hover {
   background: rgba(242, 187, 37, 0.06);
   color: var(--warn);
   font-size: var(--fs-base);
+  max-width: 62ch;
 }
 
 .banner-aviso a {
@@ -1163,7 +1164,7 @@ footer.rodape .rodape-base a:hover {
 .resumo-do-dia {
   margin: 0 0 var(--sp-4);
   padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
-  border-left: 2px solid var(--accent);
+  border-left: 1px solid var(--accent);
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
@@ -5581,7 +5582,6 @@ table.tabela-conta th { white-space: normal; }
 .novidade {
   padding: var(--sp-3) var(--sp-4);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
   border-radius: var(--radius-sm);
   background: var(--surface);
 }
@@ -7390,7 +7390,7 @@ margin-bottom: var(--sp-2);
 display: inline-flex;
 align-items: center;
 gap: 4px;
-font-size: 0.65rem;
+font-size: 0.6875rem;
 font-weight: 700;
 text-transform: uppercase;
 letter-spacing: 0.03em;
@@ -7410,9 +7410,9 @@ color: var(--positive);
 border: 1px solid rgba(57, 194, 102, 0.3);
 }
 .pulse-badge-volume {
-background: rgba(102, 192, 244, 0.12);
-color: #66c0f4;
-border: 1px solid rgba(102, 192, 244, 0.3);
+background: rgba(255, 255, 255, 0.06);
+color: var(--text);
+border: 1px solid var(--border-strong);
 }
 .pulse-badge-caixa {
 background: rgba(242, 187, 37, 0.12);
@@ -7726,19 +7726,6 @@ align-items: center;
 gap: var(--sp-3);
 margin-bottom: var(--sp-1);
 }
-.simulador-badge {
-display: inline-flex;
-align-items: center;
-gap: 4px;
-font-size: 0.6875rem;
-font-weight: 700;
-text-transform: uppercase;
-background: rgba(249, 115, 22, 0.15);
-color: var(--accent);
-padding: 3px 8px;
-border-radius: 980px;
-border: 1px solid rgba(249, 115, 22, 0.3);
-}
 .simulador-titulo {
 font-size: 1.125rem;
 font-weight: 700;
@@ -7875,7 +7862,7 @@ border-color: rgba(255, 255, 255, 0.2);
 box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 .wear-matrix-card-st {
-border-left: 3px solid #cf6a32;
+border-color: rgba(207, 106, 50, 0.55);
 }
 .wear-matrix-header {
 display: flex;
@@ -7977,7 +7964,7 @@ background: radial-gradient(ellipse at 50% -20%, rgba(255, 215, 0, 0.24), transp
 pointer-events: none;
 }
 .botao-acao {
-box-shadow: 0 0 16px rgba(249, 115, 22, 0.22);
+box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 /* ==========================================================================
@@ -8035,42 +8022,42 @@ box-shadow: 0 0 16px rgba(249, 115, 22, 0.22);
 }
 
 .gauge-risco-low .gauge-seg:nth-child(1) {
-  background: #10b981;
-  box-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+  background: #39c266;
+  box-shadow: none;
 }
 
 .gauge-risco-medium .gauge-seg:nth-child(1),
 .gauge-risco-medium .gauge-seg:nth-child(2) {
   background: #f59e0b;
-  box-shadow: 0 0 5px rgba(245, 158, 11, 0.4);
+  box-shadow: none;
 }
 
 .gauge-risco-high .gauge-seg {
-  background: #ef4444;
-  box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+  background: #ff6e70;
+  box-shadow: none;
 }
 
 .gauge-liquidez-raso .gauge-seg:nth-child(1) {
-  background: #94a3b8;
+  background: #b3b3b3;
 }
 
 .gauge-liquidez-fino .gauge-seg:nth-child(1),
 .gauge-liquidez-fino .gauge-seg:nth-child(2) {
-  background: #38bdf8;
-  box-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
+  background: var(--accent);
+  box-shadow: none;
 }
 
 .gauge-liquidez-medio .gauge-seg:nth-child(1),
 .gauge-liquidez-medio .gauge-seg:nth-child(2),
 .gauge-liquidez-medio .gauge-seg:nth-child(3) {
-  background: #0ea5e9;
-  box-shadow: 0 0 5px rgba(14, 165, 233, 0.4);
+  background: var(--accent);
+  box-shadow: none;
 }
 
 .gauge-liquidez-profundo .gauge-seg,
 .gauge-liquidez-muito-liquida .gauge-seg {
-  background: #0284c7;
-  box-shadow: 0 0 5px rgba(2, 132, 199, 0.5);
+  background: var(--accent);
+  box-shadow: none;
 }
 
 .simulador-presets {
@@ -8199,9 +8186,9 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .botao-compartilhar.copiado {
-  border-color: #10b981;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.12);
+  border-color: #39c266;
+  color: #39c266;
+  background: rgba(57, 194, 102, 0.12);
 }
 
 .botao-compartilhar.copiado .icone-ui-compartilhar {
@@ -8210,13 +8197,13 @@ circle.grafico-ponto-interativo:hover {
 
 .botao-compartilhar.copiado .icone-ui-check {
   display: inline-block;
-  stroke: #10b981;
+  stroke: #39c266;
 }
 
 .wear-matrix-card-atual {
   border-color: var(--accent);
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.10) 0%, var(--surface-sunken) 100%);
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .wear-matrix-badge-atual {
@@ -8243,22 +8230,22 @@ circle.grafico-ponto-interativo:hover {
 
 .pulse-card-top:hover {
   border-color: rgba(249, 115, 22, 0.5);
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-card-dip:hover {
   border-color: rgba(57, 194, 102, 0.5);
-  box-shadow: 0 8px 24px rgba(57, 194, 102, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-card-volume:hover {
-  border-color: rgba(102, 192, 244, 0.5);
-  box-shadow: 0 8px 24px rgba(102, 192, 244, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-card-container:hover {
   border-color: rgba(242, 187, 37, 0.5);
-  box-shadow: 0 8px 24px rgba(242, 187, 37, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes pulse-fogo-anim {
@@ -8266,9 +8253,6 @@ circle.grafico-ponto-interativo:hover {
   50% { opacity: 1; transform: scale(1.03); }
 }
 
-.pulse-badge-fogo {
-  animation: pulse-fogo-anim 3s ease-in-out infinite;
-}
 
 .btn-sim-preset:active {
   transform: scale(0.95);
@@ -8376,9 +8360,9 @@ circle.grafico-ponto-interativo:hover {
    ========================================================================== */
 
 .item-etiqueta-anunciado {
-  border-color: rgba(56, 189, 248, 0.4);
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
   font-weight: 600;
   padding: 1px 7px;
   border-radius: var(--radius-pill);
@@ -8386,8 +8370,8 @@ circle.grafico-ponto-interativo:hover {
 
 .copiar-preco.copiado {
   color: var(--positive);
-  background: rgba(16, 185, 129, 0.15);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+  background: rgba(57, 194, 102, 0.15);
+  box-shadow: none;
   border-radius: var(--radius-xs);
 }
 
@@ -8440,9 +8424,7 @@ circle.grafico-ponto-interativo:hover {
 
 .home-tese h1 {
   letter-spacing: -0.02em;
-  background: linear-gradient(180deg, #ffffff 15%, rgba(255, 255, 255, 0.72) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-bright);
 }
 
 .topo {
@@ -8500,7 +8482,7 @@ circle.grafico-ponto-interativo:hover {
 
 .conta-link-entrar:hover {
   border-color: rgba(102, 192, 244, 0.7);
-  box-shadow: 0 4px 16px rgba(102, 192, 244, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   transform: translateY(-1px);
 }
 
@@ -8567,7 +8549,7 @@ circle.grafico-ponto-interativo:hover {
 
 .pulse-card-destaque { --card-neon: #f97316; }
 .pulse-card-dip { --card-neon: #39c266; }
-.pulse-card-volume { --card-neon: #38bdf8; }
+.pulse-card-volume { --card-neon: #b3b3b3; }
 .pulse-card-container { --card-neon: #f2bb25; }
 
 .pulse-card:hover {
@@ -8578,28 +8560,28 @@ circle.grafico-ponto-interativo:hover {
 
 .pulse-card.pulse-card-dip:hover {
   border-color: rgba(57, 194, 102, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(57, 194, 102, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-card.pulse-card-volume:hover {
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(56, 189, 248, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-card.pulse-card-container:hover {
   border-color: rgba(242, 187, 37, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(242, 187, 37, 0.15);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .pulse-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
   line-height: 1.2;
 }
@@ -8617,9 +8599,9 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .pulse-badge-volume {
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
 }
 
 .pulse-badge-container {
@@ -8671,7 +8653,7 @@ circle.grafico-ponto-interativo:hover {
 .pulse-volume-val {
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #38bdf8;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -8706,13 +8688,13 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .cartao-item-icon {
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 14px color-mix(in srgb, var(--rar-cor, transparent) 22%, transparent));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
 }
 
 .cartao-item:hover .cartao-item-icon {
   transform: scale(1.08) translateY(-3px);
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 20px color-mix(in srgb, var(--rar-cor, transparent) 40%, transparent));
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.7));
 }
 
 .cartao-item::after {
@@ -8760,17 +8742,17 @@ circle.grafico-ponto-interativo:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .cartao-item-steam:hover {
-  color: #38bdf8;
+  color: var(--text-bright);
 }
 
 .cartao-item-steam:hover .icone-ui {
@@ -8817,13 +8799,13 @@ circle.grafico-ponto-interativo:hover {
   background: rgba(249, 115, 22, 0.16);
   border-color: rgba(249, 115, 22, 0.4);
   border-bottom-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 650;
 }
 
 .subnav-conta-link.subnav-conta-ativo .icone-ui {
   color: var(--accent);
-  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+  filter: none;
 }
 
 /* 6. Abas de Categorias & Filtros */
@@ -8918,15 +8900,15 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .movimento-alta {
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #39c266;
+  background: rgba(57, 194, 102, 0.12);
+  border: 1px solid rgba(57, 194, 102, 0.3);
 }
 
 .movimento-baixa {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ff6e70;
+  background: rgba(255, 110, 112, 0.12);
+  border: 1px solid rgba(255, 110, 112, 0.3);
 }
 
 @media (hover: hover) {
@@ -8982,7 +8964,7 @@ circle.grafico-ponto-interativo:hover {
   border: 1px solid rgba(249, 115, 22, 0.4);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .tabela-top20 tbody tr {
@@ -9093,12 +9075,12 @@ circle.grafico-ponto-interativo:hover {
 
 /* 14. Ações da Ficha do Item */
 .acoes-item .botao-acao {
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.15s ease;
 }
 
 .acoes-item .botao-acao:hover {
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 
@@ -9398,7 +9380,7 @@ circle.grafico-ponto-interativo:hover {
 .tabela-candidatos .sparkline-svg polyline {
   stroke: var(--accent);
   stroke-width: 1.75;
-  filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
+  filter: none;
 }
 
 /* 20. Hero Destaque Luxury Treatment */
@@ -9493,7 +9475,7 @@ circle.grafico-ponto-interativo:hover {
   background: rgba(249, 115, 22, 0.16);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
@@ -9557,8 +9539,8 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .ranking-bloco-entraram::before { background: #39c266; }
-.ranking-bloco-subiram::before { background: #38bdf8; }
-.ranking-bloco-saidas::before { background: #ef4444; }
+.ranking-bloco-subiram::before { background: #39c266; }
+.ranking-bloco-saidas::before { background: #ff6e70; }
 .ranking-bloco-cairam::before { background: #f97316; }
 
 .ranking-bloco:hover {
@@ -9571,26 +9553,26 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .ranking-bloco-entraram:hover { border-color: rgba(57, 194, 102, 0.4); }
-.ranking-bloco-subiram:hover { border-color: rgba(56, 189, 248, 0.4); }
-.ranking-bloco-saidas:hover { border-color: rgba(239, 68, 68, 0.4); }
+.ranking-bloco-subiram:hover { border-color: rgba(57, 194, 102, 0.4); }
+.ranking-bloco-saidas:hover { border-color: rgba(255, 110, 112, 0.4); }
 .ranking-bloco-cairam:hover { border-color: rgba(249, 115, 22, 0.4); }
 
-.tabela-top20 tbody tr:nth-child(1) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
   color: #f2bb25;
   font-weight: 700;
-  text-shadow: 0 0 10px rgba(242, 187, 37, 0.4);
+  text-shadow: none;
 }
 
-.tabela-top20 tbody tr:nth-child(2) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(2) .ranking-pos-num {
   color: #e2e8f0;
   font-weight: 700;
   text-shadow: 0 0 8px rgba(226, 232, 240, 0.3);
 }
 
-.tabela-top20 tbody tr:nth-child(3) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(3) .ranking-pos-num {
   color: #d97706;
   font-weight: 700;
-  text-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
+  text-shadow: none;
 }
 
 .seletor-periodo {
@@ -9625,7 +9607,7 @@ circle.grafico-ponto-interativo:hover {
   color: #ffffff;
   background: rgba(249, 115, 22, 0.18);
   border-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   font-weight: 650;
 }
 
@@ -9674,7 +9656,7 @@ circle.grafico-ponto-interativo:hover {
 .wear-card.wear-card-atual {
   border-color: rgba(249, 115, 22, 0.6);
   background: rgba(249, 115, 22, 0.08);
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* 24. Mobile Bottom Dock Floating Polish */
@@ -9692,7 +9674,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .nav-inferior a[aria-current="page"] svg {
-  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.5));
+  filter: none;
 }
 
 /* ==========================================================================
@@ -9765,26 +9747,11 @@ h3,
 }
 
 /* Kicker editorial sobre o título principal */
-.home-tese-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: var(--sp-2);
-  background: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.25);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-}
 
 /* Subtítulos e parágrafos principais: contraste e altura de linha ideais */
 .home-tese-texto,
 .descricao-pagina {
-  color: #94a3b8;
+  color: #b3b3b3;
   font-size: 1.0625rem;
   line-height: 1.6;
 }
@@ -9805,7 +9772,7 @@ h3,
 /* Campo de busca: placeholder refinado com contraste nítido */
 #campo-busca::placeholder,
 .campo-busca::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -9827,21 +9794,6 @@ h3,
    ========================================================================== */
 
 /* Kicker do Ranking */
-.ranking-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: var(--sp-2);
-  background: rgba(249, 115, 22, 0.1);
-  border: 1px solid rgba(249, 115, 22, 0.25);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-}
 
 /* Controles de Período e Legenda */
 .ranking-controles {
@@ -9861,7 +9813,7 @@ h3,
 
 .barra-periodo-ranking-rotulo {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   font-weight: 500;
 }
 
@@ -9883,7 +9835,7 @@ h3,
   border-radius: var(--radius-pill);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #b3b3b3;
   text-decoration: none;
   transition: all 0.15s ease;
   border: 1px solid transparent;
@@ -9899,7 +9851,7 @@ h3,
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
   font-weight: 650;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 /* Card de aviso de período / metodologia */
@@ -9914,7 +9866,7 @@ h3,
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: #94a3b8;
+  color: #b3b3b3;
   margin-bottom: var(--sp-4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
@@ -9932,7 +9884,7 @@ h3,
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -9954,10 +9906,9 @@ h3,
 /* Top 3 Podium Highlights */
 .tabela-top20 tbody tr:nth-child(1) {
   background: linear-gradient(90deg, rgba(242, 187, 37, 0.07) 0%, rgba(242, 187, 37, 0.01) 100%);
-  border-left: 3px solid #f2bb25;
 }
 
-.tabela-top20 tbody tr:nth-child(1) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
   color: #ffd700;
   font-weight: 800;
   background: rgba(242, 187, 37, 0.15);
@@ -9965,15 +9916,14 @@ h3,
   border-radius: var(--radius-pill);
   padding: 3px 10px;
   display: inline-block;
-  box-shadow: 0 0 12px rgba(242, 187, 37, 0.25);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .tabela-top20 tbody tr:nth-child(2) {
   background: linear-gradient(90deg, rgba(226, 232, 240, 0.05) 0%, rgba(226, 232, 240, 0.01) 100%);
-  border-left: 3px solid #cbd5e1;
 }
 
-.tabela-top20 tbody tr:nth-child(2) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(2) .ranking-pos-num {
   color: #f1f5f9;
   font-weight: 750;
   background: rgba(226, 232, 240, 0.1);
@@ -9986,10 +9936,9 @@ h3,
 
 .tabela-top20 tbody tr:nth-child(3) {
   background: linear-gradient(90deg, rgba(217, 119, 6, 0.06) 0%, rgba(217, 119, 6, 0.01) 100%);
-  border-left: 3px solid #d97706;
 }
 
-.tabela-top20 tbody tr:nth-child(3) .ranking-pos {
+.tabela-top20 tbody tr:nth-child(3) .ranking-pos-num {
   color: #fbbf24;
   font-weight: 750;
   background: rgba(217, 119, 6, 0.12);
@@ -9997,11 +9946,11 @@ h3,
   border-radius: var(--radius-pill);
   padding: 3px 10px;
   display: inline-block;
-  box-shadow: 0 0 10px rgba(217, 119, 6, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
-.tabela-top20 tbody tr:nth-child(n+4) .ranking-pos {
-  color: #64748b;
+.tabela-top20 tbody tr:nth-child(n+4) .ranking-pos-num {
+  color: var(--text-muted);
   font-weight: 600;
   padding: 3px 8px;
   display: inline-block;
@@ -10038,7 +9987,7 @@ h3,
 /* Coluna No Top 20 */
 .celula-no-top {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -10069,7 +10018,7 @@ h3,
 .tabela-top20 .copiar-preco:hover {
   background: rgba(249, 115, 22, 0.2);
   border-color: rgba(249, 115, 22, 0.5);
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -10083,7 +10032,7 @@ h3,
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  color: #b3b3b3;
   transition: all 0.15s ease;
 }
 
@@ -10096,7 +10045,7 @@ h3,
 .encomenda-preco-hoje {
   display: block;
   font-size: 0.75rem;
-  color: #10b981;
+  color: #39c266;
   font-weight: 550;
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
@@ -10104,7 +10053,7 @@ h3,
 
 .encomenda-sem-dado {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -10162,7 +10111,7 @@ h3,
 
 .movimento-linha-numeros {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -10179,7 +10128,7 @@ h3,
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: #b3b3b3;
   cursor: pointer;
   transition: all 0.15s ease;
   margin-top: 6px;
@@ -10194,11 +10143,11 @@ h3,
   margin-top: var(--sp-4);
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.02);
-  border-left: 2px solid rgba(249, 115, 22, 0.4);
-  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
   font-size: 0.75rem;
   line-height: 1.5;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 
@@ -10259,7 +10208,7 @@ h3,
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.045) 100%);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4);
   transform: translateY(-0.5px);
 }
 
@@ -10272,7 +10221,8 @@ h3,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;
@@ -10292,7 +10242,7 @@ h3,
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.07) 100%);
   border-color: rgba(249, 115, 22, 0.35);
   color: #ffffff;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), 0 0 8px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .conta-pill {
@@ -10331,7 +10281,7 @@ h3,
 .conta-pill[aria-current="page"] {
   border-color: rgba(249, 115, 22, 0.5);
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.14) 0%, rgba(249, 115, 22, 0.04) 100%);
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .conta-avatar {
@@ -10387,17 +10337,17 @@ h3,
 }
 
 .conta-sair:hover {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.07) 100%);
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #f87171;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, rgba(255, 110, 112, 0.18) 0%, rgba(255, 110, 112, 0.07) 100%);
+  border-color: rgba(255, 110, 112, 0.45);
+  color: #ff6e70;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   transform: translateY(-0.5px);
   text-decoration: none;
 }
 
 .conta-sair:hover .icone-ui {
   transform: translateX(1.5px);
-  color: #f87171;
+  color: #ff6e70;
 }
 
 /* 2. Barra de Ferramentas e Filtros do Catálogo (Home/Início) */
@@ -10444,14 +10394,14 @@ h3,
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .form-filtros button.filtros-mais-toggle[aria-expanded="true"] {
   background: rgba(249, 115, 22, 0.14);
   border-color: rgba(249, 115, 22, 0.5);
   color: #ffffff;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.18);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .form-filtros button.filtros-mais-toggle .icone-ui-filtro {
@@ -10511,10 +10461,10 @@ h3,
 }
 
 .form-filtros button#botao-favoritos[aria-pressed="true"] {
-  background: rgba(250, 204, 21, 0.12);
-  border-color: rgba(250, 204, 21, 0.45);
-  color: #facc15;
-  box-shadow: 0 0 12px rgba(250, 204, 21, 0.15);
+  background: rgba(242, 187, 37, 0.12);
+  border-color: rgba(242, 187, 37, 0.45);
+  color: #f2bb25;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .form-filtros button#botao-favoritos .icone-ui-favorito {
@@ -10534,6 +10484,8 @@ h3,
 .form-filtros .campo-busca-rotulo .icone-ui-lupa {
   position: absolute;
   left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 13px;
   height: 13px;
   color: rgba(255, 255, 255, 0.4);
@@ -10566,7 +10518,7 @@ h3,
 }
 
 .form-filtros input[type="text"]#campo-busca::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
 }
 
 /* Painel de Filtros expandido: matriz de precisão */
@@ -10590,7 +10542,7 @@ h3,
   gap: 14px;
   width: 100%;
   padding: 16px;
-  background: rgba(18, 24, 38, 0.55);
+  background: rgba(30, 30, 30, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   backdrop-filter: blur(8px);
@@ -10621,7 +10573,7 @@ h3,
 }
 
 .filtros-mais-corpo select option {
-  background: #111827;
+  background: #1e1e1e;
   color: #f1f5f9;
 }
 
@@ -10662,7 +10614,7 @@ h3,
 
 .botao-aplicar-filtros:hover {
   background: #ea580c;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   transform: translateY(-0.5px);
 }
 
@@ -10683,9 +10635,9 @@ h3,
 }
 
 .botao-limpar-filtros:hover {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: rgba(255, 110, 112, 0.12);
+  border-color: rgba(255, 110, 112, 0.3);
+  color: #ff6e70;
   text-decoration: none;
 }
 
@@ -10815,7 +10767,7 @@ h3,
   border: 1px solid rgba(249, 115, 22, 0.45);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .subnav-conta-link .icone-ui {
@@ -10952,7 +10904,7 @@ h3,
 .resumo-cards-conta .botao-preencher:hover {
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.35) 0%, rgba(249, 115, 22, 0.20) 100%);
   border-color: rgba(249, 115, 22, 0.65);
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
 }
 
 .resumo-cards-conta .botao-preencher:hover::after {
@@ -10960,13 +10912,13 @@ h3,
 }
 
 .resumo-cards-conta .card-valor.valor-positivo {
-  color: #22c55e;
-  text-shadow: 0 0 16px rgba(34, 197, 94, 0.25);
+  color: #39c266;
+  text-shadow: none;
 }
 
 .resumo-cards-conta .card-valor.valor-negativo {
-  color: #ef4444;
-  text-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+  color: #ff6e70;
+  text-shadow: none;
 }
 
 .resumo-cards-conta .card-sub[data-total="liquido_sub"] {
@@ -11024,7 +10976,8 @@ h3,
 }
 
 .conta-lista-cabecalho .meta-lucro-valor {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--accent);
@@ -11153,7 +11106,7 @@ h3,
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.20);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .conta-filtro span[data-conta-contagem] {
@@ -11167,7 +11120,8 @@ h3,
   background: rgba(255, 255, 255, 0.08);
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   margin-left: 2px;
   transition: all 0.15s ease;
@@ -11228,7 +11182,7 @@ h3,
 }
 
 .conta-ordem select option {
-  background: #111827;
+  background: #1e1e1e;
   color: #f1f5f9;
 }
 
@@ -11259,7 +11213,7 @@ h3,
 .tabela-wrap:has(> .tabela-comparar) {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(18, 24, 38, 0.35);
+  background: rgba(30, 30, 30, 0.35);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   overflow: visible;
 }
@@ -11275,7 +11229,7 @@ table.tabela-comparar {
 table.tabela-conta th,
 table.tabela-conta-lista th,
 table.tabela-comparar th {
-  background: #0d121c;
+  background: #121212;
   padding: 12px 14px;
   font-size: 0.6875rem;
   font-weight: 600;
@@ -11367,7 +11321,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #f1f5f9;
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Campo de Custo Inline Integrado */
@@ -11388,7 +11343,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #f8fafc;
   font-size: 0.8125rem;
   font-weight: 500;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-variant-numeric: tabular-nums;
   transition: all 0.18s ease;
 }
@@ -11447,7 +11403,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f8fafc;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -11458,7 +11415,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(249, 115, 22, 0.12);
   border-color: rgba(249, 115, 22, 0.40);
   color: #ffffff;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.2);
+  box-shadow: none;
 }
 
 /* Lotes Múltiplos e Separação */
@@ -11529,7 +11486,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .tabela-conta .form-separar .botao-link:hover {
   background: var(--accent-bright, #ea580c);
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .tabela-conta .form-separar .explica-separar {
@@ -11591,7 +11548,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-top: 14px;
   padding: 20px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.5);
+  background: rgba(30, 30, 30, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-wrap: wrap;
@@ -11647,7 +11604,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .adicionar-manual .botao-acao:hover {
   background: var(--accent-bright, #ea580c);
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* Como ler esta tabela - Grid de Referência */
@@ -11749,18 +11706,18 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .link-excluir-conta .conta-excluir a {
-  color: rgba(239, 68, 68, 0.75);
+  color: rgba(255, 110, 112, 0.75);
   text-decoration: none;
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(255, 110, 112, 0.25);
   transition: all 0.15s ease;
 }
 
 .link-excluir-conta .conta-excluir a:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.45);
+  color: #ff6e70;
+  background: rgba(255, 110, 112, 0.12);
+  border-color: rgba(255, 110, 112, 0.45);
 }
 
 /* 9. Tema Unificado para Watchlist, Trades, Histórico e Componentes Gerais */
@@ -11770,7 +11727,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
@@ -11819,9 +11776,9 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   gap: 4px;
   padding: 3px 8px;
   border-radius: 9999px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #f87171;
+  background: rgba(255, 110, 112, 0.15);
+  border: 1px solid rgba(255, 110, 112, 0.35);
+  color: #ff6e70;
   font-size: 0.71875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -11841,7 +11798,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .troca-card {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20);
 }
@@ -11880,7 +11837,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .troca-coluna-total {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: #f8fafc;
 }
@@ -11917,7 +11875,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .grafico-card {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   margin-bottom: var(--sp-4);
@@ -11957,7 +11915,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin: 0 0 var(--sp-6);
   padding: 24px 28px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0%, rgba(18, 24, 38, 0.65) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0%, rgba(30, 30, 30, 0.65) 100%);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
@@ -12000,7 +11958,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .hero-destaque-preco {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -12058,7 +12017,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .pulse-card {
   padding: 14px 16px;
   border-radius: 12px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   text-decoration: none;
@@ -12095,7 +12054,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .pulse-card-valor {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
@@ -12115,8 +12075,13 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   padding: 3px;
 }
 
+.pulse-card-img-wrap { position: relative; overflow: hidden; }
+/* O placeholder global é absoluto: sem o "position: relative" acima ele
+   cobria o cartão inteiro quando o item não tinha imagem (revisão 19/11). */
 .pulse-card-img-wrap .icone-item-placeholder {
   display: flex !important;
+  position: absolute;
+  inset: 0;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -12128,7 +12093,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 /* Barra de Busca & Filtros Expansíveis */
 .barra-busca-vitrine {
   border-radius: 12px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.09);
   padding: 6px 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -12157,7 +12122,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .filtros-mais-corpo {
   padding: 18px 20px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   margin-top: 10px;
@@ -12196,7 +12161,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   flex-direction: column;
   padding: 16px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
@@ -12222,7 +12187,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .cartao-item-preco {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.125rem;
   font-weight: 700;
   color: #f8fafc;
@@ -12269,14 +12235,14 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(249, 115, 22, 0.14);
   border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* Podiums #1, #2, #3 na Tabela do Ranking */
 .tabela-top20 tbody tr:nth-child(1) td:first-child {
   color: #fbbf24;
   font-weight: 800;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+  text-shadow: none;
 }
 
 .tabela-top20 tbody tr:nth-child(2) td:first-child {
@@ -12288,7 +12254,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .tabela-top20 tbody tr:nth-child(3) td:first-child {
   color: #f97316;
   font-weight: 800;
-  text-shadow: 0 0 8px rgba(249, 115, 22, 0.25);
+  text-shadow: none;
 }
 
 /* Blocos de Movimentação do Ranking */
@@ -12302,7 +12268,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .ranking-bloco {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -12323,7 +12289,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 24px 28px;
   border-radius: 16px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -12372,7 +12338,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .metodo-achados-grid .card {
   padding: 18px;
   border-radius: 12px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20);
 }
@@ -12390,7 +12356,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: relative;
   padding: 22px 26px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -12432,7 +12398,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .saude-ciclos {
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   margin-bottom: var(--sp-4);
@@ -12494,7 +12460,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin: 0 0 var(--sp-5);
   padding: 24px 28px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(18, 24, 38, 0.65) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(30, 30, 30, 0.65) 100%);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
@@ -12508,7 +12474,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 4px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -12544,7 +12510,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .resumo-cards.resumo-cards-item .card-valor.nota .nota-numero {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 1.5rem !important;
   font-weight: 700 !important;
   line-height: 1;
@@ -12571,7 +12538,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin: 0 0 var(--sp-5);
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(18, 24, 38, 0.45);
+  background: rgba(30, 30, 30, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -12584,14 +12551,15 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .simulador-metrica-card.card-destaque-lucro {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #34d399;
+  background: rgba(57, 194, 102, 0.08);
+  border-color: rgba(57, 194, 102, 0.25);
+  color: #39c266;
 }
 
 .simulador-metrica-card.card-destaque-lucro .simulador-metrica-valor {
-  color: #34d399;
-  font-family: var(--font-mono, ui-monospace, monospace);
+  color: #39c266;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
@@ -12822,12 +12790,12 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .indice-glossario a {
-  width: 32px;
-  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.80);
@@ -12873,7 +12841,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: relative;
   padding: 16px 20px;
   border-radius: 12px;
-  background: rgba(18, 24, 38, 0.40);
+  background: rgba(30, 30, 30, 0.40);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20);
 }
@@ -12883,7 +12851,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 footer.rodape-global,
 footer.rodape {
   margin-top: var(--sp-8);
-  padding: 36px 0 54px;
+  padding-top: 36px;
+  padding-bottom: 54px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -12898,3 +12867,241 @@ footer.rodape-global a:hover,
 footer.rodape a:hover {
   color: #ffffff;
 }
+
+/* Desempenho no celular (revisão 19/11): o "vidro" (backdrop-filter)
+   estava em ~30 elementos da página inicial, a maioria selos repetidos
+   em cada cartão -- cada um é uma camada que o navegador recalcula ao
+   rolar. Fica só no que flutua sobre a página (topo, barra de baixo,
+   busca, dicas, avisos); nos cartões e selos, fundo escuro quase sólido,
+   que dá a mesma leitura sobre a imagem. */
+.cartao-item-nota,
+.cartao-item-margem,
+.cartao-item-posicao,
+.selo-sem-nota,
+.hero-destaque-nota {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgba(12, 12, 12, 0.82);
+}
+.pulse-card,
+.movimento-do-dia,
+.ranking-bloco,
+.hero-destaque,
+.resumo-cards:not(.resumo-cards-item) .card,
+.resumo-cards-conta .card {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* "Ctrl K" não faz sentido sem teclado (celular, tablet). */
+@media (hover: none), (max-width: 640px) {
+  .spotlight-gatilho-kbd { display: none; }
+}
+
+/* Simulador: as três métricas são colunas separadas por fios, não cartões
+   dentro do cartão (revisão 20/11). */
+.simulador-metricas-grid { gap: 0; }
+.simulador-metrica-card,
+.simulador-metrica-card.card-destaque-lucro {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 4px var(--sp-4);
+}
+.simulador-metrica-card:first-child { padding-left: 0; }
+.simulador-metrica-card + .simulador-metrica-card { border-left: 1px solid var(--border); }
+@media (max-width: 640px) {
+  .simulador-metrica-card,
+  .simulador-metrica-card.card-destaque-lucro { padding: var(--sp-3) 0; }
+  .simulador-metrica-card + .simulador-metrica-card { border-left: 0; border-top: 1px solid var(--border); }
+}
+
+/* O simulador vive dentro do quadro "Para revender": vira uma seção
+   separada por um fio, não um cartão dentro do cartão (revisão 20/11). */
+.conta-revenda .simulador-encomenda-box {
+  margin: var(--sp-5) 0;
+  padding: var(--sp-5) 0 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ── Revisão 20/11: páginas de texto, glossário, mudanças e status ── */
+
+/* Texto alinhado à esquerda: o justificado abria buracos entre as
+   palavras e quebrava palavras no meio ("ofere-cem"). */
+.pagina-texto p,
+.pagina-texto li { text-align: left; hyphens: manual; }
+
+/* Glossário: o cartão é o par termo + explicação inteiro, sem a faixa
+   entre o título e o texto; cartões da mesma linha com a mesma altura. */
+.lista-glossario { gap: var(--sp-3); align-items: stretch; }
+.termo-glossario {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+.pagina-glossario dl dt,
+.pagina-glossario dt {
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.pagina-glossario dl dd,
+.pagina-glossario dd {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.indice-glossario { gap: 8px; margin-bottom: var(--sp-5); }
+
+/* Método: título sem o vão no topo do quadro; os fatores viram uma lista
+   com fios, não cartões dentro do cartão. */
+.metodo-sinais > .secao-titulo:first-child { margin-top: 0; }
+.metodo-sinais-lista { gap: 0; padding-left: 0; }
+.metodo-sinais-lista li {
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+  font-size: 0.9375rem;
+}
+.metodo-sinais-lista li:first-child { border-top: 0; padding-top: 4px; }
+.metodo-exemplo {
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+/* Mudanças: a bolinha da linha do tempo acompanha a 1ª linha do título,
+   a data por extenso fica embaixo dele, e as antigas ficam recolhidas. */
+.changelog-entrada::before { content: none; }
+.changelog-entrada .secao-titulo { position: relative; margin-bottom: 4px; }
+.changelog-entrada .secao-titulo::before {
+  content: "";
+  position: absolute;
+  top: 0.32em;
+  left: -22px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.changelog-data {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.changelog-antigas { margin-top: var(--sp-7); }
+.changelog-antigas > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  list-style: none;
+}
+.changelog-antigas > summary::-webkit-details-marker { display: none; }
+.changelog-antigas > summary:hover { border-color: var(--border-strong); color: var(--text-bright); }
+.changelog-antigas[open] > summary { margin-bottom: var(--sp-2); }
+
+/* Status: quadros na altura do conteúdo e gráfico de barras com datas. */
+.resumo-cards.resumo-cards-status .card { min-height: 0; }
+.grafico-barras { display: block; width: 100%; height: auto; color: var(--accent); }
+.grafico-barras .barra { fill: currentColor; opacity: 0.85; }
+.grafico-barras .barra-grupo:hover .barra { opacity: 1; }
+.grafico-barras .barra-valor { fill: var(--text); font-size: 12px; font-weight: 600; }
+.grafico-barras .barra-dia { fill: var(--text-muted); font-size: 11px; }
+.grafico-barras .barra-base { stroke: var(--border); stroke-width: 1; }
+
+/* Página inicial: "Limpar todos" no tamanho dos chips; "Ver na Steam"
+   do cartão com área de toque maior sem mudar o desenho. */
+.filtros-ativos .botao-link { font-size: var(--fs-sm); }
+.cartao-item-steam { padding-block: 5px; margin-block: -5px; }
+
+/* ── Revisão 20/11 (2): conta, comparar e trocas ── */
+
+/* Comparar: a tabela rola dentro do quadro no celular, em vez de
+   empurrar a página toda para o lado. */
+.tabela-wrap:has(> .tabela-comparar) { overflow-x: auto; }
+
+/* Destaque da melhor célula: só o fundo, sem a faixa lateral grossa. */
+.valor-destaque-linha { box-shadow: none; }
+
+/* Abas da conta no celular: as 4 cabem na tela (o "Histórico" ficava
+   escondido para fora, só aparecia arrastando). */
+@media (max-width: 640px) {
+  .subnav-conta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+    border-radius: 16px;
+  }
+  .subnav-conta-link {
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-height: 52px;
+    padding: 6px 2px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+}
+
+/* Conta: "cada" dentro do campo com contraste para ler; "confira" com
+   área de toque de 24px. */
+.tabela-conta .campo-reais-sufixo,
+.campo-reais-sufixo { color: var(--text-muted); }
+button.confira { min-height: 24px; padding-block: 3px; }
+
+/* Trocas: saldo à esquerda, "apagar" à direita, na mesma linha. */
+.troca-fim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px var(--sp-3);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.troca-fim .troca-saldo {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.troca-fim .form-remover { margin: 0; }
+
+/* Letra ampliada no celular (revisão 20/11): com a fonte do sistema no
+   dobro, duas colunas ficavam estreitas demais e o preço da encomenda
+   sumia do cartão. A coluna mínima em rem cresce junto com a letra:
+   no tamanho normal continuam 2 colunas; com letra grande, vira 1. */
+@media (max-width: 640px) {
+  .grade-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); }
+}
+.cartao-item-encomenda { flex-wrap: wrap; max-width: 100%; }
+
+/* Busca rápida: o contorno de foco do campo acompanha o canto arredondado. */
+.spotlight-input:focus-visible { border-radius: 8px; }

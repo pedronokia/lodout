@@ -70,18 +70,6 @@ document.addEventListener("submit", function (e) {
     e.preventDefault();
   }
 });
-var _SELETOR_DETAILS_AUTO_FECHA = ".menu-acoes-item[open], .popover-legenda[open]";
-document.addEventListener("click", function (e) {
-  document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
-    if (!det.contains(e.target)) det.open = false;
-  });
-});
-document.addEventListener("keydown", function (e) {
-  if (e.key !== "Escape") return;
-  document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
-    det.open = false;
-  });
-});
 document.addEventListener("error", function (e) {
   if (e.target.matches && e.target.matches(".icone-item")) {
     e.target.classList.add("icone-item-indisponivel");
@@ -309,7 +297,7 @@ document.addEventListener("error", function (e) {
     if (!texto || !lista) return;
     lista.textContent = "";
     if (!nomes.length) {
-      texto.textContent = "Nenhum item favoritado ainda — use o botão Favoritar ao lado de um item.";
+      texto.textContent = "Nenhum favorito ainda. Toque na estrela de um item para salvar.";
       lista.hidden = true;
       return;
     }
@@ -729,8 +717,21 @@ if ("serviceWorker" in navigator) {
   var elRetorno = document.getElementById("sim-retorno-pct");
   var elFila = document.getElementById("sim-fila-status");
   var elFilaDesc = document.getElementById("sim-fila-desc");
+  // Mesmo formato do resto do site (fmt.brl): "R$ 1.234,56" e prejuízo
+  // como "−R$ 2,82" (revisão 19/11: saía "R$ -2,82").
   function formatarBrl(val) {
-    return "R$ " + val.toFixed(2).replace(".", ",");
+    var p = Math.abs(val).toFixed(2).split(".");
+    var txt = "R$ " + p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "," + p[1];
+    return (Math.round(val * 100) < 0 ? "\u2212" : "") + txt;
+  }
+  // O campo aceita "58,95" ou "58.95" (e "1.234,56").
+  function lerValor(txt) {
+    var v = String(txt || "").replace(/R\$|\s/g, "");
+    if (v.indexOf(",") !== -1) v = v.replace(/\./g, "").replace(",", ".");
+    return parseFloat(v);
+  }
+  function escreverValor(val) {
+    return val.toFixed(2).replace(".", ",");
   }
   function calcular(valorPago) {
     if (isNaN(valorPago) || valorPago <= 0) return;
@@ -741,11 +742,11 @@ if ("serviceWorker" in navigator) {
       var lucroLiquido = liquidoVenda - valorPago;
       var retornoPct = (lucroLiquido / valorPago) * 100;
       if (elLucro) {
-        elLucro.textContent = (lucroLiquido >= 0 ? "+" : "") + formatarBrl(lucroLiquido);
+        elLucro.textContent = (Math.round(lucroLiquido * 100) > 0 ? "+" : "") + formatarBrl(lucroLiquido);
         elLucro.className = "simulador-metrica-val " + (lucroLiquido >= 0 ? "texto-positivo" : "texto-perigo");
       }
       if (elRetorno) {
-        elRetorno.textContent = (retornoPct >= 0 ? "+" : "") + retornoPct.toFixed(1).replace(".", ",") + "% líquido";
+        elRetorno.textContent = (retornoPct > 0.05 ? "+" : retornoPct < -0.05 ? "\u2212" : "") + Math.abs(retornoPct).toFixed(1).replace(".", ",") + "% depois da taxa";
         elRetorno.className = "simulador-metrica-sub " + (retornoPct >= 0 ? "texto-positivo" : "texto-perigo");
       }
       var elArbSteam = document.getElementById("arb-steam-liquido");
@@ -764,27 +765,27 @@ if ("serviceWorker" in navigator) {
     if (elFila && elFilaDesc) {
       if (maiorEncomenda > 0) {
         if (valorPago > maiorEncomenda) {
-          elFila.textContent = "1º na fila!";
+          elFila.textContent = "Na frente da fila";
           elFila.className = "simulador-metrica-val texto-positivo";
           elFilaDesc.textContent = "Acima da maior encomenda (" + formatarBrl(maiorEncomenda) + ")";
         } else if (Math.abs(valorPago - maiorEncomenda) < 0.01) {
           elFila.textContent = "Empatado no topo";
           elFila.className = "simulador-metrica-val texto-alerta";
-          elFilaDesc.textContent = "Empata com a maior encomenda da Steam";
+          elFilaDesc.textContent = "Igual à maior encomenda";
         } else {
           elFila.textContent = "Atrás da fila";
           elFila.className = "simulador-metrica-val texto-muted";
-          elFilaDesc.textContent = "A maior encomenda atual é " + formatarBrl(maiorEncomenda);
+          elFilaDesc.textContent = "Maior encomenda: " + formatarBrl(maiorEncomenda);
         }
       } else {
         elFila.textContent = "Oferta aberta";
-        elFilaDesc.textContent = "Sem fila conhecida no momento";
+        elFilaDesc.textContent = "Fila desconhecida";
       }
     }
   }
   if (input && slider) {
     input.addEventListener("input", function () {
-      var val = parseFloat(input.value);
+      var val = lerValor(input.value);
       if (!isNaN(val)) {
         slider.value = val;
         calcular(val);
@@ -792,10 +793,10 @@ if ("serviceWorker" in navigator) {
     });
     slider.addEventListener("input", function () {
       var val = parseFloat(slider.value);
-      input.value = val.toFixed(2);
+      input.value = escreverValor(val);
       calcular(val);
     });
-    var valInicial = parseFloat(input.value);
+    var valInicial = lerValor(input.value);
     if (!isNaN(valInicial)) calcular(valInicial);
 
     /* Presets de oferta rápida no simulador */
@@ -814,7 +815,7 @@ if ("serviceWorker" in navigator) {
           }
         }
         if (novoVal > 0) {
-          input.value = novoVal.toFixed(2);
+          input.value = escreverValor(novoVal);
           slider.value = novoVal;
           calcular(novoVal);
         }
@@ -849,7 +850,7 @@ if ("serviceWorker" in navigator) {
       var url = btnCompartilhar.getAttribute("data-url") || window.location.href;
 
       var texto = "🔥 " + nome + " no Lodout\n" +
-                  "📊 Nota: " + nota + "/100 · Preço: " + preco + "\n" +
+                  "📊 Nota: " + nota + " · Preço: " + preco + "\n" +
                   "Análise completa e simulador de lucro no link:\n" + url;
 
       function ativarSucesso() {

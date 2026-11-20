@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -25,18 +25,30 @@
       <h1 class="titulo-pagina">Mudanças</h1>
       <p class="descricao-pagina">O que mudou no site, por data.</p>
     </header>
-    <div class="changelog-timeline">
-      {% for entrada in entradas %}
-      <section class="changelog-entrada">
-        <h2 class="secao-titulo">{{ entrada.data }} — {{ entrada.titulo }}</h2>
+    {# As 6 mais recentes à vista; as outras recolhidas (a página passava
+       de 30 mil pixels no celular -- revisão 20/11). #}
+    {% macro entrada_changelog(entrada) %}
+      <section class="changelog-entrada" id="em-{{ entrada.data }}">
+        <h2 class="secao-titulo">{{ entrada.titulo }}</h2>
+        <p class="changelog-data"><time datetime="{{ entrada.data }}">{{ entrada.data|data_extenso }}</time></p>
         <ul>
           {% for item in entrada.itens %}
           <li>{{ item }}</li>
           {% endfor %}
         </ul>
       </section>
-      {% endfor %}
+    {% endmacro %}
+    <div class="changelog-timeline">
+      {% for entrada in entradas[:6] %}{{ entrada_changelog(entrada) }}{% endfor %}
     </div>
+    {% if entradas|length > 6 %}
+    <details class="changelog-antigas">
+      <summary>Ver mudanças mais antigas ({{ entradas|length - 6 }})</summary>
+      <div class="changelog-timeline">
+        {% for entrada in entradas[6:] %}{{ entrada_changelog(entrada) }}{% endfor %}
+      </div>
+    </details>
+    {% endif %}
   </main>
 
   <footer class="rodape">

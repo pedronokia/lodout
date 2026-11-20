@@ -420,6 +420,14 @@ def check_for_updates(state_path: "Path | str" = _STATE_PATH,
         except Exception as e:  # pragma: no cover - defensivo
             print(f"WARNING: retirements nao gravou: {e}",
                   file=__import__('sys').stderr)
+        # Evento do jogo tambem vira alerta na watchlist (mesmo log/UI das
+        # regras de preco/volume) -- aditivo, mesmo espirito do bloco acima:
+        # falha aqui nao derruba o ciclo do watcher.
+        try:
+            record_events_as_alerts(events)
+        except Exception as e:  # pragma: no cover - defensivo
+            print(f"WARNING: eventos nao viraram alerta: {e}",
+                  file=__import__('sys').stderr)
 
     save_state({
         "sha": head["sha"],
