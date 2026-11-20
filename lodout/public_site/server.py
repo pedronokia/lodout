@@ -1198,7 +1198,7 @@ def create_app() -> Flask:
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             '<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">\n'
             "  <ShortName>lodout</ShortName>\n"
-            "  <Description>Buscar uma skin de CS2 por nome no lodout"
+            "  <Description>Buscar uma skin de Counter-Strike 2 por nome no Lodout"
             "</Description>\n"
             f"  <Image width=\"32\" height=\"32\" type=\"image/svg+xml\">{_xml_escape(base)}/static/favicon.svg</Image>\n"
             f"  <Url type=\"text/html\" template=\"{_xml_escape(base)}/?q={{searchTerms}}\"/>\n"
@@ -1669,7 +1669,7 @@ def create_app() -> Flask:
             for c in candidatos
         )
         titulo = (f"Lodout — Preços e notas de {_xml_escape(categoria)}"
-                  if categoria else "Lodout — Preços e notas de skins CS2")
+                  if categoria else "Lodout — análise do mercado de skins de Counter-Strike 2")
         link_self = f"{base}/feed.xml" + (
             f"?categoria={urllib.parse.quote(categoria)}" if categoria else "")
         rss = (
@@ -1677,8 +1677,8 @@ def create_app() -> Flask:
             '<rss version="2.0"><channel>\n'
             f"  <title>{titulo}</title>\n"
             f"  <link>{_xml_escape(link_self)}</link>\n"
-            "  <description>Nota de 0 a 100 pra skins do CS2, com o motivo"
-            " escrito.</description>\n"
+            "  <description>Análise do mercado de skins de Counter-Strike 2, com notas"
+            " e o motivo de cada uma.</description>\n"
             "  <language>pt-BR</language>\n"
             f"{itens_xml}\n"
             "</channel></rss>\n"

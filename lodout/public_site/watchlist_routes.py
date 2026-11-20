@@ -214,9 +214,8 @@ def editar_regras(name: str):
         rules = _rules_do_form()
     except ValueError:
         flash(
-            "As regras não foram salvas. Use números maiores que zero; "
-            "percentuais e nota devem ficar entre 0 e 100, e a nota deve "
-            "ser inteira.",
+            "Alertas não salvos. Use números maiores que zero; percentual "
+            "e nota até 100, nota inteira.",
             "error",
         )
         return redirect(url_for("watchlist.listar"))

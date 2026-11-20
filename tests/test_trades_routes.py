@@ -67,9 +67,9 @@ def test_listar_sem_login_redireciona(client):
 def test_pagina_explica_que_sao_trocas(client, monkeypatch):
     _login(client, monkeypatch)
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "Nenhuma troca registrada ainda" in pagina
+    assert "Nenhuma troca registrada" in pagina
     assert "Você deu" in pagina and "Você recebeu" in pagina
-    assert "Itens vendidos" in pagina and "não paga a taxa da Steam" in pagina
+    assert "Itens vendidos" in pagina and "Troca direta não paga taxa" in pagina
 
 
 def test_registrar_troca_mostra_os_dois_lados_e_o_saldo(client, monkeypatch):
@@ -118,7 +118,7 @@ def test_apagar_troca(client, monkeypatch):
     client.post("/conta/trades/0/remover", data={"csrf_token": token})
     pagina = client.get("/conta/trades").data.decode("utf-8")
     assert "A troca saiu da sua lista" in pagina
-    assert "Nenhuma troca registrada ainda" in pagina
+    assert "Nenhuma troca registrada" in pagina
 
 
 def test_trocas_isoladas_entre_contas(client, monkeypatch):
@@ -126,7 +126,7 @@ def test_trocas_isoladas_entre_contas(client, monkeypatch):
     _troca(client, _csrf_token(client))
     _login(client, monkeypatch, steamid="76561198000000002")
     pagina = client.get("/conta/trades").data.decode("utf-8")
-    assert "Nenhuma troca registrada ainda" in pagina
+    assert "Nenhuma troca registrada" in pagina
 
 
 def test_compra_e_venda_antigas_vao_para_itens_vendidos(client, monkeypatch):

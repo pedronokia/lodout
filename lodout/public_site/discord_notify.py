@@ -50,3 +50,19 @@ def enviar(webhook_url: str, mensagem: str) -> bool:
             return resp.status_code in (200, 204)
     except Exception:
         return False
+
+
+def enviar_embed(webhook_url: str, payload: dict) -> bool:
+    """POST com embed rico no webhook do Discord. True se aceito (200/204)."""
+    if not url_valida(webhook_url):
+        return False
+    try:
+        import httpx
+    except ImportError:
+        return False
+    try:
+        with httpx.Client(timeout=_TIMEOUT) as client:
+            resp = client.post(webhook_url, json=payload)
+            return resp.status_code in (200, 204)
+    except Exception:
+        return False

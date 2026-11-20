@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <div class="titulo-logo">{% include "partials/_logo.html" %}</div>
@@ -24,11 +24,11 @@
       {# Item não encontrado (revisão 17/11): nome digitado errado ou link
          antigo. Diz qual, sugere parecidos e deixa o nome na busca. #}
       <h1 class="titulo-pagina"><span aria-hidden="true">{{ icone("lupa") }}</span> Não achamos esse item</h1>
-      <p class="descricao-pagina">Não há nenhum item chamado <strong translate="no">“{{ item_procurado_fmt }}”</strong> no Lodout. Pode ser um erro de digitação ou um link antigo.{% if not parecidos %} Tente buscar só uma parte do nome:{% endif %}</p>
+      <p class="descricao-pagina">Não há nenhum item chamado <strong translate="no">“{{ item_procurado_fmt }}”</strong> no Lodout. Pode ser erro de digitação ou link antigo.{% if not parecidos %} Tente parte do nome:{% endif %}</p>
       {% else %}
       <h1 class="titulo-pagina"><span aria-hidden="true">{{ icone("lupa") }}</span> Essa página não existe</h1>
-      <p class="descricao-pagina">O link pode estar errado, ou a página pode ter sido removida.
-      Se procurava um item, busca direto pelo nome:</p>
+      <p class="descricao-pagina">O link pode estar errado ou a página foi removida.
+      Procurando um item? Busque pelo nome:</p>
       {% endif %}
     </header>
 

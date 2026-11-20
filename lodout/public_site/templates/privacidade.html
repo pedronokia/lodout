@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacidade — Lodout</title>
-  <meta name="description" content="O que o Lodout guarda, por quê, e como excluir seus dados.">
+  <meta name="description" content="O que o Lodout guarda, por quê e como exportar ou excluir seus dados.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -23,104 +23,61 @@
   <main id="conteudo" class="pagina-texto">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Privacidade</h1>
-      <p class="descricao-pagina">Privacidade e dados</p>
+      <p class="descricao-pagina">O que guardamos e como apagar.</p>
     </header>
     {# Revisão 2026-11-16: o texto anterior dizia que o Lodout nunca lia o
        inventário e que tudo era digitado. Desde 15/11 a conta lê o
        inventário PÚBLICO da Steam (inventario.py). Mantenha esta página
        em dia com o que o site guarda de verdade. #}
-    <h2 class="secao-titulo">O painel público (sem login)</h2>
-    <p>A página inicial e a tabela de notas não guardam nada seu no
-    servidor. Não há cookie de rastreamento, não há conta. Os únicos
-    cookies possíveis aqui são opcionais e só lembram como você prefere
-    ver a página inicial (ver "Cookies" abaixo); fora isso, é só uma
-    leitura de preços públicos da Steam Community Market.</p>
+    <h2 class="secao-titulo">Sem login</h2>
+    <p>Nada seu fica no servidor. Sem conta e sem cookie de rastreamento.</p>
 
-    <h2 class="secao-titulo">Se você entra com "Entrar com Steam"</h2>
-    <p>O login usa o <strong>Steam OpenID</strong>, o mecanismo público que
-    qualquer site usa para confirmar sua identidade: você entra no próprio
-    domínio da Steam, nunca digita senha aqui, e a Steam nos devolve só um
-    <strong>SteamID64 verificado</strong> (um número público). O que
-    guardamos:</p>
+    <h2 class="secao-titulo">Com login pela Steam</h2>
+    <p>O login usa o <strong>Steam OpenID</strong>: você entra no site da Steam,
+    nunca digita senha aqui, e recebemos só seu <strong>SteamID64</strong> (um
+    número público). Guardamos:</p>
     <ul>
-      <li>Seu SteamID64, nome de perfil e foto, que já são públicos na
-      Steam. A foto fica guardada no servidor para a página carregar
-      rápido.</li>
-      <li>Os itens do seu <strong>inventário público</strong> de CS2 (nome e
-      quantidade dos que podem ser vendidos no Mercado). O Lodout lê esse
-      inventário, o mesmo que qualquer pessoa vê no seu perfil, quando você
-      entra, quando você clica em "Atualizar agora" e uma vez por dia
-      enquanto você tiver usado o site nos últimos 30 dias. Se o seu
-      inventário for privado, o Lodout não consegue ler e avisa na
-      conta.</li>
-      <li>O que você digita: quanto pagou em cada item (e os lotes, se
-      separar valores diferentes), itens adicionados à mão, sua meta de
-      lucro, os itens que você marcar como anunciados ou vendidos (com o
-      preço de venda que você informar), os trades (compra, venda,
-      quantidade e notas), a watchlist
-      (itens, alvos e alertas) e o link do webhook do Discord, se você
-      cadastrar um.</li>
-      <li>Um ponto do histórico do valor da sua conta cada vez que esse
-      valor muda.</li>
+      <li>SteamID64, nome e foto do perfil (públicos na Steam).</li>
+      <li>Os itens vendáveis do seu <strong>inventário público</strong> (nome e
+      quantidade), lidos ao entrar, ao clicar em “Atualizar agora” e uma vez
+      por dia se você usou o site nos últimos 30 dias. Inventário privado não é
+      lido.</li>
+      <li>O que você digita: valores pagos e lotes, itens adicionados à mão,
+      meta de lucro, anúncios e vendas, trocas, watchlist e alertas, e o
+      webhook do Discord, se cadastrar.</li>
+      <li>O valor da sua conta ao longo do tempo.</li>
     </ul>
-    <p>O que o Lodout <strong>não</strong> faz: não pede nem guarda senha,
-    chave de API ou sessão da Steam; não vê o seu histórico de compras do
-    Mercado (por isso o valor pago é sempre você que digita); e não faz
-    nada na sua conta da Steam, como vender ou trocar. Abrir a sua conta
-    no Lodout não consulta a Steam: os preços são os que o site já
-    coletou.</p>
+    <p>O Lodout <strong>não</strong> pede nem guarda senha, chave de API ou
+    sessão da Steam, não vê suas compras e não age na sua conta. Abrir “Minha
+    conta” não consulta a Steam.</p>
 
-    <h2 class="secao-titulo">Cookies e o que fica no seu navegador</h2>
-    <p>Nenhum cookie de rastreamento ou publicidade. Os que existem:</p>
+    <h2 class="secao-titulo">Cookies e navegador</h2>
     <ul>
-      <li><code>session</code>: só se você usar "Entrar com Steam". Lembra
-      que você está conectado por até 30 dias (ou até clicar em "Sair") e
-      guarda o código de segurança dos formulários.</li>
-      <li><code>pref_ordenar</code> e <code>pref_ver</code>: só se você
-      mudar a ordem ou o jeito de ver a página inicial. Lembram essa
-      preferência por um ano.</li>
+      <li><code>session</code>: só com login. Mantém você conectado
+      por até 30 dias (ou até “Sair”) e protege os formulários.</li>
+      <li><code>pref_ordenar</code> e <code>pref_ver</code>: lembram como você
+      prefere ver a página inicial, por um ano.</li>
     </ul>
-    <p>Algumas preferências ficam guardadas só no seu navegador e nunca
-    vão para o servidor: favoritos, comparação, buscas salvas e a data da
-    última visita da página inicial, a ordem escolhida na lista da conta
-    e, durante a busca do inventário, quantas vezes a página já se
-    recarregou sozinha.</p>
-    <p>Para mostrar quantas pessoas estão no site agora (no rodapé), cada
-    aba aberta guarda um código aleatório, que some quando você fecha a
-    aba, e o envia ao servidor uma vez por minuto enquanto a aba está
-    visível. O envio não leva cookie e não tem ligação com a sua conta;
-    o servidor não grava o seu endereço IP. Ele guarda só esse código e
-    a hora, por no máximo 10 minutos, e usa isso apenas para contar.</p>
+    <p>Favoritos, comparação, buscas salvas e outras preferências ficam só no
+    seu navegador.</p>
+    <p>O contador “online” do rodapé usa um código aleatório por aba, enviado
+    uma vez por minuto, sem cookie e sem IP, guardado por no máximo 10 minutos
+    só para contar.</p>
 
-    <h2 class="secao-titulo">Onde fica guardado</h2>
-    <p>Num banco de dados no servidor do Lodout, com uma cópia de
-    segurança por dia. Cada cópia é guardada por 7 dias e depois apagada
-    sozinha; ela serve só para recuperar dados perdidos por erro. Não
-    vendemos, não compartilhamos e não analisamos esse dado pra nada além
-    de mostrar sua própria carteira pra você.</p>
+    <h2 class="secao-titulo">Armazenamento</h2>
+    <p>Banco de dados no servidor do Lodout, com cópia de segurança diária
+    mantida por 7 dias. Não vendemos nem compartilhamos seus dados.</p>
 
-    <h2 class="secao-titulo">Exportar seus dados</h2>
-    <p>No fim da página "Minha conta", em "Baixar", o link "uma cópia dos
-    meus dados (arquivo .json)" baixa tudo o que guardamos sobre você:
-    perfil, itens e valores pagos, itens vendidos, trades, watchlist,
-    histórico de valor e preferências (como a meta de lucro), na hora, sem precisar pedir para ninguém. Ao lado, "a tabela (planilha
-    .csv)" baixa a lista da conta para abrir no Excel ou no Google
-    Planilhas.</p>
+    <h2 class="secao-titulo">Exportar</h2>
+    <p>Em “Minha conta” → “Baixar”: <em>uma cópia dos meus dados (.json)</em>
+    com tudo o que guardamos, ou <em>a tabela (.csv)</em> para planilhas.</p>
 
-    <h2 class="secao-titulo">Excluir sua conta</h2>
-    <p>No fim da página "Minha conta", o link "Excluir minha conta no
-    Lodout" apaga tudo: conta, itens e valores pagos, itens vendidos,
-    trades, watchlist e alertas, histórico, foto e nome guardados, na hora, sem precisar pedir
-    para ninguém. Sua conta da Steam e os seus itens lá não são
-    afetados. As cópias de segurança diárias de antes da exclusão ainda
-    guardam esses dados por até 7 dias; depois disso, elas são apagadas
-    sozinhas e não sobra nada.</p>
+    <h2 class="secao-titulo">Excluir</h2>
+    <p>Em “Minha conta” → “Excluir minha conta no Lodout”: apaga tudo na hora.
+    Sua conta e seus itens na Steam não são afetados. As cópias de segurança
+    somem em até 7 dias.</p>
 
-    <h2 class="secao-titulo">Uma coisa que isto nunca é</h2>
-    <p>Nada no Lodout é recomendação de investimento. As notas e sinais
-    descrevem dados públicos já medidos — não preveem o futuro, e
-    desempenho passado não garante nada. O Lodout não é afiliado à
-    Valve nem à Steam.</p>
+    <p>Não é recomendação de investimento. O Lodout não é afiliado à Valve nem à Steam.</p>
   </main>
 
   <footer class="rodape">

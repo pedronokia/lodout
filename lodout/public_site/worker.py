@@ -530,6 +530,11 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         notas_historico.gravar_snapshot({"ts": time.time(), "items": [
             {"name": r["name"], "score": int(r.get("score") or 0), "position": i + 1}
             for i, r in enumerate(ordenados) if r.get("name")]})
+        try:
+            from lodout.public_site import oportunidades_alerta
+            oportunidades_alerta.verificar_e_enviar(resultados)
+        except Exception:
+            _logger.exception("Falha silenciosa ao processar alerta de oportunidades Discord")
     _apagar_checkpoint()
     # Termômetro da extração de miniatura (sem requisição extra): se o
     # número ficar igual ao total, o HTML da Steam mudou de formato.

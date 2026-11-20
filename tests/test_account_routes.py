@@ -598,7 +598,7 @@ def test_conta_separa_o_desgaste_do_nome(client, monkeypatch):
     assert "<span>Item (comece a digitar o nome)</span>" in pagina
     # Falha ao salvar com login expirado: conta.js mostra "Entrar de novo".
     assert 'data-login-url="/login"' in pagina
-    assert 'class="conta-identidade-frase">seus itens da Steam' in pagina
+    assert 'class="conta-identidade-frase">seus itens, quanto valem' in pagina
 
 
 def test_liquido_diz_que_e_depois_da_taxa():

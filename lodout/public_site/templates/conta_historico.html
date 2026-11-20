@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -22,7 +22,7 @@
 
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Meu histórico</h1>
-      <p class="descricao-pagina">Quanto seus itens valiam a cada vez que você abriu “Minha conta” e, <a href="#vendidos">mais abaixo</a>, os itens que você marcou como vendidos.</p>
+      <p class="descricao-pagina">Valor dos seus itens ao longo do tempo e <a href="#vendidos">itens vendidos</a>.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
@@ -33,12 +33,12 @@
       <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
       {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
     {% else %}
-      <p class="status status-vazio">Ainda não há pontos suficientes para um gráfico. Abra “Minha conta” de novo depois que o valor mudar.</p>
+      <p class="status status-vazio">O gráfico aparece quando o valor da conta mudar.</p>
     {% endif %}
 
     <h2 class="secao-titulo">Pontos registrados</h2>
     {% if pontos %}
-    <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para o lado para ver as demais colunas.</p>
+    <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para ver mais colunas.</p>
     <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de pontos registrados do histórico, com rolagem lateral">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
       <thead>
@@ -104,12 +104,12 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item vendido ainda. Quando um item sair do seu inventário, marque “Vendi” na sua conta e ele aparece aqui, com o lucro.</p>
+      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” na sua conta para registrar.</p>
     {% endif %}
   </main>
 
   <footer class="rodape">
-    <p>Cada ponto é o valor de mercado no momento da visita — não é projeção nem recomendação de investimento.</p>
+    <p>Valor de mercado no momento de cada visita.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}

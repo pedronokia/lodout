@@ -4,14 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Preço, nota e risco de até 3 skins de CS2 lado a lado.">
+  <meta name="description" content="Preço, nota e risco de até 3 skins de Counter-Strike 2, lado a lado.">
   <title>Comparar itens — Lodout</title>
   <meta name="robots" content="noindex">
   {% include "partials/_head_pwa.html" %}
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -25,13 +25,13 @@
       <p class="descricao-pagina">Preço, nota e risco lado a lado, com os dados da última coleta.</p>
     </header>
 
-    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar pra lista</a></p>
+    <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar à lista</a></p>
 
     {% if itens %}
     {% if itens|length == 1 %}
-    <p class="ajuda-nota">Só 1 item selecionado — a comparação fica mais útil com 2 ou 3. <a href="{{ url_for('index') }}">Volte à lista</a> e marque mais itens pra comparar lado a lado.</p>
+    <p class="ajuda-nota">Só 1 item selecionado. Compare 2 ou 3. <a href="{{ url_for('index') }}">Volte à lista</a> e marque mais itens.</p>
     {% endif %}
-    <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
+    <p class="dica-rolagem-tabela">Deslize a tabela para ver mais colunas.</p>
     <div class="tabela-wrap" role="region" tabindex="0" aria-label="Tabela de comparação de itens, com rolagem lateral">
     <table class="tabela-candidatos tabela-comparar">
       <thead>
@@ -57,7 +57,7 @@
       </thead>
       <tbody>
         <tr><td>Preço</td>{% for it in itens %}<td{% if it.preco_destaque %} class="valor-destaque-linha"{% endif %}>{{ it.price_fmt }}{% if it.preco_destaque %}<span class="rotulo-destaque-linha">menor preço nesta linha</span>{% endif %}</td>{% endfor %}</tr>
-        <tr><td>Nota</td>{% for it in itens %}<td{% if it.nota_destaque %} class="valor-destaque-linha"{% endif %}><span class="nota nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>{% if it.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ it.score + it.nota_margem }}.">{{ "%+d"|format(it.nota_margem) }}</span>{% endif %}{% if it.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ it.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}{% if it.nota_destaque %}<span class="rotulo-destaque-linha">maior nota nesta linha</span>{% endif %}</td>{% endfor %}</tr>
+        <tr><td>Nota</td>{% for it in itens %}<td{% if it.nota_destaque %} class="valor-destaque-linha"{% endif %}><span class="nota nota-{{ it.score|nota_classe }}">{{ it.score|nota_anel|safe }}<span class="nota-numero">{{ it.score }}</span></span>{% if it.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da nota: sem o corte, a nota seria {{ it.score + it.nota_margem }}.">{{ "%+d"|format(it.nota_margem) }}</span>{% endif %}{% if it.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ it.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}{% if it.nota_destaque %}<span class="rotulo-destaque-linha">maior nota nesta linha</span>{% endif %}</td>{% endfor %}</tr>
         <tr><td>Caixa/Cápsula</td>{% for it in itens %}<td>{{ it.case_label|rotulo_caixa(it.name) or "—" }}</td>{% endfor %}</tr>
         <tr><td>Risco</td>{% for it in itens %}<td class="risco risco-{{ it.pump_risk|risco_nivel }}">{{ it.pump_risk|risco_label }}</td>{% endfor %}</tr>
         <tr><td>Liquidez</td>{% for it in itens %}<td>{% if it.liquidity_depth and it.liquidity_depth.band %}<span class="liquidez liquidez-{{ it.liquidity_depth.band|replace('_', '-') }}" title="{{ it.liquidity_depth.label }}">{{ it.liquidity_depth.band|liquidez_label }}</span>{% else %}<span class="status-muted">—</span>{% endif %}</td>{% endfor %}</tr>
@@ -66,8 +66,8 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item selecionado pra comparar. Marque até 3 itens na
-      <a href="{{ url_for('index') }}">lista</a> e clique em "Comparar".</p>
+      <p class="status status-vazio">Nenhum item selecionado. Marque até 3 na
+      <a href="{{ url_for('index') }}">lista</a> e clique em “Comparar”.</p>
     {% endif %}
   </main>
 

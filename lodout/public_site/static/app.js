@@ -77,17 +77,135 @@ document.addEventListener("error", function (e) {
     if (quadro) quadro.classList.remove("icone-item-quadro-com-imagem");
   }
 }, true);
-document.addEventListener("keydown", function (e) {
-  if (e.key !== "/") return;
-  var ativo = document.activeElement;
-  var campoAberto = ativo && (ativo.tagName === "INPUT"
-    || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT");
-  if (campoAberto) return;
+// ==========================================================================
+// Busca e Filtragem Instantânea no Navegador (0ms UX)
+// ==========================================================================
+(function () {
   var campo = document.getElementById("campo-busca");
   if (!campo) return;
-  e.preventDefault();
-  campo.focus();
-});
+
+  function normalizar(txt) {
+    if (!txt) return "";
+    return txt.toString().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
+  var cards = document.querySelectorAll(".vitrine-itens .cartao-item");
+  var rows = document.querySelectorAll(".tabela-precos tbody tr");
+  var itens = [];
+
+  // Pré-indexa os cards da vitrine
+  cards.forEach(function (el) {
+    var nomeEl = el.querySelector(".cartao-item-nome, .link-item");
+    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || "";
+    itens.push({
+      el: el,
+      tipo: "card",
+      nomeNorm: normalizar(nome)
+    });
+  });
+
+  // Pré-indexa as linhas da tabela
+  rows.forEach(function (el) {
+    var nomeEl = el.querySelector(".link-item");
+    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || "";
+    itens.push({
+      el: el,
+      tipo: "row",
+      nomeNorm: normalizar(nome)
+    });
+  });
+
+  var debounceTimer = null;
+  function executarFiltro() {
+    var termo = normalizar(campo.value);
+    var termos = termo ? termo.split(/\s+/).filter(Boolean) : [];
+    var visiveis = 0;
+
+    for (var i = 0; i < itens.length; i++) {
+      var it = itens[i];
+      var bateu = true;
+
+      if (termos.length > 0) {
+        for (var t = 0; t < termos.length; t++) {
+          if (it.nomeNorm.indexOf(termos[t]) === -1) {
+            bateu = false;
+            break;
+          }
+        }
+      }
+
+      if (bateu) {
+        it.el.removeAttribute("hidden");
+        it.el.style.display = "";
+        visiveis++;
+      } else {
+        it.el.setAttribute("hidden", "until-found");
+        it.el.style.display = "none";
+      }
+    }
+
+    try {
+      var url = new URL(window.location.href);
+      if (campo.value.trim()) {
+        url.searchParams.set("q", campo.value.trim());
+      } else {
+        url.searchParams.delete("q");
+      }
+      window.history.replaceState({}, "", url.toString());
+    } catch (e) {}
+
+    var avisoVazio = document.getElementById("busca-instantanea-vazia");
+    if (termo && visiveis === 0 && itens.length > 0) {
+      if (!avisoVazio) {
+        avisoVazio = document.createElement("div");
+        avisoVazio.id = "busca-instantanea-vazia";
+        avisoVazio.className = "card card-aviso-vazio";
+        avisoVazio.style.margin = "20px 0";
+        avisoVazio.style.textAlign = "center";
+        avisoVazio.style.padding = "24px 16px";
+        var container = document.querySelector(".vitrine-itens, .tabela-wrap");
+        if (container && container.parentNode) {
+          container.parentNode.insertBefore(avisoVazio, container);
+        }
+      }
+      avisoVazio.innerHTML = '<p style="color: rgba(255,255,255,0.7); margin: 0;">Nenhum item corresponde a "<strong>' +
+        campo.value.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</strong>" nesta página.</p>';
+      avisoVazio.removeAttribute("hidden");
+    } else if (avisoVazio) {
+      avisoVazio.setAttribute("hidden", "");
+    }
+  }
+
+  // Atalho "/" para focar o campo de busca
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && !e.ctrlKey && !e.metaKey) {
+      var ativo = document.activeElement;
+      var campoAberto = ativo && (ativo.tagName === "INPUT"
+        || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT");
+      if (campoAberto) return;
+      e.preventDefault();
+      campo.focus();
+    } else if (e.key === "Escape" && document.activeElement === campo) {
+      campo.value = "";
+      executarFiltro();
+      campo.blur();
+    }
+  });
+
+  campo.addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(executarFiltro, 30);
+  });
+
+  var form = campo.closest("form");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      executarFiltro();
+    });
+  }
+})();
 (function () {
   var CHAVE = "lodout_notas";
   function lerTudo() {
@@ -179,7 +297,7 @@ document.addEventListener("keydown", function (e) {
     if (!texto || !lista) return;
     lista.textContent = "";
     if (!nomes.length) {
-      texto.textContent = "Nenhum item favoritado ainda — use o botão Favoritar ao lado de um item.";
+      texto.textContent = "Nenhum favorito ainda. Toque na estrela de um item para salvar.";
       lista.hidden = true;
       return;
     }
@@ -631,6 +749,18 @@ if ("serviceWorker" in navigator) {
         elRetorno.textContent = (retornoPct > 0.05 ? "+" : retornoPct < -0.05 ? "\u2212" : "") + Math.abs(retornoPct).toFixed(1).replace(".", ",") + "% depois da taxa";
         elRetorno.className = "simulador-metrica-sub " + (retornoPct >= 0 ? "texto-positivo" : "texto-perigo");
       }
+      var elArbSteam = document.getElementById("arb-steam-liquido");
+      var elArbExterno = document.getElementById("arb-externo-liquido");
+      var elArbSpread = document.getElementById("arb-spread-val");
+      var liqSteam = precoAtual / 1.15;
+      var liqExterno = precoAtual * 0.98;
+      var spreadValor = liqExterno - liqSteam;
+      var spreadPct = ((liqExterno - liqSteam) / precoAtual) * 100;
+      if (elArbSteam) elArbSteam.textContent = formatarBrl(liqSteam);
+      if (elArbExterno) elArbExterno.textContent = formatarBrl(liqExterno);
+      if (elArbSpread) {
+        elArbSpread.textContent = "+" + spreadPct.toFixed(1).replace(".", ",") + "% (+" + formatarBrl(spreadValor) + ")";
+      }
     }
     if (elFila && elFilaDesc) {
       if (maiorEncomenda > 0) {
@@ -641,15 +771,15 @@ if ("serviceWorker" in navigator) {
         } else if (Math.abs(valorPago - maiorEncomenda) < 0.01) {
           elFila.textContent = "Empatado no topo";
           elFila.className = "simulador-metrica-val texto-alerta";
-          elFilaDesc.textContent = "Empata com a maior encomenda da Steam";
+          elFilaDesc.textContent = "Igual à maior encomenda";
         } else {
           elFila.textContent = "Atrás da fila";
           elFila.className = "simulador-metrica-val texto-muted";
-          elFilaDesc.textContent = "A maior encomenda atual é " + formatarBrl(maiorEncomenda);
+          elFilaDesc.textContent = "Maior encomenda: " + formatarBrl(maiorEncomenda);
         }
       } else {
         elFila.textContent = "Oferta aberta";
-        elFilaDesc.textContent = "Sem fila conhecida no momento";
+        elFilaDesc.textContent = "Fila desconhecida";
       }
     }
   }
@@ -720,7 +850,7 @@ if ("serviceWorker" in navigator) {
       var url = btnCompartilhar.getAttribute("data-url") || window.location.href;
 
       var texto = "🔥 " + nome + " no Lodout\n" +
-                  "📊 Nota: " + nota + "/100 · Preço: " + preco + "\n" +
+                  "📊 Nota: " + nota + " · Preço: " + preco + "\n" +
                   "Análise completa e simulador de lucro no link:\n" + url;
 
       function ativarSucesso() {
