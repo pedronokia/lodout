@@ -606,7 +606,7 @@ def separar_lote(name: str):
         flash(f"Separado: {quantidade} {'unidade ficou' if quantidade == 1 else 'unidades ficaram'} "
               "numa linha própria, sem valor pago. Informe quanto você pagou nela.", "success")
     else:
-        flash("Não deu para separar: escolha de 1 até uma unidade a menos que o total da linha.", "error")
+        flash("Não foi possível separar: escolha de 1 até uma unidade a menos que o total.", "error")
     return redirect(url_for("account.conta"))
 
 
@@ -670,7 +670,7 @@ def atualizar_inventario():
     if est.get("em_andamento"):
         pass
     elif time.time() - float(est.get("ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S:
-        flash("Seu inventário acabou de ser atualizado. Dá para pedir de novo em alguns minutos.", "info")
+        flash("Seu inventário acabou de ser atualizado. Tente de novo em alguns minutos.", "info")
     elif steam_api.em_cooldown("inventory"):
         flash("A Steam pediu uma pausa agora. O Lodout tenta de novo sozinho mais tarde.", "info")
     else:
@@ -872,7 +872,7 @@ def marcar_vendido(name: str):
         return redirect(url_for("account.conta"))
     vendido = user_portfolio.tirar_vendidas(steamid, name, quantidade, lote=lote)
     if vendido is None:
-        flash("Não deu para marcar como vendido: confira a quantidade e se o item "
+        flash("Não foi possível marcar como vendido: confira a quantidade e se o item "
               "tem o valor pago.", "error")
         return redirect(url_for("account.conta"))
     venda = user_vendidos.adicionar(steamid, name, float(vendido["cost"]), preco, quantidade,

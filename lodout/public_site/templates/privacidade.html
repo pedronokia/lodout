@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacidade — Lodout</title>
-  <meta name="description" content="O que o Lodout guarda, por quê, e como excluir seus dados.">
+  <meta name="description" content="O que o Lodout guarda, por quê e como exportar ou excluir seus dados.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -29,12 +29,10 @@
        inventário e que tudo era digitado. Desde 15/11 a conta lê o
        inventário PÚBLICO da Steam (inventario.py). Mantenha esta página
        em dia com o que o site guarda de verdade. #}
-    <h2 class="secao-titulo">O painel público (sem login)</h2>
-    <p>A página inicial e a tabela de notas não guardam nada seu no
-    servidor. Não há cookie de rastreamento, não há conta. Os únicos
-    cookies possíveis aqui são opcionais e só lembram como você prefere
-    ver a página inicial (ver "Cookies" abaixo); fora isso, é só uma
-    leitura de preços públicos da Steam Community Market.</p>
+    <h2 class="secao-titulo">Sem login</h2>
+    <p>Navegar pelas notas não guarda nada seu no servidor. Não há conta nem
+    cookie de rastreamento. Os únicos cookies possíveis são opcionais e só
+    lembram como você prefere ver a página inicial (veja “Cookies” abaixo).</p>
 
     <h2 class="secao-titulo">Se você entra com "Entrar com Steam"</h2>
     <p>O login usa o <strong>Steam OpenID</strong>, o mecanismo público que
@@ -56,8 +54,8 @@
       <li>O que você digita: quanto pagou em cada item (e os lotes, se
       separar valores diferentes), itens adicionados à mão, sua meta de
       lucro, os itens que você marcar como anunciados ou vendidos (com o
-      preço de venda que você informar), os trades (compra, venda,
-      quantidade e notas), a watchlist
+      preço de venda que você informar), as trocas (o que deu e recebeu,
+      valores e notas), a watchlist
       (itens, alvos e alertas) e o link do webhook do Discord, se você
       cadastrar um.</li>
       <li>Um ponto do histórico do valor da sua conta cada vez que esse
@@ -93,11 +91,10 @@
     a hora, por no máximo 10 minutos, e usa isso apenas para contar.</p>
 
     <h2 class="secao-titulo">Onde fica guardado</h2>
-    <p>Num banco de dados no servidor do Lodout, com uma cópia de
-    segurança por dia. Cada cópia é guardada por 7 dias e depois apagada
-    sozinha; ela serve só para recuperar dados perdidos por erro. Não
-    vendemos, não compartilhamos e não analisamos esse dado pra nada além
-    de mostrar sua própria carteira pra você.</p>
+    <p>Num banco de dados no servidor do Lodout, com uma cópia de segurança
+    por dia. Cada cópia fica 7 dias e é apagada sozinha; serve só para
+    recuperar dados perdidos por erro. Não vendemos nem compartilhamos seus
+    dados, e eles só são usados para mostrar sua conta a você.</p>
 
     <h2 class="secao-titulo">Exportar seus dados</h2>
     <p>No fim da página "Minha conta", em "Baixar", o link "uma cópia dos
@@ -116,11 +113,9 @@
     guardam esses dados por até 7 dias; depois disso, elas são apagadas
     sozinhas e não sobra nada.</p>
 
-    <h2 class="secao-titulo">Uma coisa que isto nunca é</h2>
-    <p>Nada no Lodout é recomendação de investimento. As notas e sinais
-    descrevem dados públicos já medidos — não preveem o futuro, e
-    desempenho passado não garante nada. O Lodout não é afiliado à
-    Valve nem à Steam.</p>
+    <h2 class="secao-titulo">Não é recomendação de investimento</h2>
+    <p>As notas descrevem dados públicos já medidos e não preveem o futuro.
+    O Lodout não é afiliado à Valve nem à Steam.</p>
   </main>
 
   <footer class="rodape">

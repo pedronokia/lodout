@@ -566,8 +566,8 @@
       : r.falha === "pressa"
         ? "Muitos valores em pouco tempo: espere alguns segundos e aperte Enter de novo."
       : r.falha === "servidor"
-        ? "Não deu para salvar agora. Tente de novo em instantes."
-        : (r.dados && r.dados.erro) || "Não deu para salvar. Tente de novo.";
+        ? "Não foi possível salvar agora. Tente de novo em instantes."
+        : (r.dados && r.dados.erro) || "Não foi possível salvar. Tente de novo.";
     // Aba velha (saiu e entrou de novo) ou item que saiu em outra aba:
     // só recarregar resolve (revisão 2026-11-16).
     if (r.dados && r.dados.recarregar) {

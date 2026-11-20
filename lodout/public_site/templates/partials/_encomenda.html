@@ -10,22 +10,22 @@
   <h2 class="conta-revenda-titulo" id="titulo-encomenda">Comprar por encomenda</h2>
   {% if encomenda_sugestao is mapping %}
   {% set sug = encomenda_sugestao %}
-  <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. As encomendas maiores são atendidas primeiro. Para ficar na frente da fila, encomende por</p>
-  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }}: na Steam, cole no preço da encomenda" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida">{{ sug.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
+  <p class="conta-revenda-texto">Na encomenda, você define o preço e espera alguém vender. As maiores são atendidas primeiro. Para ficar na frente da fila:</p>
+  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida">{{ sug.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
   <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
-  <p class="conta-revenda-texto">Um centavo acima da maior encomenda{% if quando_fila %} da última coleta ({{ quando_fila }}){% endif %}, {{ sug.maior_fmt }}{% if sug.pedidos %} ({{ "{:,}".format(sug.pedidos).replace(",", ".") }} {{ "pedido" if sug.pedidos == 1 else "pedidos" }}){% endif %}, e {{ sug.abaixo_pct }}% abaixo do preço de hoje. Clique para copiar e cole na Steam; mudar o valor fica a seu critério.</p>
+  <p class="conta-revenda-texto">Um centavo acima da maior encomenda{% if quando_fila %} ({{ quando_fila }}){% endif %}: {{ sug.maior_fmt }}{% if sug.pedidos %} ({{ "{:,}".format(sug.pedidos).replace(",", ".") }} {{ "pedido" if sug.pedidos == 1 else "pedidos" }}){% endif %}. Fica {{ sug.abaixo_pct }}% abaixo do preço de hoje. Clique para copiar.</p>
   <p class="conta-revenda-texto">Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, o máximo seria <strong>{{ encomenda.ate_fmt }}</strong>.
-  {%- if encomenda.situacao == "abaixo" %} Esse valor fica atrás da fila, então tende a demorar ou não ser atendido.{% endif %}</p>
+  {%- if encomenda.situacao == "abaixo" %} Esse valor fica atrás da fila e pode demorar ou não ser atendido.{% endif %}</p>
   {% else %}
-  <p class="conta-revenda-texto">Na Steam, dá para encomendar: você diz quanto paga e espera alguém vender por esse preço. Demora mais, mas o preço é você quem escolhe. Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, encomende por até</p>
+  <p class="conta-revenda-texto">Na encomenda, você define o preço e espera alguém vender. Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo pelo preço de hoje, encomende por até:</p>
   <p class="encomenda-valor">{{ encomenda.ate_fmt }}</p>
   {% if encomenda.maior_fmt %}
-  <p class="conta-revenda-texto">Maior encomenda na Steam hoje: <strong>{{ encomenda.maior_fmt }}</strong>{% if encomenda.pedidos %} ({{ "{:,}".format(encomenda.pedidos).replace(",", ".") }} {{ "pedido" if encomenda.pedidos == 1 else "pedidos" }}){% endif %}.
-  {%- if encomenda.situacao == "acima" %} O seu valor ficaria acima dela, e encomendas maiores são atendidas primeiro.
-  {%- elif encomenda.situacao == "igual" %} O seu valor empataria com ela; entre iguais, quem pediu antes é atendido primeiro.
-  {%- else %} Há encomendas maiores que a sua: elas são atendidas primeiro, então a sua tende a demorar mais.{% endif %}</p>
+  <p class="conta-revenda-texto">Maior encomenda hoje: <strong>{{ encomenda.maior_fmt }}</strong>{% if encomenda.pedidos %} ({{ "{:,}".format(encomenda.pedidos).replace(",", ".") }} {{ "pedido" if encomenda.pedidos == 1 else "pedidos" }}){% endif %}.
+  {%- if encomenda.situacao == "acima" %} Seu valor fica acima dela e seria atendido primeiro.
+  {%- elif encomenda.situacao == "igual" %} Seu valor empata com ela; entre iguais, vale quem pediu antes.
+  {%- else %} Há encomendas maiores, atendidas antes da sua.{% endif %}</p>
   {% endif %}
   {% endif %}
-  <p class="conta-revenda-nota">Conta feita com o preço de hoje e a taxa da Steam; se o preço mudar, o lucro muda. Não é previsão de lucro.{% if not session.get("steamid") %} A meta de {{ encomenda.meta }}% muda em “Minha conta”.{% endif %}</p>
+  <p class="conta-revenda-nota">Calculado com o preço de hoje e a taxa da Steam. Se o preço mudar, o resultado muda. Não é previsão.{% if not session.get("steamid") %} A meta de {{ encomenda.meta }}% se ajusta em “Minha conta”.{% endif %}</p>
 </section>
 {% endif %}

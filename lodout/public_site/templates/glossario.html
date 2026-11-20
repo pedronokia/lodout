@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Glossário — Lodout</title>
-  <meta name="description" content="O que cada termo usado no Lodout significa, pra quem está começando com skins de CS2.">
+  <meta name="description" content="Os termos usados no Lodout, explicados para quem está começando com skins de CS2.">
   <meta property="og:locale" content="pt_BR">
   <link rel="canonical" href="{{ request.url }}">
   {% include "partials/_head_pwa.html" %}
@@ -16,29 +16,29 @@
     "@type": "DefinedTermSet",
     "name": "Glossário Lodout",
     "hasDefinedTerm": [
-      {"@type": "DefinedTerm", "name": "Steam Community Market", "description": "O mercado oficial da própria Steam pra comprar e vender itens do jogo, incluindo skins de CS2. O Lodout só lê os preços públicos de lá — não vende nada, não cobra taxa, não é afiliado à Valve."},
-      {"@type": "DefinedTerm", "name": "Desgaste", "description": "O estado visual de uma skin, de Nova de Fábrica (menos desgastada) até Veterana de Guerra (mais desgastada). Afeta o preço."},
-      {"@type": "DefinedTerm", "name": "StatTrak™", "description": "Variante de uma skin que conta abates/rounds feitos com ela. Costuma custar mais que a versão normal do mesmo item."},
-      {"@type": "DefinedTerm", "name": "Souvenir", "description": "Variante de arma que só sai de cápsulas de torneio, sem StatTrak. Geralmente mais rara e mais cara que a versão normal."},
-      {"@type": "DefinedTerm", "name": "Float", "description": "Número entre 0 e 1 que define o desgaste exato de um item específico dentro da faixa do seu Desgaste. O Lodout não mostra float individual — só o preço agregado por faixa de desgaste."},
-      {"@type": "DefinedTerm", "name": "Nota", "description": "Número de 0 a 100 que o Lodout calcula pra cada item, resumindo sinais factuais do mercado — não é previsão."},
-      {"@type": "DefinedTerm", "name": "Sem nota ainda", "description": "Item do Mercado que o Lodout mostra só com o preço do dia: a nota precisa do histórico de preço, que ainda não foi coletado para ele."},
-      {"@type": "DefinedTerm", "name": "Preço típico", "description": "A mediana dos preços recentes do item — o preço normal dele, usado como referência pra saber se o preço atual está caro ou barato."},
+      {"@type": "DefinedTerm", "name": "Steam Community Market", "description": "O mercado oficial da Steam para comprar e vender itens, incluindo skins de CS2. O Lodout só lê os preços públicos de lá: não vende nada, não cobra taxa e não é afiliado à Valve."},
+      {"@type": "DefinedTerm", "name": "Desgaste", "description": "O estado visual de uma skin, do menos ao mais gasto: Nova de Fábrica, Pouco Usada, Testada em Campo, Bem Desgastada e Veterana de Guerra. Em geral, quanto menos gasta, mais cara."},
+      {"@type": "DefinedTerm", "name": "StatTrak™", "description": "Versão da skin que conta os abates feitos com ela. Costuma custar mais que a versão normal."},
+      {"@type": "DefinedTerm", "name": "Souvenir", "description": "Versão da arma que só sai de pacotes de torneio, sem StatTrak. Em geral é mais rara e mais cara que a normal."},
+      {"@type": "DefinedTerm", "name": "Float", "description": "Número de 0 a 1 que define o desgaste exato de um item dentro da sua faixa de desgaste. O Lodout não mostra o float de cada item, só o preço por faixa."},
+      {"@type": "DefinedTerm", "name": "Nota", "description": "Número de 0 a 100 que resume os dados de mercado de um item. Não é previsão."},
+      {"@type": "DefinedTerm", "name": "Sem nota ainda", "description": "Item que aparece na busca só com o preço do dia e a quantidade à venda. A nota exige o histórico de preço, uma consulta mais pesada à Steam; por enquanto, existe para os itens mais negociados, e outros entram aos poucos."},
+      {"@type": "DefinedTerm", "name": "Preço típico", "description": "A mediana dos preços recentes do item. Serve de referência para saber se o preço atual está acima ou abaixo do normal."},
       {"@type": "DefinedTerm", "name": "Caixa descontinuada", "description": "Caixa que parou de ser sorteada no jogo (saiu do drop pool). No histórico medido, caixas assim valorizaram mais que as ainda ativas, o que não garante o que vai acontecer."},
-      {"@type": "DefinedTerm", "name": "Risco", "description": "No Lodout, mede só uma coisa: a chance de uma alta recente do preço ter sido rápida demais e possivelmente artificial."},
-      {"@type": "DefinedTerm", "name": "Liquidez", "description": "Quanto tempo o estoque à venda levaria pra esvaziar no ritmo de negociação recente (estoque dividido pelo volume médio diário). Quanto menos dias, mais fácil comprar ou vender rápido pelo preço de mercado."},
-      {"@type": "DefinedTerm", "name": "Trade-up", "description": "Mecânica do próprio CS2: trocar 10 skins da mesma raridade por uma skin de raridade superior (aleatória, dentro de um conjunto possível)."},
-      {"@type": "DefinedTerm", "name": "Oculto", "description": "Uma das raridades de skin no CS2 (Covert, em inglês): a mais alta entre as comuns, antes das facas/luvas. Aparece com borda vermelha no jogo."},
-      {"@type": "DefinedTerm", "name": "Raridade", "description": "Categoria fixa de cada skin no CS2, mostrada pela cor da borda no ícone (Lodout) e no próprio jogo: cinza (Nível Consumidor), azul claro (Nível Industrial), azul (Nível Militar), roxo (Restrito), rosa (Secreto), vermelho (Oculto) e dourado (facas, luvas e itens contrabandeados). Não muda com o tempo nem com o desgaste."},
-      {"@type": "DefinedTerm", "name": "Procura × Oferta", "description": "Quantos itens são vendidos por dia comparado a quantos estão à venda agora. Abaixo de 1 significa mais gente vendendo do que comprando — um dos fatores que compõem a nota."},
-      {"@type": "DefinedTerm", "name": "Taxa da Steam", "description": "O que a Steam desconta de cada venda no Mercado: 15% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o comprador paga. Por isso um item precisa subir uns 15% só para revender sem prejuízo."},
-      {"@type": "DefinedTerm", "name": "Encomenda", "description": "Um pedido de compra no Mercado da Steam: você diz quanto paga e espera alguém vender por esse preço. Demora mais que comprar o menor anúncio, mas o preço é você quem escolhe."}
+      {"@type": "DefinedTerm", "name": "Risco", "description": "No Lodout, mede só a chance de uma alta recente ter sido rápida demais e possivelmente artificial. Não cobre outros riscos."},
+      {"@type": "DefinedTerm", "name": "Liquidez", "description": "Quantos dias o estoque à venda levaria para acabar no ritmo atual de vendas. Menos dias significa vender ou comprar mais rápido. Baixa liquidez não quer dizer que o item não vende, só que pode demorar."},
+      {"@type": "DefinedTerm", "name": "Trade-up", "description": "Mecânica do CS2: trocar 10 skins da mesma raridade por uma de raridade acima, sorteada dentro de um conjunto."},
+      {"@type": "DefinedTerm", "name": "Oculto", "description": "A raridade mais alta das skins comuns (“Covert” em inglês), abaixo de facas e luvas. Tem borda vermelha no jogo."},
+      {"@type": "DefinedTerm", "name": "Raridade", "description": "Categoria fixa de cada skin, a mesma do jogo. No Lodout, é a cor da borda do ícone: cinza (Nível Consumidor), azul claro (Nível Industrial), azul (Nível Militar), roxo (Restrito), rosa (Secreto), vermelho (Oculto) e dourado (facas, luvas e itens contrabandeados). Passe o mouse no ícone para ver o nome."},
+      {"@type": "DefinedTerm", "name": "Procura × Oferta", "description": "Itens vendidos por dia em relação aos que estão à venda agora. Abaixo de 1, há mais vendedores que compradores. É um dos fatores da nota."},
+      {"@type": "DefinedTerm", "name": "Taxa da Steam", "description": "O desconto da Steam em cada venda: 15% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o comprador paga. Por isso o preço precisa subir uns 15% para revender sem prejuízo. Todo lucro no Lodout já desconta essa taxa."},
+      {"@type": "DefinedTerm", "name": "Encomenda", "description": "Pedido de compra no Mercado: você define o preço e espera alguém vender. Demora mais que comprar o menor anúncio, mas o preço é seu. A página do item mostra até quanto encomendar para lucrar sua meta e a maior encomenda atual (as maiores são atendidas primeiro)."}
     ]
   }
   </script>
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -49,7 +49,7 @@
   <main id="conteudo" class="pagina-texto pagina-glossario">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Glossário</h1>
-      <p class="descricao-pagina">O que cada termo significa.</p>
+      <p class="descricao-pagina">Os termos do site, em poucas palavras.</p>
     </header>
     <h2 class="secao-titulo">Ir direto a um termo</h2>
     <nav class="indice-glossario" aria-label="Índice do glossário">
@@ -79,92 +79,62 @@
     <dl class="lista-glossario">
       <div class="termo-glossario">
       <dt id="termo-steam-market"><strong>Steam Community Market</strong></dt>
-      <dd>O mercado oficial da própria Steam pra comprar e vender itens do
-      jogo, incluindo skins de CS2. O Lodout só lê os preços públicos de
-      lá — não vende nada, não cobra taxa, não é afiliado à Valve.</dd>
+      <dd>O mercado oficial da Steam para comprar e vender itens, incluindo skins de CS2. O Lodout só lê os preços públicos de lá: não vende nada, não cobra taxa e não é afiliado à Valve.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-desgaste"><strong>Desgaste</strong></dt>
-      <dd>O estado visual de uma skin: Nova de Fábrica, Pouco Usada, Testada
-      em Campo, Bem Desgastada ou Veterana de Guerra — nessa ordem, da
-      menos pra mais desgastada. Afeta o preço (geralmente quanto menos
-      desgastada, mais cara).</dd>
+      <dd>O estado visual de uma skin, do menos ao mais gasto: Nova de Fábrica, Pouco Usada, Testada em Campo, Bem Desgastada e Veterana de Guerra. Em geral, quanto menos gasta, mais cara.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-stattrak"><strong>StatTrak™</strong></dt>
-      <dd>Variante de uma skin que conta abates/rounds feitos com ela.
-      Costuma custar mais que a versão normal do mesmo item.</dd>
+      <dd>Versão da skin que conta os abates feitos com ela. Costuma custar mais que a versão normal.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-souvenir"><strong>Souvenir</strong></dt>
-      <dd>Variante de arma que só sai de cápsulas de torneio (compradas
-      durante partidas assistidas em campeonatos oficiais), sem StatTrak.
-      Geralmente mais rara e mais cara que a versão normal.</dd>
+      <dd>Versão da arma que só sai de pacotes de torneio, sem StatTrak. Em geral é mais rara e mais cara que a normal.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-float"><strong>Float</strong></dt>
-      <dd>Número entre 0 e 1 que define o desgaste exato de um item
-      específico dentro da faixa do seu "Desgaste" (acima). O Lodout não
-      mostra float individual — só o preço agregado por faixa de
-      desgaste.</dd>
+      <dd>Número de 0 a 1 que define o desgaste exato de um item dentro da sua faixa de desgaste. O Lodout não mostra o float de cada item, só o preço por faixa.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-nota"><strong>Nota</strong></dt>
-      <dd>Número de 0 a 100 que o Lodout calcula pra cada item,
-      resumindo sinais factuais do mercado de agora — não é previsão. Ver
-      <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</dd>
+      <dd>Número de 0 a 100 que resume os dados de mercado de um item. Não é previsão. Veja <a href="{{ url_for('metodo') }}">como a nota funciona</a>.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-sem-nota"><strong>Sem nota ainda</strong></dt>
-      <dd>Item do Mercado que aparece na busca só com o preço do dia e
-      quantos estão à venda. A nota precisa do histórico de preço do item,
-      que é uma consulta mais pesada à Steam; por enquanto ela existe para
-      os itens mais negociados, e outros entram aos poucos.</dd>
+      <dd>Item que aparece na busca só com o preço do dia e a quantidade à venda. A nota exige o histórico de preço, uma consulta mais pesada à Steam; por enquanto, existe para os itens mais negociados, e outros entram aos poucos.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-preco-tipico"><strong>Preço típico</strong></dt>
-      <dd>A mediana dos preços recentes do item — o "preço normal" dele,
-      usado como referência pra saber se o preço atual está caro ou
-      barato.</dd>
+      <dd>A mediana dos preços recentes do item. Serve de referência para saber se o preço atual está acima ou abaixo do normal.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-caixa-descontinuada"><strong>Caixa/Cápsula descontinuada</strong></dt>
-      <dd>Caixa ou cápsula que parou de ser sorteada no jogo (saiu do
-      "drop pool", a lista do que pode cair pros jogadores). No histórico
-      medido, caixas descontinuadas valorizaram mais que as ainda ativas,
-      com amostra pequena e efeito que diminuiu com o tempo. Não é garantia
-      do que vai acontecer.</dd>
+      <dd>Caixa ou cápsula que deixou de sair no jogo. No histórico, essas caixas valorizaram mais que as ativas, numa amostra pequena e com efeito que diminuiu com o tempo. Não é garantia.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-risco"><strong>Risco</strong></dt>
-      <dd>No Lodout, mede só uma coisa: a chance de uma alta recente do
-      preço ter sido rápida demais e possivelmente artificial. Não cobre
-      outros tipos de risco.</dd>
+      <dd>No Lodout, mede só a chance de uma alta recente ter sido rápida demais e possivelmente artificial. Não cobre outros riscos.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-liquidez"><strong>Liquidez</strong></dt>
-      <dd>Quanto tempo o estoque à venda levaria pra esvaziar no ritmo de
-      negociação recente (estoque dividido pelo volume médio diário).
-      Quanto menos dias, mais fácil comprar ou vender rápido pelo preço de
-      mercado — "Baixa liquidez"/"Ilíquida" não significa que o item não
-      vende, só que pode demorar mais.</dd>
+      <dd>Quantos dias o estoque à venda levaria para acabar no ritmo atual de vendas. Menos dias significa vender ou comprar mais rápido. Baixa liquidez não quer dizer que o item não vende, só que pode demorar.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-trade-up"><strong>Trade-up</strong></dt>
-      <dd>Mecânica do próprio CS2: trocar 10 skins da mesma raridade por
-      uma skin de raridade superior (aleatória, dentro de um conjunto
-      possível).</dd>
+      <dd>Mecânica do CS2: trocar 10 skins da mesma raridade por uma de raridade acima, sorteada dentro de um conjunto.</dd>
       </div>
 
       {# id antigo "termo-covert" mantido no grupo, pra links de fora
@@ -172,48 +142,27 @@
          válido: leitores de tela se perdiam na lista). #}
       <div class="termo-glossario" id="termo-covert">
       <dt id="termo-oculto"><strong>Oculto</strong></dt>
-      <dd>Uma das raridades de skin no CS2 (no jogo em inglês, “Covert”):
-      a mais alta entre as “comuns”, antes das facas/luvas. Aparece com
-      borda vermelha no jogo.</dd>
+      <dd>A raridade mais alta das skins comuns (“Covert” em inglês), abaixo de facas e luvas. Tem borda vermelha no jogo.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-raridade"><strong>Raridade</strong></dt>
-      <dd>Categoria fixa de cada skin, a mesma usada no próprio jogo —
-      não muda com o tempo nem com o desgaste. No Lodout aparece como a
-      cor da borda no ícone do item, com os mesmos nomes da Steam em
-      português: cinza (Nível Consumidor), azul claro (Nível Industrial),
-      azul (Nível Militar), roxo (Restrito), rosa (Secreto), vermelho
-      (Oculto, ver acima) e dourado (facas, luvas e itens
-      contrabandeados). No jogo em inglês: Consumer Grade, Industrial
-      Grade, Mil-Spec, Restricted, Classified e Covert. Passar o mouse sobre o ícone mostra o
-      nome da raridade.</dd>
+      <dd>Categoria fixa de cada skin, a mesma do jogo. No Lodout, é a cor da borda do ícone: cinza (Nível Consumidor), azul claro (Nível Industrial), azul (Nível Militar), roxo (Restrito), rosa (Secreto), vermelho (Oculto) e dourado (facas, luvas e itens contrabandeados). Passe o mouse no ícone para ver o nome.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-procura-oferta"><strong>Procura × Oferta</strong></dt>
-      <dd>Quantos itens são vendidos por dia comparado a quantos estão à
-      venda agora. Abaixo de 1 significa mais gente vendendo do que
-      comprando — um dos fatores que compõem a nota.</dd>
+      <dd>Itens vendidos por dia em relação aos que estão à venda agora. Abaixo de 1, há mais vendedores que compradores. É um dos fatores da nota.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-taxa"><strong>Taxa da Steam</strong></dt>
-      <dd>O que a Steam desconta de cada venda no Mercado: 15% sobre o que
-      você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o
-      comprador paga. Por isso um item precisa subir uns 15% só para você
-      revender sem prejuízo. Todo lucro mostrado no Lodout já desconta
-      essa taxa.</dd>
+      <dd>O desconto da Steam em cada venda: 15% sobre o que você recebe (5% da Steam e 10% do jogo), cerca de 13% do que o comprador paga. Por isso o preço precisa subir uns 15% para revender sem prejuízo. Todo lucro no Lodout já desconta essa taxa.</dd>
       </div>
 
       <div class="termo-glossario">
       <dt id="termo-encomenda"><strong>Encomenda</strong></dt>
-      <dd>Um pedido de compra no Mercado: você diz quanto paga e espera
-      alguém vender por esse preço. Demora mais que comprar o menor
-      anúncio, mas o preço é você quem escolhe. A página de cada item
-      mostra até quanto encomendar para lucrar a sua meta revendendo pelo
-      preço de hoje, e a maior encomenda que já existe (as maiores são
-      atendidas primeiro).</dd>
+      <dd>Pedido de compra no Mercado: você define o preço e espera alguém vender. Demora mais que comprar o menor anúncio, mas o preço é seu. A página do item mostra até quanto encomendar para lucrar sua meta e a maior encomenda atual (as maiores são atendidas primeiro).</dd>
       </div>
     </dl>
   </main>

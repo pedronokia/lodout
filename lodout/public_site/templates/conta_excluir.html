@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   <header class="topo">
     <div class="topo-linha">
       <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
@@ -20,7 +20,7 @@
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Excluir minha conta</h1>
-      <p class="descricao-pagina">Apaga de vez a sua conta no Lodout e tudo o que você guardou nela. Não dá para desfazer.</p>
+      <p class="descricao-pagina">Apaga sua conta no Lodout e tudo o que você guardou nela. Não dá para desfazer.</p>
     </header>
 
     <div class="resumo-cards">
@@ -29,12 +29,12 @@
       <ul>
         <li>Seu nome e sua foto da Steam guardados aqui</li>
         <li>Os itens da sua conta e os valores que você pagou</li>
-        <li>Os trades que você registrou</li>
+        <li>Os itens vendidos e as trocas que você registrou</li>
         <li>Sua watchlist e os alertas de preço</li>
         <li>O histórico do valor da sua conta</li>
       </ul>
-      <p>Sua conta da Steam e os seus itens lá <strong>não</strong> são afetados: o Lodout só lê o seu inventário público. As notas e o ranking do site continuam iguais.</p>
-      <p>Quer guardar antes? Baixe <a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a> ou <a href="{{ url_for('account.exportar_dados') }}">uma cópia dos seus dados (arquivo .json)</a>. Se você entrar de novo com a Steam depois, a conta recomeça do zero.</p>
+      <p>Sua conta da Steam e os seus itens lá <strong>não</strong> são afetados: o Lodout só lê o seu inventário público.</p>
+      <p>Quer guardar antes? Baixe <a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a> ou <a href="{{ url_for('account.exportar_dados') }}">uma cópia dos seus dados (arquivo .json)</a>. Se entrar de novo com a Steam, a conta recomeça do zero.</p>
       <form method="post" action="{{ url_for('account.excluir') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button type="submit" class="botao-perigo">Sim, excluir minha conta e todos os meus dados</button>

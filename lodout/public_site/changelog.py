@@ -30,6 +30,7 @@ ENTRADAS = [
             "Sem azul-céu: o selo “Mais negociado” e a etiqueta “anunciado” da sua conta ficaram cinza claro, a barrinha de liquidez do item ficou laranja e o quadro “Subiram” do Ranking ganhou o verde de alta. O único azul do site é o botão “Entrar com Steam”.",
             "Site mais leve: o estilo e o script das páginas chegam sem os comentários internos do código (o estilo comprimido caiu de cerca de 72 KB para 43 KB), então a primeira página abre mais rápido, principalmente no celular. A aba da página inicial agora diz o que o site é: “Lodout — notas de 0 a 100 para skins de CS2”.",
             "A imagem que aparece ao compartilhar o Lodout no WhatsApp, Discord ou X agora mostra as aspas do logo como no topo do site (antes eram dois traços retos). O mesmo vale para a imagem de item que ainda não tem foto.",
+            "Textos revisados no site inteiro: mais curtos e diretos, sem gírias, com as mesmas informações. O Método ficou cerca de 30% menor, e o Glossário e as Perguntas frequentes, uns 15% a 20%. A Privacidade agora descreve as trocas como elas são hoje (o que você deu e recebeu), e a página de excluir conta lista também os itens vendidos entre o que é apagado.",
         ],
     },
     {

@@ -179,7 +179,7 @@ document.addEventListener("keydown", function (e) {
     if (!texto || !lista) return;
     lista.textContent = "";
     if (!nomes.length) {
-      texto.textContent = "Nenhum item favoritado ainda — use o botão Favoritar ao lado de um item.";
+      texto.textContent = "Nenhum favorito ainda. Toque na estrela de um item para salvar.";
       lista.hidden = true;
       return;
     }

@@ -5,16 +5,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lodout — notas de 0 a 100 para skins de CS2</title>
-  <meta name="description" content="Notas e motivos factuais pra skins do CS2, a partir de dados públicos da Steam Community Market. Não é recomendação de investimento.">
-  <meta property="og:title" content="Lodout — Preços e notas de skins CS2">
-  <meta property="og:description" content="Nota de 0 a 100 pra skins do CS2, com o motivo escrito — não um palpite, uma leitura dos dados públicos de hoje.">
+  <meta name="description" content="Nota de 0 a 100 para skins de CS2, com o motivo de cada nota e dados públicos do Mercado da Steam. Não é recomendação de investimento.">
+  <meta property="og:title" content="Lodout — notas e preços de skins de CS2">
+  <meta property="og:description" content="Nota de 0 a 100 para skins de CS2, com o motivo de cada nota e dados públicos do Mercado da Steam.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='og-image.png') }}">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:url" content="{{ request.url_root }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Lodout — Preços e notas de skins CS2">
-  <meta name="twitter:description" content="Nota de 0 a 100 pra skins do CS2, com o motivo escrito — não um palpite, uma leitura dos dados públicos de hoje.">
+  <meta name="twitter:title" content="Lodout — notas e preços de skins de CS2">
+  <meta name="twitter:description" content="Nota de 0 a 100 para skins de CS2, com o motivo de cada nota e dados públicos do Mercado da Steam.">
   <meta name="twitter:image" content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='og-image.png') }}">
   <link rel="canonical" href="{{ request.url_root }}">
   {% include "partials/_head_pwa.html" %}
@@ -27,12 +27,12 @@
     "@type": "WebSite",
     "name": "Lodout",
     "url": "{{ request.url_root }}",
-    "description": "Nota de 0 a 100 pra skins do CS2, com o motivo escrito, a partir de dados públicos da Steam Community Market."
+    "description": "Nota de 0 a 100 para skins de CS2, com o motivo de cada nota, a partir de dados públicos do Mercado da Steam."
   }
   </script>
 </head>
 <body>
-  <a class="link-pular-conteudo" href="#conteudo">Pular pro conteúdo</a>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
   {% macro linha_candidato(c, destaque=false) %}
   <tr class="{{ "linha-destaque" if destaque else "" }}" data-nome="{{ c.name }}" data-nota="{{ c.score }}">
     <td class="celula-item" data-label="Item">
@@ -47,9 +47,9 @@
       </div>
       <div class="celula-item-acoes">
         <label class="checkbox-comparar-alvo">
-          <input type="checkbox" class="checkbox-comparar" data-comparar="{{ c.name }}" title="Marcar pra comparar com outros itens (até 3)" aria-label="Marcar {{ c.name_fmt }} pra comparar">
+          <input type="checkbox" class="checkbox-comparar" data-comparar="{{ c.name }}" title="Comparar (até 3 itens)" aria-label="Comparar {{ c.name_fmt }}">
         </label>
-        <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
+        <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
         <details class="menu-acoes-item">
           <summary class="menu-acoes-item-toggle" aria-label="Mais ações para {{ c.name_fmt }}" title="Mais ações">
             {{ icone("mais") }}
@@ -67,7 +67,7 @@
     </td>
     <td class="celula-preco" data-label="Preço">
       {{ c.price_fmt }}
-      {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não devolveu preço novo deste item no último ciclo; o valor é do ciclo anterior{% if c.coletado_txt %} (coletado {{ c.coletado_txt }}){% endif %}. Ele é tentado de novo no próximo.">Ciclo anterior</span>{% endif %}
+      {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não enviou preço novo na última coleta. Este é o anterior{% if c.coletado_txt %} ({{ c.coletado_txt }}){% endif %}; a próxima coleta tenta de novo.">Preço anterior</span>{% endif %}
       {% if c.tendencia in ("alta", "baixa") %}
       {% set pct_txt = ("%.1f"|format(c.variacao_pct|abs))|replace(".", ",") ~ "%" if c.variacao_pct is number else "" %}
       {% set verbo = "subiu" if c.tendencia == "alta" else "caiu" %}
@@ -76,7 +76,7 @@
     </td>
     <td class="celula-sparkline" data-label="Histórico">
       {% if c.sparkline %}
-      <a class="link-historico{{ ' sparkline-' ~ c.tendencia if c.tendencia else '' }}" href="{{ url_for('item_detail', name=c.name) }}" aria-label="Ver histórico completo de {{ c.name_fmt }}" title="Abrir datas e preços do histórico completo">{{ c.sparkline|safe }}</a>
+      <a class="link-historico{{ ' sparkline-' ~ c.tendencia if c.tendencia else '' }}" href="{{ url_for('item_detail', name=c.name) }}" aria-label="Ver histórico completo de {{ c.name_fmt }}" title="Ver o histórico completo">{{ c.sparkline|safe }}</a>
       {% if c.historico_curto %}
       <span class="selo-historico-curto" title="Só {{ c.historico_pontos }} {{ 'coleta registrada' if c.historico_pontos == 1 else 'coletas registradas' }} até agora — a linha pode não refletir bem a tendência ainda">histórico curto</span>
       {% endif %}
@@ -111,7 +111,7 @@
       {% set extras = (c.breakdown|rejectattr('label', 'equalto', c.reasons[0])|list) if (c.breakdown and c.reasons) else (c.breakdown or []) %}
       <details class="detalhe-motivo">
         <summary>
-          <span class="texto-motivo">{{ c.reasons[0]|motivo_fmt if c.reasons else "Nota neutra: nenhum fator se destacou" }}</span>
+          <span class="texto-motivo">{{ c.reasons[0]|motivo_fmt if c.reasons else "Sem fator em destaque" }}</span>
           {% if extras %}<span class="dica-expandir" aria-hidden="true">ver mais {{ icone("chevron-baixo") }}</span>{% endif %}
         </summary>
         {% if extras %}
@@ -159,8 +159,8 @@
         <span class="cartao-item-nota nota-{{ c.score|nota_classe }}" role="img" title="Nota {{ c.score }} de 100" aria-label="Nota {{ c.score }} de 100">{{ c.score|nota_anel|safe }}<span class="cartao-item-nota-numero" aria-hidden="true">{{ c.score }}</span></span>
         {% if c.nota_margem %}<span class="cartao-item-margem" title="A soma dos fatores passou do limite da escala (0 a 100): sem o corte, a nota seria {{ c.score + c.nota_margem }}.">{{ "%+d"|format(c.nota_margem) }}</span>{% endif %}
       </div>
-      <label class="cartao-item-comparar-alvo" title="Marcar pra comparar com outros itens (até 3)">
-        <input type="checkbox" class="checkbox-comparar" data-comparar="{{ c.name }}" aria-label="Marcar {{ c.name_fmt }} pra comparar">
+      <label class="cartao-item-comparar-alvo" title="Comparar (até 3 itens)">
+        <input type="checkbox" class="checkbox-comparar" data-comparar="{{ c.name }}" aria-label="Comparar {{ c.name_fmt }}">
         <span class="comparar-rotulo" aria-hidden="true">Comparar</span>
       </label>
     </div>
@@ -168,7 +168,7 @@
       <a class="cartao-item-nome" href="{{ url_for('item_detail', name=c.name) }}" translate="no">{{ c.name_fmt }}</a>
       <details class="detalhe-motivo detalhe-motivo-cartao">
         <summary>
-          <span class="texto-motivo">{{ c.reasons[0]|motivo_fmt if c.reasons else "Nota neutra: nenhum fator se destacou" }}</span>
+          <span class="texto-motivo">{{ c.reasons[0]|motivo_fmt if c.reasons else "Sem fator em destaque" }}</span>
           {% if extras %}<span class="dica-expandir" aria-hidden="true">ver mais {{ icone("chevron-baixo") }}</span>{% endif %}
         </summary>
         {% if extras %}
@@ -191,7 +191,7 @@
         {% if c.confianca_baixa %}
         <span class="selo-confianca-baixa" title="{{ c.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>
         {% endif %}
-        {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não devolveu preço novo deste item no último ciclo; o valor é do ciclo anterior{% if c.coletado_txt %} (coletado {{ c.coletado_txt }}){% endif %}. Ele é tentado de novo no próximo.">Preço do ciclo anterior</span>{% endif %}
+        {% if c.mantido_do_ciclo_anterior %}<span class="selo-dado-anterior" title="A Steam não enviou preço novo na última coleta. Este é o anterior{% if c.coletado_txt %} ({{ c.coletado_txt }}){% endif %}; a próxima coleta tenta de novo.">Preço anterior</span>{% endif %}
       </div>
       {% endif %}
       <div class="cartao-item-rodape">
@@ -203,12 +203,12 @@
           <span class="icone-tendencia tendencia-{{ c.tendencia }}" title="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior" aria-label="Preço {{ verbo }} {{ pct_txt }} desde a coleta anterior">{{ icone("seta-cima" if c.tendencia == "alta" else "seta-baixo") }} {{ pct_txt or verbo|capitalize }}</span>
           {% endif %}
         </span>
-        <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Salvar como favorito (só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
+        <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
       </div>
       {# Encomenda sugerida (17/11, a mesma do Ranking e do item): um
          centavo acima da maior encomenda da Steam. Copiar fica no item. #}
       {% set enc = encomenda_sugestao(c.price, c.encomenda) %}
-      {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Na Steam dá para encomendar: você escolhe o preço e espera alguém vender. Este valor fica um centavo acima da maior encomenda de hoje ({{ enc.maior_fmt }}), na frente da fila, e {{ enc.abaixo_pct }}% abaixo do preço de hoje.">Encomendar por <strong>{{ enc.valor_fmt }}</strong></p>{% endif %}
+      {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Encomenda: você define o preço e espera alguém vender. Este valor fica um centavo acima da maior encomenda ({{ enc.maior_fmt }}), na frente da fila, e {{ enc.abaixo_pct }}% abaixo do preço de hoje.">Encomendar por <strong>{{ enc.valor_fmt }}</strong></p>{% endif %}
       <div class="cartao-item-selos">
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa(c.name) }}</span>
@@ -234,7 +234,7 @@
         {% endif %}
       </a>
       <div class="cartao-item-nota-area">
-        <span class="selo-sem-nota" title="O Lodout ainda não calcula a nota deste item: mostra só o preço do dia">sem nota ainda</span>
+        <span class="selo-sem-nota" title="Este item ainda não tem nota, só o preço do dia">sem nota ainda</span>
       </div>
     </div>
     <div class="cartao-item-corpo">
@@ -282,12 +282,12 @@
 
   {% macro cabecalho_tabela() %}
   <tr>
-    <th title="Nome do item, com link pra página dele no Steam Market">Item</th>
-    <th class="cabecalho-preco" title="Menor preço anunciado agora no Steam Market" aria-sort="{{ 'ascending' if ordenar_sel == 'preco' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='lista') }}">Preço{% if ordenar_sel == "preco" %} {{ icone("seta-cima") }}{% endif %}</a></th>
-    <th class="celula-sparkline" title="Preço nas últimas 20 coletas — o mesmo histórico da página do item">Histórico <span class="cabecalho-sub">(20)</span></th>
-    <th class="cabecalho-nota" title="De 0 a 100: quanto mais alta, mais fatores positivos o item reúne agora (preço, oferta, caixa descontinuada, etc.). Um selo de risco aparece quando a alta recente pode ser artificial." aria-sort="{{ 'descending' if ordenar_sel == 'nota' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='lista') }}">Nota (0–100){% if ordenar_sel == "nota" %} {{ icone("seta-baixo") }}{% endif %}</a></th>
-    <th title="Caixa ou cápsula de onde o item vem, e se ela ainda é sorteada no jogo">Caixa/Cápsula</th>
-    <th title="Os fatores factuais que mais somaram pontos na nota deste item">Por quê</th>
+    <th title="Nome do item, com link para o Mercado da Steam">Item</th>
+    <th class="cabecalho-preco" title="Menor preço à venda agora no Mercado da Steam" aria-sort="{{ 'ascending' if ordenar_sel == 'preco' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='lista') }}">Preço{% if ordenar_sel == "preco" %} {{ icone("seta-cima") }}{% endif %}</a></th>
+    <th class="celula-sparkline" title="Preço nas últimas 20 coletas">Histórico <span class="cabecalho-sub">(20)</span></th>
+    <th class="cabecalho-nota" title="De 0 a 100. Quanto maior, mais fatores positivos o item tem hoje. O selo de risco aparece quando a alta recente pode ser artificial." aria-sort="{{ 'descending' if ordenar_sel == 'nota' else 'none' }}"><a class="link-ordenar" href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='lista') }}">Nota (0–100){% if ordenar_sel == "nota" %} {{ icone("seta-baixo") }}{% endif %}</a></th>
+    <th title="De qual caixa ou cápsula o item vem, e se ela ainda sai no jogo">Caixa/Cápsula</th>
+    <th title="Os fatores que mais pesaram na nota">Por quê</th>
   </tr>
   {% endmacro %}
 
@@ -307,7 +307,7 @@
        linha, com o link para o Método. #}
     <header class="home-tese">
       <h1 class="home-tese-titulo">Notas de 0 a 100 para skins de CS2</h1>
-      <p class="home-tese-texto">O Lodout avalia cada item com dados públicos da Steam e mostra o porquê da nota: se é fácil de comprar e vender, quanto o preço oscila e se há risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">Uma nota para cada item, calculada com dados públicos da Steam. Você vê o motivo: se é fácil vender, quanto o preço oscila e se há risco de alta artificial. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
@@ -322,7 +322,7 @@
       <div class="hero-destaque-corpo">
         <h2 class="hero-destaque-rotulo">Nota mais alta hoje</h2>
         <a class="hero-destaque-nome" href="{{ url_for('item_detail', name=destaque_hero.name) }}" translate="no">{{ destaque_hero.name_fmt|titulo_sem_pipe_orfao }}</a>
-        <p class="hero-destaque-motivo">{{ destaque_hero.reasons[0]|motivo_fmt if destaque_hero.reasons else "Nota neutra: nenhum fator se destacou" }}</p>
+        <p class="hero-destaque-motivo">{{ destaque_hero.reasons[0]|motivo_fmt if destaque_hero.reasons else "Sem fator em destaque" }}</p>
         {# Preço e variação como nos cartões (o destaque não mostrava). #}
         <p class="hero-destaque-preco cartao-item-preco">
           {{ destaque_hero.price_fmt }}
@@ -345,7 +345,7 @@
     <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
       <div class="market-pulse-cabecalho">
         <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
-        <span class="market-pulse-sub">Destaques do dia, com dados públicos da Steam</span>
+        <span class="market-pulse-sub">Destaques do dia</span>
       </div>
       <div class="market-pulse-grid">
         {# Sem repetir o item do destaque logo acima (revisão 19/11). #}
@@ -395,7 +395,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">Maior recuo recente de preço</span>
+          <span class="pulse-card-sub">Maior queda de preço recente</span>
         </a>
         {% endif %}
 
@@ -425,7 +425,7 @@
               <span class="pulse-card-preco">{{ it.price_fmt }}</span>
             </div>
           </div>
-          <span class="pulse-card-sub">O mais negociado nas últimas 24 h</span>
+          <span class="pulse-card-sub">Mais vendido nas últimas 24 h</span>
         </a>
         {% endif %}
 
@@ -461,14 +461,14 @@
        duas barras laranja pra duas frases curtas. #}
     <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
       <span class="status-coleta-ponto" aria-hidden="true"></span>
-      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com chance alta de alta rápida e artificial no preço não entram na lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="O site nunca escaneia por causa de um visitante — só esse ciclo automático, pra não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
+      {% if scan %}<span>Preços de {{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coletados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com risco alto de alta artificial ficam fora da lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="A coleta é automática e não depende de visitas, para não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
       {% if resumo_do_dia %}<span class="resumo-do-dia">{% if resumo_do_dia.novos_no_top == 0 %}Nenhum item novo entrou no Top 20{% elif resumo_do_dia.novos_no_top == 1 %}1 item entrou no Top 20{% else %}{{ resumo_do_dia.novos_no_top }} itens entraram no Top 20{% endif %} {{ resumo_do_dia.desde }}</span>{% endif %}
     </p>
     {% endif %}
     {% if scan and scan_desatualizado %}
-    <p class="banner-aviso">{{ icone("aviso") }} Os preços estão mais antigos que o normal — provavelmente a Steam bloqueou
-    o acesso temporariamente (ver <a href="{{ url_for('status') }}">status</a>). Os dados abaixo são
-    os últimos que conseguimos coletar, não refletem o preço de agora.</p>
+    <p class="banner-aviso">{{ icone("aviso") }} Preços atrasados: a Steam pode ter limitado o acesso por um tempo
+    (ver <a href="{{ url_for('status') }}">status</a>). Os valores abaixo são da última coleta e podem
+    não ser os de agora.</p>
     {% endif %}
 
     {% macro url_sem_filtro(remover) -%}
@@ -487,13 +487,13 @@
     {% set n_filtros = (1 if exterior_sel else 0) + (1 if raridade_filtro_sel else 0) + (1 if nota_min_sel is not none else 0) + (1 if preco_max_sel is not none else 0) + (1 if liquidez_min_sel else 0) + (1 if versao_sel else 0) %}
     <form class="form-filtros" method="get" action="{{ url_for('index') }}">
       <div class="filtros-barra-acoes">
-        <button type="button" class="filtros-mais-toggle" id="gatilho-filtros-toggle" aria-expanded="{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %}true{% else %}false{% endif %}" title="Filtros avançados do catálogo">
+        <button type="button" class="filtros-mais-toggle" id="gatilho-filtros-toggle" aria-expanded="{% if nota_min_sel is not none or preco_max_sel is not none or liquidez_min_sel or exterior_sel or raridade_filtro_sel or versao_sel %}true{% else %}false{% endif %}" title="Mais filtros">
           {{ icone("filtro") }}
           <span class="filtros-mais-rotulo">+ Filtros</span>
           {% if n_filtros > 0 %}<span class="badge-contagem-filtros">{{ n_filtros }}</span>{% endif %}
           {{ icone("chevron-baixo") }}
         </button>
-        <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só os itens que você favoritou (só neste navegador) — atalho: f">
+        <button type="button" id="botao-favoritos" class="botao-link" aria-pressed="false" title="Mostrar só seus favoritos (atalho: f)">
           {{ icone("favorito") }}<span id="texto-botao-favoritos">Só favoritos</span> <span id="contagem-favoritos" class="contagem-favoritos" hidden>0</span>
         </button>
         <label class="campo-busca-rotulo"><span class="visualmente-oculto">Filtrar por nome</span>
@@ -514,7 +514,7 @@
             </label>
           </div>
           <label><span class="filtro-campo-label">Liquidez mínima</span>
-            <select name="liquidez_min" data-enviar-ao-mudar title="Baseado em dias de listagens no ritmo atual de negociação — itens sem dado suficiente ficam de fora quando esse filtro está ativo">
+            <select name="liquidez_min" data-enviar-ao-mudar title="Quanto tempo levaria para vender o que está à venda, no ritmo atual. Itens sem esse dado ficam de fora.">
               <option value="">Qualquer liquidez</option>
               {% for banda in liquidez_opcoes %}
               <option value="{{ banda }}" {{ "selected" if banda == liquidez_min_sel else "" }}>{{ banda|liquidez_label }} ou melhor</option>
@@ -641,14 +641,14 @@
          página tem o selo (risco baixo não mostra selo nenhum). #}
       {% set ns_risco = namespace(tem=false) %}
       {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
-      <p class="ajuda-nota">A nota de 0 a 100 resume fatores observados — não é promessa nem previsão de lucro.{% if ns_risco.tem %} O selo de risco aponta chance de alta artificial no preço.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
+      <p class="ajuda-nota">A nota resume dados já medidos. Não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica chance de alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
       {% include "partials/_legenda_raridade.html" %}
     </div>
     {% endif %}
 
     {% if candidatos or itens_catalogo %}
     {% if ver_sel == 'lista' %}
-    <p class="dica-rolagem-tabela">Deslize a tabela para o lado para ver as demais colunas.</p>
+    <p class="dica-rolagem-tabela">Deslize a tabela para ver mais colunas.</p>
     {% endif %}
     {% endif %}
 
@@ -687,7 +687,7 @@
     {% endif %}
 
     <div id="msg-sem-favoritos" class="status status-vazio" hidden>
-      <p id="texto-sem-favoritos">Nenhum item favoritado ainda — use o botão Favoritar ao lado de um item.</p>
+      <p id="texto-sem-favoritos">Nenhum favorito ainda. Toque na estrela de um item para salvar.</p>
       <ul id="lista-favoritos-fora" class="lista-favoritos-fora" hidden></ul>
     </div>
 
@@ -701,7 +701,7 @@
       <tbody>
         {% for c in candidatos %}{{ linha_candidato(c, pagina == 1 and loop.first) }}{% endfor %}
         {% if itens_catalogo %}
-        <tr class="linha-divisor-catalogo"><td colspan="6">Sem nota ainda: preço do dia de outros itens do Mercado da Steam que batem com a sua busca.</td></tr>
+        <tr class="linha-divisor-catalogo"><td colspan="6">Sem nota ainda: outros itens do Mercado da Steam que combinam com a busca, com o preço do dia.</td></tr>
         {% for c in itens_catalogo %}{{ linha_catalogo(c) }}{% endfor %}
         {% endif %}
       </tbody>
@@ -714,7 +714,7 @@
     <ul class="grade-cards" aria-label="Vitrine de itens">
       {% for c in candidatos %}{{ cartao_candidato(c, loop.index0) }}{% endfor %}
       {% if itens_catalogo %}
-      <li class="divisor-catalogo">Sem nota ainda: preço do dia de outros itens do Mercado da Steam que batem com a sua busca.</li>
+      <li class="divisor-catalogo">Sem nota ainda: outros itens do Mercado da Steam que combinam com a busca, com o preço do dia.</li>
       {% for c in itens_catalogo %}{{ cartao_catalogo(c) }}{% endfor %}
       {% endif %}
     </ul>
@@ -751,17 +751,17 @@
       </div>
     </nav>
     {% elif scan and categoria_sel and not contagem_categorias.get(categoria_sel) %}
-      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>A categoria {{ categoria_sel }} ainda não tem itens coletados. A coleta atual cobre só as categorias com número ao lado do nome no filtro. <a href="{{ url_for('index') }}">Ver todas as categorias</a></p>
+      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>Ainda não há itens coletados em {{ categoria_sel }}. Só as categorias com número no filtro têm itens. <a href="{{ url_for('index') }}">Ver todas as categorias</a></p>
     {% elif scan %}
       {# Diz o que foi buscado, quantos itens o site acompanha e como acertar
          a busca -- "Nenhum candidato com esses filtros" era jargão e não
          ajudava a sair do vazio. #}
-      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>{% if busca_sel %}Nenhum item com “{{ busca_sel }}”{% if categoria_sel %} em {{ categoria_sel }}{% endif %}{% if nota_min_sel or preco_max_sel or liquidez_min_sel %} com esses filtros{% endif %}. O Lodout acompanha {{ total_acompanhados }} {{ "item" if total_acompanhados == 1 else "itens" }} — tente só parte do nome, como “AK-47” ou “Caixa”.{% else %}Nenhum item com esses filtros.{% endif %} <a href="{{ url_for('index', ordenar=ordenar_sel, ver=ver_sel) }}">Limpar {{ "busca e filtros" if busca_sel and (categoria_sel or nota_min_sel or preco_max_sel or liquidez_min_sel) else ("busca" if busca_sel else "filtros") }}</a></p>
+      <p class="status status-vazio"><span class="status-vazio-icone" aria-hidden="true">{{ icone("lupa") }}</span>{% if busca_sel %}Nenhum item com “{{ busca_sel }}”{% if categoria_sel %} em {{ categoria_sel }}{% endif %}{% if nota_min_sel or preco_max_sel or liquidez_min_sel %} com esses filtros{% endif %}. Tente parte do nome, como “AK-47” ou “Caixa”.{% else %}Nenhum item com esses filtros.{% endif %} <a href="{{ url_for('index', ordenar=ordenar_sel, ver=ver_sel) }}">Limpar {{ "busca e filtros" if busca_sel and (categoria_sel or nota_min_sel or preco_max_sel or liquidez_min_sel) else ("busca" if busca_sel else "filtros") }}</a></p>
     {% else %}
       <section class="status status-vazio">
         <span class="status-vazio-icone" aria-hidden="true">{{ icone("grafico") }}</span>
-        <p>Ainda não há dados de coleta publicados. A lista aparece quando o próximo ciclo automático terminar.</p>
-        <a class="botao-link" href="{{ url_for('status') }}">Acompanhar status da coleta</a>
+        <p>Ainda não há preços coletados. A lista aparece ao fim da próxima coleta.</p>
+        <a class="botao-link" href="{{ url_for('status') }}">Ver status da coleta</a>
       </section>
     {% endif %}
   </main>
@@ -771,10 +771,10 @@
   </footer>
 
   <div id="barra-comparar" class="barra-comparar" hidden>
-    <span class="texto-comparar"><span class="contagem-comparar">0</span>/3 selecionados pra comparar</span>
+    <span class="texto-comparar"><span class="contagem-comparar">0</span>/3 para comparar</span>
     {# Aparece por alguns segundos ao tentar marcar o 4º: antes a caixinha
        simplesmente não marcava, e o aviso só chegava ao leitor de tela. #}
-    <span class="aviso-comparar" hidden>Máximo de 3 — desmarque um pra trocar</span>
+    <span class="aviso-comparar" hidden>Máximo de 3. Desmarque um para trocar.</span>
     <a class="botao-link link-comparar" href="{{ url_for('comparar') }}">Comparar</a>
     <button type="button" id="botao-limpar-comparar" class="botao-link botao-remover">Limpar</button>
   </div>
