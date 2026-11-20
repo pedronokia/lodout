@@ -1549,7 +1549,7 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
     (G maiúsculo). O resto do texto do site continua "lodout"."""
-    assert "<title>Lodout</title>" in client.get("/").data.decode("utf-8")
+    assert "<title>Lodout — notas de 0 a 100 para skins de CS2</title>" in client.get("/").data.decode("utf-8")
     ranking = client.get("/ranking").data.decode("utf-8")
     assert "<title>Ranking — Lodout</title>" in ranking
     assert "— lodout</title>" not in ranking
@@ -4894,7 +4894,7 @@ def test_index_traduz_caixa_igual_coluna_item(client, monkeypatch, tmp_path):
     body = client.get("/").data.decode("utf-8")
 
     assert ">Caixa CS:GO Weapon (descontinuada, 2013)</span>" in body
-    assert "<title>Lodout</title>" in body
+    assert "<title>Lodout — notas de 0 a 100 para skins de CS2</title>" in body
 
 
 def test_feed_e_api_nao_leem_historico_de_todos_os_itens(
@@ -6212,3 +6212,27 @@ def test_janela_vendi_fala_em_venda_nao_em_anuncio():
     bloco = js.split("data-janela-vendi-dica", 1)[1].split("custoVendi", 1)[0]
     assert "Corrija se anunciou" not in bloco
     assert "Corrija se vendeu por outro valor." in bloco
+
+
+def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
+    """Em produção a pasta do código é montada por cima da imagem, então a
+    minificação do build não chegava ao visitante (revisão 20/11: 362 KB de
+    CSS, 60 KB disso comentário). O site entrega a versão enxugada."""
+    from pathlib import Path as _P
+    pasta = _P(server.__file__).parent / "static"
+    for nome in ("style.css", "app.js"):
+        fonte = (pasta / nome).read_text(encoding="utf-8")
+        resp = client.get(f"/static/{nome}?v=teste")
+        assert resp.status_code == 200
+        corpo = resp.data.decode("utf-8")
+        assert "/*" not in corpo
+        assert len(corpo) < len(fonte)
+        assert "max-age=31536000" in resp.headers["Cache-Control"]
+        etag = resp.headers["ETag"]
+        r304 = client.get(f"/static/{nome}?v=teste", headers={"If-None-Match": etag})
+        assert r304.status_code == 304
+    css = client.get("/static/style.css").data.decode("utf-8")
+    assert "@media (prefers-reduced-motion: reduce)" in css
+    assert css.count("{") == css.count("}")
+    # arquivos que não estão na lista seguem o caminho normal do Flask
+    assert client.get("/static/popover.js").status_code == 200

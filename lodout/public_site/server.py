@@ -50,7 +50,8 @@ from lodout.localization import localize_name
 from lodout.public_site import (
     backtest_diario, buscas, catalogo, changelog, charts, db_backup,
     discord_notify, encomenda,
-    erro_stats, fmt, icon_cache, latencia, notas_historico, og_cards, online,
+    erro_stats, estaticos_minificados, fmt, icon_cache, latencia,
+    notas_historico, og_cards, online,
     profile_fetcher,
     raridade, rate_limit,
     scan_progress, user_store, uptime, visits,
@@ -382,6 +383,22 @@ def create_app() -> Flask:
     @app.before_request
     def _marcar_inicio_latencia():
         g.inicio_ts = time.time()
+
+    @app.before_request
+    def _estatico_minificado():
+        """style.css/app.js sem comentários (ver estaticos_minificados)."""
+        if request.method not in ("GET", "HEAD") or not request.path.startswith("/static/"):
+            return None
+        nome = request.path[len("/static/"):]
+        achado = estaticos_minificados.conteudo(Path(app.static_folder), nome)
+        if achado is None:
+            return None
+        dados, etag = achado
+        resp = Response(dados, mimetype=estaticos_minificados.ARQUIVOS[nome])
+        resp.headers["Cache-Control"] = (
+            f"public, max-age={app.config['SEND_FILE_MAX_AGE_DEFAULT']}")
+        resp.set_etag(etag)
+        return resp.make_conditional(request)
 
     @app.after_request
     def _registrar_latencia(resp):

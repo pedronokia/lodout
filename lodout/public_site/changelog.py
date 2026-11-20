@@ -28,6 +28,7 @@ ENTRADAS = [
             "Cores de volta ao cinza do Lodout: quadros, cartões, tabelas e painéis tinham ganhado um fundo azul-marinho; agora são cinza neutro, com o laranja como única cor de destaque. O botão “Entrar com Steam” continua com o azul da Steam.",
             "Um verde, um vermelho e um amarelo só: o site usava quatro tons de verde, três de vermelho e dois de amarelo; agora todos são os da casa. O texto de apoio da página inicial, os subtítulos das páginas e o seletor de período do Ranking deixaram um cinza puxado para o azul. Link com o mouse em cima fica laranja claro, mais fácil de ler.",
             "Sem azul-céu: o selo “Mais negociado” e a etiqueta “anunciado” da sua conta ficaram cinza claro, a barrinha de liquidez do item ficou laranja e o quadro “Subiram” do Ranking ganhou o verde de alta. O único azul do site é o botão “Entrar com Steam”.",
+            "Site mais leve: o estilo e o script das páginas chegam sem os comentários internos do código (o estilo comprimido caiu de cerca de 72 KB para 43 KB), então a primeira página abre mais rápido, principalmente no celular. A aba da página inicial agora diz o que o site é: “Lodout — notas de 0 a 100 para skins de CS2”.",
         ],
     },
     {
