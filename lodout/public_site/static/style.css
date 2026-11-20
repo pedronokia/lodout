@@ -10829,6 +10829,7 @@ h3,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   height: 30px;
   padding: 0 14px;
   margin-top: 10px;
@@ -10843,9 +10844,37 @@ h3,
   width: fit-content;
 }
 
+.resumo-cards-conta .botao-preencher::after {
+  content: "→";
+  font-weight: 400;
+  font-size: 0.85em;
+  transition: transform 0.18s ease;
+}
+
 .resumo-cards-conta .botao-preencher:hover {
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.32) 0%, rgba(249, 115, 22, 0.18) 100%);
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.25);
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.35) 0%, rgba(249, 115, 22, 0.20) 100%);
+  border-color: rgba(249, 115, 22, 0.65);
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+}
+
+.resumo-cards-conta .botao-preencher:hover::after {
+  transform: translateX(3px);
+}
+
+.resumo-cards-conta .card-valor.valor-positivo {
+  color: #22c55e;
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.25);
+}
+
+.resumo-cards-conta .card-valor.valor-negativo {
+  color: #ef4444;
+  text-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+}
+
+.resumo-cards-conta .card-sub[data-total="liquido_sub"] {
+  font-size: 0.71875rem;
+  color: rgba(255, 255, 255, 0.40);
+  margin-top: 4px;
 }
 
 /* 4. Cabeçalho de Lista e Quero Lucrar */
@@ -11033,6 +11062,32 @@ h3,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  margin-left: 2px;
+  transition: all 0.15s ease;
+}
+
+.conta-filtro:hover span[data-conta-contagem] {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.conta-filtro[aria-pressed="true"] span[data-conta-contagem] {
+  background: rgba(249, 115, 22, 0.32);
+  color: #ffffff;
+}
+
+.conta-filtro span[data-conta-contagem] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 17px;
   height: 17px;
   padding: 0 5px;
@@ -11153,11 +11208,18 @@ table.tabela-conta tbody tr:hover {
   min-width: 42px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.08)) 45%, rgba(255, 255, 255, 0.08));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rar-cor, transparent) 20%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto {
+  transform: scale(1.05);
+  border-color: color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.15)) 75%, rgba(255, 255, 255, 0.15));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rar-cor, transparent) 40%, transparent), 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .celula-item-conta .link-item {
@@ -11221,6 +11283,25 @@ table.tabela-conta tbody tr:hover {
   transition: all 0.18s ease;
 }
 
+.tabela-conta .campo-reais-cada .input-custo {
+  width: 140px;
+  padding-right: 44px;
+}
+
+.tabela-conta .campo-reais-sufixo {
+  position: absolute;
+  right: 10px;
+  color: rgba(255, 255, 255, 0.40);
+  font-size: 0.72rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.tabela-conta .input-custo::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-style: normal;
+}
+
 .tabela-conta .input-custo:hover {
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.20);
@@ -11240,6 +11321,13 @@ table.tabela-conta tbody tr:hover {
 }
 
 /* Preços de Venda por Alvo / Breakeven */
+.tabela-conta .venda-por-bloco {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 12px;
+  align-items: center;
+}
+
 .tabela-conta .copiar-preco {
   display: inline-flex;
   align-items: center;
@@ -11261,6 +11349,106 @@ table.tabela-conta tbody tr:hover {
   border-color: rgba(249, 115, 22, 0.40);
   color: #ffffff;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.2);
+}
+
+/* Lotes Múltiplos e Separação */
+.tabela-conta .separar-lote[open] {
+  display: block;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.tabela-conta .form-separar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.tabela-conta .form-separar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78125rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.tabela-conta .form-separar .input-quantidade {
+  width: 58px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .form-separar .input-quantidade:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  outline: none;
+}
+
+.tabela-conta .form-separar .separar-de {
+  font-size: 0.78125rem;
+  color: rgba(255, 255, 255, 0.50);
+}
+
+.tabela-conta .form-separar .botao-link {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.tabela-conta .form-separar .botao-link:hover {
+  background: var(--accent-bright, #ea580c);
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.35);
+}
+
+.tabela-conta .form-separar .explica-separar {
+  flex-basis: 100%;
+  font-size: 0.71875rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.tabela-conta .botao-juntar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.71875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .botao-juntar:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.20);
+  color: #ffffff;
 }
 
 /* 8. Links do Fim da Página e Zona de Exclusão */
