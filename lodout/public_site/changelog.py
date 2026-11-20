@@ -24,6 +24,7 @@ ENTRADAS = [
             "Mudanças: data por extenso embaixo de cada título e as mais antigas recolhidas em “Ver mudanças mais antigas”. Status: as visitas por dia viraram barras com a data e o número.",
             "Minha conta no celular: as quatro abas (Meus Itens, Watchlist, Trades e Histórico) cabem na tela, sem o Histórico escondido, e Trades ganhou um ícone de troca. Em cada troca, o saldo e o “apagar” ficam na mesma linha.",
             "Página de item que ainda não tem nota: o quadro “Comprar por encomenda” mostrava um botão vazio e uma frase incompleta; agora mostra só o valor para lucrar a sua meta. Comparar itens: no celular, a tabela desliza dentro do quadro em vez de arrastar a página toda para o lado.",
+            "O balão “Cores da borda” do Ranking agora fecha com Esc ou tocando fora, como na página inicial. Com a letra do celular ampliada, os cartões da página inicial passam a uma coluna e o preço da encomenda não some mais. Na janela “Vendi”, a dica diz “corrija se vendeu por outro valor” (antes falava em anúncio).",
         ],
     },
     {

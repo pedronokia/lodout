@@ -991,7 +991,7 @@
         if (dica) dica.textContent = "Já vem o preço do seu anúncio. Corrija se vendeu por outro valor.";
       } else if (empateVenda > 0) {
         campoPreco.value = (Math.round(empateVenda * (1 + metaVenda / 100) * 100) / 100).toFixed(2).replace(".", ",");
-        if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se anunciou por outro valor.";
+        if (dica) dica.textContent = "Já vem o preço para lucrar " + metaVenda + "%, o recomendado na sua conta. Corrija se vendeu por outro valor.";
       } else {
         campoPreco.value = d.getAttribute("data-vendi-preco") || "";
         if (dica) dica.textContent = "Já vem o preço de hoje. Corrija se vendeu por outro valor.";

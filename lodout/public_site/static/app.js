@@ -70,18 +70,6 @@ document.addEventListener("submit", function (e) {
     e.preventDefault();
   }
 });
-var _SELETOR_DETAILS_AUTO_FECHA = ".menu-acoes-item[open], .popover-legenda[open]";
-document.addEventListener("click", function (e) {
-  document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
-    if (!det.contains(e.target)) det.open = false;
-  });
-});
-document.addEventListener("keydown", function (e) {
-  if (e.key !== "Escape") return;
-  document.querySelectorAll(_SELETOR_DETAILS_AUTO_FECHA).forEach(function (det) {
-    det.open = false;
-  });
-});
 document.addEventListener("error", function (e) {
   if (e.target.matches && e.target.matches(".icone-item")) {
     e.target.classList.add("icone-item-indisponivel");

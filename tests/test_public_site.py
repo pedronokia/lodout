@@ -6190,3 +6190,25 @@ def test_api_sugestoes_spotlight_retorna_metadados(client, monkeypatch, tmp_path
     assert "/icone/hash123.webp" in it["icon_url"]
     assert it["url"] == "/item/AK-47%20%7C%20Redline%20(Field-Tested)"
 
+
+
+def test_popover_fecha_com_esc_em_todas_as_paginas_que_o_usam(client):
+    """O balão "Cores da borda" do Ranking não fechava com Esc: o Ranking
+    não carrega o app.js (revisão 20/11). O fechamento mora no popover.js,
+    carregado por toda página que tem o balão."""
+    import re as _re
+    js = client.get("/static/popover.js").data.decode("utf-8")
+    assert '".menu-acoes-item[open], .popover-legenda[open]"' in js
+    assert '"Escape"' in js
+    for url in ("/", "/ranking"):
+        body = client.get(url).data.decode("utf-8")
+        if 'class="popover-legenda"' in body or "menu-acoes-item" in body:
+            assert _re.search(r'src="/static/popover\.js\?v=', body), url
+
+
+def test_janela_vendi_fala_em_venda_nao_em_anuncio():
+    from pathlib import Path as _P
+    js = (_P(server.__file__).parent / "static" / "conta.js").read_text(encoding="utf-8")
+    bloco = js.split("data-janela-vendi-dica", 1)[1].split("custoVendi", 1)[0]
+    assert "Corrija se anunciou" not in bloco
+    assert "Corrija se vendeu por outro valor." in bloco

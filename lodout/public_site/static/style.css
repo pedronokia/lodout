@@ -12919,3 +12919,15 @@ button.confira { min-height: 24px; padding-block: 3px; }
   border: 0;
 }
 .troca-fim .form-remover { margin: 0; }
+
+/* Letra ampliada no celular (revisão 20/11): com a fonte do sistema no
+   dobro, duas colunas ficavam estreitas demais e o preço da encomenda
+   sumia do cartão. A coluna mínima em rem cresce junto com a letra:
+   no tamanho normal continuam 2 colunas; com letra grande, vira 1. */
+@media (max-width: 640px) {
+  .grade-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); }
+}
+.cartao-item-encomenda { flex-wrap: wrap; max-width: 100%; }
+
+/* Busca rápida: o contorno de foco do campo acompanha o canto arredondado. */
+.spotlight-input:focus-visible { border-radius: 8px; }
