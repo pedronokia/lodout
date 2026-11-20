@@ -43,7 +43,7 @@ jobs:
 
       - name: Empacota, cifra e envia backup mais recente a partir da VM
         if: ${{ steps.config.outputs.ativo == 'true' }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           BACKUP_UPLOAD_URL: ${{ secrets.BACKUP_UPLOAD_URL }}
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}

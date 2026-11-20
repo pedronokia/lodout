@@ -58,13 +58,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout do commit deployado (para smoke test)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Deploy web (+ Caddy se pedido) e limpeza na VM
         id: deploy_web
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
           ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
@@ -156,7 +156,7 @@ jobs:
           exit 1
 
       - name: Smoke test pós-deploy nas rotas principais
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -171,7 +171,7 @@ jobs:
 
       - name: Rollback automático do web em caso de falha na validação
         if: ${{ failure() && steps.deploy_web.outcome == 'success' }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
           ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
@@ -241,7 +241,7 @@ jobs:
 
       - name: Atualiza o worker quando solicitado
         if: ${{ inputs.restart_worker == true || contains(github.event.workflow_run.head_commit.message, '[restart-worker]') }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         env:
           SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
           ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
