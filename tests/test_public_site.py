@@ -6259,3 +6259,12 @@ def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
     laranja = sum(1 for x in range(area.width) for y in range(area.height)
                   if (lambda px: px[0] > 200 and 90 < px[1] < 140 and px[2] < 60)(area.getpixel((x, y))))
     assert laranja > 3000
+
+
+def test_queda_recente_usa_virgula_e_sinal_de_menos():
+    """O cartão "Queda recente" mostrava "-6.8%" (ponto e hífen); o resto
+    do site usa "−6,8%" (revisão 20/11)."""
+    from pathlib import Path as _P
+    t = (_P(server.__file__).parent / "templates" / "index.html").read_text(encoding="utf-8")
+    trecho = t.split('class="pulse-delta-pct negativo">', 1)[1].split("</span>", 1)[0]
+    assert 'replace(".", ",")' in trecho and "−" in trecho

@@ -379,7 +379,7 @@
           <div class="pulse-card-topo">
             <span class="pulse-badge pulse-badge-dip">{{ icone("seta-baixo") }} Queda recente</span>
             {% if it.variacao_pct is number %}
-            <span class="pulse-delta-pct negativo">{{ "%.1f"|format(it.variacao_pct) }}%</span>
+            <span class="pulse-delta-pct negativo">{{ ("−" if it.variacao_pct < 0 else "") ~ ("%.1f"|format(it.variacao_pct|abs))|replace(".", ",") }}%</span>
             {% endif %}
           </div>
           <div class="pulse-card-corpo">
