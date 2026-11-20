@@ -587,6 +587,12 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
             _logger.info("Limpeza de icon_cache: %d arquivos removidos", removidos)
     except Exception:
         _logger.warning("limpeza do cache de ícones falhou", exc_info=True)
+    # Manutenção leve pós-ciclo: checkpoint WAL passivo nos SQLites e
+    # remoção de .tmp órfãos de crashes antigos em DATA_DIR.
+    try:
+        _manutencao_pos_ciclo()
+    except Exception:
+        _logger.warning("manutenção pós-ciclo falhou", exc_info=True)
     # Alerta Discord do dono se o worker ficar horas sem trazer item
     # nenhum (ver worker_alert.py) -- sem webhook configurado, é no-op.
     try:
@@ -830,6 +836,72 @@ def _dormir_com_rodadas_top(espera_s: float, permitido: bool = True) -> None:
             return
 
 
+def _manutencao_pos_ciclo(data_dir: "Path | None" = None) -> dict[str, int]:
+    """Checkpoint WAL passivo nos bancos SQLite de `data_dir` (não bloqueia
+    leitores do `web`) e varredura de arquivos `.tmp` órfãos."""
+    import sqlite3
+
+    pasta = Path(data_dir) if data_dir is not None else Path(_paths.DATA_DIR)
+    checkpoints = 0
+    for nome in ("public_site.db", "notas_historico.sqlite3",
+                 "catalogo.sqlite3", "online.sqlite3"):
+        caminho = pasta / nome
+        if not caminho.is_file():
+            continue
+        conn = None
+        try:
+            conn = sqlite3.connect(str(caminho), timeout=3.0)
+            conn.execute("PRAGMA busy_timeout=3000")
+            conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
+            checkpoints += 1
+        except sqlite3.Error:
+            pass
+        finally:
+            if conn is not None:
+                conn.close()
+    temps = _paths.sweep_stale_temps(pasta)
+    return {"checkpoints": checkpoints, "temps_removidos": temps}
+
+
+def _lock_instancia(lock_path: "Path | None" = None):
+    """Context manager que garante no máximo 1 worker por `DATA_DIR` via
+    `fcntl.flock(LOCK_EX | LOCK_NB)`. Evita dois workers simultâneos
+    disparando 429 na Steam ou corrompendo `scan_parcial.json`."""
+    import contextlib
+
+    @contextlib.contextmanager
+    def _cm():
+        try:
+            import fcntl
+        except ImportError:
+            yield
+            return
+        caminho = (Path(lock_path) if lock_path is not None
+                   else Path(_paths.DATA_DIR) / "worker.lock")
+        caminho.parent.mkdir(parents=True, exist_ok=True)
+        f = open(caminho, "a+")
+        try:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as e:
+                raise RuntimeError(
+                    f"outro worker já está rodando sobre {caminho.parent}"
+                ) from e
+            f.seek(0)
+            f.truncate()
+            f.write(f"{os.getpid()}\n")
+            f.flush()
+            yield caminho
+        finally:
+            try:
+                fcntl.flock(f, fcntl.LOCK_UN)
+            except OSError:
+                pass
+            f.close()
+
+    return _cm()
+
+
 def main(intervalo_horas: "float | None" = None) -> None:
     """`intervalo_horas=None` lê `LODOUT_WORKER_INTERVAL_HORAS` (env),
     com fallback pro default -- pra ajustar a cadência em produção sem
@@ -838,28 +910,33 @@ def main(intervalo_horas: "float | None" = None) -> None:
         intervalo_horas = float(
             ambiente("WORKER_INTERVAL_HORAS",
                            _INTERVALO_HORAS_DEFAULT))
-    signal.signal(signal.SIGTERM, _ao_receber_sigterm)
-    espera = espera_ate_proximo_ciclo(intervalo_horas)
-    if espera > 0 and _carregar_checkpoint(time.time()):
-        _logger.info("Há um ciclo interrompido recente: retomando agora")
-        espera = 0
-    if espera > 0:
-        _logger.info("Último ciclo terminou há pouco; próximo em %.1f min",
-                     espera / 60)
-        _dormir_com_rodadas_top(espera)
-    vazios_seguidos = 0
-    while True:
-        try:
-            trouxe = bool(run_once())
-        except Exception:
-            _logger.error("ciclo do worker falhou", exc_info=True)
-            trouxe = False
-        if _parar:
-            return
-        vazios_seguidos = 0 if trouxe else vazios_seguidos + 1
-        _dormir_com_rodadas_top(
-            _espera_apos_ciclo(intervalo_horas, vazios_seguidos),
-            permitido=trouxe)
+    try:
+        lock_ctx = _lock_instancia()
+        with lock_ctx:
+            signal.signal(signal.SIGTERM, _ao_receber_sigterm)
+            espera = espera_ate_proximo_ciclo(intervalo_horas)
+            if espera > 0 and _carregar_checkpoint(time.time()):
+                _logger.info("Há um ciclo interrompido recente: retomando agora")
+                espera = 0
+            if espera > 0:
+                _logger.info("Último ciclo terminou há pouco; próximo em %.1f min",
+                             espera / 60)
+                _dormir_com_rodadas_top(espera)
+            vazios_seguidos = 0
+            while True:
+                try:
+                    trouxe = bool(run_once())
+                except Exception:
+                    _logger.error("ciclo do worker falhou", exc_info=True)
+                    trouxe = False
+                if _parar:
+                    return
+                vazios_seguidos = 0 if trouxe else vazios_seguidos + 1
+                _dormir_com_rodadas_top(
+                    _espera_apos_ciclo(intervalo_horas, vazios_seguidos),
+                    permitido=trouxe)
+    except RuntimeError as e:
+        _logger.error("worker encerrado: %s", e)
 
 
 if __name__ == "__main__":

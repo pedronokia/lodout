@@ -430,4 +430,75 @@ def test_dependabot_configurado_para_pip_docker_e_actions():
     assert 'package-ecosystem: "github-actions"' in dep
 
 
+def test_max_content_length_rejeita_post_gigante_com_413(monkeypatch):
+    from werkzeug.security import generate_password_hash
+
+    monkeypatch.setattr(server, "_ADMIN_PASSWORD_HASH", generate_password_hash("segredo-123456"))
+    app = server.create_app()
+    assert app.config["MAX_CONTENT_LENGTH"] == 256 * 1024
+    client = app.test_client()
+    payload_gigante = b"x" * (300 * 1024)
+
+    r_api = client.post("/api/online", data=payload_gigante, content_type="application/json")
+    assert r_api.status_code == 413
+    assert r_api.get_json()["erro"] == "corpo_grande_demais"
+
+    r_html = client.post("/admin/login", data={"senha": payload_gigante.decode("ascii")})
+    assert r_html.status_code == 413
+
+
+def test_worker_lock_instancia_bloqueia_segunda_instancia(tmp_path):
+    from lodout.public_site import worker
+
+    lock_file = tmp_path / "worker.lock"
+    with worker._lock_instancia(lock_file):
+        assert lock_file.exists()
+        with pytest.raises(RuntimeError, match="outro worker"):
+            with worker._lock_instancia(lock_file):
+                pass
+    # Após liberar, uma nova instância consegue adquirir normalmente.
+    with worker._lock_instancia(lock_file):
+        assert lock_file.read_text(encoding="utf-8").strip().isdigit()
+
+
+def test_worker_manutencao_pos_ciclo_checkpoint_e_temps(tmp_path):
+    import os
+    from lodout.public_site import db, worker
+
+    conn = db.connect(tmp_path / "public_site.db")
+    conn.close()
+    stale_tmp = tmp_path / "scanner_last.json.abc123.tmp"
+    stale_tmp.write_text("parcial", encoding="utf-8")
+    velho = 1_000_000.0
+    os.utime(stale_tmp, (velho, velho))
+
+    res = worker._manutencao_pos_ciclo(tmp_path)
+    assert res["checkpoints"] == 1
+    assert res["temps_removidos"] >= 1
+    assert not stale_tmp.exists()
+
+
+def test_visits_e_buscas_concorrentes_nao_perdem_contagem(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from lodout.public_site import buscas, visits
+
+    visitas_path = tmp_path / "visitas.json"
+    buscas_path = tmp_path / "buscas.json"
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futs = [
+            pool.submit(visits.registrar, visitas_path, 1_800_000_000.0)
+            for _ in range(20)
+        ] + [
+            pool.submit(buscas.registrar, "ak-47", buscas_path)
+            for _ in range(20)
+        ]
+        for f in futs:
+            f.result()
+
+    assert visits.total(visitas_path) == 20
+    assert buscas.mais_buscados(limite=5, path=buscas_path) == [("ak-47", 20)]
+
+
+
 

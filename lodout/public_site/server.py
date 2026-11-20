@@ -284,6 +284,9 @@ def create_app() -> Flask:
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    # Teto de corpo de requisição (256 KB): qualquer formulário ou POST JSON
+    # do site ocupa poucos KB; limita abuso contra os 512 MB do container.
+    app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
     # "Secure" exige HTTPS -- ligar sempre quebraria o dev local (http).
     # Produção seta LODOUT_PUBLIC_SITE_SECURE_COOKIES=1 (ver
     # lodout/public_site/README.md).
@@ -1253,6 +1256,16 @@ def create_app() -> Flask:
             resp = make_response(render_template("429.html"), 429)
         resp.headers["Retry-After"] = "60"
         return resp
+
+    @app.errorhandler(413)
+    def corpo_grande_demais(_erro):
+        if request.path.startswith("/api/"):
+            return jsonify({
+                "api_version": 1,
+                "erro": "corpo_grande_demais",
+                "mensagem": "Requisição maior que o limite permitido.",
+            }), 413
+        return "Requisição grande demais.", 413
 
     @app.route("/privacidade")
     def privacidade():
