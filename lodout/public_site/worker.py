@@ -566,12 +566,27 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         db_backup.fazer_backup_se_necessario()
     except Exception:
         _logger.warning("backup do banco falhou", exc_info=True)
+    # Backup do histórico de notas (notas_historico.sqlite3, até 400 dias --
+    # impossível reconstruir a partir da Steam se corromper).
+    try:
+        db_backup.fazer_backup_notas_se_necessario()
+    except Exception:
+        _logger.warning("backup do histórico de notas falhou", exc_info=True)
     # Backup dos JSON globais do dashboard (scan_store/ranking) -- achado
     # da 2a rodada (2026-10-25): só o SQLite tinha backup até aqui.
     try:
         db_backup.fazer_backup_json_se_necessario()
     except Exception:
         _logger.warning("backup dos JSON falhou", exc_info=True)
+    # Limpeza do cache de ícones (remove versões antigas .v3 já substituídas
+    # e aplica teto de arquivos pra evitar crescimento ilimitado no volume).
+    try:
+        from lodout.public_site import icon_cache
+        removidos = icon_cache.limpar_antigos()
+        if removidos:
+            _logger.info("Limpeza de icon_cache: %d arquivos removidos", removidos)
+    except Exception:
+        _logger.warning("limpeza do cache de ícones falhou", exc_info=True)
     # Alerta Discord do dono se o worker ficar horas sem trazer item
     # nenhum (ver worker_alert.py) -- sem webhook configurado, é no-op.
     try:

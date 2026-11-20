@@ -24,9 +24,22 @@ services:
       # Senha do /admin (secret ADMIN_PASSWORD do GitHub, via deploy.yml);
       # vazia = /admin desligado (404). Nunca escrita aqui.
       - LODOUT_ADMIN_PASSWORD=${LODOUT_ADMIN_PASSWORD:-}
+      # Identificador do deploy (data UTC + commit curto); vazio cai no
+      # BUILD_ID gravado na imagem Docker.
+      - LODOUT_BUILD_ID=${LODOUT_BUILD_ID:-}
     volumes:
       - skinvault_data:/data
       - ./lodout:/app/lodout:ro
+    init: true
+    stop_grace_period: 35s
+    mem_limit: 512m
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3); assert r.status == 200"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     restart: unless-stopped
     logging: &log-rotativo
       # Gunicorn/worker não rotacionam o próprio log -- escrevem em
@@ -49,6 +62,15 @@ services:
     # checkpoint (data/scan_parcial.json) antes de sair; um item pode
     # levar ~15 s de requisição + pausas, então 10 s (padrão) é curto.
     stop_grace_period: 40s
+    init: true
+    mem_limit: 512m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; assert os.access('/data', os.W_OK)"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     environment:
       - LODOUT_WORKER_INTERVAL_HORAS=6
       - LODOUT_ITENS_EXTRAS=350

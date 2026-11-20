@@ -116,6 +116,9 @@ _ADMIN_PASSWORD_HASH = _hash_senha_admin()
 
 
 def _build_id() -> "str | None":
+    via_env = (ambiente("BUILD_ID", "") or "").strip()
+    if via_env:
+        return via_env
     try:
         return _BUILD_ID_PATH.read_text(encoding="utf-8").strip() or None
     except OSError:
@@ -1784,14 +1787,24 @@ def _disco_info() -> dict:
     db_tamanho = (db_backup._DB_PATH.stat().st_size
                  if db_backup._DB_PATH.exists() else 0)
     backups_tamanho = sum(
-        p.stat().st_size for p in db_backup._BACKUP_DIR.glob("*")
+        p.stat().st_size for p in db_backup._BACKUP_DIR.glob("*") if p.is_file()
     ) if db_backup._BACKUP_DIR.exists() else 0
+    catalogo_path = catalogo._caminho_banco()
+    catalogo_tamanho = catalogo_path.stat().st_size if catalogo_path.exists() else 0
+    notas_path = notas_historico._caminho()
+    notas_tamanho = notas_path.stat().st_size if notas_path.exists() else 0
+    icones_tamanho = sum(
+        p.stat().st_size for p in icon_cache._CACHE_DIR.glob("*") if p.is_file()
+    ) if icon_cache._CACHE_DIR.exists() else 0
     return {
         "livre_fmt": _tamanho_fmt(uso.free) if uso else "—",
         "total_fmt": _tamanho_fmt(uso.total) if uso else "—",
         "livre_pct": livre_pct,
         "db_fmt": _tamanho_fmt(db_tamanho),
         "backups_fmt": _tamanho_fmt(backups_tamanho),
+        "catalogo_fmt": _tamanho_fmt(catalogo_tamanho),
+        "notas_fmt": _tamanho_fmt(notas_tamanho),
+        "icones_fmt": _tamanho_fmt(icones_tamanho),
     }
 
 

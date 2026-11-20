@@ -1,8 +1,8 @@
-"""Backup rotativo do `public_site.db` -- local primeiro, "pra fora da
-VM" é responsabilidade de quem opera (ver README: baixar via scp
-periodicamente). Protege contra corrupção/bug de aplicação, não contra
-perda da VM inteira -- isso precisaria de um destino externo (S3 etc.)
-que exigiria credenciais que não temos como configurar sozinhos.
+"""Backup rotativo dos bancos SQLite e JSONs globais do site -- local
+primeiro, "pra fora da VM" é responsabilidade de quem opera (ver README:
+baixar via scp periodicamente). Protege contra corrupção/bug de aplicação,
+não contra perda da VM inteira -- isso precisaria de um destino externo
+(S3 etc.) que exigiria credenciais que não temos como configurar sozinhos.
 
 Usa a API de backup do próprio sqlite3 (não um `shutil.copy` cru) --
 segura mesmo com o banco sendo escrito ao mesmo tempo por outro processo
@@ -16,6 +16,7 @@ import time
 import zipfile
 from pathlib import Path
 
+from lodout import _paths
 from lodout._paths import DATA_DIR
 
 _DB_PATH = DATA_DIR / "public_site.db"
@@ -53,43 +54,81 @@ def _deve_pular(existentes: list[Path], prefixo: str, agora: float) -> bool:
     return (agora - _timestamp_do_nome(existentes[-1], prefixo)) < _INTERVALO_MIN_S
 
 
-def fazer_backup_se_necessario(
-        db_path: "Path | str | None" = None,
-        backup_dir: "Path | str | None" = None,
-        now: "float | None" = None) -> "Path | None":
-    """Faz backup se o mais recente já existente tem mais de ~20h (ou
-    não existe nenhum). Devolve o path criado, ou None se pulou/falhou.
-    """
-    src = Path(db_path) if db_path is not None else _DB_PATH
+def _backup_sqlite_rotativo(
+        src: Path,
+        dest_dir: Path,
+        prefixo: str,
+        extensao: str,
+        agora: float) -> "Path | None":
+    """Copia `src` via API `sqlite3.Connection.backup()` com rotação de
+    `_MANTER` arquivos e limpeza do destino parcial em caso de falha."""
     if not src.exists():
         return None
-    dest_dir = Path(backup_dir) if backup_dir is not None else _BACKUP_DIR
-    agora = time.time() if now is None else now
-
-    existentes = sorted(dest_dir.glob("public_site-*.db")) if dest_dir.exists() else []
-    if _deve_pular(existentes, "public_site-", agora):
+    padrao = f"{prefixo}*{extensao}"
+    existentes = sorted(dest_dir.glob(padrao)) if dest_dir.exists() else []
+    if _deve_pular(existentes, prefixo, agora):
         return None
 
     dest_dir.mkdir(parents=True, exist_ok=True)
-    nome = time.strftime("public_site-%Y%m%d-%H%M%S.db", time.gmtime(agora))
+    nome = time.strftime(f"{prefixo}%Y%m%d-%H%M%S{extensao}", time.gmtime(agora))
     destino = dest_dir / nome
+    origem_conn = None
+    destino_conn = None
     try:
-        origem_conn = sqlite3.connect(str(src))
-        destino_conn = sqlite3.connect(str(destino))
+        origem_conn = sqlite3.connect(str(src), timeout=10.0)
+        destino_conn = sqlite3.connect(str(destino), timeout=10.0)
         with destino_conn:
             origem_conn.backup(destino_conn)
-        origem_conn.close()
-        destino_conn.close()
     except sqlite3.Error:
+        if destino_conn is not None:
+            destino_conn.close()
+            destino_conn = None
+        try:
+            destino.unlink(missing_ok=True)
+        except OSError:
+            pass
         return None
+    finally:
+        if origem_conn is not None:
+            origem_conn.close()
+        if destino_conn is not None:
+            destino_conn.close()
 
-    todos = sorted(dest_dir.glob("public_site-*.db"))
+    todos = sorted(dest_dir.glob(padrao))
     for antigo in todos[:-_MANTER]:
         try:
             antigo.unlink()
         except OSError:
             pass
     return destino
+
+
+def fazer_backup_se_necessario(
+        db_path: "Path | str | None" = None,
+        backup_dir: "Path | str | None" = None,
+        now: "float | None" = None) -> "Path | None":
+    """Faz backup de `public_site.db` se o mais recente já existente tem
+    mais de ~20h (ou não existe nenhum). Devolve o path criado, ou None
+    se pulou/falhou."""
+    src = Path(db_path) if db_path is not None else _DB_PATH
+    dest_dir = Path(backup_dir) if backup_dir is not None else _BACKUP_DIR
+    agora = time.time() if now is None else now
+    return _backup_sqlite_rotativo(src, dest_dir, "public_site-", ".db", agora)
+
+
+def fazer_backup_notas_se_necessario(
+        db_path: "Path | str | None" = None,
+        backup_dir: "Path | str | None" = None,
+        now: "float | None" = None) -> "Path | None":
+    """Mesma cadência (1x/~20h, guarda os últimos `_MANTER`) para
+    `notas_historico.sqlite3` -- guarda até 400 dias de histórico de
+    notas que não podem ser reconstruídos a partir da Steam."""
+    src = (Path(db_path) if db_path is not None
+           else Path(_paths.DATA_DIR) / "notas_historico.sqlite3")
+    dest_dir = Path(backup_dir) if backup_dir is not None else _BACKUP_DIR
+    agora = time.time() if now is None else now
+    return _backup_sqlite_rotativo(
+        src, dest_dir, "notas_historico-", ".sqlite3", agora)
 
 
 def fazer_backup_json_se_necessario(
@@ -122,6 +161,10 @@ def fazer_backup_json_se_necessario(
                 if p.exists():
                     zf.write(p, arcname=f"{nome_arq}.json")
     except OSError:
+        try:
+            destino.unlink(missing_ok=True)
+        except OSError:
+            pass
         return None
 
     todos = sorted(dest_dir.glob("json-*.zip"))

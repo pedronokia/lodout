@@ -171,7 +171,9 @@ def conectar(caminho: "Path | None" = None) -> sqlite3.Connection:
     caminho.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(caminho), timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=10000")
     conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
     conn.executescript(_ESQUEMA)
     return conn
 
@@ -412,6 +414,8 @@ def _conectar_leitura() -> "sqlite3.Connection | None":
         return None
     conn = sqlite3.connect(f"file:{caminho}?mode=ro", uri=True, timeout=5)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA query_only=ON")
     return conn
 
 

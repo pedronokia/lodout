@@ -6,20 +6,18 @@
 # security-guide, 2026-11-05: a imagem rodava como root inteira,
 # nenhum USER no Dockerfile).
 #
-# O chown é necessário (não cosmético): o volume nomeado `skinvault_
-# data` já existe em produção com dado real (banco de contas, scan,
-# chave de sessão), criado quando o container ainda rodava como root
-# -- sem corrigir a posse aqui, o primeiro deploy com usuário não-root
-# perderia acesso de escrita ao próprio banco. `chown -R` é idempotente
-# (só ajusta dono, nunca apaga/recria nada), então rodar em todo start
-# é seguro mesmo depois que a posse já estiver certa.
-#
-# `exec su ... -c 'exec "$0" "$@"' -- "$@"` (em vez de `su -c "$*"`)
-# preserva os argumentos como array, não como string recolada -- sem
-# isso, o CMD padrão do "web" (`/bin/sh -c "gunicorn --bind ... ${PORT:-8000} ..."`,
-# que vem embrulhado pelo Docker quando o CMD é shell-form) ou o
-# `command:` do "worker" (`python -m lodout.public_site.worker`)
-# podiam quebrar com argumento que tenha espaço.
+# O ajuste de posse e' necessario (nao cosmetico): um volume novo ou
+# legado (`skinvault_data` de antes de 2026-11-05) pode chegar como
+# root:root. Porem rodar `chown -R` incondicional em todo start fazia o
+# container levar ~45 s percorrendo milhares de arquivos em icon_cache/
+# e og_cache/. Conferindo a raiz de /data primeiro e depois apenas o
+# nivel 1 (bancos, JSONs, chave e pastas imediatas), a subida cai pra
+# menos de 1 s sem perder a garantia de posse.
 set -e
-chown -R lodout:lodout /data
+uid_gid="$(id -u lodout):$(id -g lodout)"
+if [ "$(stat -c '%u:%g' /data)" != "$uid_gid" ]; then
+    chown -R lodout:lodout /data
+else
+    find /data -maxdepth 1 \( ! -user lodout -o ! -group lodout \) -exec chown -R lodout:lodout {} +
+fi
 exec su -s /bin/sh lodout -c 'exec "$0" "$@"' -- "$@"
