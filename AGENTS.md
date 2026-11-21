@@ -224,3 +224,26 @@ espera o próximo ciclo contado do último registrado, então reiniciar fora de 
 scan não gera requisição à Steam. Reiniciar no meio de um scan não perde mais a
 coleta: o worker grava um checkpoint (`data/scan_parcial.json`) a cada 5 itens e
 no SIGTERM, e ao subir retoma do ponto se o checkpoint tiver menos de 3 h.
+
+## Publicar no `main` (várias sessões ao mesmo tempo)
+
+Mais de uma sessão publica no `main` no mesmo dia. Em 21/11, uma publicação
+sem rodar os testes deixou dois testes quebrados e as imagens visuais
+desatualizadas. Regras para toda sessão:
+
+1. **Antes de publicar**, traga o `main` atual (`git fetch origin main` e
+   merge) e rode a suíte inteira **depois do merge**:
+   `python -m pytest -q`. Só publique com tudo passando.
+2. **Mudou o visual?** Na mesma rodada, regere as imagens-base (workflow
+   `tests` com `atualizar_baselines`), confira as diferenças e commite só os
+   PNGs que mudaram **antes** de publicar no `main`.
+3. **Arquivos gerados não se editam à mão.** `static/og-image.png` sai de
+   `scripts/gerar_og_image.py`, e um teste compara os dois.
+4. **Teste falhou?** Não apague nem afrouxe o teste para passar. Se ele
+   protege uma decisão registrada (DESIGN.md, PRODUCT.md, este arquivo) e a
+   mudança nova a contraria, pare e pergunte ao usuário qual vale.
+5. **Nada de force-push ou amend no `main`.** Corrija com um commit novo.
+6. **Changelog:** acrescente itens na entrada do dia. Não reescreva os itens
+   de outra sessão.
+7. **Depois do push**, acompanhe os workflows `tests` e `deploy` até o fim e
+   confira a página mudada no ar (lodout.com).
