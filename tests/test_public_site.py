@@ -5170,6 +5170,39 @@ def test_alerta_qualidade_ciclo_bom_ou_antigo_nao_alerta(monkeypatch, tmp_path):
     assert msgs == []
 
 
+def test_alerta_qualidade_ciclo_bom_no_meio_reseta_dedup(monkeypatch, tmp_path):
+    # Achado real (2026-11-21): uma coleta de 28% dispara o alerta; a
+    # seguinte vem 100% (recuperou); a próxima volta a degradar bem mais
+    # (0,4%) -- isso é um episódio NOVO, não deve ficar mudo só porque
+    # ainda está dentro das 24h do primeiro alerta.
+    msgs = _alerta_qualidade(monkeypatch)
+    p = tmp_path / "q.json"
+    base = 1_000_000.0
+    assert worker_alert.verificar_qualidade_e_alertar(
+        [{"ts": base, "itens": 150, "alvos": 533}],
+        now=base, path=p) is True
+    assert "28%" in msgs[0]
+
+    # Ainda dentro das 24h, mas sem ciclo bom no meio: fica mudo.
+    historico = [
+        {"ts": base, "itens": 150, "alvos": 533},
+        {"ts": base + 1000.0, "itens": 140, "alvos": 533},
+    ]
+    assert worker_alert.verificar_qualidade_e_alertar(
+        historico, now=base + 1000.0, path=p) is False
+
+    # Um ciclo bom entra no meio (recuperou) -- o próximo degradado é um
+    # episódio novo e deve avisar de novo, mesmo < 24h do primeiro alerta.
+    historico = [
+        {"ts": base, "itens": 150, "alvos": 533},
+        {"ts": base + 3000.0, "itens": 533, "alvos": 533},
+        {"ts": base + 4000.0, "itens": 2, "alvos": 533},
+    ]
+    assert worker_alert.verificar_qualidade_e_alertar(
+        historico, now=base + 4000.0, path=p) is True
+    assert "2 de 533" in msgs[1]
+
+
 def test_alerta_qualidade_sem_webhook_nao_faz_nada(monkeypatch, tmp_path):
     monkeypatch.delenv("LODOUT_ADMIN_DISCORD_WEBHOOK", raising=False)
     assert worker_alert.verificar_qualidade_e_alertar(
