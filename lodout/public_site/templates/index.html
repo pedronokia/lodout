@@ -205,10 +205,6 @@
         </span>
         <button type="button" class="botao-favorito" data-favorito="{{ c.name }}" data-favorito-label="{{ c.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ c.name_fmt }}">{{ icone("favorito") }}</button>
       </div>
-      {# Encomenda sugerida (17/11, a mesma do Ranking e do item): um
-         centavo acima da maior encomenda da Steam. Copiar fica no item. #}
-      {% set enc = encomenda_sugestao(c.price, c.encomenda) %}
-      {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Encomenda: você define o preço e espera alguém vender. Este valor fica um centavo acima da maior encomenda ({{ enc.maior_fmt }}), na frente da fila, e {{ enc.abaixo_pct }}% abaixo do preço de hoje.">Encomendar por <strong>{{ enc.valor_fmt }}</strong></p>{% endif %}
       <div class="cartao-item-selos">
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa_curto(c.name) }}</span>

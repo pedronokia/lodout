@@ -5923,10 +5923,9 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
     assert 'data-copiar-preco="75,51"' in body and 'value="75,51"' in body
     assert "Sugestão: R$ 0,01 acima da maior encomenda (R$ 75,50 · 1.234 pedidos)." in body
     assert "copiar_preco.js" in body and "data-copiado" in body
-    # Página inicial: a mesma sugestão (sem copiar; copiar fica no item).
+    # Página inicial: encomenda removida dos cartões para manter alinhamento limpo da vitrine
     home = client.get("/").data.decode("utf-8")
-    assert "Encomendar por <strong>R$ 75,51</strong>" in home
-    assert "Encomenda até" not in home
+    assert "Encomendar por" not in home
 
 
 def test_icones_pequenos_nao_baixam_a_versao_grande():

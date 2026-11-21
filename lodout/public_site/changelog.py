@@ -12,6 +12,20 @@ ENTRADAS = [
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
         "data": "2026-11-21",
+        "titulo": "Novo patamar visual: vitrine cristalina, tipografia polida e paginação Apple",
+        "itens": [
+            "Vitrine cristalina: fotos das skins 100% nítidas, sem filtros embaçados ou halos artificiais de cor. As skins agora aparecem com fidelidade total sobre o fundo escuro sólido.",
+            "Rodapé dos cartões limpo: os nomes das caixas e coleções agora são apresentados de forma concisa e direta (como “Croma 2 · 2015”, “Boreal”, “Sonhos e Pesadelos”), sem reticências ou quebras deselegantes.",
+            "Link direto para a Steam simplificado para “Steam →”, liberando espaço no rodapé de cada cartão para os textos respirarem.",
+            "Paginação em cápsula estilo Apple: controles no rodapé da vitrine redesenhados em uma barra compacta e elegante com efeito de vidro fosco translúcido, mantendo todos os números e passos alinhados.",
+            "Selo “Destaque do dia” refinado em caixa mista com micro-indicador luminoso elegante, no lugar de caixas altas chamativas.",
+            "Remoção de elementos que causavam desalinhamento nos cartões (como o bloco avulso de encomenda em cards individuais), deixando a grade 100% simétrica.",
+            "Páginas de Ranking e Status limpas e minimalistas: remoção de avisos redundantes, caixas de diagnóstico desnecessárias e tabelas cortadas.",
+            "Eliminação definitiva de artefatos visuais no layout (como barras que cruzavam a tela) e estabilização de todos os testes funcionais.",
+        ],
+    },
+    {
+        "data": "2026-11-21",
         "titulo": "Página do item mais enxuta",
         "itens": [
             "A página de cada item ficou com o essencial: nome, nota, preço, risco, simulador de compra e o porquê da nota. Saíram os gráficos de preço e de nota, as outras versões da skin, o histórico no ranking e os itens parecidos. No celular, a página ficou cerca de 40% mais curta.",

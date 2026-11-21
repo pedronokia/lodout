@@ -1864,11 +1864,12 @@ def _rotulo_caixa_curto(case_label: "str | None",
         return ""
     nome, sep, resto = rotulo.partition(" (")
     curto = re.sub(
-        r"^(Caixa de Armas da Operação|Caixa da Operação|Caixa de Armas do|Caixa de Armas|Caixa de|Caixa|Cápsula de Autógrafos de|Cápsula de Autógrafo de|Cápsula de|Coleção da Operação|Coleção de|Coleção|The)\s+",
+        r"^(Caixa de Armas da Operação|Caixa da Operação|Caixa Operação|Caixa de Armas do|Caixa de Armas|Caixa de|Caixa|Cápsula de Autógrafos de|Cápsula de Autógrafo de|Cápsula de|Coleção da Operação|Coleção de|Coleção|The)\s+",
         "",
         nome,
         flags=re.I,
     )
+    curto = re.sub(r"^(Operação da|Operação de|Operação|Operation)\s+", "", curto, flags=re.I)
     curto = re.sub(r"\s+(Case|Collection)$", "", curto, flags=re.I).strip()
     if resto:
         status, _, ano = resto.rstrip(")").partition(", ")
