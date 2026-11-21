@@ -218,7 +218,7 @@ No celular (até 640px), tabelas viram cartões: o nome e a figurinha da nota em
 
 ## Elevation & Depth
 
-O sistema é tonal: a profundidade vem de camadas de cinza (moldura → caderno → folha → rebaixo) e de bordas finas, com um toque de "vidro" (19/11): cartões em cinza levemente translúcido com borda clara e gradiente sutil, e o pódio do Ranking com fundo dourado/prata/bronze bem suave. O desfoque de fundo (backdrop-filter) fica só no que flutua por cima da página — topo, barra de baixo do celular, busca, dicas e avisos —, nunca em cartões ou selos repetidos (cada um é uma camada que o navegador recalcula ao rolar).
+O sistema é tonal: a profundidade vem de camadas de cinza sólido (moldura → caderno → folha → rebaixo) e de bordas finas, e o pódio do Ranking com fundo dourado/prata/bronze bem suave. Cartões, quadros e painéis usam `--surface` (#1e1e1e), nunca cinza translúcido (decisão do usuário, 21/11: o "vidro" de 19/11 saiu). Cartão da vitrine sem fio em repouso; no hover, elevação (`--shadow-lg`) e fio laranja 35%. Aba de categoria inativa é fantasma (transparente com fio `--border`); a ativa usa `--accent-acao`. O desfoque de fundo (backdrop-filter) fica só no que flutua por cima da página — topo, barra de baixo do celular, busca, dicas e avisos —, nunca em cartões ou selos repetidos (cada um é uma camada que o navegador recalcula ao rolar).
 
 ### Shadow Vocabulary
 - **Sutil** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04)`): cartões do celular.

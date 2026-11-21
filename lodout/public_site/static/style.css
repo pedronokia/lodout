@@ -207,7 +207,7 @@ html {
      rolagem; corta o excedente. `clip` não cria recipiente de rolagem
      (o cabeçalho sticky continua funcionando); `hidden` fica como
      fallback para navegadores sem clip. */
-  overflow-x: hidden;
+  
   overflow-x: clip;
 }
 
@@ -272,11 +272,6 @@ hr {
   border: 0;
   border-top: 1px solid var(--border);
   margin: var(--sp-5) 0;
-}
-
-::selection {
-  background: rgba(249, 115, 22, 0.18);
-  color: var(--text-bright);
 }
 
 a {
@@ -386,10 +381,9 @@ summary:focus-visible,
 }
 
 .link-com-seta {
-  display: inline-flex;
+  
   min-height: 44px;
-  align-items: center;
-  gap: var(--sp-1);
+
   /* Link no meio do texto corrido: sublinhado para não depender só da
      cor (contraste com a frase em volta no tema claro). */
   text-decoration: underline;
@@ -495,15 +489,7 @@ header.topo > * {
 }
 
 @media (max-width: 640px) {
-  header.topo {
-    position: static;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  header.topo > * {
-    padding-left: var(--sp-4);
-    padding-right: var(--sp-4);
-  }
+
 }
 
 .titulo-logo {
@@ -620,54 +606,6 @@ header.topo h1 {
   gap: var(--sp-2);
 }
 
-.conta-pill {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 4px 14px 4px 5px;
-  border: 1px solid var(--chrome-linha);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--chrome-texto-forte);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard);
-}
-
-.conta-pill:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.32);
-  text-decoration: none;
-}
-
-.conta-pill[aria-current="page"] { border-color: var(--chrome-foco); }
-
-.conta-avatar {
-  display: block;
-  border-radius: 50%;
-}
-
-.conta-sair {
-  display: flex;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: var(--chrome-texto);
-  text-decoration: none;
-  transition: background-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
-}
-
-.conta-sair:hover {
-  color: #ff6e70;
-  background: rgba(255, 255, 255, 0.12);
-  text-decoration: none;
-}
-
 /* CTA de login: item discreto da barra, como os ícones da Apple -- sem
    pílula, borda ou preenchimento. O texto segue o cinza dos links do
    menu, e o símbolo da Steam herda a cor (traço monocromático); quem
@@ -678,13 +616,13 @@ header.topo h1 {
   align-items: center;
   gap: 7px;
   padding: 6px 8px;
-  border-radius: var(--radius-xs);
+  
   color: var(--chrome-texto);
   font-size: 0.75rem;
   font-weight: 400;
   white-space: nowrap;
   text-decoration: none;
-  transition: color var(--dur-emphasis) var(--ease-standard);
+  
 }
 
 .conta-link-entrar .icone-ui { width: 16px; height: 16px; }
@@ -802,15 +740,14 @@ footer.rodape {
   max-width: none;
   margin: var(--sp-9) 0 0;
   padding: var(--sp-9) max(22px, calc((100% - var(--largura-conteudo)) / 2)) var(--sp-7);
-  border-top: 1px solid var(--border);
+  
   background: var(--surface-sunken);
   color: var(--text-muted);
   font-size: var(--fs-xs);
   line-height: 1.5;
 }
 
-footer.rodape a { color: var(--text-muted); }
-footer.rodape a:hover { color: var(--text); text-decoration: underline; }
+footer.rodape a:hover {  text-decoration: underline; }
 
 .rodape-marca { grid-area: marca; }
 
@@ -1233,9 +1170,9 @@ footer.rodape .rodape-base a:hover {
   align-content: center;
   gap: var(--sp-1);
   padding: var(--sp-3) var(--sp-4);
-  border: 1px solid var(--border);
+  
   border-radius: var(--radius-md);
-  background: var(--surface);
+  
   transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard), transform var(--dur-base) var(--ease-standard);
 }
 
@@ -1243,11 +1180,7 @@ footer.rodape .rodape-base a:hover {
    hover): em tela de toque o :hover "gruda" depois do toque e o cartão
    ficava levantado. O foco por teclado (:focus-within) segue igual. */
 @media (hover: hover) {
-  .movimento-do-dia:hover {
-    box-shadow: var(--shadow-md);
-    border-color: rgba(249, 115, 22, 0.35);
-    transform: translateY(-2px);
-  }
+
 }
 
 /* O cartão já reage ao hover como clicável; o link do nome cobre o
@@ -1282,13 +1215,10 @@ footer.rodape .rodape-base a:hover {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--fs-xs);
+  
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-
-.movimento-alta { color: var(--positive); }
-.movimento-baixa { color: var(--danger); }
 
 @media (max-width: 640px) {
   .movimentos-do-dia { grid-template-columns: minmax(0, 1fr); }
@@ -1313,19 +1243,13 @@ footer.rodape .rodape-base a:hover {
    da raridade atrás da arte (sem a caixa preta), anel da nota em vez do
    número laranja, preço e variação. */
 .hero-destaque {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-6);
-  margin: 0 0 var(--sp-7);
-  padding: var(--sp-6) var(--sp-7);
+
   border: 1px solid color-mix(in srgb, var(--rar-cor, var(--accent)) 28%, transparent);
-  border-radius: var(--radius-lg);
+  
   background:
     radial-gradient(38% 120% at 10% 50%, color-mix(in srgb, var(--rar-cor, var(--accent)) 18%, transparent) 0%, transparent 100%),
     var(--surface);
-  overflow: hidden;
-  transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);
+
 }
 
 /* Brilho diagonal sutil (mesma linguagem dos cards vitrine). */
@@ -1412,30 +1336,21 @@ footer.rodape .rodape-base a:hover {
 }
 
 .hero-destaque-rotulo {
-  margin: 0 0 var(--sp-2);
+  
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+
 }
 
 .hero-destaque-nome {
   display: block;
-  color: var(--text-bright);
-  font-size: clamp(1.75rem, 3.8vw, var(--fs-2xl));
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
-  text-decoration: none;
+
   overflow-wrap: anywhere;
   text-wrap: balance;
-  transition: color var(--dur-base) var(--ease-standard);
+  
 }
 
 .hero-destaque-nome:hover {
-  color: var(--accent);
+  
   text-decoration: none;
 }
 
@@ -1445,20 +1360,6 @@ footer.rodape .rodape-base a:hover {
    na regra (ver _titulo_sem_pipe_orfao em server.py). Só
    `white-space: nowrap` no trecho "| Palavra" resolve de verdade. */
 .pipe-colado { white-space: nowrap; }
-
-.hero-destaque-motivo {
-  margin: var(--sp-2) 0 0;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: var(--fs-sm);
-  line-height: 1.5;
-}
-
-.hero-destaque-preco {
-  margin: var(--sp-3) 0 0;
-  color: var(--text-bright);
-  font-size: var(--fs-lg);
-  font-weight: 600;
-}
 
 .hero-destaque-nota {
   position: relative;
@@ -1471,7 +1372,7 @@ footer.rodape .rodape-base a:hover {
   background: rgba(14, 14, 14, 0.42);
   -webkit-backdrop-filter: blur(10px) saturate(1.3);
   backdrop-filter: blur(10px) saturate(1.3);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  
 }
 
 .hero-destaque-nota .nota-anel-fundo { stroke: rgba(255, 255, 255, 0.10); stroke-width: 2.5; }
@@ -1518,15 +1419,10 @@ footer.rodape .rodape-base a:hover {
 /* ── Filtros ─────────────────────────────────────────── */
 
 .form-filtros {
-  display: flex;
+  
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-4);
-  padding: var(--sp-3);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--surface);
+
 }
 
 .form-filtros label {
@@ -1633,18 +1529,16 @@ footer.rodape .rodape-base a:hover {
    Raridade esticava pela opção mais longa. Agora são 3 colunas no
    computador e 2 no celular, todos os campos com a largura da coluna. */
 .filtros-mais-corpo {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+
   align-items: end;
-  gap: var(--sp-3);
-  margin-top: var(--sp-3);
+
 }
 
 .filtros-mais-corpo .filtros-numericos { display: contents; }
 
 .filtros-mais-corpo input[type="number"],
 .filtros-mais-corpo select {
-  width: 100%;
+  
   min-width: 0;
 }
 
@@ -1653,7 +1547,7 @@ footer.rodape .rodape-base a:hover {
    exemplo do campo aparece inteiro. "Mais filtros" aberto desce pra
    linha de baixo, inteiro. */
 
-.form-filtros input[type="text"]#campo-busca { width: 100%; min-width: 0; }
+.form-filtros input[type="text"]#campo-busca {  min-width: 0; }
 .form-filtros button#botao-favoritos { order: 2; }
 .form-filtros .filtros-mais { order: 3; }
 .form-filtros .filtros-mais[open] { flex-basis: 100%; order: 4; }
@@ -1688,28 +1582,13 @@ footer.rodape .rodape-base a:hover {
    cartões, então o botão já diz do que se trata. Ligado: fundo dourado
    suave, estrela cheia e contador no mesmo tom. */
 .form-filtros button#botao-favoritos {
-  display: inline-flex;
-  height: 40px;
+
   min-height: 0;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  color: var(--text);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background-color var(--dur-base) var(--ease-standard),
-    border-color var(--dur-base) var(--ease-standard),
-    color var(--dur-base) var(--ease-standard);
+
 }
 
 .form-filtros button#botao-favoritos:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-hover);
-  color: var(--text-bright);
+
   filter: none;
   text-decoration: none;
 }
@@ -1873,25 +1752,19 @@ footer.rodape .rodape-base a:hover {
 /* Chips de categoria: pílula fantasma (fundo transparente + fio), como
    os filtros da loja da Apple. A aba escolhida vira pílula laranja. */
 .aba-categoria {
-  display: inline-flex;
-  align-items: center;
+
   flex-shrink: 0;
-  gap: 6px;
-  padding: 5px 12px;
+
   border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
+  
   background: transparent;
-  color: var(--text);
-  font-size: var(--fs-sm);
-  text-decoration: none;
+
   white-space: nowrap;
-  transition: background-color var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
-  font-weight: 500;
+
 }
 
 .aba-categoria:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--text-bright);
+
   text-decoration: none;
 }
 
@@ -1901,19 +1774,11 @@ footer.rodape .rodape-base a:hover {
 .aba-categoria[aria-current="page"] {
   border-color: var(--accent);
   background: var(--accent-acao);
-  color: var(--text-bright);
-  font-weight: 500;
-}
 
-.aba-contagem {
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-variant-numeric: tabular-nums;
 }
 
 /* 0.64 dava 2,9:1 sobre o laranja da aba ativa; 0.95 passa de 4,5:1 e
    ainda fica um tom abaixo do nome (que é branco cheio). */
-.aba-categoria[aria-current="page"] .aba-contagem { color: rgba(255, 255, 255, 0.95); }
 
 /* ── Seletor Vitrine/Lista e ordenação ───────────────── */
 
@@ -2498,7 +2363,7 @@ table.tabela-itens th.celula-sparkline { white-space: nowrap; }
   display: flex;
   align-items: baseline;
   gap: var(--sp-3);
-  line-height: 1.5;
+  
 }
 
 .lista-motivos .delta-positivo,
@@ -2843,7 +2708,7 @@ table.tabela-candidatos td.celula-preco {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-3);
+  
   margin-top: var(--sp-5);
 }
 
@@ -3021,14 +2886,13 @@ a.paginacao-passo:hover {
    Hover/foque: elevação sutil + brilho diagonal animado (70% opacidade
    do laranja). Respeita prefers-reduced-motion. */
 .cartao-item {
-  position: relative;
-  display: flex;
+
   min-width: 0;
-  flex-direction: column;
+  
   border: 0;
   border-radius: var(--radius-md);
   background: var(--surface);
-  overflow: hidden;
+  
   transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);
 }
 
@@ -3104,9 +2968,9 @@ a.paginacao-passo:hover {
 .cartao-item-imagem {
   position: relative;
   display: grid;
-  aspect-ratio: 4 / 3;
+  
   place-items: center;
-  padding: 14px;
+  
   background:
     radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.15)) 22%, transparent) 0%, rgba(10, 10, 10, 0.6) 72%, rgba(0, 0, 0, 0.85) 100%),
     var(--surface-strong);
@@ -3124,8 +2988,7 @@ a.paginacao-passo:hover {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.65)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
-  transition: transform var(--dur-emphasis) var(--ease-out-expo), filter var(--dur-emphasis) var(--ease-out-expo);
+
 }
 
 .cartao-item:focus-within .cartao-item-icon {
@@ -3262,10 +3125,7 @@ a.paginacao-passo:hover {
 .cartao-item-nome {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--text-bright);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  line-height: 1.35;
+
   overflow-wrap: anywhere;
   text-decoration: none;
   -webkit-box-orient: vertical;
@@ -3297,10 +3157,7 @@ a.paginacao-passo:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 2px 6px;
-  color: var(--text-bright);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+
 }
 
 .cartao-item-preco .icone-tendencia { margin-top: 0; }
@@ -3350,10 +3207,6 @@ a.paginacao-passo:hover {
   transition: color var(--dur-base) var(--ease-standard);
 }
 
-.cartao-item-steam:hover {
-  color: var(--accent);
-}
-
 .cartao-item-steam .icone-ui { width: 0.9em; height: 0.9em; }
 
 .cartao-item-nota-area .selo-mudou-nota {
@@ -3394,16 +3247,6 @@ a.paginacao-passo:hover {
 /* O hero do item é um painel calmo: fio da raridade à esquerda, imagem
    grande e centrada, nome e dados ao lado. Sem listras, sem inclinação,
    sem brilho de fundo. */
-.hero-item {
-  position: relative;
-  margin: 0 0 var(--sp-5);
-  padding: var(--sp-6);
-  border: 0;
-  border-radius: var(--radius-lg);
-  background: var(--bg-elevated);
-  box-shadow: inset 2px 0 0 var(--rar-cor, var(--accent));
-  overflow: hidden;
-}
 
 .hero-item-glow { display: none; }
 
@@ -3505,39 +3348,22 @@ a.paginacao-passo:hover {
 
 /* Seletor de período do gráfico: o mesmo idioma dos demais seletores. */
 .seletor-periodo {
-  display: inline-flex;
+  
   flex-wrap: wrap;
-  gap: 2px;
+  
   margin: 0 0 var(--sp-4);
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-sunken);
+
 }
 
 .seletor-periodo a {
-  display: inline-flex;
+  
   min-height: 34px;
-  align-items: center;
-  padding: 5px 13px;
-  border-radius: var(--radius-xs);
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+
 }
 
 .seletor-periodo a:hover {
-  background: var(--surface-strong);
-  color: var(--text-bright);
-  text-decoration: none;
-}
 
-.seletor-periodo a[aria-current="true"] {
-  background: var(--accent-acao);
-  color: var(--text-bright);
-  font-weight: 500;
+  text-decoration: none;
 }
 
 /* Itens parecidos: lista de linhas com ícone, nome, nota e preço. */
@@ -3645,7 +3471,7 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .valor-destaque-linha {
   background: var(--accent-soft);
-  box-shadow: inset 3px 0 0 var(--accent);
+  
 }
 
 .rotulo-destaque-linha {
@@ -3740,7 +3566,7 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   border-right: 1px solid var(--border);
   border-radius: 0;
   background: transparent;
-  box-shadow: none;
+  
 }
 
 .resumo-cards-item .card:last-of-type { border-right: 0; }
@@ -3811,13 +3637,6 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
    borda fina na cor de alerta -- é um aviso prático, não um destaque de
    venda. A faixa lateral grossa (3px à esquerda) saiu em 2026-11-16,
    como na conta. */
-.conta-revenda {
-  margin: 0 0 var(--sp-5);
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-}
 
 .conta-revenda-titulo {
   margin: 0 0 var(--sp-1);
@@ -3905,16 +3724,10 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   white-space: nowrap;
 }
 
-.adicionar-manual { margin: 0 0 var(--sp-5); }
-
 .adicionar-manual > summary {
-  display: inline-flex;
+  
   min-height: 40px;
-  align-items: center;
-  color: var(--accent-bright);
-  cursor: pointer;
-  font-size: var(--fs-sm);
-  font-weight: 500;
+
 }
 
 .adicionar-manual[open] > summary { margin-bottom: var(--sp-2); }
@@ -3922,9 +3735,7 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 .tabela-conta td { vertical-align: middle; }
 
 .celula-item-conta {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
+
   min-width: 220px;
 }
 
@@ -3936,10 +3747,7 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 }
 
 .celula-item-conta-extra {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px var(--sp-2);
+
   font-size: var(--fs-xs);
 }
 
@@ -3947,12 +3755,6 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   min-height: 0;
   padding: 0;
   font-size: var(--fs-xs);
-}
-
-.item-quantidade {
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  font-variant-numeric: tabular-nums;
 }
 
 .nota-texto { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -4208,8 +4010,6 @@ table.tabela-conta th { white-space: normal; }
   border-radius: var(--radius-xs);
 }
 
-.botao-remover { color: var(--danger); }
-
 .botao-remover:hover {
   color: var(--danger-bright);
   background: transparent;
@@ -4246,12 +4046,7 @@ table.tabela-conta th { white-space: normal; }
 }
 
 .badge-disparado {
-  display: inline-block;
-  padding: 2px 9px;
-  border: 1px solid rgba(242, 187, 37, 0.4);
-  border-radius: var(--radius-pill);
-  color: var(--warn);
-  font-size: var(--fs-xs);
+
   cursor: help;
 }
 
@@ -4322,8 +4117,7 @@ table.tabela-conta th { white-space: normal; }
 /* ── Gráficos ────────────────────────────────────────── */
 
 .grafico-card {
-  margin-bottom: var(--sp-5);
-  padding: var(--sp-4);
+
   color: var(--accent);
 }
 
@@ -4343,7 +4137,7 @@ table.tabela-conta th { white-space: normal; }
 /* ── Excluir conta ───────────────────────────────────── */
 
 .link-excluir-conta {
-  margin-top: var(--sp-7);
+  
   font-size: var(--fs-sm);
 }
 
@@ -4385,8 +4179,7 @@ table.tabela-conta th { white-space: normal; }
   margin: 0 0 14px;
   color: var(--text-muted);
   line-height: 1.65;
-  text-align: justify;
-  hyphens: auto;
+
 }
 
 .pagina-texto ul { padding-left: 20px; }
@@ -4430,30 +4223,12 @@ table.tabela-conta th { white-space: normal; }
 /* ── Glossário ───────────────────────────────────────── */
 
 .indice-glossario {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
+
   margin: 0 0 var(--sp-5);
 }
 
-.indice-glossario a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  padding: 6px 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--fs-sm);
-  text-decoration: none;
-  transition: background-color var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard);
-}
-
 .indice-glossario a:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-hover);
-  color: var(--text-bright);
+
   text-decoration: none;
 }
 
@@ -4462,7 +4237,7 @@ table.tabela-conta th { white-space: normal; }
 .lista-glossario {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--sp-3);
+  
   margin: 0;
 }
 
@@ -4515,7 +4290,7 @@ table.tabela-conta th { white-space: normal; }
 .changelog-entrada { position: relative; }
 
 .changelog-entrada::before {
-  content: "";
+  
   position: absolute;
   top: 38px;
   left: -22px;
@@ -4623,10 +4398,7 @@ table.tabela-conta th { white-space: normal; }
 
 /* Ações do item: um CTA laranja da casa + links discretos ao lado. */
 .hero-item-acoes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2) var(--sp-1);
+
   margin: var(--sp-4) 0 0;
 }
 
@@ -4881,7 +4653,7 @@ table.tabela-conta th { white-space: normal; }
   /* Em coluna, o flex-basis de 320px da busca virava ALTURA. */
 
   .filtros-mais-corpo {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    
     gap: var(--sp-2);
   }
 
@@ -5203,7 +4975,7 @@ table.tabela-conta th { white-space: normal; }
 @media (max-width: 400px) {
   .conta-nome {
     display: inline-block;
-    max-width: 72px;
+    
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -5266,16 +5038,10 @@ table.tabela-conta th { white-space: normal; }
 /* /ranking: "Comparar com" + seletor de período (mesma base pras setas,
    a variação de nota e a frase-resumo). */
 .barra-periodo-ranking {
-  display: flex;
+  
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2) var(--sp-3);
-  margin: 0 0 var(--sp-3);
-}
 
-.barra-periodo-ranking-rotulo {
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
+  margin: 0 0 var(--sp-3);
 }
 
 .barra-periodo-ranking .seletor-periodo { margin: 0; }
@@ -5313,14 +5079,6 @@ table.tabela-conta th { white-space: normal; }
 }
 
 /* /novidades e "Mudanças no jogo" do item: linha do tempo simples. */
-.lista-novidades {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  margin: 0 0 var(--sp-5);
-  padding: 0;
-  list-style: none;
-}
 
 .novidade {
   padding: var(--sp-3) var(--sp-4);
@@ -5601,19 +5359,13 @@ a.paginacao-passo:active {
 .resumo-cards-conta .card-valor.card-valor-texto { font-size: clamp(1.25rem, 2.2vw, 1.75rem); font-weight: 400; color: var(--text-muted); }
 
 .conta-lista-cabecalho {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2) var(--sp-4);
+
   margin: var(--sp-6) 0 var(--sp-1);
 }
-.conta-lista-cabecalho .secao-titulo { margin: 0; }
-.conta-lista-cabecalho .form-meta-lucro { margin: 0; }
 
 /* Nome forte, detalhes em cinza; "remover" discreto até o mouse/foco. */
 .tabela-conta .link-item { color: var(--text-bright); font-weight: 600; }
-.item-exterior { color: var(--text-muted); font-size: var(--fs-xs); }
+
 .tabela-conta .botao-remover { color: var(--text-fraco); }
 .tabela-conta .botao-remover:hover,
 .tabela-conta .botao-remover:focus-visible { color: var(--danger); }
@@ -5633,13 +5385,11 @@ a.paginacao-passo:active {
   pointer-events: none;
 }
 .tabela-conta .input-custo {
-  width: 7.5em;
+  
   padding-left: 30px;
-  font-variant-numeric: tabular-nums;
-  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
+
 }
-.tabela-conta .input-custo:hover { border-color: var(--border-strong); }
-.tabela-conta .input-custo:focus { border-color: var(--accent); }
+
 /* Sem valor pago: borda tracejada, sem gritar em todas as linhas. */
 .linha-sem-custo .input-custo { border-style: dashed; background: transparent; }
 
@@ -5684,7 +5434,6 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
     inset: -2px -8px -10px; /* nao cobre o nome do item logo acima */
   }
 }
-.tabela-conta .input-custo { min-height: 38px; }
 
 /* Valor que acabou de mudar (salvar o valor pago): um realce que some,
    em vez de o número trocar de repente. Sem movimento para quem pede. */
@@ -5800,8 +5549,8 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
    altura de cada cartão. */
 @media (max-width: 640px) {
   table.tabela-conta tbody td[data-label="Item"]::before { display: none; }
-  table.tabela-conta tbody tr:not(.linha-regras) { gap: 0 var(--sp-2); padding: 4px; }
-  table.tabela-conta tbody td { padding: 6px 8px; }
+  table.tabela-conta tbody tr:not(.linha-regras) { gap: 0 var(--sp-2);  }
+
   table.tabela-conta tbody td[data-label="Item"] { padding-bottom: 2px; }
   table.tabela-conta .celula-item-conta-texto { gap: 0; }
 }
@@ -5818,14 +5567,11 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
 /* ── Conta: ferramentas da lista para inventário grande (2026-11-15) ──
    Busca, filtros com contagem e ordem, numa faixa acima da tabela. */
 .conta-ferramentas {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2) var(--sp-3);
+
   margin: 0 0 var(--sp-3);
 }
 .conta-ferramentas[hidden] { display: none; }
-.conta-busca { flex: 1 1 220px; min-width: 0; }
+
 .conta-busca input {
   width: 100%;
   min-height: 38px;
@@ -5838,44 +5584,21 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
   font-size: var(--fs-sm);
 }
 .conta-busca input:focus-visible { border-color: var(--accent); outline: none; }
-.conta-filtros { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .conta-filtro {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text);
+
   font: inherit;
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
+
 }
 .conta-filtro span { color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
-.conta-filtro:hover { border-color: var(--border-strong); background: var(--surface-hover); }
-.conta-filtro[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--text-bright); }
+
 .conta-filtro[aria-pressed="true"] span { color: var(--text); }
 .conta-filtro:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.conta-ordem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin-left: auto;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
+
 .conta-ordem select {
-  min-height: 34px;
-  padding: 0 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
-  color: var(--text);
+
   font: inherit;
-  font-size: var(--fs-sm);
+  
 }
 .conta-mostrando { flex-basis: 100%; margin: 0; color: var(--text-muted); font-size: var(--fs-xs); }
 .conta-mostrando:empty { display: none; }
@@ -5946,7 +5669,7 @@ table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
 
 .separar-lote[open] { display: block; flex-basis: 100%; }
 .form-separar .botao-link { min-height: 30px; padding: 0 4px; font-size: var(--fs-sm); }
-.conta-filtro { flex-shrink: 0; white-space: nowrap; }
+.conta-filtro { flex-shrink: 0;  }
 
 /* Fim da tabela da conta: a última linha visível não repete a borda da
    tabela (era a linha dupla no rodapé). */
@@ -6011,19 +5734,15 @@ table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
   font-size: var(--fs-xs);
   pointer-events: none;
 }
-.tabela-conta .campo-reais-cada .input-custo { width: 9em; padding-right: 44px; }
 
 /* ── Conta, quarta passada (2026-11-15) ───────────────────────────── */
-.conta-identidade { display: flex; align-items: center; gap: var(--sp-3); }
+
 .conta-identidade-avatar {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+
   outline: 1px solid rgba(255, 255, 255, 0.12);
   outline-offset: -1px;
 }
-.conta-identidade-nome { color: var(--text-bright); font-weight: 600; }
 
 /* Lucro do item em porcentagem, embaixo do valor. */
 .lucro-pct { display: block; font-size: var(--fs-xs); }
@@ -6045,7 +5764,7 @@ table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 }
 .copiar-preco:hover { background: var(--surface-hover); color: var(--text-bright); }
 .copiar-preco:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
-.copiar-preco.copiado { color: var(--positive); }
+
 .copiar-preco[data-dica]::after {
   content: attr(data-dica);
   position: absolute;
@@ -6121,15 +5840,12 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 @keyframes conta-pulso { 50% { opacity: 0.3; } }
 /* Conta vazia. */
 .conta-vazia {
-  margin: var(--sp-3) 0 var(--sp-5);
-  padding: var(--sp-5);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
+
   color: var(--text-muted);
 }
-.conta-vazia p { margin: 0 0 var(--sp-2); }
+
 .conta-vazia p:last-child { margin-bottom: 0; }
-.conta-vazia-titulo { color: var(--text-bright); font-size: var(--fs-lg); font-weight: 600; }
+
 /* Linha com o foco do teclado em destaque. */
 .tabela-conta tbody tr:focus-within { background: var(--surface-hover); }
 /* Celular: os filtros esmaecem na borda, mostrando que dá pra rolar. */
@@ -6159,23 +5875,17 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   display: inline-flex;
   min-height: 32px;
   align-items: center;
-  color: var(--text-muted);
+  
   font-size: var(--fs-sm);
   cursor: pointer;
 }
 .como-ler > summary:hover { color: var(--text-bright); }
 .como-ler-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--sp-2) var(--sp-5);
-  margin: var(--sp-2) 0 0;
-  padding: var(--sp-4);
+
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
 }
-.como-ler-lista dt { color: var(--text-bright); font-size: var(--fs-sm); font-weight: 600; }
-.como-ler-lista dd { margin: 2px 0 0; color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.5; }
 
 /* ── Conta: confira, atualizar inventário (2026-11-15) ─────────────── */
 .confira {
@@ -6266,7 +5976,7 @@ button.venda-por-falta.acao-texto:focus-visible { text-decoration: underline; co
 .como-ler-icone svg { width: 16px; height: 16px; }
 
 /* Superfícies do navegador no tema do site. */
-::selection { background: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--text-bright); }
+
 input, textarea { caret-color: var(--accent); }
 
 .como-ler-icone[hidden],
@@ -6470,10 +6180,7 @@ button.confira:focus-visible { outline: 2px solid var(--focus); outline-offset: 
   line-height: 1.6;
   white-space: nowrap;
 }
-.item-etiqueta-anunciado {
-  border-color: var(--border-strong);
-  color: var(--text-muted);
-}
+
 .item-fora {
   display: flex;
   flex-wrap: wrap;
@@ -6613,7 +6320,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .ranking-top20 { margin: 0 0 var(--sp-6); }
 /* Período + "Cores da borda" na mesma linha (antes o botão ocupava uma
    linha sozinho em cima da tabela). */
-.ranking-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-3); }
+.ranking-controles {      margin: 0 0 var(--sp-3); }
 .ranking-controles .barra-periodo-ranking { margin: 0; }
 .ranking-controles .popover-legenda { margin: 0; }
 
@@ -6622,21 +6329,21 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
    a deixava 15px mais estreita que o resto da página. */
 .ranking-top20 .tabela-wrap { scrollbar-gutter: auto; }
 .ranking-mudou-titulo { margin-top: var(--sp-6); }
-.ranking-movimento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); margin: 0 0 var(--sp-4); }
+.ranking-movimento {    margin: 0 0 var(--sp-4); }
 .ranking-bloco { display: grid; align-content: start; gap: var(--sp-2); }
-.ranking-bloco-titulo { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-base); color: var(--text-bright); }
-.ranking-bloco-n { min-width: 22px; padding: 0 6px; border-radius: 999px; background: var(--surface-hover); color: var(--text-muted); font-size: var(--fs-xs); text-align: center; font-variant-numeric: tabular-nums; }
+
+.ranking-bloco-n { min-width: 22px;    color: var(--text-muted);  text-align: center;  }
 .ranking-bloco-entraram .ranking-bloco-titulo,
 .ranking-bloco-subiram .ranking-bloco-titulo { color: var(--positive); }
 .ranking-bloco-cairam .ranking-bloco-titulo,
 .ranking-bloco-saidas .ranking-bloco-titulo { color: var(--danger); }
 .movimento-lista { display: grid; gap: var(--sp-2); margin: 0; padding: 0; list-style: none; }
-.movimento-linha { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
-.movimento-linha-texto { display: grid; gap: 2px; min-width: 0; }
+.movimento-linha {    min-width: 0; }
+
 /* Até 2 linhas: cortar no meio escondia o desgaste ("Testada em Ca..."). */
-.movimento-linha-texto .link-item { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; font-size: var(--fs-sm); line-height: 1.35; }
+.movimento-linha-texto .link-item { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;  overflow-wrap: anywhere;  line-height: 1.35; }
 .movimento-mais { margin: 0; }
-.movimento-mais > summary { display: inline-flex; align-items: center; min-height: 32px; color: var(--text-muted); font-size: var(--fs-sm); cursor: pointer; list-style: none; }
+.movimento-mais > summary { display: inline-flex; align-items: center; min-height: 32px;    list-style: none; }
 .movimento-mais > summary::-webkit-details-marker { display: none; }
 .movimento-mais > summary::after { content: ""; width: 6px; height: 6px; margin-left: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 0.15s ease-out; }
 .movimento-mais[open] > summary::after { transform: translateY(1px) rotate(-135deg); }
@@ -6644,38 +6351,36 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .movimento-mais > summary:focus-visible { color: var(--text-bright); }
 .movimento-mais[open] > summary { margin-bottom: var(--sp-2); }
 /* Frequência no Top 20: número + barrinha (SVG: a CSP não deixa largura inline). */
-.frequencia { display: inline-flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
-.frequencia strong { min-width: 3.2ch; text-align: right; }
+
 .frequencia-barra { flex: none; }
-.frequencia-fundo { fill: var(--surface-hover); }
-.frequencia-cheio { fill: var(--accent); }
+
 /* "Encomenda sugerida" copiável; a dica "copiado" sai por cima. */
 .tabela-top20 .celula-encomenda { white-space: nowrap; }
-.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0; font-size: var(--fs-xs); }
+.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0;  }
 /* Avisos e explicações do Ranking em medida de leitura (~75 letras). */
 .ranking-base, .aviso-periodo-ranking { max-width: 75ch; }
 /* Quadros "revender sem prejuízo" e "comprar por encomenda" do item. */
 .pagina-item .conta-revenda-texto, .pagina-item .conta-revenda-nota { max-width: 58ch; }
 /* "Abrir na Steam" ao lado do valor: copiar e já ir colar (17/11). */
-.encomenda-steam { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -4px 0 -4px 4px; border-radius: var(--radius-xs); color: var(--text-muted); vertical-align: middle; transition: color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard); }
+.encomenda-steam {      margin: -4px 0 -4px 4px;   vertical-align: middle;  }
 .encomenda-steam .icone-ui { width: 15px; height: 15px; }
-.encomenda-acoes { display: inline-flex; align-items: center; }
+
 .encomenda .conta-revenda-texto + .conta-revenda-texto { margin-top: var(--sp-2); }
-.encomenda-steam:hover { color: var(--text-bright); background: var(--surface-hover); }
+
 .encomenda-steam:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* Página do item: botão de copiar a encomenda em destaque claro e direto */
 
 /* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar
    fica sempre à vista (antes só aparecia com o mouse em cima). */
-.encomenda-preco-hoje { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+
 .tabela-top20 .celula-encomenda .icone-copiar { opacity: 0.45; }
 .tabela-top20 .celula-encomenda .copiar-preco:hover .icone-copiar,
 .tabela-top20 .celula-encomenda .copiar-preco:focus-visible .icone-copiar { opacity: 0.9; }
 .tabela-top20 .celula-encomenda .copiar-preco { font-weight: 600; color: var(--text-bright); }
 .tabela-top20 .celula-encomenda .copiar-preco.copiado { color: var(--positive); }
 .tabela-top20 .celula-encomenda .copiar-preco[data-dica]::after { top: auto; right: auto; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
-.movimento-linha-numeros { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
-.movimento-linha-numeros strong { color: var(--text); }
+.movimento-linha-numeros {  flex-wrap: wrap;    font-variant-numeric: tabular-nums; }
+
 .movimento-linha-nota { flex: none; margin-left: auto; display: inline-flex; }
 .movimento-linha-nota .nota-mini { width: 2rem; height: 2rem; }
 .movimento-linha-numeros .icone-ui { width: 10px; height: 10px; vertical-align: -1px; }
@@ -6763,17 +6468,14 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .troca-ajuda { margin: 0; }
 .troca-rodape { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: flex-end; }
 .troca-rodape input { height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
-.lista-trocas { display: grid; gap: var(--sp-3); margin: 0; padding: 0; list-style: none; }
+
 .troca-card { display: grid; gap: var(--sp-2); }
-.troca-data { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
-.troca-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
-.troca-coluna-titulo { display: flex; justify-content: space-between; gap: var(--sp-2); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); color: var(--text-muted); font-weight: 600; }
-.troca-coluna-total { color: var(--text-bright); font-variant-numeric: tabular-nums; }
-.troca-itens { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.troca-itens li { display: flex; align-items: center; gap: var(--sp-2); }
+
+.troca-coluna-titulo {   gap: var(--sp-2);     }
+
 .troca-item-texto { display: flex; flex-wrap: wrap; gap: 2px 6px; min-width: 0; }
 .troca-item-valor { color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.troca-saldo { margin: 0; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.troca-saldo { margin: 0;  font-variant-numeric: tabular-nums; }
 .troca-card .form-remover { justify-self: end; }
 @media (max-width: 640px) {
   .troca-lados, .troca-colunas { grid-template-columns: 1fr; }
@@ -6855,8 +6557,8 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .form-separar label { flex: 0 0 auto; white-space: nowrap; }
 /* Adicionar à mão na conta: rótulo visível em cada campo. */
 .form-adicionar:has(.campo-adicionar) { align-items: flex-end; }
-.campo-adicionar { display: flex; flex-direction: column; gap: 4px; color: var(--text-muted); font-size: var(--fs-xs); }
-.campo-adicionar-nome { flex: 1; min-width: 220px; }
+
+.campo-adicionar-nome {  min-width: 220px; }
 .campo-adicionar-nome input[name="name"] { flex: none; width: 100%; min-width: 0; }
 /* Texto do botão "+ Adicionar" no meio (no celular o botão ocupa a largura toda). */
 .form-adicionar button { justify-content: center; text-align: center; }
@@ -6900,7 +6602,7 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .link-excluir-conta p { margin: 0; }
 .link-excluir-conta a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
 .link-excluir-conta .conta-excluir { margin-top: var(--sp-4); }
-.link-excluir-conta .conta-excluir a { color: var(--danger); }
+
 .link-excluir-conta .conta-excluir a:hover { text-decoration-color: currentColor; }
 .pagina-inicial > .status { margin: var(--sp-4) 0 0; }
 /* Links no meio do texto do aviso (página de excluir conta): sublinhados. */
@@ -6980,34 +6682,10 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 
 }
 .botao-spotlight-gatilho {
-display: inline-flex;
-align-items: center;
-gap: var(--sp-2);
-background: var(--surface-sunken);
-border: 1px solid var(--border);
-border-radius: 980px;
-padding: 4px 12px;
-color: var(--text-muted);
-font-size: var(--fs-xs);
-cursor: pointer;
-transition: all 0.2s ease;
-height: 32px;
+
 font-family: inherit;
 }
-.botao-spotlight-gatilho:hover {
-border-color: var(--accent);
-color: var(--text-bright);
-background: var(--surface-hover);
-}
-.spotlight-gatilho-kbd {
-font-size: 0.6875rem;
-padding: 1px 5px;
-border-radius: 4px;
-background: rgba(255, 255, 255, 0.08);
-border: 1px solid rgba(255, 255, 255, 0.14);
-color: var(--text-muted);
-font-family: inherit;
-}
+
 .spotlight-overlay {
 position: fixed;
 inset: 0;
@@ -7191,10 +6869,7 @@ color: var(--text-muted);
 font-size: var(--fs-sm);
 }
 .simulador-encomenda-box {
-background: var(--surface);
-border: 1px solid var(--border);
-border-radius: var(--radius-sm);
-padding: var(--sp-5);
+
 margin: var(--sp-5) 0;
 }
 
@@ -7251,13 +6926,10 @@ cursor: pointer;
 .simulador-metricas-grid {
 display: grid;
 grid-template-columns: repeat(3, 1fr);
-gap: var(--sp-3);
+
 }
 .simulador-metrica-card {
-background: var(--surface-sunken);
-border: 1px solid var(--border);
-border-radius: 10px;
-padding: var(--sp-3);
+
 display: flex;
 flex-direction: column;
 }
@@ -7298,14 +6970,6 @@ grid-template-columns: 1fr;
 }
 }
 
-.cartao-item {
-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.cartao-item:hover {
-transform: translateY(-3px);
-border-color: rgba(255, 255, 255, 0.18);
-box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-}
 .cartao-item.raridade-covert::before {
 content: "";
 position: absolute;
@@ -7453,10 +7117,6 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
   box-shadow: none;
 }
 
-.grafico-card {
-  position: relative;
-}
-
 circle.grafico-ponto-interativo {
   cursor: pointer;
 }
@@ -7529,50 +7189,10 @@ circle.grafico-ponto-interativo:hover {
    ========================================================================== */
 
 .subnav-conta {
-  display: flex;
-  gap: var(--sp-2);
-  margin: var(--sp-4) 0 var(--sp-6);
-  border-bottom: 1px solid var(--border);
+
   padding-bottom: 2px;
-  overflow-x: auto;
+  
   -webkit-overflow-scrolling: touch;
-}
-
-.subnav-conta-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.subnav-conta-link:hover {
-  color: var(--text-bright);
-  background: var(--surface-hover);
-}
-
-.subnav-conta-link.subnav-conta-ativo {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
-  background: rgba(249, 115, 22, 0.08);
-}
-
-.subnav-conta-link .icone-ui {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.conta-identidade-avatar {
-  box-shadow: 0 0 0 2px var(--surface-sunken), 0 0 0 3px rgba(249, 115, 22, 0.4);
 }
 
 .resumo-cards-conta .card {
@@ -7584,27 +7204,6 @@ circle.grafico-ponto-interativo:hover {
   border-color: var(--border-strong);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.conta-filtro span[data-conta-contagem] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-sunken);
-  color: var(--text-muted);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  margin-left: 2px;
-}
-
-.conta-filtro[aria-pressed="true"] span[data-conta-contagem] {
-  background: rgba(249, 115, 22, 0.25);
-  color: var(--accent);
 }
 
 .input-custo:focus {
@@ -7700,44 +7299,6 @@ circle.grafico-ponto-interativo:hover {
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.botao-spotlight-gatilho {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-pill);
-  padding: 5px 12px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: all 0.15s ease;
-}
-
-.botao-spotlight-gatilho:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(249, 115, 22, 0.4);
-  color: #ffffff;
-}
-
-.spotlight-gatilho-kbd {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 1px 5px;
-}
-
-.conta-pill {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-pill);
-  padding: 3px 12px 3px 4px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: all 0.15s ease;
-}
-
-.conta-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(249, 115, 22, 0.4);
-}
-
 .conta-link-entrar {
   background: linear-gradient(180deg, #1f2733 0%, #151b24 100%);
   border: 1px solid rgba(102, 192, 244, 0.35);
@@ -7753,15 +7314,10 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 2. Hero Destaque */
-.hero-destaque {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 16px 36px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);
-}
 
 .hero-destaque:hover {
   border-color: color-mix(in srgb, var(--rar-cor, var(--accent)) 45%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 20px 44px rgba(0, 0, 0, 0.55);
+  
 }
 
 .hero-destaque .icone-item-quadro .icone-item {
@@ -7774,20 +7330,8 @@ circle.grafico-ponto-interativo:hover {
 
 /* 3. Termômetro do Mercado (Market Pulse) */
 
-/* 4. Vitrine Cards (.cartao-item) */
-.cartao-item {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  position: relative;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-}
-
-@media (hover: hover) {
-  .cartao-item:hover {
-    transform: translateY(-3px);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 14px 32px rgba(0, 0, 0, 0.5);
-  }
-}
-
+/* 4. Vitrine Cards (.cartao-item): fundo, fio e hover ficam na regra
+   principal (DESIGN.md: cinza sólido, elevação + fio laranja no hover). */
 .cartao-item-imagem {
   aspect-ratio: 4 / 3;
   padding: 14px;
@@ -7871,89 +7415,41 @@ circle.grafico-ponto-interativo:hover {
 
 /* 5. Subnav da Conta (/conta) */
 .subnav-conta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-pill);
-  padding: 4px;
-  margin: var(--sp-4) 0 var(--sp-6);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .subnav-conta-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  border-radius: var(--radius-pill);
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-  font-weight: 550;
-  text-decoration: none;
-  border: 1px solid transparent;
-  border-bottom: 1px solid transparent;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.subnav-conta-link:hover {
-  color: var(--text-bright);
-  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid transparent;
+  
 }
 
 .subnav-conta-link.subnav-conta-ativo {
-  color: #ffffff;
-  background: rgba(249, 115, 22, 0.16);
+
   border-color: rgba(249, 115, 22, 0.4);
   border-bottom-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  font-weight: 650;
+
 }
 
 .subnav-conta-link.subnav-conta-ativo .icone-ui {
-  color: var(--accent);
+  
   filter: none;
 }
 
 /* 6. Abas de Categorias & Filtros */
 .aba-contagem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-left: 4px;
-  font-variant-numeric: tabular-nums;
-}
 
-.aba-categoria[aria-current="page"] .aba-contagem {
-  background: rgba(0, 0, 0, 0.25);
-  color: #ffffff;
+  margin-left: 4px;
+  
 }
 
 .campo-busca {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.campo-busca:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  outline: none;
+  
 }
 
 /* 7. Ficha do Item & Simulador */
-.hero-item {
-  box-shadow: inset 2px 0 0 var(--rar-cor, var(--accent)), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
-}
 
 .resumo-cards-item .card {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
@@ -8074,40 +7570,14 @@ circle.grafico-ponto-interativo:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-.tabela-top20 tbody tr {
-  transition: background-color 0.15s ease;
-}
-
 .tabela-top20 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.025);
 }
 
-.tabela-top20 .copiar-preco {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-variant-numeric: tabular-nums;
-  transition: all 0.15s ease;
-}
-
-.tabela-top20 .copiar-preco:hover {
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.35);
-  color: var(--accent);
-}
-
 .ranking-bloco {
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.7) 0%, rgba(20, 20, 20, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.2);
+
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-}
-
-.ranking-bloco-titulo {
-  font-size: 0.9375rem;
-  font-weight: 600;
 }
 
 .ranking-bloco-n {
@@ -8128,16 +7598,8 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .simulador-metrica-card {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  padding: 12px 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
 
-.simulador-metrica-card.card-destaque-lucro {
-  border-color: rgba(57, 194, 102, 0.3);
-  background: radial-gradient(circle at top right, rgba(57, 194, 102, 0.08) 0%, rgba(0, 0, 0, 0.35) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 /* 13. Tabela no Modo Lista (Grade de Dados) */
@@ -8162,29 +7624,8 @@ circle.grafico-ponto-interativo:hover {
    ========================================================================== */
 
 /* 15. FAQ Modern Cards System (/faq) */
-.faq-lista {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  margin-top: var(--sp-5);
-}
+
 .faq-lista[hidden] { display: none; }
-
-.faq-item {
-  position: relative;
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--radius-sm);
-  padding: 20px 24px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
-}
-
-.faq-item:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.35);
-}
 
 .faq-item .secao-titulo {
   margin: 0 0 10px;
@@ -8221,14 +7662,6 @@ circle.grafico-ponto-interativo:hover {
   margin: var(--sp-6) 0;
 }
 
-.metodo-sinais {
-  background: linear-gradient(180deg, rgba(28, 28, 28, 0.5) 0%, rgba(18, 18, 18, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
 .metodo-intro {
   color: var(--text-bright);
   font-size: 0.9375rem;
@@ -8237,8 +7670,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .metodo-sinais-lista {
-  margin: var(--sp-3) 0 var(--sp-4);
-  padding-left: 20px;
+
   color: #d4d4d4;
   line-height: 1.65;
 }
@@ -8248,10 +7680,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .metodo-exemplo {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-xs);
-  padding: 14px 18px;
+
   font-size: 0.875rem;
   line-height: 1.55;
   color: #a3a3a3;
@@ -8259,10 +7688,7 @@ circle.grafico-ponto-interativo:hover {
 
 .metodo-disclaimer-card {
   position: relative;
-  background: radial-gradient(ellipse at top left, rgba(242, 187, 37, 0.06) 0%, rgba(20, 20, 20, 0.9) 100%);
-  border: 1px solid rgba(242, 187, 37, 0.25);
-  border-radius: var(--radius-sm);
-  padding: 20px 24px;
+
   box-shadow: inset 0 1px 0 rgba(242, 187, 37, 0.1);
 }
 
@@ -8279,12 +7705,6 @@ circle.grafico-ponto-interativo:hover {
   line-height: 1.6;
 }
 
-.metodo-achados-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-4);
-  margin-top: var(--sp-4);
-}
 .metodo-achados-grid[hidden] { display: none; }
 
 @media (max-width: 768px) {
@@ -8324,14 +7744,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 17. Status Page Micro-Components (/status) */
-.busca-tags-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: var(--sp-3) 0 var(--sp-5);
-}
+
 .busca-tags-grid[hidden] { display: none; }
 
 .busca-tag-chip {
@@ -8355,24 +7768,12 @@ circle.grafico-ponto-interativo:hover {
   transform: translateY(-1px);
 }
 
-.lista-status-catalogo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--sp-3);
-  list-style: none;
-  padding: 0;
-  margin: var(--sp-4) 0;
-}
 .lista-status-catalogo[hidden] { display: none; }
 
 .lista-status-catalogo li {
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  font-size: var(--fs-sm);
+
   line-height: 1.5;
-  color: #d4d4d4;
+  
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -8402,37 +7803,28 @@ circle.grafico-ponto-interativo:hover {
 
 /* 20. Hero Destaque Luxury Treatment */
 .hero-destaque {
-  position: relative;
-  background: linear-gradient(135deg, rgba(30, 30, 30, 0.75) 0%, rgba(16, 16, 16, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-md);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.35);
+
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  
 }
 
 .hero-destaque:hover {
   transform: translateY(-2px);
-  border-color: rgba(249, 115, 22, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 16px 44px rgba(0, 0, 0, 0.55);
+
 }
 
 .hero-destaque-rotulo {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 3px 8px;
   width: fit-content;
-  margin: 0 0 10px;
+  
 }
 .hero-destaque-rotulo[hidden] { display: none; }
 
@@ -8446,11 +7838,9 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .hero-destaque-preco {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+
   flex-wrap: wrap;
-  font-variant-numeric: tabular-nums;
+  
 }
 .hero-destaque-preco[hidden] { display: none; }
 
@@ -8471,8 +7861,6 @@ circle.grafico-ponto-interativo:hover {
   border-radius: var(--radius-pill);
   font-size: 0.8125rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-muted);
   text-decoration: none;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -8481,16 +7869,13 @@ circle.grafico-ponto-interativo:hover {
 
 .aba-categoria:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
   transform: translateY(-1px);
 }
 
 .aba-categoria[aria-current="page"] {
-  background: rgba(249, 115, 22, 0.16);
-  border-color: rgba(249, 115, 22, 0.45);
   color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
@@ -8537,8 +7922,7 @@ circle.grafico-ponto-interativo:hover {
 .ranking-bloco {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+
 }
 
 .ranking-bloco::before {
@@ -8557,11 +7941,6 @@ circle.grafico-ponto-interativo:hover {
 .ranking-bloco-saidas::before { background: #ff6e70; }
 .ranking-bloco-cairam::before { background: #f97316; }
 
-.ranking-bloco:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
 .ranking-bloco:hover::before {
   opacity: 1;
 }
@@ -8572,58 +7951,21 @@ circle.grafico-ponto-interativo:hover {
 .ranking-bloco-cairam:hover { border-color: rgba(249, 115, 22, 0.4); }
 
 .tabela-top20 tbody tr:nth-child(1) .ranking-pos-num {
-  color: #f2bb25;
-  font-weight: 700;
+
   text-shadow: none;
 }
 
 .tabela-top20 tbody tr:nth-child(2) .ranking-pos-num {
-  color: #e2e8f0;
-  font-weight: 700;
+
   text-shadow: 0 0 8px rgba(226, 232, 240, 0.3);
 }
 
 .tabela-top20 tbody tr:nth-child(3) .ranking-pos-num {
-  color: #d97706;
-  font-weight: 700;
+
   text-shadow: none;
 }
 
-.seletor-periodo {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-pill);
-  padding: 3px;
-}
 .seletor-periodo[hidden] { display: none; }
-
-.seletor-periodo a {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 550;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-
-.seletor-periodo a:hover {
-  color: var(--text-bright);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.seletor-periodo a[aria-current="true"] {
-  color: #ffffff;
-  background: rgba(249, 115, 22, 0.18);
-  border-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-  font-weight: 650;
-}
 
 /* 23. Item Detail Page Factors & Wear Matrix (/item/...) */
 .lista-motivos li {
@@ -8743,13 +8085,9 @@ h3,
 
 /* Subnav da conta */
 .subnav-conta-link {
-  font-size: 0.875rem;
+  
   letter-spacing: -0.01em;
-  font-weight: 500;
-}
-
-.subnav-conta-link.subnav-conta-ativo {
-  font-weight: 650;
+  
 }
 
 /* ==========================================================================
@@ -8760,12 +8098,9 @@ h3,
 
 /* Controles de Período e Legenda */
 .ranking-controles {
-  display: flex;
-  align-items: center;
+
   justify-content: space-between;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-3);
-  flex-wrap: wrap;
+
 }
 
 .barra-periodo-ranking {
@@ -9022,8 +8357,7 @@ h3,
 
 /* Cards de Movimentação do Ranking ("O que mudou no Top 20 desde ontem") */
 .ranking-bloco {
-  border-radius: var(--radius-md);
-  padding: var(--sp-4);
+
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -9478,10 +8812,7 @@ h3,
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 14px;
   width: 100%;
-  padding: 16px;
-  background: rgba(30, 30, 30, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -10043,18 +9374,9 @@ h3,
 }
 
 .conta-filtro span[data-conta-contagem] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 0.6875rem;
-  font-weight: 600;
+
   font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
+  
   font-variant-numeric: tabular-nums;
   margin-left: 2px;
   transition: all 0.15s ease;
@@ -10146,7 +9468,7 @@ h3,
 .tabela-wrap:has(> .tabela-comparar) {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(30, 30, 30, 0.35);
+  background: var(--surface);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   overflow: visible;
 }
@@ -10277,7 +9599,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   font-size: 0.8125rem;
   font-weight: 500;
   font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
+  
   font-variant-numeric: tabular-nums;
   transition: all 0.18s ease;
 }
@@ -10476,7 +9798,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-top: 14px;
   padding: 20px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.5);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-wrap: wrap;
@@ -10655,7 +9977,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
@@ -10726,7 +10048,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .troca-card {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.40);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20);
 }
@@ -10803,7 +10125,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .grafico-card {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   margin-bottom: var(--sp-4);
@@ -10915,7 +10237,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .filtros-mais-corpo {
   padding: 18px 20px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   margin-top: 10px;
@@ -10947,20 +10269,11 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: flex;
   flex-direction: column;
   padding: 16px;
-  border-radius: 14px;
-  background: rgba(30, 30, 30, 0.40);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
 }
 
 .cartao-item:hover {
-  background: rgba(255, 255, 255, 0.035);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
   text-decoration: none;
 }
 
@@ -11055,7 +10368,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .ranking-bloco {
   padding: 20px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.40);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -11076,7 +10389,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 24px 28px;
   border-radius: 16px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -11087,15 +10400,11 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin: var(--sp-3) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  
 }
 
 .metodo-sinais-lista li {
-  padding: 14px 18px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.875rem;
+
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.80);
 }
@@ -11125,7 +10434,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .metodo-achados-grid .card {
   padding: 18px;
   border-radius: 12px;
-  background: rgba(30, 30, 30, 0.40);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20);
 }
@@ -11143,7 +10452,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: relative;
   padding: 22px 26px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.40);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -11177,7 +10486,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .saude-ciclos {
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   margin-bottom: var(--sp-4);
@@ -11253,7 +10562,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-5);
   padding: 4px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -11317,7 +10626,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin: 0 0 var(--sp-5);
   padding: 20px 24px;
   border-radius: 14px;
-  background: rgba(30, 30, 30, 0.45);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
@@ -11342,8 +10651,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .indice-glossario {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: var(--sp-4);
+
 }
 
 .indice-glossario a {
@@ -11398,7 +10706,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: relative;
   padding: 16px 20px;
   border-radius: 12px;
-  background: rgba(30, 30, 30, 0.40);
+  background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20);
 }

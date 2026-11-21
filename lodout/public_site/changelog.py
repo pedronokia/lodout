@@ -19,7 +19,8 @@ ENTRADAS = [
             "Botões do topo numa linha só (Copiar, Compartilhar e Favoritar) e resumo da nota em duas colunas no celular.",
             "Itens que ainda não têm nota ganharam o mesmo simulador e o mesmo topo. Os botões de copiar dessa página voltaram a funcionar.",
             "O simulador agora diz “Na frente da fila” quando a oferta é a sugerida (R$ 0,01 acima da maior encomenda); antes aparecia “Empatado no topo”.",
-            "Site mais leve: saiu o estilo e o script das partes retiradas. O arquivo de estilo ficou cerca de 9% menor.",
+            "Site mais leve: saiu o estilo e o script das partes retiradas e das regras que nunca valiam. O arquivo de estilo ficou cerca de 16% menor.",
+            "Cartões, quadros e painéis voltaram ao cinza sólido do Lodout, sem o efeito de vidro translúcido. Na página inicial, os cartões ficam sem borda e ganham sombra e fio laranja com o mouse em cima, e a categoria escolhida fica em laranja.",
         ],
     },
     {
