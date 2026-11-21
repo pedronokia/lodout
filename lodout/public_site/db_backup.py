@@ -177,3 +177,36 @@ def fazer_backup_json_se_necessario(
         except OSError:
             pass
     return destino
+
+
+# Grupos de backup, na mesma ordem em que os três `fazer_backup_*_se_
+# necessario` os geram -- usado por `idade_dos_backups` pra achar o
+# arquivo mais recente de cada um sem reler a lógica de rotação.
+_GRUPOS = (
+    ("banco", "public_site-", ".db"),
+    ("notas", "notas_historico-", ".sqlite3"),
+    ("json", "json-", ".zip"),
+)
+
+
+def idade_dos_backups(
+        backup_dir: "Path | str | None" = None,
+        now: "float | None" = None) -> "dict[str, float | None]":
+    """{"banco": horas, "notas": horas, "json": horas} -- idade (em
+    horas) do backup mais recente de cada grupo, ou None se nenhum
+    backup daquele grupo existe ainda (quem chama decide se isso é
+    normal -- ex.: instalação nova -- ou motivo de alerta).
+
+    Não lê o conteúdo nem confere integridade: só a idade do arquivo
+    mais recente que bate com o padrão de nome, pelo timestamp embutido
+    no nome (mesma fonte de `_deve_pular`, não o mtime do SO)."""
+    dest_dir = Path(backup_dir) if backup_dir is not None else _BACKUP_DIR
+    agora = time.time() if now is None else now
+    out: "dict[str, float | None]" = {}
+    for chave, prefixo, extensao in _GRUPOS:
+        arquivos = (sorted(dest_dir.glob(f"{prefixo}*{extensao}"))
+                    if dest_dir.exists() else [])
+        out[chave] = (round((agora - _timestamp_do_nome(arquivos[-1], prefixo))
+                            / 3600, 1)
+                      if arquivos else None)
+    return out

@@ -1912,6 +1912,15 @@ def test_api_health_sem_scan(client, monkeypatch):
     assert data["scan"]["idade_segundos"] is None
 
 
+def test_api_health_expoe_idade_dos_backups(client, monkeypatch):
+    from lodout.public_site import db_backup
+    monkeypatch.setattr(
+        db_backup, "idade_dos_backups",
+        lambda **k: {"banco": 5.0, "notas": None, "json": 5.0})
+    data = client.get("/api/health").get_json()
+    assert data["backups"] == {"banco": 5.0, "notas": None, "json": 5.0}
+
+
 # ── server: 2a rodada tecnica (500/429/admin/sobre/prefs/cookie) ──
 
 def test_sobre_page(client):
@@ -3154,6 +3163,67 @@ def test_worker_alert_disco_total_zero_nao_alerta(monkeypatch, tmp_path):
         lambda *a, **k: _uso_disco(total=0.0, livre=0.0))
     assert worker_alert.verificar_disco_e_alertar(
         path=tmp_path / "estado.json") is False
+
+
+# ── worker_alert: backup atrasado ──────────────────────────────
+
+def test_worker_alert_backup_sem_webhook_nao_alerta(monkeypatch, tmp_path):
+    monkeypatch.delenv("LODOUT_ADMIN_DISCORD_WEBHOOK", raising=False)
+    monkeypatch.setattr(
+        worker_alert.db_backup, "idade_dos_backups",
+        lambda **k: (_ for _ in ()).throw(AssertionError(
+            "não devia nem checar a idade sem webhook configurado")))
+    assert worker_alert.verificar_backup_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_backup_sem_nenhum_ainda_nao_alerta(monkeypatch, tmp_path):
+    # Instalação nova (nenhum grupo tem backup ainda) não é atraso.
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(
+        worker_alert.db_backup, "idade_dos_backups",
+        lambda **k: {"banco": None, "notas": None, "json": None})
+    assert worker_alert.verificar_backup_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_backup_recente_nao_alerta(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(
+        worker_alert.db_backup, "idade_dos_backups",
+        lambda **k: {"banco": 5.0, "notas": 5.0, "json": 5.0})
+    assert worker_alert.verificar_backup_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_backup_atrasado_manda(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(
+        worker_alert.db_backup, "idade_dos_backups",
+        lambda **k: {"banco": 72.0, "notas": 5.0, "json": None})
+    chamadas = []
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: chamadas.append(msg) or True)
+    assert worker_alert.verificar_backup_e_alertar(
+        path=tmp_path / "estado.json") is True
+    assert "banco há 72h" in chamadas[0]
+    assert "notas" not in chamadas[0]
+
+
+def test_worker_alert_backup_dedup_nao_manda_de_novo(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(
+        worker_alert.db_backup, "idade_dos_backups",
+        lambda **k: {"banco": 72.0, "notas": None, "json": None})
+    chamadas = []
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: chamadas.append(1) or True)
+    p = tmp_path / "estado.json"
+    assert worker_alert.verificar_backup_e_alertar(path=p) is True
+    assert worker_alert.verificar_backup_e_alertar(path=p) is False
+    assert len(chamadas) == 1
 
 
 # ── worker: ordenação por nota anterior + progresso ─────────

@@ -914,6 +914,10 @@ def create_app() -> Flask:
             # "A nota acertou no passado?" (backtest_diario.py): só leitura.
             "backtest": backtest_diario.ler(),
             "ultima_rodada_top": scan_store.load_rodada_top(),
+            # Idade em horas do backup mais recente de cada grupo
+            # (banco/notas/json), ou None se nunca houve um. Mesmo dado
+            # que alimenta o alerta de backup atrasado (worker_alert.py).
+            "backups": db_backup.idade_dos_backups(),
             "intervalo_horas_configurado": intervalo_horas,
             "no_ar_desde": uptime.no_ar_desde(),
             "visitas_total": visits.total(),
