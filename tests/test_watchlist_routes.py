@@ -71,7 +71,7 @@ def test_listar_vazio_mostra_empty_state(client, monkeypatch):
     _login(client, monkeypatch)
     resp = client.get("/conta/watchlist")
     assert resp.status_code == 200
-    assert "Nenhum item acompanhado".encode("utf-8") in resp.data
+    assert "Nenhum item nos favoritos".encode("utf-8") in resp.data
 
 
 def test_adicionar_item(client, monkeypatch):
@@ -176,7 +176,7 @@ def test_alvo_invalido_nao_cria_item_e_mostra_erro(client, monkeypatch):
     })
     pagina = client.get(resp.headers["Location"]).data.decode("utf-8")
     assert "O preço-alvo precisa ser um número válido e igual ou maior que zero" in pagina
-    assert "Nenhum item acompanhado ainda" in pagina
+    assert "Nenhum item nos favoritos ainda" in pagina
 
 
 def test_editar_regras(client, monkeypatch):
@@ -219,7 +219,7 @@ def test_remover_item(client, monkeypatch):
     })
     client.post("/conta/watchlist/AK-47/remover", data={"csrf_token": token})
     pagina = client.get("/conta/watchlist").data.decode("utf-8")
-    assert "Nenhum item acompanhado".encode("utf-8") in pagina.encode("utf-8")
+    assert "Nenhum item nos favoritos".encode("utf-8") in pagina.encode("utf-8")
 
 
 def test_itens_isolados_entre_contas(client, monkeypatch):

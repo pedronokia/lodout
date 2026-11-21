@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Meu histórico — Lodout</title>
+  <title>Histórico de vendas — Lodout</title>
   <meta name="robots" content="noindex">
   {% include "partials/_head_pwa.html" %}
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
@@ -21,49 +21,13 @@
     {% include "partials/_mensagens.html" %}
 
     <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Meu histórico</h1>
-      <p class="descricao-pagina">Valor dos seus itens ao longo do tempo e <a href="#vendidos">itens vendidos</a>.</p>
+      <h1 class="titulo-pagina">Histórico de vendas</h1>
+      <p class="descricao-pagina">Itens que você vendeu e o lucro de cada venda.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
 
-    {# Um quadro só (antes havia um quadro dentro do outro: borda dupla
-       e cantos desencontrados). #}
-    {% if grafico %}
-      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
-      {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
-    {% else %}
-      <p class="status status-vazio">O gráfico aparece quando o valor da conta mudar.</p>
-    {% endif %}
-
-    <h2 class="secao-titulo">Pontos registrados</h2>
-    {% if pontos %}
-    <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para ver mais colunas.</p>
-    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de pontos registrados do histórico, com rolagem lateral">
-    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th class="col-num">Valor de mercado</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in pontos %}
-        <tr>
-          <td data-label="Data" class="celula-data">{{ p.data }}</td>
-          <td data-label="Valor de mercado" class="celula-numero">{{ p.total_fmt }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
-    {% else %}
-      <p class="status status-vazio">Nenhum ponto registrado ainda.</p>
-    {% endif %}
-
-    {# Itens vendidos (pedido do usuário, 16/11): marcados com "Vendi" na
-       conta. A Steam não mostra vendas publicamente, então é a pessoa
-       quem marca. #}
+    {# Itens vendidos: o que vendemos e o lucro #}
     <h2 class="secao-titulo" id="vendidos">Itens vendidos</h2>
     {% if vendidos %}
     <p class="status-muted">Lucro somado das vendas: <strong class="{{ vendidos_total_classe }}">{{ vendidos_total_fmt }}</strong>, já sem a taxa da Steam.</p>
@@ -90,7 +54,7 @@
           <td data-label="Recebeu" class="celula-numero">{{ v.recebeu_fmt }}</td>
           <td data-label="Lucro" class="celula-numero {{ v.lucro_classe }}">{{ v.lucro_fmt }}</td>
           <td data-label="">
-            {% if v.da_conta %}<form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-confirmar="Desfazer a venda de {{ v.nome }}? Ela sai do histórico e o item volta para a sua conta, com o valor pago.">
+            {% if v.da_conta %}<form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-confirmar="Desfazer a venda de {{ v.nome }}? Ela sai do histórico e o item volta para o seu inventário, com o valor pago.">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
               <button type="submit" class="botao-link" aria-label="Desfazer a venda de {{ v.nome }}">desfazer venda</button>
             </form>{% else %}<form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-dialogo-titulo="Apagar" data-dialogo-texto="A venda sai do seu histórico. Não dá para desfazer." data-dialogo-botao="Apagar" data-confirmar="Apagar a venda de {{ v.nome }} do histórico?">
@@ -104,7 +68,41 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” na sua conta para registrar.</p>
+      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” no seu inventário para registrar.</p>
+    {% endif %}
+
+    {# Evolução do valor do inventário e pontos registrados #}
+    <h2 class="secao-titulo">Evolução do valor do inventário</h2>
+    {% if grafico %}
+      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
+      {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
+    {% else %}
+      <p class="status status-vazio">O gráfico aparece quando o valor do inventário mudar.</p>
+    {% endif %}
+
+    <h2 class="secao-titulo">Pontos registrados</h2>
+    {% if pontos %}
+    <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para ver mais colunas.</p>
+    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de pontos registrados do histórico, com rolagem lateral">
+    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th class="col-num">Valor de mercado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pontos %}
+        <tr>
+          <td data-label="Data" class="celula-data">{{ p.data }}</td>
+          <td data-label="Valor de mercado" class="celula-numero">{{ p.total_fmt }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+      <p class="status status-vazio">Nenhum ponto registrado ainda.</p>
     {% endif %}
   </main>
 
@@ -112,7 +110,7 @@
     <p>Valor de mercado no momento de cada visita.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
-  {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para a sua conta, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para o seu inventário, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <script src="{{ static_v('conta.js') }}" defer></script>
 </body>
 </html>

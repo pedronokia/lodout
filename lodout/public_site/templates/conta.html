@@ -110,7 +110,7 @@
     {% endif %}
 
     <div class="conta-lista-cabecalho">
-      <h2 class="secao-titulo">Seus itens</h2>
+      <h2 class="secao-titulo">Seu inventário</h2>
       {% if avaliacao.rows %}
       {# Meta de lucro (2026-11-15): o preço de venda de cada item já soma
          a taxa da Steam e a meta escolhida. #}
@@ -134,7 +134,7 @@
     {% elif inv.status in ("rate_limited", "error") %}
     <p class="status-inventario">A Steam pediu uma pausa. O inventário será lido mais tarde.</p>
     {% else %}
-    <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.{{ atualizar_agora("Buscar meus itens agora") }}</p>
+    <p class="status-inventario">Seus itens da Steam aparecem aqui a partir do próximo login.{{ atualizar_agora("Buscar inventário agora") }}</p>
     {% endif %}
     {# O formulário do "Atualizar agora" fica fora do parágrafo (form não
        pode ficar dentro de <p>); os botões apontam pra ele com form=. #}
@@ -150,8 +150,8 @@
     {% if avaliacao.rows|length >= 8 %}
     <div class="conta-ferramentas" data-conta-ferramentas hidden>
       <label class="conta-busca">
-        <span class="visualmente-oculto">Buscar nos seus itens</span>
-        <input type="search" data-conta-busca placeholder="Buscar nos seus itens…" title="Atalho: tecla /" aria-keyshortcuts="/" autocomplete="off" spellcheck="false">
+        <span class="visualmente-oculto">Buscar no inventário</span>
+        <input type="search" data-conta-busca placeholder="Buscar no inventário…" title="Atalho: tecla /" aria-keyshortcuts="/" autocomplete="off" spellcheck="false">
       </label>
       <div class="conta-filtros" role="group" aria-label="Mostrar">
         <button type="button" class="conta-filtro" data-conta-filtro="todos" aria-pressed="true">Todos <span data-conta-contagem="todos"></span></button>
@@ -189,7 +189,7 @@
       </dl>
     </details>
     <p class="visualmente-oculto" data-copiado role="status" aria-live="polite"></p>
-    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela dos seus itens">
+    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela do inventário">
     {# Papéis explícitos (revisão 2026-11-16): no celular as linhas viram
        cartões (display: grid) e o Safari pode deixar de anunciar a tabela
        ao VoiceOver; com os papéis, continua sendo tabela. #}
@@ -361,7 +361,7 @@
          "Nenhum item ainda" ao mesmo tempo se contradizia (revisão 16/11). #}
       {% if not inv.em_andamento %}
       <div class="conta-vazia">
-        <p class="conta-vazia-titulo">Nenhum item ainda. Seus itens aparecem aqui automaticamente.</p>
+        <p class="conta-vazia-titulo">Nenhum item ainda. Seu inventário aparece aqui automaticamente.</p>
         <p>Depois, informe quanto pagou para ver por quanto vender.</p>
         <p>Não apareceu? Deixe o inventário público na Steam ou adicione à mão abaixo.</p>
       </div>

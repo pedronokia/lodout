@@ -143,6 +143,7 @@ def _notificar_discord(steamid: str, items_avaliados: list[dict],
 
 
 @bp.route("/conta/watchlist")
+@bp.route("/conta/favoritos")
 @login_required
 def listar():
     steamid = session["steamid"]

@@ -2,15 +2,11 @@
 <nav class="subnav-conta" aria-label="Navegação da conta">
   <a href="{{ url_for('account.conta') }}"{% if request.endpoint == 'account.conta' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'account.conta' else '' }}">
     {{ icone("caixa") }}
-    <span>Meus Itens</span>
+    <span>Inventário</span>
   </a>
-  <a href="{{ url_for('watchlist.listar') }}"{% if request.endpoint == 'watchlist.listar' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'watchlist.listar' else '' }}">
+  <a href="{{ url_for('watchlist.listar') }}"{% if request.endpoint in ('watchlist.listar', 'watchlist.listar_favoritos') %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint in ('watchlist.listar', 'watchlist.listar_favoritos') else '' }}">
     {{ icone("favorito") }}
-    <span>Watchlist</span>
-  </a>
-  <a href="{{ url_for('trades.listar') }}"{% if request.endpoint == 'trades.listar' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'trades.listar' else '' }}">
-    {{ icone("troca") }}
-    <span>Trades</span>
+    <span>Favoritos</span>
   </a>
   <a href="{{ url_for('history.listar') }}"{% if request.endpoint == 'history.listar' %} aria-current="page"{% endif %} class="subnav-conta-link{{ ' subnav-conta-ativo' if request.endpoint == 'history.listar' else '' }}">
     {{ icone("grafico") }}

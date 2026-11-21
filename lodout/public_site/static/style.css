@@ -10925,12 +10925,11 @@ footer.rodape a:hover {
 /* Destaque da melhor célula: só o fundo, sem a faixa lateral grossa. */
 .valor-destaque-linha { box-shadow: none; }
 
-/* Abas da conta no celular: as 4 cabem na tela (o "Histórico" ficava
-   escondido para fora, só aparecia arrastando). */
+/* Abas da conta no celular: cabem na tela perfeitamente. */
 @media (max-width: 640px) {
   .subnav-conta {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     overflow: visible;
     border-radius: 16px;

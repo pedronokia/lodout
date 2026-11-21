@@ -4559,7 +4559,7 @@ def test_paginas_de_conta_sao_noindex():
 
     raiz = Path(__file__).parent.parent / "lodout" / "public_site" / "templates"
     paginas = ["conta.html", "conta_excluir.html", "conta_historico.html",
-              "conta_trades.html", "conta_watchlist.html"]
+               "conta_watchlist.html"]
     sem_noindex = [
         p for p in paginas
         if "noindex" not in (raiz / p).read_text(encoding="utf-8")
@@ -4607,8 +4607,8 @@ def test_nav_de_conta_marca_pagina_ativa(client, monkeypatch):
         lambda steamid, path=None: None)
     with client.session_transaction() as sess:
         sess["steamid"] = "123"
-    body = client.get("/conta/trades").data.decode("utf-8")
-    assert 'href="/conta/trades" aria-current="page"' in body
+    body = client.get("/conta/historico").data.decode("utf-8")
+    assert 'href="/conta/historico" aria-current="page"' in body
     assert 'href="/conta/watchlist" aria-current="page"' not in body
 
 

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Minha watchlist — Lodout</title>
+  <title>Favoritos — Lodout</title>
   <meta name="robots" content="noindex">
   {% include "partials/_head_pwa.html" %}
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
@@ -22,8 +22,8 @@
     {% include "partials/_mensagens.html" %}
 
     <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Minha watchlist</h1>
-      <p class="descricao-pagina">Itens que você acompanha, com alertas de preço.</p>
+      <h1 class="titulo-pagina">Favoritos</h1>
+      <p class="descricao-pagina">Itens que você favoritou e acompanha, com alertas de preço.</p>
     </header>
 
     {% include "partials/_subnav_conta.html" %}
@@ -31,14 +31,14 @@
     {# Revisão 2026-11-16: rótulos visíveis (como na conta) e o alerta no
        Discord, recurso avançado, recolhido em vez de ocupar meio topo. #}
     <div class="card card-adicionar-watchlist">
-      <h2 class="secao-titulo">Adicionar item</h2>
+      <h2 class="secao-titulo">Adicionar aos favoritos</h2>
       <form class="form-adicionar" method="post" action="{{ url_for('watchlist.adicionar') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <label class="campo-adicionar campo-adicionar-nome"><span>Item (comece a digitar o nome)</span>
           <input type="text" name="name" data-sugerir autocomplete="off" spellcheck="false" placeholder="ex.: AK-47 | Redline (Field-Tested)" title="O nome exato do Mercado da Steam, com o desgaste entre parênteses" maxlength="200" required></label>
         <label class="campo-adicionar"><span>Avisar abaixo de R$ (opcional)</span>
           <input type="text" name="target" inputmode="decimal" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" maxlength="12" autocomplete="off" placeholder="ex.: 35,10" title="Valor em reais, por exemplo 35,10"></label>
-        <button type="submit" class="botao-acao">+ Acompanhar</button>
+        <button type="submit" class="botao-acao">+ Favoritar</button>
       </form>
     </div>
 
@@ -55,10 +55,10 @@
       </form>
     </details>
 
-    <h2 class="secao-titulo">Itens acompanhados</h2>
+    <h2 class="secao-titulo">Itens favoritos</h2>
     {% if items %}
     <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para ver mais colunas.</p>
-    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de itens acompanhados, com rolagem lateral">
+    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de itens favoritos, com rolagem lateral">
     <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
       <thead>
         <tr>
@@ -99,7 +99,7 @@
           <td data-label="Ações">
             <form method="post" action="{{ url_for('watchlist.remover', name=it.name) }}" class="form-inline form-remover" data-nome="{{ it.name_fmt }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="botao-link botao-remover" aria-label="Deixar de acompanhar {{ it.name_fmt }}">remover</button>
+              <button type="submit" class="botao-link botao-remover" aria-label="Remover dos favoritos {{ it.name_fmt }}">remover</button>
             </form>
           </td>
         </tr>
@@ -142,7 +142,7 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item acompanhado ainda.</p>
+      <p class="status status-vazio">Nenhum item nos favoritos ainda.</p>
     {% endif %}
   </main>
 
@@ -150,7 +150,7 @@
     <p>Dados da última coleta de cada item.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
-  {% with dialogo_titulo="Deixar de acompanhar", dialogo_texto="O item sai da sua watchlist junto com as regras de alerta dele." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
+  {% with dialogo_titulo="Remover dos favoritos", dialogo_texto="O item sai dos seus favoritos junto com as regras de alerta dele." %}{% include "partials/_dialogo_remover.html" %}{% endwith %}
   <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
   <script src="{{ static_v('conta.js') }}" defer></script>
   <script src="{{ static_v('copiar_preco.js') }}" defer></script>
