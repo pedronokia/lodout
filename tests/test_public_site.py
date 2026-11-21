@@ -2851,29 +2851,6 @@ def test_item_detail_simulador_limpo_com_copiar_oferta(client, monkeypatch, tmp_
     assert 'id="painel-sim-reversa"' not in body
 
 
-def test_item_detail_grafico_tem_scrubber_linha(client, monkeypatch, tmp_path):
-    """Verifica que o gráfico histórico renderiza a linha guia do scrubber
-    e os pontos com dados para cálculo de variação."""
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 100 * 86400, "price": 10.0},
-        {"ts": agora - 2 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-
-    assert 'class="grafico-scrubber-linha"' in body
-    assert 'data-val="10.00"' in body
-    assert 'data-val="12.00"' in body
-
-
 def test_item_detail_sem_fila_tem_botao_copiar_encomenda(client, monkeypatch, tmp_path):
     """Quando o item não tem dados de fila (encomenda_sugestao é None),
     o valor do 'encomende por até' também deve ser um botão copiar-preco."""
@@ -2884,10 +2861,9 @@ def test_item_detail_sem_fila_tem_botao_copiar_encomenda(client, monkeypatch, tm
     ]
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert 'class="encomenda-valor"' in body
-    assert 'copiar-preco' in body
-    assert 'btn-copiar-encomenda' in body
-    assert 'data-copiar-preco="36,23"' in body
+    # 21/11: o quadro de encomenda virou o simulador (página enxuta).
+    assert 'btn-copiar-simulador' in body
+    assert 'data-copiar-preco="42,50"' in body
 
 
 def test_item_detail_fileira_de_stats_com_nota_em_destaque(
@@ -2941,178 +2917,6 @@ def test_item_detail_sem_liquidity_depth_nao_mostra_card(client, monkeypatch, tm
     assert "Liquidez" not in body
 
 
-def test_item_detail_mostra_seletor_de_periodo(client, monkeypatch, tmp_path):
-    """Achado 2026-11-02 (pesquisa de sites de skin): o gráfico de
-    histórico não tinha seletor de período -- sempre os últimos 60
-    pontos, sem jeito de ver só os últimos 7/30/90 dias."""
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 100 * 86400, "price": 10.0},
-        {"ts": agora - 2 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert "seletor-periodo" in body
-    assert "grafico-historico" in body
-    assert 'aria-current="true">Tudo</a>' in body
-
-
-def test_item_detail_periodo_filtra_o_grafico(client, monkeypatch, tmp_path):
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 100 * 86400, "price": 10.0},
-        {"ts": agora - 2 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X?periodo=7d").data.decode("utf-8")
-    assert 'aria-current="true">7d</a>' in body
-    # só o ponto de 2 dias atrás cai dentro de 7d -- 1 ponto não dá pra
-    # traçar linha (charts.line_chart_svg exige pelo menos 2).
-    assert "Sem preços registrados nesse período." in body
-    assert "grafico-historico" not in body
-
-
-def test_item_detail_periodo_invalido_cai_no_padrao(client, monkeypatch, tmp_path):
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 100 * 86400, "price": 10.0},
-        {"ts": agora - 2 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X?periodo=1ano").data.decode("utf-8")
-    assert 'aria-current="true">Tudo</a>' in body
-    assert "grafico-historico" in body
-
-
-def test_item_detail_grafico_tem_preenchimento_em_gradiente(client, monkeypatch, tmp_path):
-    """Achado 2026-11-03 (revisão de direção visual): uma linha nua sem
-    nenhum preenchimento "parece wireframe" -- só no gráfico grande da
-    página do item (não no sparkline pequeno da tabela, que continua
-    sem fill de propósito)."""
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 2 * 86400, "price": 10.0},
-        {"ts": agora - 1 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert "<linearGradient" in body
-    assert "<polygon" in body
-
-
-def test_item_detail_grafico_tem_tooltip_por_ponto(client, monkeypatch, tmp_path):
-    """Item #8 da lista de melhorias -- cada ponto do gráfico grande vira
-    um <circle> com <title> (data + preço), tooltip nativo do navegador
-    sem precisar de JS (o CSP do site bloqueia estilo inline até via JS,
-    então um tooltip flutuante posicionado por JS não daria)."""
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 2 * 86400, "price": 10.0},
-        {"ts": agora - 1 * 86400, "price": 12.5},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    # Escopo na SVG do gráfico grande, não na página inteira -- o anel
-    # de nota também usa <circle> (fundo + progresso), sem relação com
-    # os pontos do gráfico.
-    grafico = body.split("grafico-card", 1)[1].split("</svg>", 1)[0]
-    assert grafico.count("<circle") == 2
-    assert "R$ 10,00</title>" in grafico
-    assert "R$ 12,50</title>" in grafico
-    assert 'fill="transparent"' in grafico
-
-
-def test_item_detail_grafico_colorido_pela_tendencia_do_periodo(
-        client, monkeypatch, tmp_path):
-    """achado 2026-11-07: decisão revista -- o gráfico grande ficava
-    sempre neutro de propósito (cor podia parecer um "veredito" sobre o
-    preço), mas o mini-sparkline da listagem já ficou colorido por
-    tendência desde 2026-11-06, deixando o site inconsistente (pedido
-    do usuário pra uniformizar). A cor segue o PERÍODO EXIBIDO (primeiro
-    vs. último ponto do recorte), não só os 2 últimos pontos crus do
-    histórico -- trocar de período muda a cor se mudar a direção."""
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 2 * 86400, "price": 10.0},
-        {"ts": agora - 1 * 86400, "price": 12.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert 'class="card grafico-card grafico-tendencia-alta"' in body
-
-    hist_baixa = [
-        {"ts": agora - 2 * 86400, "price": 12.0},
-        {"ts": agora - 1 * 86400, "price": 10.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist_baixa)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert 'class="card grafico-card grafico-tendencia-baixa"' in body
-
-
-def test_item_detail_grafico_estavel_fica_na_cor_neutra(
-        client, monkeypatch, tmp_path):
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    agora = time.time()
-    hist = [
-        {"ts": agora - 2 * 86400, "price": 10.0},
-        {"ts": agora - 1 * 86400, "price": 10.0},
-    ]
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: hist)
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert 'class="card grafico-card">' in body
-    assert "grafico-tendencia-" not in body
-
-
 def test_index_sparkline_nao_tem_preenchimento_em_gradiente(client, monkeypatch, tmp_path):
     resultados = [
         {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
@@ -3130,62 +2934,6 @@ def test_index_sparkline_nao_tem_preenchimento_em_gradiente(client, monkeypatch,
     body = client.get("/").data.decode("utf-8")
     assert "<linearGradient" not in body
     assert "<polygon" not in body
-
-
-def test_item_detail_sem_historico_nao_mostra_seletor(client, monkeypatch, tmp_path):
-    resultados = [
-        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    monkeypatch.setattr(
-        "lodout.public_site.server.signals.load_item_history",
-        lambda name: [])
-    body = client.get("/item/Item X").data.decode("utf-8")
-    assert 'aria-label="Período do gráfico"' not in body
-    assert "Histórico de preço" not in body
-    # O da nota aparece sempre, com o aviso de quando começou (17/11).
-    assert "O gráfico aparece a partir da segunda coleta" in body
-
-
-def test_item_detail_itens_parecidos_exclui_o_proprio(client, monkeypatch, tmp_path):
-    resultados = [
-        {"name": "Item A", "score": 80, "price": 10.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-        {"name": "Item B", "score": 78, "price": 12.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-        {"name": "Item C", "score": 20, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Luvas", "breakdown": []},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    resp = client.get("/item/Item A")
-    body = resp.data.decode("utf-8")
-    assert "Item B" in body  # mesma categoria, nota próxima
-    assert "Item C" not in body  # categoria diferente
-
-
-def test_item_detail_itens_parecidos_mostra_icone_e_anel(
-        client, monkeypatch, tmp_path):
-    """achado 2026-11-07: "Itens parecidos" era texto puro (nome + "nota
-    X, R$ Y") -- _itens_parecidos já reaproveita os candidatos de
-    _candidatos_filtrados, que já tinham icon_url/raridade_classe, só o
-    template não usava. Pedido do usuário pra deixar consistente com o
-    resto do site (ícone compacto + anel de nota, mesmo do Ranking)."""
-    resultados = [
-        {"name": "Item A", "score": 80, "price": 10.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
-        {"name": "Item B", "score": 78, "price": 12.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": [],
-         "icon": "hash-b", "name_color": "EB4B4B"},
-    ]
-    _salva_scan(tmp_path, monkeypatch, resultados)
-    body = client.get("/item/Item A").data.decode("utf-8")
-    lista = re.search(
-        r'<ul class="lista-parecidos">(.*?)</ul>', body, re.DOTALL).group(1)
-    assert "icone-item-quadro-compacto" in lista
-    assert "icone-item-quadro-com-imagem" in lista
-    assert "raridade-covert" in lista
-    assert '<span class="nota-numero">78</span>' in lista
 
 
 # ── server: robots.txt / csp-report ─────────────────────────
@@ -5192,26 +4940,11 @@ def test_item_mostra_historico_no_ranking_e_eventos(
                         lambda: [_EVENTO_ARMORY,
                                  dict(_EVENTO_ARMORY, name="Outra Caixa")])
     body = client.get("/item/Kilowatt Case").data.decode("utf-8")
-    assert "Hoje: <strong>#2</strong> no Top 20." in body
-    assert "<strong>2 de 2</strong> dias" in body
-    assert "Melhor posição: <strong>#2</strong>" in body
-    assert body.count('class="faixa-dia faixa-dia-') == 30 + 3
+    # 21/11: histórico no ranking saiu da página (pedido: mais enxuta).
+    assert "no Top 20" not in body and 'class="faixa-dia' not in body
     assert "Mudanças no jogo" in body
     assert "saiu do Armory" in body
     assert "Outra Caixa" not in body
-
-
-def test_item_sem_ranking_salvo_avisa(client, monkeypatch, tmp_path):
-    _salva_scan(tmp_path, monkeypatch, [
-        {"name": "A", "score": 70, "price": 5.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "breakdown": []},
-    ])
-    monkeypatch.setattr(
-        "lodout.public_site.server.ranking.load_snapshots", lambda: [])
-    monkeypatch.setattr(server.gamedata, "load_events_log", lambda: [])
-    body = client.get("/item/A").data.decode("utf-8")
-    assert "Sem ranking nos últimos 30 dias" in body
-    assert "Mudanças no jogo" not in body
 
 
 def test_status_mostra_ritmo_e_itens_em_espera(client, monkeypatch):
@@ -5236,29 +4969,6 @@ def test_api_health_expoe_diagnostico_do_ultimo_ciclo(client, monkeypatch):
     dados = client.get("/api/health").get_json()
     assert dados["ultimo_ciclo_worker"]["pausas_429"] == 2
     assert dados["ultimo_ciclo_worker"]["comparacao_fontes"]["razao_preco"] == 0.01
-
-
-def test_item_mostra_outras_versoes(client, monkeypatch, tmp_path):
-    _salva_scan(tmp_path, monkeypatch, [
-        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 50.0,
-         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
-         "variantes": [
-             {"name": "AK-47 | Redline (Minimal Wear)", "mediana": 120.5,
-              "ts": time.time() - 3600, "compras_24h": 12},
-             {"name": "StatTrak™ AK-47 | Redline (Field-Tested)",
-              "mediana": 99.0, "ts": time.time(), "compras_24h": 3},
-         ]},
-        {"name": "AK-47 | Redline (Minimal Wear)", "score": 60, "price": 120.0,
-         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
-    ])
-    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Outras versões desta skin" in body
-    assert "R$ 120,50" in body
-    # Versão acompanhada pelo site: link interno.
-    assert 'href="/item/AK-47%20%7C%20Redline%20(Minimal%20Wear)"' in body
-    # Versão fora do site: link pro Market.
-    assert ("https://steamcommunity.com/market/listings/730/"
-            "StatTrak%E2%84%A2%20AK-47%20%7C%20Redline%20%28Field-Tested%29") in body
 
 
 def test_item_sem_variantes_nao_mostra_secao(client, monkeypatch, tmp_path):
@@ -5480,7 +5190,6 @@ def test_nome_do_item_nao_e_traduzido_pelo_navegador(client, monkeypatch, tmp_pa
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert '<h1 class="titulo-item" translate="no">' in body
-    assert "Ver todos os itens de “Rifles”" in body
     home = client.get("/?ver=vitrine").data.decode("utf-8")
     assert 'class="cartao-item-nome"' in home and 'translate="no">' in home
 
@@ -6023,24 +5732,10 @@ def test_item_mostra_preco_para_revender_sem_prejuizo(client, monkeypatch, tmp_p
          "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Para revender sem prejuízo" in body
-    assert "<strong>R$ 115,00</strong>" in body
-    assert "15% sobre o que você recebe" in body
-
-
-def test_item_mostra_se_a_revenda_ja_deu_certo_no_passado(client, monkeypatch, tmp_path):
-    _salva_scan(tmp_path, monkeypatch, [
-        {"name": "AK-47 | Redline (Field-Tested)", "score": 70, "price": 100.0,
-         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": [],
-         "revenda_historica": {"30": {"pct": 12, "n": 365},
-                               "365": {"pct": 80, "n": 300}}},
-    ])
-    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Quem comprou no último ano recuperou o valor" in body
-    assert '<span class="conta-revenda-prazo">30 dias</span> <strong class="conta-revenda-pct">12%</strong>' in body
-    assert '<span class="conta-revenda-prazo">1 ano</span> <strong class="conta-revenda-pct">80%</strong>' in body
-    assert "90 dias</span>" not in body
-    assert "Mostra o passado, não prevê o futuro" in body
+    # 21/11: a conta fica no simulador ("Venda mínima").
+    assert "Venda mínima" in body
+    assert "R$ 115,00" in body
+    assert "Taxa da Steam de 15% incluída" in body
 
 
 def test_item_avisa_o_prazo_da_steam_para_revender(client, monkeypatch, tmp_path):
@@ -6094,16 +5789,12 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
          "encomenda": {"maior": 75.5, "pedidos": 1234}},
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
-    assert "Comprar por encomenda" in body
-    # 17/11: em destaque, a mesma sugestão do Ranking (frente da fila),
-    # copiável; a conta "para lucrar 20%" fica como referência.
-    assert 'data-copiar-preco="75,51"' in body and "R$ 75,51" in body
-    assert "Um centavo acima da maior encomenda" in body and "R$ 75,50 (1.234 pedidos)" in body
-    assert "24% abaixo do preço de hoje" in body
-    assert "até <strong>R$ 72,46</strong>" in body
-    assert "Fica atrás da fila" in body
+    # 21/11: encomenda e simulação num bloco só (página enxuta), com a
+    # mesma sugestão do Ranking (frente da fila), copiável.
+    assert "Simular compra" in body
+    assert 'data-copiar-preco="75,51"' in body and 'value="75,51"' in body
+    assert "Sugestão: R$ 0,01 acima da maior encomenda (R$ 75,50 · 1.234 pedidos)." in body
     assert "copiar_preco.js" in body and "data-copiado" in body
-    assert "Meta de 20%, ajustável em “Minha conta”" in body
     # Página inicial: a mesma sugestão (sem copiar; copiar fica no item).
     home = client.get("/").data.decode("utf-8")
     assert "Encomendar por <strong>R$ 75,51</strong>" in home
@@ -6220,21 +5911,6 @@ def test_historico_da_nota_compacta_e_apaga_o_velho():
     assert len(recentes) == 8                                     # recentes: todas
     # A comparação do Ranking acha a foto de 100 dias atrás.
     assert nh.snapshot_ate(agora - 99 * 86400)["items"][0]["name"] == "A"
-
-
-def test_item_mostra_grafico_da_nota(client, monkeypatch, tmp_path):
-    from lodout.public_site import notas_historico as nh
-    _salva_scan(tmp_path, monkeypatch, [
-        {"name": "Item N", "score": 70, "price": 1.0, "case_label": "",
-         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []}])
-    agora = time.time()
-    for i, nota in enumerate((60, 90, 70)):
-        nh.gravar_snapshot({"ts": agora - (3 - i) * 21600, "items": [
-            {"name": "Item N", "score": nota, "position": 1}]}, agora=agora)
-    body = client.get("/item/Item N?nota=7d").data.decode("utf-8")
-    assert 'id="historico-nota"' in body and "grafico-nota" in body
-    assert "Nota de 60 a 90 no período, média 73" in body
-    assert 'href="/item/Item%20N?nota=1a#historico-nota"' in body
 
 
 def test_menu_do_topo_marca_a_pagina_atual(client):

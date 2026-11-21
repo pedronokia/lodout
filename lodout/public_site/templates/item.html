@@ -78,12 +78,11 @@
           {# Raridade logo abaixo do nome, não em cima como etiqueta
              (polimento 17/11): o título vem primeiro. #}
           {% if item.raridade_titulo %}
-          <p class="hero-item-tag">{{ item.raridade_titulo }}</p>
+          <p class="hero-item-tag" title="{{ item.raridade_titulo }}">{{ item.raridade_titulo[10:].split(' (')[0].split(' —')[0] }}</p>
           {% endif %}
           <p class="hero-item-acoes">
             <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
-            <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
-            <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
+            <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar</span></button>
             <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
@@ -120,79 +119,50 @@
       {% endif %}
     </section>
 
-    {% if preco_empate %}
     {% include "partials/_na_sua_conta.html" %}
-    <section class="conta-revenda" aria-labelledby="titulo-revenda">
-      <h2 class="conta-revenda-titulo" id="titulo-revenda">Para revender sem prejuízo</h2>
-      <p class="conta-revenda-texto">Comprou por <strong>{{ item.price_fmt }}</strong>? Venda por pelo menos <strong>{{ preco_empate }}</strong> para não perder. A taxa da Steam é de {{ taxa_steam_pct }}% sobre o que você recebe.</p>
-
+    {% if preco_empate %}
+    {# Simulador (revisão 21/11, pedido do usuário: página bem mais enxuta).
+       Encomenda sugerida, simulação e fila num bloco só; sem presets, sem
+       o histórico de revenda e sem o quadro separado de encomenda. #}
+    <section class="conta-revenda simulador-unico" aria-labelledby="titulo-simulador">
+      <h2 class="conta-revenda-titulo" id="titulo-simulador">Simular compra</h2>
+      {% if encomenda_sugestao is mapping %}
+      <p class="simulador-sugestao">Sugestão: R$ 0,01 acima da maior encomenda ({{ encomenda_sugestao.maior_fmt }}{% if encomenda_sugestao.pedidos %} · {{ "{:,}".format(encomenda_sugestao.pedidos).replace(",", ".") }} {{ "pedido" if encomenda_sugestao.pedidos == 1 else "pedidos" }}{% endif %}).</p>
+      {% else %}
+      <p class="simulador-sugestao">Fila de encomendas da Steam não disponível na última coleta.</p>
+      {% endif %}
       <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
-        <div class="simulador-topo">
-          <h3 class="simulador-titulo">Simule sua encomenda</h3>
-        </div>
-        <p class="simulador-desc">Resultado revendendo pelo preço de hoje, já com a taxa.</p>
-
         <div class="simulador-controles">
           <div class="simulador-campo-grupo">
-            <label for="sim-input-encomenda" class="simulador-label">Sua oferta (R$)</label>
+            <label for="sim-input-encomenda" class="simulador-label">Sua oferta</label>
             <div class="simulador-input-linha">
               <div class="simulador-input-wrap">
                 <span class="simulador-moeda">R$</span>
-                <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
+                <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua oferta" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
               </div>
-              <button type="button" id="btn-copiar-sim-oferta" class="copiar-preco btn-copiar-simulador" data-copiar-preco="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}" title="Copiar valor da oferta para colar na encomenda da Steam" aria-label="Copiar valor da oferta">{{ icone("copiar") }}<span class="btn-copiar-simulador-txt">Copiar</span></button>
+              <button type="button" id="btn-copiar-sim-oferta" class="copiar-preco btn-copiar-simulador" data-copiar-preco="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}" title="Copiar para colar na encomenda da Steam" aria-label="Copiar oferta">{{ icone("copiar") }}<span>Copiar</span></button>
             </div>
           </div>
-          <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
+          <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar oferta">
+          <p class="simulador-fila"><strong class="simulador-fila-status" id="sim-fila-status">—</strong> <span id="sim-fila-desc"></span></p>
         </div>
-
-        <div class="simulador-presets" role="group" aria-label="Ofertas rápidas com desconto">
-          <span class="simulador-presets-rotulo">Oferta rápida:</span>
-          <button type="button" class="btn-sim-preset" data-pct="0.95" title="Oferta 5% abaixo do preço atual">-5%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
-          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Oferta que empata revendendo pelo preço de hoje">No empate</button>
-        </div>
-
         <div class="simulador-metricas-grid">
           <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Ponto de empate</span>
+            <span class="simulador-metrica-rotulo">Venda mínima</span>
             <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
-            <span class="simulador-metrica-sub">Venda mínima para não perder</span>
           </div>
           <div class="simulador-metrica-card card-destaque-lucro">
-            <span class="simulador-metrica-rotulo">Lucro revendendo hoje</span>
+            <span class="simulador-metrica-rotulo">Lucro hoje</span>
             <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
             <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
           </div>
-          <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Fila de encomendas</span>
-            <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
-            <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
-          </div>
         </div>
       </div>
-
-      {% include "partials/_aviso_prazo_steam.html" %}
-      {# "Isso já aconteceu antes?" (2026-11-15): calculado na coleta com o
-         histórico completo da Steam (scan_engine/signals.revenda_historica). #}
-      {% set rh = item.revenda_historica or {} %}
-      {% if rh %}
-      <p class="conta-revenda-pergunta">Quem comprou no último ano recuperou o valor vendendo depois de:</p>
-      <ul class="conta-revenda-lista">
-        {% for h, rotulo in [("30", "30 dias"), ("90", "90 dias"), ("365", "1 ano")] if h in rh %}
-        <li><span class="conta-revenda-prazo">{{ rotulo }}</span> <strong class="conta-revenda-pct">{{ rh[h].pct }}%</strong> <span class="conta-revenda-desc">das vezes</span></li>
-        {% endfor %}
-      </ul>
-      <p class="conta-revenda-nota">Já com a taxa. Mostra o passado, não prevê o futuro.</p>
-      {% endif %}
+      <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
+      <p class="conta-revenda-nota">Taxa da Steam de {{ taxa_steam_pct }}% incluída. Não é previsão. Revenda não é imediata: a Steam só libera o item após a data indicada no inventário (<a href="https://help.steampowered.com/pt-br/faqs/view/451E-96B3-D194-50FC" target="_blank" rel="noopener">regras da Steam</a>).</p>
     </section>
     {% endif %}
-    {% include "partials/_encomenda.html" %}
 
-    {# "Por quê" logo depois da nota (2026-11-14): a função da página é
-       entender a nota deste item; antes ele vinha só depois do gráfico. #}
     <h2 class="secao-titulo">Por quê</h2>
     {% if not item.breakdown %}
     <p>{{ item.reasons|join("; ") if item.reasons else "Sem fator em destaque" }}</p>
@@ -205,110 +175,7 @@
       {% endfor %}
     </ul>
     {% endif %}
-    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como cada fator é calculado {{ icone("seta-direita") }}</a></p>
-
-    {% if tem_historico %}
-      <div class="faixa faixa-grafico">
-        <div class="faixa-dentro">
-      <h2 class="secao-titulo">Histórico de preço</h2>
-      <div class="seletor-periodo" role="group" aria-label="Período do gráfico">
-        <a href="{{ url_for('item_detail', name=item.name) }}"{% if not periodo_sel %} aria-current="true"{% endif %}>Tudo</a>
-        {% for p in periodo_opcoes %}
-        <a href="{{ url_for('item_detail', name=item.name, periodo=p) }}"{% if periodo_sel == p %} aria-current="true"{% endif %}>{{ p }}</a>
-        {% endfor %}
-      </div>
-      {% if grafico %}
-      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">
-        <div class="grafico-scrubber-linha" hidden aria-hidden="true"></div>
-        {{ grafico|safe }}
-        <div class="grafico-tooltip" hidden aria-hidden="true"></div>
-      </div>
-      {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
-      {% else %}
-      <p class="texto-sem-dado">Sem preços registrados nesse período.</p>
-      {% endif %}
-        </div>
-      </div>
-    {% endif %}
-
-    {# Histórico da nota (pedido 17/11): a nota muda a cada coleta; o
-       gráfico mostra se ela se mantém ou oscila. Guardado desde 17/11. #}
-    <div class="faixa faixa-grafico" id="historico-nota">
-      <div class="faixa-dentro">
-    <h2 class="secao-titulo">Histórico da nota</h2>
-    <div class="seletor-periodo" role="group" aria-label="Período do gráfico da nota">
-      {% for chave, (_dias, rotulo) in periodos_nota.items() %}
-      <a href="{{ url_for('item_detail', name=item.name, nota=chave, periodo=periodo_sel) }}#historico-nota"{% if periodo_nota == chave %} aria-current="true"{% endif %}>{{ rotulo }}</a>
-      {% endfor %}
-    </div>
-    {% if grafico_nota %}
-    <div class="card grafico-card grafico-nota">{{ grafico_nota|safe }}</div>
-    {% if legenda_nota %}<p class="status-muted">{{ legenda_nota }}</p>{% endif %}
-    {% else %}
-    <p class="texto-sem-dado">O gráfico aparece a partir da segunda coleta.</p>
-    {% endif %}
-      </div>
-    </div>
-
-    {% if variantes %}
-    <h2 class="secao-titulo">Outras versões desta skin</h2>
-    <p class="status-muted">Preço mediano da venda mais recente de cada versão.</p>
-    
-    <div class="wear-matrix-grid">
-      {% for v in variantes %}
-      {% set tag_desgaste = "FN" if "(Factory New)" in v.name else ("MW" if "(Minimal Wear)" in v.name else ("FT" if "(Field-Tested)" in v.name else ("WW" if "(Well-Worn)" in v.name else ("BS" if "(Battle-Scarred)" in v.name else "STD")))) %}
-      {% set is_st = "StatTrak" in v.name %}
-      {% set is_atual = (v.name == item.name) %}
-      <a class="wear-matrix-card{{ ' wear-matrix-card-st' if is_st else '' }}{{ ' wear-matrix-card-atual' if is_atual else '' }}" href="{{ url_for('item_detail', name=v.name) if v.tem_pagina else v.market_url }}" {% if not v.tem_pagina %}target="_blank" rel="noopener"{% endif %}>
-        <div class="wear-matrix-header">
-          <span class="wear-matrix-tag">{{ tag_desgaste }}{% if is_st %} ST{% endif %}</span>
-          {% if is_atual %}
-          <span class="wear-matrix-badge-atual">Versão atual</span>
-          {% elif v.compras_24h is not none and v.compras_24h > 0 %}
-          <span class="wear-matrix-compras">{{ v.compras_24h }} vendas/24h</span>
-          {% endif %}
-        </div>
-        <strong class="wear-matrix-nome" translate="no">{{ v.name_fmt }}</strong>
-        <span class="wear-matrix-preco">{{ v.mediana_fmt }}</span>
-        <span class="wear-matrix-link-txt">{{ "Você está aqui" if is_atual else ("Ver detalhes e nota →" if v.tem_pagina else "Ver na Steam ↗") }}</span>
-      </a>
-      {% endfor %}
-    </div>
-
-    <div class="tabela-wrap" role="region" tabindex="0" aria-label="Outras versões desta skin, com rolagem lateral">
-    <table class="tabela-candidatos tabela-variantes">
-      <thead>
-        <tr><th>Versão</th><th>Mediana</th><th title="Vendas nas 24 horas antes da venda mais recente">Vendas 24 h</th></tr>
-      </thead>
-      <tbody>
-        {% for v in variantes %}
-        <tr>
-          <td>{% if v.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=v.name) }}" translate="no">{{ v.name_fmt }}</a>{% else %}<a class="link-item" href="{{ v.market_url }}" target="_blank" rel="noopener" translate="no">{{ v.name_fmt }}<span class="visualmente-oculto"> (abre no Mercado da Steam, em nova aba)</span></a>{% endif %}</td>
-          <td{% if v.quando %} title="Venda registrada {{ v.quando }}"{% endif %}>{{ v.mediana_fmt }}</td>
-          <td>{{ v.compras_24h if v.compras_24h is not none else "—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
-    {% endif %}
-
-    {% set hr = historico_ranking %}
-    <h2 class="secao-titulo">No ranking</h2>
-    {% if hr.dias_com_ranking %}
-    <p class="historico-ranking-resumo">
-      {% if hr.posicao_atual %}Hoje: <strong>#{{ hr.posicao_atual }}</strong> no Top 20.{% else %}Hoje: fora do Top 20.{% endif %}
-      {% if hr.dias_no_top %}No Top 20 em <strong>{{ hr.dias_no_top }} de {{ hr.dias_com_ranking }}</strong> {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}. Melhor posição: <strong>#{{ hr.melhor_posicao }}</strong>.{% else %}Fora do Top 20 nos últimos {{ hr.dias_com_ranking }} {{ "dia" if hr.dias_com_ranking == 1 else "dias" }}.{% endif %}
-    </p>
-    <ol class="faixa-dias" aria-hidden="true">
-      {% for d in hr.dias %}
-      <li class="faixa-dia faixa-dia-{{ d.estado }}" title="{{ d.data.strftime('%d/%m') }}: {% if d.estado == 'top' %}#{{ d.melhor }} no Top 20{% elif d.estado == 'fora' %}fora do Top 20{% else %}sem ranking salvo{% endif %}"></li>
-      {% endfor %}
-    </ol>
-    <p class="faixa-dias-legenda status-muted" aria-hidden="true"><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-top"></span> no Top 20</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-fora"></span> fora</span><span class="faixa-dias-legenda-item"><span class="faixa-dia faixa-dia-sem_dado"></span> sem dado</span><span class="faixa-dias-legenda-item">do mais antigo ao de hoje</span></p>
-    {% else %}
-    <p class="texto-sem-dado">Sem ranking nos últimos {{ hr.dias|length }} dias.</p>
-    {% endif %}
+    <p><a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a></p>
 
     {% if eventos_jogo %}
     <h2 class="secao-titulo">Mudanças no jogo</h2>
@@ -321,29 +188,6 @@
       </li>
       {% endfor %}
     </ol>
-    <p class="status"><a class="link-com-seta" href="{{ url_for('novidades') }}">Todas as novidades do jogo {{ icone("seta-direita") }}</a></p>
-    {% endif %}
-
-    {% if parecidos %}
-    <h2 class="secao-titulo">Itens parecidos</h2>
-    <ul class="lista-parecidos">
-      {% for p in parecidos %}
-      <li class="item-parecido">
-        <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if p.icon_url else '' }}{{ ' ' ~ p.raridade_classe if p.raridade_classe else '' }}" aria-hidden="true"{% if p.raridade_titulo %} title="{{ p.raridade_titulo }}"{% endif %}>
-          <span class="icone-item-placeholder"></span>
-        {% if p.icon_url %}
-          <img class="icone-item" src="{{ p.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
-        {% endif %}
-        </span>
-        <a class="item-parecido-link" href="{{ url_for('item_detail', name=p.name) }}" translate="no">{{ p.name_fmt }}</a>
-        <span class="nota nota-{{ p.score|nota_classe }}">{{ p.score|nota_anel|safe }}<span class="nota-numero">{{ p.score }}</span></span>
-        <span class="item-parecido-preco">{{ p.price_fmt }}</span>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-    {% if item.category %}
-    <p class="status"><a class="link-com-seta" href="{{ url_for('index', categoria=item.category) }}">Ver todos os itens de “{{ item.category }}” {{ icone("seta-direita") }}</a></p>
     {% endif %}
   </main>
 

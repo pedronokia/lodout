@@ -13073,3 +13073,76 @@ circle.grafico-ponto-interativo.ponto-ativo {
   width: 14px;
   height: 14px;
 }
+
+/* ── Página do item enxuta (revisão 21/11, pedido do usuário) ── */
+
+/* Ações do topo: botão principal + três ações iguais numa linha. */
+.hero-item-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hero-item-acoes .botao-acao { margin: 0; }
+/* Copiar e Compartilhar só com texto: os quatro cabem numa linha no
+   computador. A estrela fica, porque mostra se o item está favoritado. */
+.hero-item-acoes .botao-copiar .icone-ui,
+.hero-item-acoes .botao-compartilhar .icone-ui { display: none; }
+.hero-item-acoes .botao-copiar,
+.hero-item-acoes .botao-compartilhar,
+.hero-item-acoes .botao-favorito {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-sm);
+}
+@media (max-width: 640px) {
+  .hero-item-acoes .botao-acao { flex: 1 1 100%; justify-content: center; }
+  .hero-item-acoes .botao-copiar,
+  .hero-item-acoes .botao-compartilhar,
+  .hero-item-acoes .botao-favorito { flex: 1 1 0; min-width: 0; padding: 0 8px; }
+}
+
+/* Resumo no celular: grade de 2 colunas compacta, sem os vãos de 120-200px. */
+@media (max-width: 640px) {
+  main .resumo-cards.resumo-cards-item {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding: 4px 0;
+  }
+  main .resumo-cards.resumo-cards-item .card {
+    flex: none !important;
+    min-height: 0 !important;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 12px 16px !important;
+    border: 0 !important;
+  }
+  main .resumo-cards.resumo-cards-item .card-caixa,
+  main .resumo-cards.resumo-cards-item .card-coleta { grid-column: 1 / -1; }
+  main .resumo-cards.resumo-cards-item .card-nota-destaque .card-valor.nota {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+}
+
+/* Simulador único */
+.simulador-sugestao { margin: 0 0 var(--sp-3); color: var(--text-muted); font-size: var(--fs-sm); }
+.simulador-fila { margin: var(--sp-2) 0 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.simulador-fila-status { font-weight: 600; }
+.simulador-unico .conta-revenda-nota { margin-top: var(--sp-3); }
+@media (max-width: 640px) {
+  .simulador-unico .simulador-metricas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .simulador-unico .simulador-metrica-card,
+  .simulador-unico .simulador-metrica-card.card-destaque-lucro { padding: var(--sp-3) 0 0; }
+  .simulador-unico .simulador-metrica-card + .simulador-metrica-card {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    padding-left: var(--sp-4);
+  }
+}

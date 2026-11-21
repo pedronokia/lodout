@@ -678,16 +678,13 @@ def create_app() -> Flask:
 
     @app.route("/item/<name>")
     def item_detail(name: str):
-        """Página por item -- permalink compartilhável, com o histórico
-        completo de preço (reaproveita `charts.line_chart_svg`, já usado
-        pro gráfico de visitas) e "itens parecidos" (mesma categoria,
-        nota mais próxima). Sem chamada à Steam: os mesmos dados já
+        """Página por item -- permalink compartilhável. Enxuta desde 21/11
+        (pedido do usuário): resumo, simulador e motivos da nota, sem
+        gráficos nem listas extras. Sem chamada à Steam: os mesmos dados já
         calculados em `_candidatos_filtrados`, filtrados pelo nome.
 
         `com_historico=False` (2026-10-27): esta rota nunca usou
-        `tendencia`/`sparkline` dos ~150 candidatos -- o gráfico próprio
-        da página vem de `hist` (linha abaixo), e `_itens_parecidos` só
-        olha categoria/nota/nome. Mesmo bug que o `index()` já teve
+        `tendencia`/`sparkline` dos ~150 candidatos. Mesmo bug que o `index()` já teve
         corrigido em 2026-10-26 (ler histórico de TODOS os candidatos
         quando só um é exibido), que não tinha se propagado pra cá."""
         scan = scan_store.load_last_scan()
@@ -725,73 +722,10 @@ def create_app() -> Flask:
                 encomenda_sugestao=None,
                 taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
                 na_conta=na_conta), na_conta)
-        # Mesmo achado de performance do index() (2026-11-09): ícone só
-        # no item em destaque + nos parecidos exibidos, não nos ~150
-        # candidatos inteiros cruzados só pra achar este item.
-        parecidos = _itens_parecidos(item, candidatos)
-        _enriquecer_com_icone([item] + parecidos)
+        # Página enxuta (21/11, pedido do usuário): sem gráficos, parecidos,
+        # outras versões e histórico no ranking. Ícone só deste item.
+        _enriquecer_com_icone([item])
         hist = signals.load_item_history(name)
-        periodo = request.args.get("periodo") or None
-        if periodo not in _PERIODOS_GRAFICO:
-            periodo = None
-        pontos_periodo = [
-            p for p in _filtra_historico_por_periodo(hist, periodo)
-            if p.get("price")]
-        precos_periodo = [p["price"] for p in pontos_periodo]
-        # item #8 da lista de melhorias -- tooltip por ponto (data + preço
-        # exato), via <title> nativo do SVG (ver charts.line_chart_svg).
-        rotulos_periodo = [
-            f"{fmt.data_hora_br(p['ts'])} — {fmt.brl(p['price'])}"
-            for p in pontos_periodo]
-        grafico = charts.line_chart_svg(
-            [{"total": v} for v in precos_periodo], area_fill=True,
-            rotulos=rotulos_periodo)
-        # Cor do gráfico pela direção do PERÍODO EXIBIDO (primeiro vs.
-        # último ponto do recorte atual) -- mesmo critério visual do
-        # mini-sparkline da listagem (achado 2026-11-06), não os 2 últimos
-        # pontos crus do histórico (_tendencia_do_historico): o período
-        # selecionado pelo visitante (7d/30d/90d/tudo) muda o que está na
-        # tela, então a cor tem que acompanhar o que ele está vendo, não
-        # um resumo de fora do recorte. None (preço estável, ou só 1
-        # ponto no recorte) fica na cor neutra de sempre.
-        grafico_tendencia = None
-        if len(precos_periodo) >= 2:
-            if precos_periodo[-1] > precos_periodo[0]:
-                grafico_tendencia = "alta"
-            elif precos_periodo[-1] < precos_periodo[0]:
-                grafico_tendencia = "baixa"
-        # A linha sozinha é normalizada entre o mínimo e o máximo do
-        # próprio recorte -- sem essa legenda, uma subida de R$0,10 e uma
-        # de R$100 desenham a MESMA inclinação na tela, e quem usa leitor
-        # de tela não tem nenhum texto associado ao SVG (achado de
-        # auditoria de acessibilidade, 2026-11-04).
-        grafico_legenda = (
-            f"{fmt.brl(min(precos_periodo))} – {fmt.brl(max(precos_periodo))} no período"
-            if len(precos_periodo) >= 2 else None)
-        # Período com poucos pontos: `grafico` pode ficar vazio mesmo
-        # havendo histórico (90d filtrado demais, por exemplo). O seletor
-        # continua aparecendo nesse caso -- só o gráfico some, pra deixar
-        # claro que é falta de dado NESSE recorte, não no item.
-        tem_historico = sum(1 for p in hist if p.get("price")) >= 2
-        # Histórico da NOTA (pedido 17/11): 7 dias a 1 ano, de
-        # notas_historico (guardado a cada coleta, desde 17/11).
-        periodo_nota = request.args.get("nota") or "30d"
-        if periodo_nota not in _PERIODOS_NOTA:
-            periodo_nota = "30d"
-        dias_nota = _PERIODOS_NOTA[periodo_nota][0]
-        agora_nota = time.time()
-        serie_nota = notas_historico.serie(name, dias_nota, agora=agora_nota)
-        grafico_nota = charts.line_chart_svg(
-            [{"total": p["score"]} for p in serie_nota], area_fill=True,
-            rotulos=[f"{fmt.data_hora_br(p['ts'])} — nota {p['score']}" for p in serie_nota])
-        legenda_nota = None
-        if len(serie_nota) >= 2:
-            notas_v = [p["score"] for p in serie_nota]
-            legenda_nota = (f"Nota de {min(notas_v)} a {max(notas_v)} no período, "
-                            f"média {round(sum(notas_v) / len(notas_v))}")
-            if serie_nota[0]["ts"] > agora_nota - (dias_nota - 1) * 86400:
-                legenda_nota += f" (guardada desde {fmt.dia_mes_br(serie_nota[0]['ts'])})"
-            legenda_nota += "."
         na_conta = _na_sua_conta(name)
         fila_encomenda = next((r.get("encomenda") for r in (scan or {}).get("results") or []
                                if r.get("name") == name), None)
@@ -799,23 +733,8 @@ def create_app() -> Flask:
             "item.html",
             item=item,
             na_conta=na_conta,
-            grafico=grafico,
-            grafico_tendencia=grafico_tendencia,
-            grafico_legenda=grafico_legenda,
-            tem_historico=tem_historico,
-            periodo_sel=periodo,
-            periodo_opcoes=list(_PERIODOS_GRAFICO),
-            grafico_nota=grafico_nota,
-            legenda_nota=legenda_nota,
-            periodo_nota=periodo_nota,
-            periodos_nota=_PERIODOS_NOTA,
-            parecidos=parecidos,
             tempo_aposentadoria=_tempo_desde_aposentadoria(item.get("case_retired_at")),
-            historico_ranking=ranking.historico_do_item(
-                name, dias=_DIAS_HISTORICO_RANKING, tz=fmt.FUSO_BR),
             eventos_jogo=_eventos_do_jogo(set(), so_do_item=name),
-            variantes=_variantes_para_tela(
-                item, {c["name"] for c in candidatos}),
             itens_da_caixa=cases.skins_in_case(item.get("case")),
             # "Para revender sem prejuízo" (2026-11-15): quem entra no site
             # compra pensando em vender mais caro depois, e muito iniciante
@@ -827,8 +746,6 @@ def create_app() -> Flask:
                                      encomenda.meta_do_visitante()),
             # A mesma sugestão do Ranking (frente da fila), copiável (17/11).
             encomenda_sugestao=encomenda.sugestao(item.get("price"), fila_encomenda),
-            quando_fila=(scan_store.idade_txt(scan["ts"])
-                         if fila_encomenda and (scan or {}).get("ts") else None),
             taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             # Preço mais recente DESTE item específico -- cada item do
             # scan é coletado em instantes diferentes dentro do ciclo de
@@ -2040,18 +1957,6 @@ def _tempo_desde_aposentadoria(data_iso: "str | None") -> "str | None":
     return f"{anos:.1f} anos" if anos >= 1 else f"{dias} dia{'s' if dias != 1 else ''}"
 
 
-def _itens_parecidos(item: dict, candidatos: list[dict], limite: int = 5) -> list[dict]:
-    """Mesma categoria, nota mais próxima primeiro (nunca o próprio item).
-    [] sem categoria -- sem isso o item.html teria que checar na mão."""
-    cat = item.get("category")
-    if not cat:
-        return []
-    mesma_cat = [c for c in candidatos
-                if c.get("category") == cat and c["name"] != item["name"]]
-    mesma_cat.sort(key=lambda c: abs((c.get("score") or 0) - (item.get("score") or 0)))
-    return mesma_cat[:limite]
-
-
 # Quantos itens aparecem nos cards de "maiores mudanças de nota" (home).
 _MOVIMENTOS_DESTAQUE = 3
 
@@ -2075,8 +1980,6 @@ _PERIODOS_CONSISTENCIA = {
     "365d": (365, "1 ano"),
 }
 _PERIODO_CONSISTENCIA_PADRAO = "7d"
-# Janela do "histórico no ranking" da página do item.
-_DIAS_HISTORICO_RANKING = 30
 # Folga pra um ciclo que terminou um pouco mais cedo ainda contar como
 # "de 24h atrás" (é a mesma régua de 20h que `_resumo_do_dia` já usava).
 _FOLGA_PERIODO_H = 4
@@ -2340,33 +2243,6 @@ def _noticias_oficiais() -> "list[dict]":
     return out
 
 
-def _variantes_para_tela(item: dict,
-                         com_pagina: "set[str]") -> "list[dict]":
-    """Outras versões da skin (ver `scan_engine._resumo_variantes`) com
-    nome em português, preço formatado e link: pra página do lodout
-    quando o site acompanha aquela versão, senão pro Market."""
-    out = []
-    for v in item.get("variantes") or []:
-        if not isinstance(v, dict) or not v.get("name"):
-            continue
-        nome = v["name"]
-        ts = v.get("ts")
-        out.append({
-            "name": nome,
-            "name_fmt": localize_name(nome),
-            "mediana_fmt": (fmt.brl(v["mediana"])
-                            if isinstance(v.get("mediana"), (int, float))
-                            else "—"),
-            "compras_24h": v.get("compras_24h"),
-            "quando": (scan_store.idade_txt(ts)
-                       if isinstance(ts, (int, float)) else None),
-            "tem_pagina": nome in com_pagina,
-            "market_url": _MARKET_LISTING_URL.format(
-                name=urllib.parse.quote(nome, safe="")),
-        })
-    return out
-
-
 # Progresso gravado há mais que isto não é "agora": o worker grava a cada
 # item (~9 s), então 3 min sem atualizar = ciclo parado ou já terminou.
 _PROGRESSO_VIVO_S = 180
@@ -2448,32 +2324,6 @@ def _sparkline_do_historico(hist: list) -> str:
     pontos = [{"total": p["price"]} for p in hist[-20:] if p.get("price")]
     return charts.line_chart_svg(
         pontos, width=120, height=28, padding=2, css_class="mini-sparkline")
-
-
-# Dias de cada opção do seletor de período do gráfico em `/item/<name>`
-# (achado 2026-11-02, pesquisa de sites de skin: um período fixo de 60
-# pontos não deixa claro se o visitante está vendo a tendência real ou só
-# ruído de curto prazo). "tudo" (sem entrada aqui) mantém o recorte
-# padrão de sempre, pra não mudar o comportamento de quem não escolhe nada.
-_PERIODOS_GRAFICO = {"7d": 7, "30d": 30, "90d": 90}
-# Gráfico da nota na página do item (17/11): chave da URL -> (dias, rótulo).
-_PERIODOS_NOTA = {"7d": (7, "7 dias"), "30d": (30, "30 dias"),
-                  "90d": (90, "90 dias"), "1a": (365, "1 ano")}
-
-
-def _filtra_historico_por_periodo(hist: list, periodo: "str | None") -> list:
-    """Recorta `hist` pelos últimos N dias de `_PERIODOS_GRAFICO`.
-
-    `ts` é sempre um timestamp Unix (float) gravado por
-    `signals.record_item_price` -- mesmo formato que `scan_store.idade_txt`
-    já espera. Período desconhecido ou "tudo" caem no recorte padrão de
-    sempre (os últimos 60 pontos), sem filtrar por data.
-    """
-    dias = _PERIODOS_GRAFICO.get(periodo or "")
-    if not dias:
-        return hist[-60:]
-    corte = time.time() - dias * 86400
-    return [p for p in hist if (p.get("ts") or 0) >= corte]
 
 
 def _enriquecer_com_icone(candidatos: list[dict]) -> None:

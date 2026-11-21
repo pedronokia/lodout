@@ -781,15 +781,15 @@ if ("serviceWorker" in navigator) {
       if (maiorEncomenda > 0) {
         if (valorPago > maiorEncomenda) {
           elFila.textContent = "Na frente da fila";
-          elFila.className = "simulador-metrica-val texto-positivo";
+          elFila.className = "simulador-fila-status texto-positivo";
           elFilaDesc.textContent = "Acima da maior encomenda (" + formatarBrl(maiorEncomenda) + ")";
         } else if (Math.abs(valorPago - maiorEncomenda) < 0.01) {
           elFila.textContent = "Empatado no topo";
-          elFila.className = "simulador-metrica-val texto-alerta";
+          elFila.className = "simulador-fila-status texto-alerta";
           elFilaDesc.textContent = "Igual à maior encomenda";
         } else {
           elFila.textContent = "Atrás da fila";
-          elFila.className = "simulador-metrica-val texto-muted";
+          elFila.className = "simulador-fila-status texto-muted";
           elFilaDesc.textContent = "Maior encomenda: " + formatarBrl(maiorEncomenda);
         }
       } else {

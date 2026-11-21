@@ -11,6 +11,15 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-21",
+        "titulo": "Página do item mais enxuta",
+        "itens": [
+            "A página de cada item ficou com o essencial: nome, nota, preço, risco, simulador de compra e o porquê da nota. Saíram os gráficos de preço e de nota, as outras versões da skin, o histórico no ranking e os itens parecidos. No celular, a página ficou cerca de 40% mais curta.",
+            "Encomenda e simulador viraram um quadro só, “Simular compra”: já vem com a sugestão de R$ 0,01 acima da maior encomenda, que você pode ajustar, copiar e comparar com a venda mínima e o lucro de hoje.",
+            "Botões do topo numa linha só (Copiar, Compartilhar e Favoritar) e resumo da nota em duas colunas no celular.",
+        ],
+    },
+    {
         "data": "2026-11-20",
         "titulo": "Preço certo nos desgastes, textos mais simples e site mais leve no celular",
         "itens": [

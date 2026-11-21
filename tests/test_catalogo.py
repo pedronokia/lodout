@@ -275,7 +275,7 @@ def test_pagina_de_item_so_do_catalogo(client):
     # Sem fila de encomendas no catálogo: o quadro mostra só "encomende por
     # até", nunca a sugestão vazia (revisão 20/11: aparecia "…, , e %").
     assert "encomende por até" in body
-    assert "data-copiar-preco" not in body
+    assert 'data-copiar-preco=""' not in body
     assert ", , e" not in body
     assert client.get("/item/Item Arriscado").status_code == 404
     assert client.get("/item/Nao Existe").status_code == 404
