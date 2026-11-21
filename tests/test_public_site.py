@@ -3226,6 +3226,83 @@ def test_worker_alert_backup_dedup_nao_manda_de_novo(monkeypatch, tmp_path):
     assert len(chamadas) == 1
 
 
+# ── worker_alert: catálogo amplo travado ───────────────────────
+
+def test_worker_alert_catalogo_sem_webhook_nao_alerta(monkeypatch, tmp_path):
+    monkeypatch.delenv("LODOUT_ADMIN_DISCORD_WEBHOOK", raising=False)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "ligado",
+        lambda: (_ for _ in ()).throw(AssertionError(
+            "não devia nem checar o catálogo sem webhook configurado")))
+    assert worker_alert.verificar_catalogo_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_catalogo_desligado_nao_alerta(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: False)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "resumo",
+        lambda: (_ for _ in ()).throw(AssertionError(
+            "não devia ler o resumo com o catálogo desligado")))
+    assert worker_alert.verificar_catalogo_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_catalogo_sem_volta_ainda_nao_alerta(monkeypatch, tmp_path):
+    # Catálogo ligado agora mesmo (nenhuma volta completa ainda) não é atraso.
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "resumo", lambda: {"ultima_completa_ts": None})
+    assert worker_alert.verificar_catalogo_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_catalogo_recente_nao_alerta(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "resumo",
+        lambda: {"ultima_completa_ts": time.time() - 5 * 3600})
+    assert worker_alert.verificar_catalogo_e_alertar(
+        path=tmp_path / "estado.json") is False
+
+
+def test_worker_alert_catalogo_atrasado_manda(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "resumo",
+        lambda: {"ultima_completa_ts": time.time() - 80 * 3600,
+                 "motivo": "bloqueio", "bloqueios": 4})
+    chamadas = []
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: chamadas.append(msg) or True)
+    assert worker_alert.verificar_catalogo_e_alertar(
+        path=tmp_path / "estado.json") is True
+    assert "80h" in chamadas[0]
+    assert "bloqueio" in chamadas[0]
+
+
+def test_worker_alert_catalogo_dedup_nao_manda_de_novo(monkeypatch, tmp_path):
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(
+        worker_alert.catalogo, "resumo",
+        lambda: {"ultima_completa_ts": time.time() - 80 * 3600,
+                 "motivo": "bloqueio", "bloqueios": 4})
+    chamadas = []
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: chamadas.append(1) or True)
+    p = tmp_path / "estado.json"
+    assert worker_alert.verificar_catalogo_e_alertar(path=p) is True
+    assert worker_alert.verificar_catalogo_e_alertar(path=p) is False
+    assert len(chamadas) == 1
+
+
 # ── worker: ordenação por nota anterior + progresso ─────────
 
 def test_ordenar_por_nota_anterior_prioriza_nota_alta(monkeypatch, tmp_path):
