@@ -799,6 +799,7 @@ if ("serviceWorker" in navigator) {
   var elMetaCSFloatSub = document.getElementById("meta-csfloat-sub");
   var elMetaVantagem = document.getElementById("meta-vantagem-val");
   var elMetaVantagemSub = document.getElementById("meta-vantagem-sub");
+  var btnCopiarSimOferta = document.getElementById("btn-copiar-sim-oferta");
 
   // Mesmo formato do resto do site (fmt.brl): "R$ 1.234,56" e prejuízo
   // como "−R$ 2,82" (revisão 19/11: saía "R$ -2,82").
@@ -818,6 +819,9 @@ if ("serviceWorker" in navigator) {
   }
   function calcular(valorPago) {
     if (isNaN(valorPago) || valorPago <= 0) return;
+    if (btnCopiarSimOferta) {
+      btnCopiarSimOferta.setAttribute("data-copiar-preco", escreverValor(valorPago));
+    }
     var pontoEmpate = valorPago * 1.15;
     if (elEmpate) elEmpate.textContent = formatarBrl(pontoEmpate);
     if (precoAtual > 0) {

@@ -2878,6 +2878,21 @@ def test_item_detail_grafico_tem_scrubber_linha(client, monkeypatch, tmp_path):
     assert 'data-val="12.00"' in body
 
 
+def test_item_detail_sem_fila_tem_botao_copiar_encomenda(client, monkeypatch, tmp_path):
+    """Quando o item não tem dados de fila (encomenda_sugestao é None),
+    o valor do 'encomende por até' também deve ser um botão copiar-preco."""
+    resultados = [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "category": "Rifles", "pump_risk": {"level": "low"},
+         "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert 'class="encomenda-valor"' in body
+    assert 'class="copiar-preco"' in body
+    assert 'data-copiar-preco="36,23"' in body
+
+
 def test_item_detail_fileira_de_stats_com_nota_em_destaque(
         client, monkeypatch, tmp_path):
     resultados = [

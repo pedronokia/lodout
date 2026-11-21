@@ -52,6 +52,7 @@ def info(preco_hoje: "float | None", dado_scan: "dict | None", meta: int) -> "di
     return {
         "ate": ate,
         "ate_fmt": fmt.brl(ate),
+        "copiar": f"{ate:.2f}".replace(".", ","),
         "meta": meta,
         "maior_fmt": fmt.brl(maior) if maior else None,
         "pedidos": pedidos if isinstance(pedidos, int) else None,

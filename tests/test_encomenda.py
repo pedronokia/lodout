@@ -13,6 +13,7 @@ def test_conta_da_encomenda():
     assert i["situacao"] == "acima"
     assert encomenda.info(100.0, {"maior": 80.0}, 20)["situacao"] == "abaixo"
     assert encomenda.info(100.0, None, 50)["ate_fmt"] == "R$ 57,97"
+    assert encomenda.info(100.0, None, 50)["copiar"] == "57,97"
     assert encomenda.info(None, None, 20) is None
 
 

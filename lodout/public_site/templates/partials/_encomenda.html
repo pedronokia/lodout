@@ -18,7 +18,8 @@
   {%- if encomenda.situacao == "abaixo" %} Fica atrás da fila e pode não ser atendido.{% endif %}</p>
   {% else %}
   <p class="conta-revenda-texto">Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo hoje, encomende por até:</p>
-  <p class="encomenda-valor">{{ encomenda.ate_fmt }}</p>
+  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ encomenda.copiar }}" title="Copiar {{ encomenda.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ encomenda.ate_fmt }}, encomende por até">{{ encomenda.ate_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
+  <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
   {% if encomenda.maior_fmt %}
   <p class="conta-revenda-texto">Maior encomenda hoje: <strong>{{ encomenda.maior_fmt }}</strong>{% if encomenda.pedidos %} ({{ "{:,}".format(encomenda.pedidos).replace(",", ".") }} {{ "pedido" if encomenda.pedidos == 1 else "pedidos" }}){% endif %}.
   {%- if encomenda.situacao == "acima" %} Seu valor ficaria na frente.

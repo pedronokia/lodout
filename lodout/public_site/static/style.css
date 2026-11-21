@@ -13367,6 +13367,39 @@ circle.grafico-ponto-interativo.ponto-ativo {
   background: var(--surface-hover);
 }
 
+.simulador-input-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.btn-copiar-simulador {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  height: 32px;
+  transition: all var(--dur-base) var(--ease-standard);
+}
+
+.btn-copiar-simulador:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--text-bright);
+}
+
+.btn-copiar-simulador .icone-ui {
+  width: 14px;
+  height: 14px;
+}
+
 @media (max-width: 640px) {
   .item-sticky-bar {
     top: auto;
