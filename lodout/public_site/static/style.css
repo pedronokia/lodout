@@ -8829,10 +8829,11 @@ h3,
 }
 
 .filtros-cabecalho-popover {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 4px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -8853,29 +8854,34 @@ h3,
   color: var(--accent);
 }
 
-.filtros-fechar-popover {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1rem;
-  line-height: 1;
+.form-filtros button.filtros-fechar-popover {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  padding: 0 !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.filtros-fechar-popover:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+.form-filtros button.filtros-fechar-popover:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
 }
 
 .filtros-favoritos-linha {
-  margin-bottom: 14px;
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
 }
 
 .botao-filtro-favorito-item {
