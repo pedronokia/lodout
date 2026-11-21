@@ -302,9 +302,15 @@ def create_app() -> Flask:
             `SEND_FILE_MAX_AGE_DEFAULT` de 1 ano (pedido, 2026-10-25): sem
             isso, aumentar o cache-control faria o navegador ficar com
             `style.css`/`app.js` velhos até expirar, mesmo depois de um
-            deploy. Cada build muda o `?v=`, então o navegador sempre busca
+            deploy. Cada build/modificação muda o `?v=`, então o navegador sempre busca
             de novo quando o conteúdo de fato mudou."""
-            return f"{url_for('static', filename=filename)}?v={build or 'dev'}"
+            filepath = Path(app.static_folder or "") / filename
+            try:
+                mtime = int(filepath.stat().st_mtime)
+                v = f"{build}-{mtime}" if build else str(mtime)
+            except OSError:
+                v = build or "dev"
+            return f"{url_for('static', filename=filename)}?v={v}"
 
         return {
             "versao": f"{__version__} ({build})" if build else __version__,
