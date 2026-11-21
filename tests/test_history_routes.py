@@ -49,17 +49,17 @@ def test_listar_sem_pontos_mostra_empty_state(client, monkeypatch):
     _login(client, monkeypatch)
     resp = client.get("/conta/historico")
     assert resp.status_code == 200
-    assert "Nenhum ponto registrado".encode("utf-8") in resp.data
+    assert "Nenhum item vendido".encode("utf-8") in resp.data
+    assert "O gráfico aparece quando o valor do inventário mudar".encode("utf-8") in resp.data
 
 
 def test_visitar_conta_grava_ponto_de_historico(client, monkeypatch):
     _login(client, monkeypatch)
     client.get("/conta")  # portfolio vazio -> totals.market == 0.0
-    pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert "Nenhum ponto registrado" not in pagina
-    assert "R$" in pagina
-    assert 'class="tabela-candidatos tabela-cards-mobile tabela-conta-lista"' in pagina
-    assert 'data-label="Valor de mercado"' in pagina
+    from lodout.public_site import user_history
+    pontos = user_history.load_history("76561198000000000")
+    assert len(pontos) == 1
+    assert pontos[0]["total"] == 0.0
 
 
 def test_visitar_conta_duas_vezes_sem_mudar_nao_duplica(client, monkeypatch):
@@ -95,7 +95,7 @@ def test_historico_mostra_hora_de_brasilia_nao_utc(client, monkeypatch):
     # achado 2026-11-08: a data usava time.localtime() -- no servidor
     # (container roda em UTC, sem TZ configurado) isso mostrava a hora
     # UTC como se fosse a do visitante, 3h adiantada em relação a
-    # Brasília.
+    # Brasília. Tooltip do gráfico SVG traz data/hora em Brasília.
     _login(client, monkeypatch)
     from lodout.public_site import user_history
     import datetime
@@ -103,6 +103,8 @@ def test_historico_mostra_hora_de_brasilia_nao_utc(client, monkeypatch):
         2024, 1, 2, 2, 30, tzinfo=datetime.timezone.utc).timestamp()
     user_history.record_if_changed(
         "76561198000000000", 50.0, now=ts_utc)
+    user_history.record_if_changed(
+        "76561198000000000", 80.0, now=ts_utc + 3600)
     pagina = client.get("/conta/historico").data.decode("utf-8")
     assert "01/01/2024 23:30" in pagina
     assert "02/01/2024 02:30" not in pagina
@@ -136,5 +138,7 @@ def test_historico_isolado_entre_contas(client, monkeypatch):
     client.get("/conta")
     client.get("/logout")
     _login(client, monkeypatch, steamid="222")
+    from lodout.public_site import user_history
+    assert user_history.load_history("222") == []
     pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert "Nenhum ponto registrado".encode("utf-8") in pagina.encode("utf-8")
+    assert "O gráfico aparece quando o valor do inventário mudar" in pagina

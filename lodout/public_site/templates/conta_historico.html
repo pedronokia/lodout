@@ -71,7 +71,7 @@
       <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” no seu inventário para registrar.</p>
     {% endif %}
 
-    {# Evolução do valor do inventário e pontos registrados #}
+    {# Evolução do valor do inventário #}
     <h2 class="secao-titulo">Evolução do valor do inventário</h2>
     {% if grafico %}
       <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
@@ -79,35 +79,9 @@
     {% else %}
       <p class="status status-vazio">O gráfico aparece quando o valor do inventário mudar.</p>
     {% endif %}
-
-    <h2 class="secao-titulo">Pontos registrados</h2>
-    {% if pontos %}
-    <p class="dica-rolagem-tabela dica-rolagem-tabela-conta">Deslize a tabela para ver mais colunas.</p>
-    <div class="tabela-wrap tabela-wrap-cards" role="region" tabindex="0" aria-label="Tabela de pontos registrados do histórico, com rolagem lateral">
-    <table class="tabela-candidatos tabela-cards-mobile tabela-conta-lista">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th class="col-num">Valor de mercado</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in pontos %}
-        <tr>
-          <td data-label="Data" class="celula-data">{{ p.data }}</td>
-          <td data-label="Valor de mercado" class="celula-numero">{{ p.total_fmt }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
-    {% else %}
-      <p class="status status-vazio">Nenhum ponto registrado ainda.</p>
-    {% endif %}
   </main>
 
   <footer class="rodape">
-    <p>Valor de mercado no momento de cada visita.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% with dialogo_titulo="Desfazer", dialogo_texto="A venda sai do histórico e o item volta para o seu inventário, com o valor pago, marcado como “fora do inventário”. Use se marcou “Vendi” por engano.", dialogo_botao="Desfazer venda", dialogo_botao_classe="botao-acao" %}{% include "partials/_dialogo_remover.html" %}{% endwith %}

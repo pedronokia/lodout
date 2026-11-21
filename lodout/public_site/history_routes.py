@@ -34,11 +34,6 @@ def listar():
     # mesmo se não for).
     series = sorted(user_history.load_history(steamid),
                     key=lambda p: p.get("ts") or 0)
-    pontos = [
-        {"data": fmt.data_hora_br(p["ts"]), "total_fmt": fmt.brl(p["total"])}
-        for p in series
-    ]
-    pontos.reverse()
 
     valores = [p["total"] for p in series]
     # Mesmo padrão do gráfico de preço em /item/<name>: tooltip por ponto
@@ -90,7 +85,6 @@ def listar():
         grafico=charts.line_chart_svg(series, area_fill=True, rotulos=rotulos),
         grafico_tendencia=grafico_tendencia,
         grafico_legenda=grafico_legenda,
-        pontos=pontos,
     )
 
 
