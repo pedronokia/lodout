@@ -552,8 +552,10 @@
       {% if ver_sel == 'vitrine' %}
       <div class="ordenar-vitrine" role="group" aria-label="Ordenar itens">
         <span class="ordenar-vitrine-rotulo">Ordenar por:</span>
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='vitrine') }}"{% if ordenar_sel == 'nota' %} aria-current="page"{% endif %}>Nota</a>
-        <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='vitrine') }}"{% if ordenar_sel == 'preco' %} aria-current="page"{% endif %}>Preço</a>
+        <div class="seletor-ordenar">
+          <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='nota', ver='vitrine') }}"{% if ordenar_sel == 'nota' %} aria-current="page"{% endif %}>Nota</a>
+          <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='vitrine') }}"{% if ordenar_sel == 'preco' %} aria-current="page"{% endif %}>Preço</a>
+        </div>
       </div>
       {% endif %}
       {% include "partials/_legenda_raridade.html" %}
