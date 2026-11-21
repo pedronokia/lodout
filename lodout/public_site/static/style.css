@@ -13105,3 +13105,288 @@ button.confira { min-height: 24px; padding-block: 3px; }
 
 /* Busca rápida: o contorno de foco do campo acompanha o canto arredondado. */
 .spotlight-input:focus-visible { border-radius: 8px; }
+
+/* ==========================================================================
+   29. Item Detail Polish: Scrubber, Meta Reversa, Sticky Bar & Comparar
+   ========================================================================== */
+
+/* ── 1. Gráfico de Preço: Scrubber & Linha Guia Fluida ── */
+.grafico-card {
+  position: relative;
+  overflow: visible;
+}
+
+.grafico-scrubber-linha {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 0 6px var(--accent);
+  transition: opacity 0.1s ease;
+}
+
+.grafico-scrubber-linha[hidden] {
+  display: none;
+}
+
+circle.grafico-ponto-interativo.ponto-ativo {
+  stroke: var(--accent);
+  stroke-width: 3px;
+  fill: var(--accent);
+  r: 5px;
+}
+
+.gt-linha-preco {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.gt-variacao {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 2. Simulador: Abas e Meta Reversa de ROI ── */
+.simulador-abas {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.simulador-aba {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-standard);
+}
+
+.simulador-aba:hover {
+  color: var(--text-bright);
+  background: var(--surface-hover);
+}
+
+.simulador-aba.ativa {
+  color: var(--accent);
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+}
+
+.simulador-painel-reversa[hidden] {
+  display: none;
+}
+
+.btn-meta-preset {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-standard);
+}
+
+.btn-meta-preset:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--text-bright);
+}
+
+.btn-meta-preset.ativo {
+  border-color: var(--positive);
+  color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 12%, transparent);
+  font-weight: 600;
+}
+
+/* ── 3. Barra Flutuante Compacta no Scroll (Sticky Capsule) ── */
+.item-sticky-bar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: min(calc(100% - 32px), 940px);
+  z-index: 95;
+  background: rgba(22, 22, 22, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  padding: 8px 16px;
+  transition: opacity var(--dur-base) var(--ease-standard),
+              transform var(--dur-base) var(--ease-standard),
+              visibility var(--dur-base);
+}
+
+.item-sticky-bar[hidden] {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(-14px);
+  pointer-events: none;
+}
+
+.item-sticky-dentro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.item-sticky-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.item-sticky-thumb {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.item-sticky-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.item-sticky-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item-sticky-nome {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.item-sticky-tag {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.item-sticky-dados {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+}
+
+.item-sticky-nota {
+  font-size: 0.8125rem;
+}
+
+.item-sticky-preco {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.item-sticky-acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.item-sticky-btn {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* ── 4. Botão de Comparação Rápida em 1 Clique ── */
+.botao-comparar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-standard);
+  height: 32px;
+}
+
+.botao-comparar-item:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--text-bright);
+}
+
+.botao-comparar-item.ativo {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.botao-comparar-item .icone-ui {
+  width: 14px;
+  height: 14px;
+}
+
+.botao-comparar-sticky {
+  background: var(--surface-hover);
+}
+
+@media (max-width: 640px) {
+  .item-sticky-bar {
+    top: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: calc(100% - 24px);
+    padding: 8px 12px;
+  }
+  .item-sticky-bar[hidden] {
+    transform: translateX(-50%) translateY(16px);
+  }
+  .item-sticky-tag {
+    display: none;
+  }
+  .item-sticky-nome {
+    max-width: 140px;
+  }
+  .botao-comparar-sticky span {
+    display: none;
+  }
+  .botao-comparar-sticky {
+    padding: 6px 8px;
+  }
+}

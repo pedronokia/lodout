@@ -2814,6 +2814,70 @@ def test_item_detail_tem_hero_cinematografico(client, monkeypatch, tmp_path):
     assert "Ver no Mercado da Steam" in body
 
 
+def test_item_detail_tem_sticky_bar_e_atalho_comparar(client, monkeypatch, tmp_path):
+    """Verifica que a página do item contém a barra flutuante compacta
+    (sticky action bar) no scroll, o botão de atalho de comparar e a barra
+    de comparação inferior."""
+    resultados = [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "icon": "skin-icon-hash", "case_label": "", "category": "Rifles",
+         "name_color": "EB4B4B", "pump_risk": {"level": "low"},
+         "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+
+    assert 'id="item-sticky-bar"' in body
+    assert 'item-sticky-bar' in body
+    assert 'botao-comparar-item' in body
+    assert 'botao-comparar-sticky' in body
+    assert 'id="barra-comparar"' in body
+
+
+def test_item_detail_tem_simulador_meta_reversa_e_abas(client, monkeypatch, tmp_path):
+    """Verifica que o simulador na ficha do item tem abas para alternar entre
+    a simulação de oferta e a meta reversa de ROI com CSFloat."""
+    resultados = [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "category": "Rifles",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+
+    assert 'class="simulador-abas"' in body
+    assert 'id="tab-sim-oferta"' in body
+    assert 'id="tab-sim-meta"' in body
+    assert 'id="painel-sim-oferta"' in body
+    assert 'id="painel-sim-reversa"' in body
+    assert 'id="meta-steam-val"' in body
+    assert 'id="meta-csfloat-val"' in body
+    assert 'id="meta-vantagem-val"' in body
+
+
+def test_item_detail_grafico_tem_scrubber_linha(client, monkeypatch, tmp_path):
+    """Verifica que o gráfico histórico renderiza a linha guia do scrubber
+    e os pontos com dados para cálculo de variação."""
+    resultados = [
+        {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
+         "pump_risk": {"level": "low"}, "category": "Facas", "breakdown": []},
+    ]
+    _salva_scan(tmp_path, monkeypatch, resultados)
+    agora = time.time()
+    hist = [
+        {"ts": agora - 100 * 86400, "price": 10.0},
+        {"ts": agora - 2 * 86400, "price": 12.0},
+    ]
+    monkeypatch.setattr(
+        "lodout.public_site.server.signals.load_item_history",
+        lambda name: hist)
+    body = client.get("/item/Item X").data.decode("utf-8")
+
+    assert 'class="grafico-scrubber-linha"' in body
+    assert 'data-val="10.00"' in body
+    assert 'data-val="12.00"' in body
+
+
 def test_item_detail_fileira_de_stats_com_nota_em_destaque(
         client, monkeypatch, tmp_path):
     resultados = [

@@ -68,7 +68,8 @@ def line_chart_svg(series: "list[dict]", width: int = 640, height: int = 160,
         pontos_svg = "".join(
             f'<circle cx="{_x(i):.1f}" cy="{_y(v):.1f}" r="7" '
             f'fill="transparent" class="grafico-ponto-interativo" '
-            f'data-info="{_xml_escape(rotulo)}" data-cx="{_x(i):.1f}" data-cy="{_y(v):.1f}">'
+            f'data-info="{_xml_escape(rotulo)}" data-cx="{_x(i):.1f}" data-cy="{_y(v):.1f}" '
+            f'data-val="{v:.2f}" data-idx="{i}">'
             f'<title>{_xml_escape(rotulo)}</title></circle>'
             for i, (v, rotulo) in enumerate(zip(valores, rotulos)))
 

@@ -61,6 +61,36 @@
     </div>
   </header>
 
+  {# Barra flutuante compacta no scroll (sticky action bar) #}
+  <aside class="item-sticky-bar" id="item-sticky-bar" hidden aria-hidden="true">
+    <div class="item-sticky-dentro">
+      <div class="item-sticky-item">
+        <span class="item-sticky-thumb">
+          {% if item.icon_url %}
+          <img src="{{ item.icon_url }}" alt="" width="32" height="32" loading="lazy">
+          {% endif %}
+        </span>
+        <div class="item-sticky-texto">
+          <strong class="item-sticky-nome" translate="no">{{ item.name_fmt }}</strong>
+          {% if item.raridade_titulo %}
+          <span class="item-sticky-tag">{{ item.raridade_titulo }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="item-sticky-dados">
+        <span class="item-sticky-nota nota nota-{{ item.score|nota_classe }}">
+          {{ item.score|nota_anel|safe }}
+          <span class="nota-numero">{{ item.score }}</span>
+        </span>
+        <strong class="item-sticky-preco">{{ item.price_fmt }}</strong>
+      </div>
+      <div class="item-sticky-acoes">
+        <button type="button" class="botao-comparar-item botao-comparar-sticky" data-comparar="{{ item.name }}" data-nome="{{ item.name_fmt }}" aria-pressed="false" title="Comparar esta skin">{{ icone("troca") }}<span class="texto-comparar-btn">Comparar</span></button>
+        <a class="botao-acao item-sticky-btn" href="{{ item.market_url }}" target="_blank" rel="noopener">Mercado Steam ↗</a>
+      </div>
+    </div>
+  </aside>
+
   <main id="conteudo" class="pagina-texto pagina-item">
     <p><a class="link-com-seta" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Voltar à lista</a></p>
 
@@ -84,6 +114,7 @@
             <a class="link-secundario" href="{{ item.steamdb_url }}" target="_blank" rel="noopener">SteamDB</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar nome</span></button>
             <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
+            <button type="button" class="botao-comparar-item" data-comparar="{{ item.name }}" data-nome="{{ item.name_fmt }}" aria-pressed="false" title="Adicionar à bancada de comparação" aria-label="Comparar {{ item.name_fmt }}">{{ icone("troca") }}<span class="texto-comparar-btn">Comparar</span></button>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>
@@ -127,45 +158,95 @@
 
       <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
         <div class="simulador-topo">
-          <h3 class="simulador-titulo">Simule sua encomenda</h3>
+          <h3 class="simulador-titulo">Calculadora de Lucro & Encomenda</h3>
+          <div class="simulador-abas" role="tablist" aria-label="Modo da calculadora">
+            <button type="button" class="simulador-aba ativa" id="tab-sim-oferta" data-modo="oferta" role="tab" aria-selected="true">Simular Oferta</button>
+            <button type="button" class="simulador-aba" id="tab-sim-meta" data-modo="meta" role="tab" aria-selected="false">Meta Reversa de Lucro</button>
+          </div>
         </div>
-        <p class="simulador-desc">Resultado revendendo pelo preço de hoje, já com a taxa.</p>
 
-        <div class="simulador-controles">
-          <div class="simulador-campo-grupo">
-            <label for="sim-input-encomenda" class="simulador-label">Sua oferta (R$)</label>
-            <div class="simulador-input-wrap">
-              <span class="simulador-moeda">R$</span>
-              <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
+        {# Painel 1: Simular Oferta de Compra (modo tradicional) #}
+        <div id="painel-sim-oferta" class="simulador-painel-conteudo">
+          <p class="simulador-desc">Resultado revendendo pelo preço de hoje, já com a taxa da Steam.</p>
+
+          <div class="simulador-controles">
+            <div class="simulador-campo-grupo">
+              <label for="sim-input-encomenda" class="simulador-label">Sua oferta (R$)</label>
+              <div class="simulador-input-wrap">
+                <span class="simulador-moeda">R$</span>
+                <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua encomenda na Steam" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
+              </div>
+            </div>
+            <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
+          </div>
+
+          <div class="simulador-presets" role="group" aria-label="Ofertas rápidas com desconto">
+            <span class="simulador-presets-rotulo">Oferta rápida:</span>
+            <button type="button" class="btn-sim-preset" data-pct="0.95" title="Oferta 5% abaixo do preço atual">-5%</button>
+            <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
+            <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
+            <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
+            <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Oferta que empata revendendo pelo preço de hoje">No empate</button>
+          </div>
+
+          <div class="simulador-metricas-grid">
+            <div class="simulador-metrica-card">
+              <span class="simulador-metrica-rotulo">Ponto de empate</span>
+              <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
+              <span class="simulador-metrica-sub">Venda mínima para não perder</span>
+            </div>
+            <div class="simulador-metrica-card card-destaque-lucro">
+              <span class="simulador-metrica-rotulo">Lucro revendendo hoje</span>
+              <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
+              <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
+            </div>
+            <div class="simulador-metrica-card">
+              <span class="simulador-metrica-rotulo">Fila de encomendas</span>
+              <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
+              <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
             </div>
           </div>
-          <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar valor da encomenda">
         </div>
 
-        <div class="simulador-presets" role="group" aria-label="Ofertas rápidas com desconto">
-          <span class="simulador-presets-rotulo">Oferta rápida:</span>
-          <button type="button" class="btn-sim-preset" data-pct="0.95" title="Oferta 5% abaixo do preço atual">-5%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.90" title="Oferta 10% abaixo do preço atual">-10%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.85" title="Oferta 15% abaixo do preço atual">-15%</button>
-          <button type="button" class="btn-sim-preset" data-pct="0.80" title="Oferta 20% abaixo do preço atual">-20%</button>
-          <button type="button" class="btn-sim-preset btn-preset-breakeven" data-breakeven="true" title="Oferta que empata revendendo pelo preço de hoje">No empate</button>
-        </div>
+        {# Painel 2: Meta Reversa de ROI ("Quero lucrar X%") #}
+        <div id="painel-sim-reversa" class="simulador-painel-conteudo simulador-painel-reversa" hidden>
+          <p class="simulador-desc">Defina o lucro que deseja obter sobre o preço de compra atual ({{ item.price_fmt }}). Calculamos o preço de anúncio necessário na Steam e no CSFloat.</p>
 
-        <div class="simulador-metricas-grid">
-          <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Ponto de empate</span>
-            <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
-            <span class="simulador-metrica-sub">Venda mínima para não perder</span>
+          <div class="simulador-controles">
+            <div class="simulador-campo-grupo">
+              <label for="sim-input-meta" class="simulador-label">Meta de Lucro Líquido</label>
+              <div class="simulador-input-wrap">
+                <span class="simulador-moeda">R$</span>
+                <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-meta" class="simulador-input" aria-label="Meta de lucro desejada em reais" value="{{ ('%.2f'|format((item.price or 10.0) * 0.15))|replace('.', ',') }}">
+              </div>
+            </div>
+            <div class="simulador-presets simulador-presets-meta" role="group" aria-label="Metas rápidas de lucro">
+              <span class="simulador-presets-rotulo">Meta rápida:</span>
+              <button type="button" class="btn-meta-preset" data-tipo="pct" data-val="0.10" title="10% de lucro">+10%</button>
+              <button type="button" class="btn-meta-preset ativo" data-tipo="pct" data-val="0.15" title="15% de lucro">+15%</button>
+              <button type="button" class="btn-meta-preset" data-tipo="pct" data-val="0.25" title="25% de lucro">+25%</button>
+              <button type="button" class="btn-meta-preset" data-tipo="pct" data-val="0.50" title="50% de lucro">+50%</button>
+              <button type="button" class="btn-meta-preset" data-tipo="fixo" data-val="2.00" title="R$ 2,00 líquidos">+R$ 2</button>
+              <button type="button" class="btn-meta-preset" data-tipo="fixo" data-val="5.00" title="R$ 5,00 líquidos">+R$ 5</button>
+            </div>
           </div>
-          <div class="simulador-metrica-card card-destaque-lucro">
-            <span class="simulador-metrica-rotulo">Lucro revendendo hoje</span>
-            <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
-            <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
-          </div>
-          <div class="simulador-metrica-card">
-            <span class="simulador-metrica-rotulo">Fila de encomendas</span>
-            <strong class="simulador-metrica-val" id="sim-fila-status">—</strong>
-            <span class="simulador-metrica-sub" id="sim-fila-desc">em relação às encomendas</span>
+
+          <div class="simulador-metricas-grid">
+            <div class="simulador-metrica-card">
+              <span class="simulador-metrica-rotulo">Anunciar na Steam</span>
+              <strong class="simulador-metrica-val" id="meta-steam-val">R$ 0,00</strong>
+              <span class="simulador-metrica-sub" id="meta-steam-sub">Com taxa de 13,04% (15%)</span>
+            </div>
+            <div class="simulador-metrica-card card-destaque-lucro">
+              <span class="simulador-metrica-rotulo">Anunciar no CSFloat (P2P)</span>
+              <strong class="simulador-metrica-val destaque-verde" id="meta-csfloat-val">R$ 0,00</strong>
+              <span class="simulador-metrica-sub" id="meta-csfloat-sub">Com taxa de 2,0%</span>
+            </div>
+            <div class="simulador-metrica-card">
+              <span class="simulador-metrica-rotulo">Vantagem P2P</span>
+              <strong class="simulador-metrica-val" id="meta-vantagem-val">R$ 0,00</strong>
+              <span class="simulador-metrica-sub" id="meta-vantagem-sub">Anúncio mais competitivo no P2P</span>
+            </div>
           </div>
         </div>
       </div>
@@ -258,6 +339,7 @@
       </div>
       {% if grafico %}
       <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">
+        <div class="grafico-scrubber-linha" hidden aria-hidden="true"></div>
         {{ grafico|safe }}
         <div class="grafico-tooltip" hidden aria-hidden="true"></div>
       </div>
@@ -388,6 +470,13 @@
   <footer class="rodape">
     {% include "partials/_rodape_links.html" %}
   </footer>
+
+  <div id="barra-comparar" class="barra-comparar" hidden>
+    <span class="texto-comparar"><span class="contagem-comparar">0</span>/3 para comparar</span>
+    <span class="aviso-comparar" hidden>Máximo de 3. Desmarque um para trocar.</span>
+    <a class="botao-link link-comparar" href="{{ url_for('comparar') }}">Comparar</a>
+    <button type="button" id="botao-limpar-comparar" class="botao-link botao-remover">Limpar</button>
+  </div>
 
   <div id="toast-notificacao" class="toast-notificacao" hidden aria-live="polite"></div>
 
