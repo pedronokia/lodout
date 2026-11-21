@@ -623,6 +623,12 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         worker_alert.verificar_backup_e_alertar()
     except Exception:
         _logger.warning("alerta de backup falhou", exc_info=True)
+    # Alerta Discord do dono se o catálogo amplo parou de completar uma
+    # volta -- mesmo webhook, dedup próprio de 24h (worker_alert.py).
+    try:
+        worker_alert.verificar_catalogo_e_alertar()
+    except Exception:
+        _logger.warning("alerta de catálogo falhou", exc_info=True)
     return resultados
 
 
