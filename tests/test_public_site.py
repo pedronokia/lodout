@@ -219,15 +219,8 @@ def test_index_mostra_resumo_do_dia_com_alta_e_queda(client, monkeypatch, tmp_pa
     assert "maior alta de nota foi" not in resumo
     assert "maior queda foi" not in resumo
     assert "Nenhum item novo entrou no Top 20" in resumo
-    # item #19: mini-cards com os vaivens de nota, pra alta E pra baixa
-    assert 'class="movimentos-do-dia"' in body
-    cards = body.split('class="movimentos-do-dia"', 1)[1].split("</ul>", 1)[0]
-    assert "X" in cards
-    assert "Y" in cards
-    assert "movimento-alta" in cards
-    assert "movimento-baixa" in cards
-    assert "+30 na nota" in cards
-    assert "-30 na nota" in cards
+    # Seção 'Maiores mudanças de nota hoje' foi removida da home a pedido do usuário
+    assert 'class="movimentos-do-dia"' not in body
 
 
 def test_index_resumo_do_dia_mostra_mesmo_sem_mudanca_de_nota(client, monkeypatch, tmp_path):
@@ -258,10 +251,8 @@ def test_index_resumo_do_dia_mostra_mesmo_sem_mudanca_de_nota(client, monkeypatc
     assert "movimentos-do-dia" not in body
 
 
-def test_index_movimentos_do_dia_limita_a_tres_e_ordena_por_tamanho(
+def test_index_movimentos_do_dia_removido_da_home(
         client, monkeypatch, tmp_path):
-    # item #19: so os 3 maiores vaivens (em modulo) viram card, sem
-    # escolher "melhor" item -- alta e queda contam igual.
     _salva_scan(tmp_path, monkeypatch, [
         {"name": "Item A", "score": 70, "price": 1.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []},
@@ -270,30 +261,16 @@ def test_index_movimentos_do_dia_limita_a_tres_e_ordena_por_tamanho(
         "lodout.public_site.server.ranking.load_snapshots",
         lambda: [{"ts": 1000.0, "items": [
             {"name": "A1", "score": 50, "position": 1},
-            {"name": "A2", "score": 50, "position": 2},
-            {"name": "A3", "score": 50, "position": 3},
-            {"name": "A4", "score": 50, "position": 4},
-            {"name": "A5", "score": 50, "position": 5},
+            {"name": "A2", "score": 58, "position": 2},
         ]}])
     monkeypatch.setattr(
         "lodout.public_site.server.ranking.latest_before",
         lambda ts: {"ts": 900.0, "items": [
-            {"name": "A1", "score": 45, "position": 1},   # +5
-            {"name": "A2", "score": 58, "position": 2},   # -8
-            {"name": "A3", "score": 30, "position": 3},   # +20
-            {"name": "A4", "score": 48, "position": 4},   # +2
-            {"name": "A5", "score": 39, "position": 5},   # +11
+            {"name": "A1", "score": 45, "position": 1},
+            {"name": "A2", "score": 50, "position": 2},
         ]})
     body = client.get("/").data.decode("utf-8")
-    cards = body.split('class="movimentos-do-dia"', 1)[1].split("</ul>", 1)[0]
-    assert cards.count('class="movimento-do-dia"') == 3
-    # Ordem: +20 (A3), +11 (A5), -8 (A2). Os pequenos (+5, +2) ficam fora.
-    pos_a3 = cards.index("A3")
-    pos_a5 = cards.index("A5")
-    pos_a2 = cards.index("A2")
-    assert pos_a3 < pos_a5 < pos_a2
-    assert "A1" not in cards
-    assert "A4" not in cards
+    assert 'class="movimentos-do-dia"' not in body
 
 
 def test_index_resumo_do_dia_some_com_filtro_ativo(client, monkeypatch, tmp_path):
@@ -1701,8 +1678,9 @@ def test_ranking_sugere_encomenda_da_frente_da_fila(client, monkeypatch, tmp_pat
     assert "data-copiar-preco" not in sem_fila and ">sem dado<" in sem_fila
     assert "copiar_preco.js" in body and "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
-    # Não promete lucro, e a barra de meta não fica no Ranking.
-    assert "Não é previsão de lucro" in body
+    # Não promete lucro, e a nota de rodapé foi removida a pedido do usuário.
+    assert "Não é previsão de lucro" not in body
+    assert "ranking-nota-encomenda" not in body
     assert "data-meta-lucro" not in body and 'type="range"' not in body
 
 
@@ -1750,19 +1728,8 @@ def test_ranking_mostra_o_que_mudou_desde_ontem(client, monkeypatch):
     monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
                         lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
-    mudou = body.split("O que mudou no Top 20 desde ontem", 1)[1]
-    entraram = mudou.split('id="titulo-entraram"', 1)[1].split("</section>", 1)[0]
-    subiram = mudou.split('id="titulo-subiram"', 1)[1].split("</section>", 1)[0]
-    cairam = mudou.split('id="titulo-cairam"', 1)[1].split("</section>", 1)[0]
-    assert ">Novo<" in entraram
-    assert ">X<" in subiram and "#3" in subiram and "<strong>#1</strong>" in subiram
-    assert ">Y<" in cairam
-    saidas = mudou.split('id="titulo-saidas"', 1)[1].split("</section>", 1)[0]
-    assert "Sumiu" in saidas and "#2" in saidas and "<strong>fora</strong>" in saidas
-    assert "nota era 60" in saidas
-    assert "1 de 3 itens é novo" in mudou
-    # A nota vai na figurinha (anel colorido), não como número solto.
-    assert 'aria-label="Nota agora 80 de 100"' in subiram
+    assert "O que mudou no Top 20 desde ontem" not in body
+    assert "ranking-movimento" not in body
 
 
 def test_ranking_o_que_mudou_guarda_o_excesso_em_ver_mais(client, monkeypatch, tmp_path):
@@ -1777,21 +1744,12 @@ def test_ranking_o_que_mudou_guarda_o_excesso_em_ver_mais(client, monkeypatch, t
     monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
                         lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
-    mudou = body.split("O que mudou no Top 20 desde ontem", 1)[1]
-    assert "17 dos 20 itens são novos" in mudou
-    entraram = mudou.split('id="titulo-entraram"', 1)[1].split("</section>", 1)[0]
-    visiveis, escondidos = entraram.split('<details class="movimento-mais">', 1)
-    assert visiveis.count('class="movimento-linha"') == 5
-    assert "<summary>Ver mais 12</summary>" in escondidos
-    assert escondidos.count('class="movimento-linha"') == 12
-    saidas = mudou.split('id="titulo-saidas"', 1)[1].split("</section>", 1)[0]
-    assert '<span class="ranking-bloco-n">17</span>' in saidas
-    assert "Ver mais 12" in saidas
+    assert "O que mudou no Top 20 desde ontem" not in body
+    assert "ranking-movimento" not in body
 
 
 def test_ranking_completa_imagem_que_falta_com_o_catalogo(client, monkeypatch):
-    """Item que a coleta trouxe sem imagem usa a do catálogo (antes,
-    quadrado vazio no "Entraram")."""
+    """Item que a coleta trouxe sem imagem usa a do catálogo."""
     agora = time.time()
     snaps = [{"ts": agora - 25 * 3600, "items": [{"name": "X", "score": 70, "position": 1}]},
              {"ts": agora, "items": [{"name": "Sem Foto", "score": 99, "position": 1}]}]
@@ -1802,8 +1760,7 @@ def test_ranking_completa_imagem_que_falta_com_o_catalogo(client, monkeypatch):
                         lambda nomes: {n: {"icon": "hash-do-catalogo", "raridade": ""}
                                        for n in nomes if n == "Sem Foto"})
     body = client.get("/ranking").data.decode("utf-8")
-    entraram = body.split('id="titulo-entraram"', 1)[1].split("</section>", 1)[0]
-    assert "hash-do-catalogo" in entraram
+    assert "O que mudou no Top 20 desde ontem" not in body
 
 def test_usuario_logado_aparece_fora_de_conta(client, monkeypatch, tmp_path):
     """O context processor `_inject_usuario` deve disponibilizar
@@ -2064,7 +2021,9 @@ def test_status_mostra_grafico_e_buscas_populares(client, monkeypatch):
     assert "grafico-barras" in body
     assert ">24/10<" in body and ">25/10<" in body
     assert "De 3 a 5 visitas por dia nos últimos 2 dias." in body
-    assert "ak-47 — 4x" in body
+    # A seção "O que mais se busca aqui" foi removida a pedido do usuário.
+    assert "ak-47 — 4x" not in body
+    assert "O que mais se busca aqui" not in body
     # Só termos que acham item: testes de sondagem não viram vitrine
     # pública (o admin continua vendo a lista crua).
     assert "zzzzznomatchxyz" not in body
@@ -2099,12 +2058,9 @@ def test_status_mostra_ciclos_com_falha(client, monkeypatch, tmp_path):
     body = resp.data.decode("utf-8")
     assert "Sem sucesso (bloqueado)" in body
     assert "Sucesso" in body
-    # Tira de saúde (item #9 da lista de melhorias) -- 1 de 2 ciclos
-    # com sucesso, 1 "ok" e 1 "falha".
-    faixa = body.split('class="saude-ciclos"', 1)[1].split("</div>", 1)[0]
-    assert faixa.count("saude-ciclo-ok") == 1
-    assert faixa.count("saude-ciclo-falha") == 1
-    assert "1 de 2 coletas com sucesso" in body
+    # Diagnósticos de saúde/texto acima da tabela foram removidos a pedido do usuário.
+    assert "saude-ciclos" not in body
+    assert "coletas com sucesso" not in body
 
 
 # ── server: /feed.xml ────────────────────────────────────────
@@ -2449,11 +2405,9 @@ def test_status_mostra_cobertura_e_falhas_do_ultimo_ciclo(client, monkeypatch):
                   "sucesso": True, "alvos": 185, "mantidos": 5,
                   "falhas": ["Kilowatt Case", "<b>x</b>"]}])
     body = client.get("/status").data.decode("utf-8")
-    assert "<strong>180 de 185</strong> itens vieram com preço novo" in body
-    assert "5 mantêm o preço anterior" in body
-    assert "Itens que ficaram sem preço novo (2)" in body
-    assert "&lt;b&gt;x&lt;/b&gt;" in body
     assert "(+5 mantidos)" in body
+    assert "vieram com preço novo" not in body
+    assert "Itens que ficaram sem preço novo" not in body
 
 
 def test_status_ciclo_antigo_sem_cobertura_nao_quebra(client, monkeypatch):
@@ -5045,15 +4999,8 @@ def test_ranking_mostra_quem_saiu_do_top(client, monkeypatch, tmp_path):
         "lodout.public_site.server.ranking.latest_before",
         lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
-    saidas = body.split('id="titulo-saidas"', 1)[1].split("</section>", 1)[0]
-    assert '<span class="ranking-bloco-n">2</span>' in saidas
-    z = saidas.split('href="/item/Z"', 1)[1].split("</li>", 1)[0]
-    assert "#2" in z and "<strong>fora</strong>" in z
-    assert "nota era 60" in z and 'aria-label="Nota agora 41 de 100"' in z
-    # Fora do scan atual: sem link (a página do item daria 404).
-    assert 'href="/item/Sumiu"' not in body
-    sumiu = saidas.split(">Sumiu<", 1)[1].split("</li>", 1)[0]
-    assert "#3" in sumiu and "nota era 55" in sumiu and "Nota agora" not in sumiu
+    assert "O que mudou no Top 20 desde ontem" not in body
+    assert "ranking-movimento" not in body
 
 
 def test_ranking_sem_saidas_nao_mostra_secao(client, monkeypatch):
@@ -5064,8 +5011,8 @@ def test_ranking_sem_saidas_nao_mostra_secao(client, monkeypatch):
     monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
                         lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     body = client.get("/ranking").data.decode("utf-8")
-    saidas = body.split('id="titulo-saidas"', 1)[1].split("</section>", 1)[0]
-    assert "Ninguém saiu do Top 20." in saidas and "movimento-linha" not in saidas
+    assert "O que mudou no Top 20 desde ontem" not in body
+    assert "ranking-movimento" not in body
 
 def test_item_mostra_historico_no_ranking_e_eventos(
         client, monkeypatch, tmp_path):
@@ -5102,9 +5049,8 @@ def test_status_mostra_ritmo_e_itens_em_espera(client, monkeypatch):
                   "falhas": [], "ritmo": 1.25, "pausas_429": 0,
                   "em_espera": ["Kilowatt Case"]}])
     body = client.get("/status").data.decode("utf-8")
-    assert "1,25× o intervalo normal" in body
-    assert "Itens em espera (1)" in body
-    assert "Caixa Kilowatt" in body
+    assert "1,25× o intervalo normal" not in body
+    assert "Itens em espera" not in body
 
 
 def test_api_health_expoe_diagnostico_do_ultimo_ciclo(client, monkeypatch):
@@ -5417,7 +5363,7 @@ def test_textos_sem_jargao_e_sem_promessa(client, monkeypatch):
     monkeypatch.setattr("lodout.public_site.server.ranking.latest_before",
                         lambda ts: next((s for s in reversed(snaps) if s["ts"] < ts), None))
     ranking = client.get("/ranking").data.decode("utf-8")
-    assert "O que mudou no Top 20 desde ontem" in ranking
+    assert "O que mudou no Top 20 desde ontem" not in ranking
     assert "Snapshot" not in ranking
     status = client.get("/status").data.decode("utf-8")
     assert "worker" not in status.lower()
@@ -5589,7 +5535,7 @@ def test_status_mostra_rodada_top(client, monkeypatch):
                         lambda: {"ts": time.time() - 600, "itens": 20,
                                  "alvos": 20, "duracao_min": 3.1})
     body = client.get("/status").data.decode("utf-8")
-    assert "o Top 20 é atualizado a cada 2 horas" in body and "há 10 min" in body
+    assert "o Top 20 é atualizado a cada 2 horas" not in body
 
 
 # ── imagens de prévia ao compartilhar ───────────────────────────

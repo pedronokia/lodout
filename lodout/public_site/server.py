@@ -383,6 +383,7 @@ def create_app() -> Flask:
     app.jinja_env.filters["risco_nivel"] = _risco_nivel
     app.jinja_env.filters["risco_label"] = _risco_label
     app.jinja_env.filters["rotulo_caixa"] = _rotulo_caixa
+    app.jinja_env.filters["rotulo_caixa_curto"] = _rotulo_caixa_curto
     app.jinja_env.filters["motivo_sem_pontos"] = _motivo_sem_pontos
     app.jinja_env.filters["pontos_fmt"] = _pontos_fmt
     app.jinja_env.filters["motivo_fmt"] = _motivo_fmt
@@ -1841,6 +1842,31 @@ def _rotulo_caixa(case_label: "str | None",
         texto = status[:1].upper() + status[1:]
         return f"{texto} · {ano}" if ano else texto
     return localize_name(nome) + sep + resto
+
+
+def _rotulo_caixa_curto(case_label: "str | None",
+                        item_name: "str | None" = None) -> str:
+    """Versão concisa de `_rotulo_caixa` para cartões da vitrine onde o espaço
+    é compacto. Remove prefixos óbvios como "Caixa de Armas do ", "Caixa ", etc.,
+    mostrando apenas o nome distintivo e o ano (ex: "Bravo · 2013", "Prisma",
+    "Sonhos e Pesadelos"). O atributo title no HTML mantém o nome completo."""
+    rotulo = _rotulo_caixa(case_label, item_name)
+    if not rotulo:
+        return ""
+    nome, sep, resto = rotulo.partition(" (")
+    curto = re.sub(
+        r"^(Caixa de Armas da Operação|Caixa da Operação|Caixa de Armas do|Caixa de Armas|Caixa de|Caixa|Cápsula de Autógrafos de|Cápsula de Autógrafo de|Cápsula de|Coleção|The)\s+",
+        "",
+        nome,
+        flags=re.I,
+    )
+    curto = re.sub(r"\s+(Case|Collection)$", "", curto, flags=re.I).strip()
+    if resto:
+        status, _, ano = resto.rstrip(")").partition(", ")
+        if ano:
+            return f"{curto} · {ano}"
+        return curto
+    return curto
 
 
 # Maior palavra real conhecida logo após o "|" num nome de item (ex.

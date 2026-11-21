@@ -326,11 +326,12 @@ def test_status_mostra_o_catalogo(client, monkeypatch, sem_pausa):
         return steam_api.SEARCH_OK, [_linha("AK-47 | Redline (Field-Tested)")], 1
     monkeypatch.setattr(steam_api, "search_market", fake)
     catalogo.varrer(ate_ts=1e12)
+    # A seção "Catálogo do Mercado" foi removida de /status a pedido do usuário.
+    resumo = catalogo.resumo()
+    assert resumo["itens_no_banco"] == 1
+    assert resumo["bloqueios"] == 1
     body = client.get("/status").data.decode("utf-8")
-    assert "Catálogo do Mercado" in body
-    assert "<strong>1</strong> itens no catálogo" in body
-    assert "Primeira volta em andamento" in body
-    assert "Pausas pedidas pela Steam: 1" in body
+    assert "Catálogo do Mercado" not in body
 
 
 def test_status_sem_catalogo_nao_mostra_a_secao(client):
@@ -424,7 +425,7 @@ def test_status_mostra_a_cotacao(client, monkeypatch):
     c._salvar_estado({"itens_no_banco": 12, "totais": {"Rifles": 12}, "fatia": 0, "start": 0})
     assert catalogo.resumo()["cotacao_brl_por_usd"] == 5.62
     body = client.get("/status").data.decode("utf-8")
-    assert "R$ 5,62</strong> por dólar" in body and "medida em 12 itens" in body
+    assert "Catálogo do Mercado" not in body
 
 
 def test_parecidos_tira_palavras_do_fim_ate_achar():
