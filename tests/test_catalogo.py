@@ -270,12 +270,14 @@ def test_pagina_de_item_so_do_catalogo(client):
     assert r.status_code == 200
     body = r.data.decode("utf-8")
     assert "Sem nota ainda" in body and "Por que ainda não tem nota?" in body
-    assert "<strong>R$ 115,00</strong>" in body  # conta da revenda
+    assert "R$ 115,00" in body and "Venda mínima" in body  # simulador
     assert "raridade-dourado" in body
-    # Sem fila de encomendas no catálogo: o quadro mostra só "encomende por
-    # até", nunca a sugestão vazia (revisão 20/11: aparecia "…, , e %").
-    assert "encomende por até" in body
+    # 21/11: mesmo simulador da página com nota; sem fila no catálogo, avisa
+    # e nunca mostra a sugestão vazia (revisão 20/11: aparecia "…, , e %").
+    assert "Simular compra" in body
+    assert "Fila de encomendas da Steam não disponível" in body
     assert 'data-copiar-preco=""' not in body
+    assert "copiar_preco.js" in body
     assert ", , e" not in body
     assert client.get("/item/Item Arriscado").status_code == 404
     assert client.get("/item/Nao Existe").status_code == 404

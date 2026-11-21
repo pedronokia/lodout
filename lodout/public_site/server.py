@@ -714,8 +714,6 @@ def create_app() -> Flask:
             return _resposta_item(render_template(
                 "item_catalogo.html", item=item_cat,
                 preco_empate=fmt.brl(portfolio.break_even_price(item_cat["price"])),
-                encomenda=encomenda.info(item_cat.get("price"), None,
-                                         encomenda.meta_do_visitante()),
                 # Sem fila de encomendas no catálogo. Passar None evita que
                 # o partial pegue a função global de mesmo nome (revisão 20/11:
                 # aparecia um botão de copiar vazio e "…encomenda, , e %").
@@ -742,10 +740,11 @@ def create_app() -> Flask:
             # da carteira (portfolio.break_even_price).
             preco_empate=(fmt.brl(portfolio.break_even_price(item["price"]))
                           if item.get("price") else None),
-            encomenda=encomenda.info(item.get("price"), fila_encomenda,
-                                     encomenda.meta_do_visitante()),
             # A mesma sugestão do Ranking (frente da fila), copiável (17/11).
             encomenda_sugestao=encomenda.sugestao(item.get("price"), fila_encomenda),
+            # O simulador compara a oferta com a maior encomenda real (sem
+            # isto, a sugestão de +R$ 0,01 aparecia como "empatado no topo").
+            fila_encomenda=fila_encomenda,
             taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
             # Preço mais recente DESTE item específico -- cada item do
             # scan é coletado em instantes diferentes dentro do ciclo de

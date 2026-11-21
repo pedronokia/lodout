@@ -815,28 +815,6 @@ if ("serviceWorker" in navigator) {
     var valInicial = lerValor(input.value);
     if (!isNaN(valInicial)) calcular(valInicial);
 
-    /* Presets de oferta rápida no simulador */
-    var btnPresets = box.querySelectorAll(".btn-sim-preset");
-    btnPresets.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        btnPresets.forEach(function (b) { b.classList.remove("ativo"); });
-        btn.classList.add("ativo");
-        var novoVal = 0;
-        if (btn.getAttribute("data-breakeven") === "true") {
-          novoVal = Math.round(precoAtual * (100 / 115) * 100) / 100;
-        } else {
-          var pct = parseFloat(btn.getAttribute("data-pct"));
-          if (!isNaN(pct)) {
-            novoVal = Math.round(precoAtual * pct * 100) / 100;
-          }
-        }
-        if (novoVal > 0) {
-          input.value = escreverValor(novoVal);
-          slider.value = novoVal;
-          calcular(novoVal);
-        }
-      });
-    });
   }
 })();
 
@@ -890,99 +868,6 @@ if ("serviceWorker" in navigator) {
       }
     });
   }
-})();
-
-/* Tooltip e Scrubber Interativo no Gráfico de Histórico */
-(function () {
-  var cards = document.querySelectorAll(".grafico-card");
-  cards.forEach(function (card) {
-    var tooltip = card.querySelector(".grafico-tooltip");
-    var linha = card.querySelector(".grafico-scrubber-linha");
-    var svg = card.querySelector("svg");
-    if (!tooltip || !svg) return;
-
-    var pontos = Array.from(svg.querySelectorAll(".grafico-ponto-interativo"));
-    if (!pontos.length) return;
-
-    var primeiroPonto = pontos[0];
-    var primeiroVal = parseFloat(primeiroPonto.getAttribute("data-val") || "0");
-
-    function desativar() {
-      tooltip.hidden = true;
-      if (linha) linha.hidden = true;
-      pontos.forEach(function (p) { p.classList.remove("ponto-ativo"); });
-    }
-
-    function ativarPonto(pt) {
-      pontos.forEach(function (p) { p.classList.remove("ponto-ativo"); });
-      pt.classList.add("ponto-ativo");
-
-      var info = pt.getAttribute("data-info") || "";
-      if (!info) return;
-
-      var partes = info.split(" — ");
-      var dataTxt = partes[0] || "";
-      var valorTxt = partes[1] || "";
-      var val = parseFloat(pt.getAttribute("data-val") || "0");
-
-      var variacaoHtml = "";
-      if (primeiroVal > 0 && !isNaN(val)) {
-        var diff = ((val - primeiroVal) / primeiroVal) * 100;
-        var sinal = diff > 0.05 ? "+" : "";
-        var classe = diff >= 0 ? "texto-positivo" : "texto-perigo";
-        variacaoHtml = '<span class="gt-variacao ' + classe + '">' + sinal + diff.toFixed(1).replace(".", ",") + '%</span>';
-      }
-
-      tooltip.innerHTML = '<span class="gt-data">' + dataTxt + '</span>' +
-                          '<div class="gt-linha-preco">' +
-                            '<strong class="gt-valor">' + valorTxt + '</strong>' +
-                            variacaoHtml +
-                          '</div>';
-      tooltip.hidden = false;
-
-      var rectCard = card.getBoundingClientRect();
-      var rectPt = pt.getBoundingClientRect();
-
-      var x = rectPt.left - rectCard.left + (rectPt.width / 2);
-      var y = rectPt.top - rectCard.top - 12;
-
-      tooltip.style.left = x + "px";
-      tooltip.style.top = Math.max(10, y) + "px";
-
-      if (linha) {
-        linha.style.left = x + "px";
-        linha.hidden = false;
-      }
-    }
-
-    // Rastreia o ponteiro suavemente pela largura do gráfico
-    function onPointerMove(e) {
-      var clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
-      if (clientX === null) return;
-
-      var pontoMaisProximo = null;
-      var menorDist = Infinity;
-
-      for (var i = 0; i < pontos.length; i++) {
-        var rectPt = pontos[i].getBoundingClientRect();
-        var ptCenterX = rectPt.left + rectPt.width / 2;
-        var dist = Math.abs(clientX - ptCenterX);
-        if (dist < menorDist) {
-          menorDist = dist;
-          pontoMaisProximo = pontos[i];
-        }
-      }
-
-      if (pontoMaisProximo) {
-        ativarPonto(pontoMaisProximo);
-      }
-    }
-
-    card.addEventListener("mousemove", onPointerMove);
-    card.addEventListener("touchmove", onPointerMove, { passive: true });
-    card.addEventListener("touchstart", onPointerMove, { passive: true });
-    card.addEventListener("mouseleave", desativar);
-  });
 })();
 
 // Alternador suave para painel de "+ Filtros" do catálogo

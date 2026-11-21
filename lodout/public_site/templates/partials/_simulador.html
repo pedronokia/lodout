@@ -1,0 +1,44 @@
+{% from "partials/_icons.html" import icone %}
+{#- Simulador de compra (revisão 21/11, pedido do usuário: página do item
+    bem mais enxuta). Usado na página do item com nota e na do catálogo.
+    Precisa de: item.price, preco_empate, encomenda_sugestao (mapping ou
+    None), fila_encomenda (opcional) e taxa_steam_pct. -#}
+{% if preco_empate %}
+<section class="conta-revenda simulador-unico" aria-labelledby="titulo-simulador">
+  <h2 class="conta-revenda-titulo" id="titulo-simulador">Simular compra</h2>
+  {% if encomenda_sugestao is mapping %}
+  <p class="simulador-sugestao">Sugestão: R$ 0,01 acima da maior encomenda ({{ encomenda_sugestao.maior_fmt }}{% if encomenda_sugestao.pedidos %} · {{ "{:,}".format(encomenda_sugestao.pedidos).replace(",", ".") }} {{ "pedido" if encomenda_sugestao.pedidos == 1 else "pedidos" }}{% endif %}).</p>
+  {% else %}
+  <p class="simulador-sugestao">Fila de encomendas da Steam não disponível na última coleta.</p>
+  {% endif %}
+  <div class="simulador-encomenda-box" data-preco-atual="{{ item.price or 0 }}" data-maior-encomenda="{{ fila_encomenda.maior if fila_encomenda and fila_encomenda.maior else (encomenda_sugestao.valor if encomenda_sugestao else 0) }}">
+    <div class="simulador-controles">
+      <div class="simulador-campo-grupo">
+        <label for="sim-input-encomenda" class="simulador-label">Sua oferta</label>
+        <div class="simulador-input-linha">
+          <div class="simulador-input-wrap">
+            <span class="simulador-moeda">R$</span>
+            <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua oferta" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
+          </div>
+          <button type="button" id="btn-copiar-sim-oferta" class="copiar-preco btn-copiar-simulador" data-copiar-preco="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}" title="Copiar para colar na encomenda da Steam" aria-label="Copiar oferta">{{ icone("copiar") }}<span>Copiar</span></button>
+        </div>
+      </div>
+      <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar oferta">
+      <p class="simulador-fila"><strong class="simulador-fila-status" id="sim-fila-status">—</strong> <span id="sim-fila-desc"></span></p>
+    </div>
+    <div class="simulador-metricas-grid">
+      <div class="simulador-metrica-card">
+        <span class="simulador-metrica-rotulo">Venda mínima</span>
+        <strong class="simulador-metrica-val" id="sim-empate-val">{{ preco_empate }}</strong>
+      </div>
+      <div class="simulador-metrica-card card-destaque-lucro">
+        <span class="simulador-metrica-rotulo">Lucro hoje</span>
+        <strong class="simulador-metrica-val" id="sim-lucro-val">R$ 0,00</strong>
+        <span class="simulador-metrica-sub" id="sim-retorno-pct">0,0% depois da taxa</span>
+      </div>
+    </div>
+  </div>
+  <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
+  <p class="conta-revenda-nota">Taxa da Steam de {{ taxa_steam_pct }}% incluída. Não é previsão. Revenda não é imediata: a Steam só libera o item após a data indicada no inventário (<a href="https://help.steampowered.com/pt-br/faqs/view/451E-96B3-D194-50FC" target="_blank" rel="noopener">regras da Steam</a>).</p>
+</section>
+{% endif %}

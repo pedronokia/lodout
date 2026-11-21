@@ -17,6 +17,9 @@ ENTRADAS = [
             "A página de cada item ficou com o essencial: nome, nota, preço, risco, simulador de compra e o porquê da nota. Saíram os gráficos de preço e de nota, as outras versões da skin, o histórico no ranking e os itens parecidos. No celular, a página ficou cerca de 40% mais curta.",
             "Encomenda e simulador viraram um quadro só, “Simular compra”: já vem com a sugestão de R$ 0,01 acima da maior encomenda, que você pode ajustar, copiar e comparar com a venda mínima e o lucro de hoje.",
             "Botões do topo numa linha só (Copiar, Compartilhar e Favoritar) e resumo da nota em duas colunas no celular.",
+            "Itens que ainda não têm nota ganharam o mesmo simulador e o mesmo topo. Os botões de copiar dessa página voltaram a funcionar.",
+            "O simulador agora diz “Na frente da fila” quando a oferta é a sugerida (R$ 0,01 acima da maior encomenda); antes aparecia “Empatado no topo”.",
+            "Site mais leve: saiu o estilo e o script das partes retiradas. O arquivo de estilo ficou cerca de 9% menor.",
         ],
     },
     {

@@ -620,33 +620,6 @@ header.topo h1 {
   gap: var(--sp-2);
 }
 
-.conta-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-right: var(--sp-1);
-}
-
-.conta-nav a {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: var(--radius-xs);
-  color: var(--chrome-texto);
-  font-size: 0.75rem;
-  font-weight: 400;
-  text-decoration: none;
-  transition: background-color var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
-}
-
-.conta-nav a:hover,
-.conta-nav a[aria-current="page"] {
-  color: var(--chrome-texto-forte);
-  background: transparent;
-  text-decoration: none;
-}
-
 .conta-pill {
   display: flex;
   min-height: 40px;
@@ -740,17 +713,6 @@ header.topo > .badge-cooldown { padding-bottom: var(--sp-5); color: var(--chrome
 
 /* Subtítulo do header -- as páginas novas usam .cabecalho-pagina;
    esta regra fica para telas que ainda trazem a linha no topo. */
-.subtitulo {
-  margin: 6px 0 0;
-  max-width: 640px;
-  color: var(--text-muted);
-}
-
-header.topo > .subtitulo {
-  padding-bottom: var(--sp-2);
-  margin-bottom: 0;
-  color: var(--chrome-texto);
-}
 
 /* ── Estrutura de página ─────────────────────────────── */
 
@@ -782,14 +744,6 @@ main {
 }
 
 /* Sobretítulo: o "eyebrow" da Apple -- azul, 12px, tracking aberto. */
-.rotulo-pagina {
-  margin: 0 0 var(--sp-2);
-  color: var(--accent);
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 /* Título de página: 64px/600 no desktop (o tamanho do cabeçalho da
    Apple), 32px no celular. */
@@ -1086,21 +1040,8 @@ footer.rodape .rodape-base a:hover {
 
 /* Metadado do scan: uma tira, não um card -- não compete com o
    painel de filtros. */
-.status-scan {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--sp-1) var(--sp-2);
-  margin: 0 0 var(--sp-4);
-  padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
-  border-left: 1px solid var(--border-strong);
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
 
-.status-scan strong { color: var(--text); }
 .status-scan-desatualizado { border-left-color: var(--warn); }
-.status-scan .status-scan-alerta { color: var(--warn); }
 
 .banner-aviso {
   margin: var(--sp-2) 0 var(--sp-4);
@@ -1711,7 +1652,7 @@ footer.rodape .rodape-base a:hover {
    menu de categoria (as abas já fazem isso), a busca ocupa o espaço e o
    exemplo do campo aparece inteiro. "Mais filtros" aberto desce pra
    linha de baixo, inteiro. */
-.form-filtros .campo-busca-rotulo { flex: 1 1 320px; }
+
 .form-filtros input[type="text"]#campo-busca { width: 100%; min-width: 0; }
 .form-filtros button#botao-favoritos { order: 2; }
 .form-filtros .filtros-mais { order: 3; }
@@ -1876,17 +1817,9 @@ footer.rodape .rodape-base a:hover {
 /* Guia da nota + "Cores da borda" numa linha só (2026-11-14). Antes o
    botão de pílula ficava sozinho numa linha embaixo da frase; agora é
    um link discreto no fim, no mesmo tom da frase. */
-.guia-nota {
-  position: relative;
-  margin: 0 0 var(--sp-3);
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-  line-height: 1.5;
-}
 
 /* Frase e link correm no mesmo parágrafo visual: o "Cores da borda"
    entra logo depois de "Glossário", separado pelo mesmo "·". */
-.guia-nota .ajuda-nota { display: inline; margin: 0; }
 
 /* No Ranking a legenda fica no fim da barra Vitrine/Lista: o quadro
    abre alinhado à direita, pra não sair da tela. */
@@ -1897,19 +1830,7 @@ footer.rodape .rodape-base a:hover {
 /* position: static faz o quadro da legenda se ancorar no parágrafo
    (abre embaixo dele, alinhado à esquerda), não no link do fim da linha
    -- senão ele vazava pela direita da tela no celular. */
-.guia-nota .popover-legenda {
-  position: static;
-  display: inline-block;
-  margin: 0;
-}
 
-.guia-nota .popover-legenda::before {
-  content: "·";
-  margin: 0 0.4em 0 0.3em;
-  color: var(--text-muted);
-}
-
-.guia-nota .popover-legenda-toggle,
 .barra-visao .popover-legenda-toggle {
   display: inline-flex;
   gap: 4px;
@@ -1923,8 +1844,6 @@ footer.rodape .rodape-base a:hover {
   text-underline-offset: 2px;
 }
 
-.guia-nota .popover-legenda-toggle:hover,
-.guia-nota .popover-legenda[open] .popover-legenda-toggle,
 .barra-visao .popover-legenda-toggle:hover,
 .barra-visao .popover-legenda[open] .popover-legenda-toggle {
   background: transparent;
@@ -3061,7 +2980,6 @@ a.paginacao-passo:hover {
 }
 
 .faixa-vitrine,
-.faixa-grafico,
 .faixa-lista {
   padding: 28px 0 36px;
   /* margin-bottom em forma longa: o atalho `margin:` zeraria o
@@ -3328,22 +3246,6 @@ a.paginacao-passo:hover {
    pertence ao alvo de comparação -- o Ranking não tem comparar, então
    não disputam espaço. aria-hidden no markup: a ordem do grid já
    entrega a posição; o que sobe/cai embaixo do nome é o dado. */
-.cartao-item-posicao {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
-  background: rgba(14, 14, 14, 0.42);
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
-  color: var(--text);
-  font-weight: 700;
-  font-size: var(--fs-xs);
-  font-variant-numeric: tabular-nums;
-}
 
 .cartao-item-corpo {
   display: flex;
@@ -3639,94 +3541,19 @@ a.paginacao-passo:hover {
 }
 
 /* Itens parecidos: lista de linhas com ícone, nome, nota e preço. */
-.lista-parecidos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  margin: 0 0 var(--sp-5);
-  padding: 0;
-  list-style: none;
-}
-
-.lista-parecidos .item-parecido {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  text-align: left;
-  transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard);
-}
 
 /* Nome em branco, como nos cartões (2026-11-14): cinco nomes laranja
    empilhados pesavam mais que o resto da página. A linha inteira é
    clicável (o ::after do link cobre o cartão) e reage ao passar o mouse. */
-.item-parecido-link {
-  flex: 1;
-  min-width: 0;
-  color: var(--text-bright);
-  font-weight: 500;
-  overflow-wrap: anywhere;
-  text-decoration: none;
-}
-
-.item-parecido-link::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-}
-
-.lista-parecidos .item-parecido:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-hover);
-}
-
-.lista-parecidos .item-parecido:hover .item-parecido-link { color: var(--accent-bright); }
-
-.item-parecido-link:focus-visible { outline: none; }
-.item-parecido-link:focus-visible::after {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-.item-parecido-preco {
-  min-width: 6.5em;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
 
 /* `.pagina-texto ul` (recuo de 20px pra listas de texto) vencia estas
    listas por especificidade: elas ficavam fora do alinhamento do título. */
-.pagina-texto .lista-parecidos,
 .pagina-texto .lista-motivos { padding-left: 0; }
 
 /* Celular: preço embaixo do nome, nota à direita -- com tudo na mesma
    linha o nome quebrava em 3 linhas com hífen. */
 @media (max-width: 560px) {
-  .lista-parecidos .item-parecido {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas: "icone link nota" "icone preco nota";
-    column-gap: var(--sp-3);
-    row-gap: 2px;
-  }
 
-  .item-parecido > .icone-item-quadro { grid-area: icone; }
-  .item-parecido-link { grid-area: link; hyphens: manual; }
-  .item-parecido > .nota { grid-area: nota; }
-
-  .item-parecido-preco {
-    grid-area: preco;
-    min-width: 0;
-    font-size: var(--fs-sm);
-    text-align: left;
-  }
 }
 
 /* ── Comparador ──────────────────────────────────────── */
@@ -4010,58 +3837,8 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
 
 .conta-revenda-texto strong { color: var(--text-bright); }
 
-.pagina-texto .conta-revenda-prazo-steam,
-.conta-revenda-prazo-steam { margin-top: var(--sp-2); }
-.conta-revenda-prazo-steam a { text-decoration: underline; text-underline-offset: 2px; }
-
-.pagina-texto .conta-revenda-pergunta,
-.conta-revenda-pergunta {
-  margin: var(--sp-3) 0 var(--sp-2);
-  color: var(--text-bright);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-align: left;
-}
-
 /* Três quadrinhos (30 dias, 90 dias, 1 ano) lado a lado, também no
    celular. O número grande é a resposta; a pergunta acima explica. */
-.pagina-texto .conta-revenda-lista,
-.conta-revenda-lista {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sp-2);
-  margin: 0 0 var(--sp-2);
-  padding: 0;
-  list-style: none;
-}
-
-.conta-revenda-lista li {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--radius-xs);
-  background: var(--surface-sunken);
-}
-
-.conta-revenda-prazo {
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.conta-revenda-pct {
-  color: var(--text-bright);
-  font-size: var(--fs-copy);
-  font-variant-numeric: tabular-nums;
-}
-
-.conta-revenda-desc {
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-}
 
 .pagina-texto .conta-revenda-nota,
 .conta-revenda-nota {
@@ -4335,14 +4112,6 @@ table.tabela-conta th { white-space: normal; }
   font-size: var(--fs-base);
 }
 
-.pagina-texto .form-meta-lucro-ajuda,
-.form-meta-lucro-ajuda {
-  flex-basis: 100%;
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-}
-
 .preco-alvo { color: var(--text-bright); font-variant-numeric: tabular-nums; }
 
 /* "Quanto paguei" na conta: aviso de salvo ao lado do campo, e a linha
@@ -4354,8 +4123,6 @@ table.tabela-conta th { white-space: normal; }
 }
 
 .custo-salvo.custo-erro { color: var(--danger); }
-
-
 
 .form-adicionar {
   display: flex;
@@ -4807,14 +4574,6 @@ table.tabela-conta th { white-space: normal; }
 
 /* ── Página 404 ──────────────────────────────────────── */
 
-.titulo-404 .icone-ui {
-  width: 1em;
-  height: 1em;
-  margin-right: 4px;
-  color: var(--text-muted);
-  vertical-align: -0.15em;
-}
-
 /* ── Favoritos ───────────────────────────────────────── */
 
 .botao-favorito {
@@ -4986,11 +4745,7 @@ table.tabela-conta th { white-space: normal; }
 /* Fallback para navegadores sem View Transitions: fade simples
    no corpo via JS (ver app.js). */
 @supports not (view-transition-name: none) {
-  .page-transitioning {
-    opacity: 0;
-    transition: opacity var(--dur-emphasis) var(--ease-standard);
-  }
-  .page-transitioning.active { opacity: 1; }
+
 }
 
 /* ── Tabelas de cartão no celular ────────────────────── */
@@ -5043,8 +4798,7 @@ table.tabela-conta th { white-space: normal; }
   main { padding: 24px 16px 40px; }
 
   .faixa-vitrine,
-  .faixa-grafico,
-  .faixa-lista { padding: 20px 0 24px; }
+.faixa-lista { padding: 20px 0 24px; }
   .faixa-vitrine .grade-cards { padding: 0 16px; }
   .faixa-dentro { padding: 0 16px; }
 
@@ -5071,11 +4825,6 @@ table.tabela-conta th { white-space: normal; }
   }
 
   .conta-nome { max-width: 140px; }
-
-  .conta-nav a {
-    padding: 6px 8px;
-    font-size: var(--fs-sm);
-  }
 
   header.topo h1 { font-size: var(--fs-2xl); }
 
@@ -5130,7 +4879,6 @@ table.tabela-conta th { white-space: normal; }
   }
 
   /* Em coluna, o flex-basis de 320px da busca virava ALTURA. */
-  .form-filtros .campo-busca-rotulo { flex: 0 0 auto; }
 
   .filtros-mais-corpo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5428,7 +5176,6 @@ table.tabela-conta th { white-space: normal; }
     flex-wrap: wrap;
   }
 
-  .conta-nav { flex-wrap: wrap; }
   .conta-pill { min-width: 0; }
   .conta-nome { max-width: 140px; }
 
@@ -5499,7 +5246,6 @@ table.tabela-conta th { white-space: normal; }
 .icone-item-quadro[hidden],
 .icone-item-quadro-compacto[hidden],
 .icone-item-placeholder[hidden],
-.icone-item-icon[hidden],
 .cartao-item-icon[hidden],
 .dica-expandir[hidden],
 .hero-destaque-halo[hidden],
@@ -5555,10 +5301,6 @@ table.tabela-conta th { white-space: normal; }
 
 /* No cartão estreito (celular) posição e nota não cabem lado a lado:
    descem uma embaixo da outra em vez de cortar o texto. */
-.cartao-item-ranking .cartao-item-rodape {
-  flex-wrap: wrap;
-  row-gap: 2px;
-}
 
 /* Texto só pra leitor de tela (ex.: "abre em nova aba"). */
 .visualmente-oculto {
@@ -5609,78 +5351,14 @@ table.tabela-conta th { white-space: normal; }
 }
 
 /* Item: 30 quadradinhos, um por dia, presença no Top 20. */
-.historico-ranking-resumo { margin: 0 0 var(--sp-3); }
-
-.faixa-dias {
-  display: grid;
-  grid-template-columns: repeat(30, minmax(0, 1fr));
-  gap: 3px;
-  max-width: 520px;
-  margin: 0 0 var(--sp-2);
-  padding: 0;
-  list-style: none;
-}
-
-.faixa-dia {
-  display: inline-block;
-  aspect-ratio: 1;
-  min-width: 8px;
-  border-radius: 3px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-}
-
-.faixa-dia-top { background: var(--accent); border-color: var(--accent); }
-.faixa-dia-fora { background: var(--surface-hover); }
-.faixa-dia-sem_dado { background: transparent; border-style: dashed; }
-
-.faixa-dias-legenda {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-  margin: 0 0 var(--sp-5);
-  font-size: var(--fs-xs);
-}
-
-.faixa-dias-legenda .faixa-dia { width: 10px; min-width: 10px; }
 
 /* /ranking: "Saíram do Top 20". */
-.saidas-do-top { margin-top: var(--sp-5); }
-
-.lista-saidas {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.lista-saidas li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px var(--sp-2);
-}
-
-.faixa-dias[hidden],
-.faixa-dias-legenda[hidden] { display: none; }
 
 /* .pagina-texto dá margem/justificado a todo p/li -- dentro do cartão de
    novidade isso abria buracos e hifenizava; aqui o cartão manda. */
 .lista-novidades .novidade { margin: 0; text-align: left; line-height: 1.5; }
 .lista-novidades .novidade-titulo { margin: 0; color: var(--text-bright); text-align: left; line-height: 1.4; }
 .lista-novidades .novidade-texto { margin: var(--sp-1) 0 0; text-align: left; line-height: 1.5; }
-
-.faixa-dias-legenda { gap: 4px var(--sp-3); }
-
-.faixa-dias-legenda-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
 
 /* /status: cobertura do último ciclo. */
 .cobertura-ciclo { margin: var(--sp-2) 0; }
@@ -5697,15 +5375,11 @@ table.tabela-conta th { white-space: normal; }
 .pagina-texto .falhas-ciclo p { margin: var(--sp-1) 0 0; font-size: var(--fs-sm); text-align: left; }
 
 /* Item: outras versões da skin. */
-.tabela-variantes { margin-bottom: var(--sp-5); }
-.tabela-variantes td:nth-child(2),
-.tabela-variantes td:nth-child(3) { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 /* Só 3 colunas: cabe no celular sem rolagem lateral se o nome quebrar. */
-table.tabela-candidatos.tabela-variantes { min-width: 0; }
 
 @media (max-width: 560px) {
-  table.tabela-variantes th,
-  table.tabela-variantes td { padding: 10px; }
+
 }
 
 /* /status: scan em andamento. */
@@ -5779,7 +5453,6 @@ table.tabela-candidatos.tabela-variantes { min-width: 0; }
   width: fit-content;
   margin: 4px 0 0 auto;
 }
-
 
 /* ── Barras fixas x foco do teclado (auditoria Web Interface Guidelines,
    2026-11-13) ──────────────────────────────────────────────────────────
@@ -5896,10 +5569,8 @@ a.paginacao-passo:active {
   }
 
   /* Nome no Ranking em lista (25px): a linha da tabela tem ~56px. */
-  .tabela-ranking .link-item,
   .celula-item-ranking .link-item { position: relative; }
 
-  .tabela-ranking .link-item::after,
   .celula-item-ranking .link-item::after {
     content: "";
     position: absolute;
@@ -5915,7 +5586,6 @@ a.paginacao-passo:active {
 
 /* Mesmo retorno ao toque dos outros cartões clicáveis. */
 .movimento-do-dia:active { transform: scale(0.98); }
-
 
 /* ── Conta: polimento (2026-11-15) ───────────────────────────────────
    No fim do arquivo de propósito: vale sobre as regras gerais de
@@ -5940,7 +5610,6 @@ a.paginacao-passo:active {
 }
 .conta-lista-cabecalho .secao-titulo { margin: 0; }
 .conta-lista-cabecalho .form-meta-lucro { margin: 0; }
-.status-inventario + .form-meta-lucro-ajuda { margin: 0 0 var(--sp-3); }
 
 /* Nome forte, detalhes em cinza; "remover" discreto até o mouse/foco. */
 .tabela-conta .link-item { color: var(--text-bright); font-weight: 600; }
@@ -5999,7 +5668,6 @@ a.paginacao-passo:active {
   table.tabela-conta td { padding-left: 8px; padding-right: 8px; }
   .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco { grid-template-columns: auto; }
 }
-
 
 /* Celular: "remover" na mesma linha do desgaste (o .form-inline dos
    cartões ocupa a largura toda por padrão). */
@@ -6089,21 +5757,13 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
 
 /* Textos de apoio da lista em tamanho de leitura (design-guide:
    descrições >= 1rem; antes 13px). */
-.conta-lista-cabecalho ~ .status-inventario,
-.conta-lista-cabecalho ~ .form-meta-lucro-ajuda {
+.conta-lista-cabecalho ~ .status-inventario {
   font-size: 1rem;
 }
-
 
 /* Item, "Outras versões": preço e vendas alinhados à direita, com
    algarismos de mesma largura, pra comparar de linha em linha
    (revisão web-design-guidelines, 2026-11-15). */
-table.tabela-variantes th:not(:first-child),
-table.tabela-variantes td:not(:first-child) {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
 
 /* Watchlist, trades e histórico (2026-11-15): mesmo acabamento da conta.
    Título no topo do quadro sem o respiro de seção (que empurrava o
@@ -6132,9 +5792,8 @@ table.tabela-variantes td:not(:first-child) {
 .tabela-conta .input-custo { text-align: right; padding-right: 10px; }
 
 .tabela-wrap:has(> .tabela-conta) + .adicionar-manual { margin-top: var(--sp-4); }
-.dica-enter { color: var(--text-muted); }
-@media (hover: none) { .dica-enter { display: none; } }
 
+@media (hover: none) { }
 
 /* Conta no celular: cartão de item mais compacto -- o rótulo "Item" é
    redundante (o nome já está ali) e o respiro entre as linhas dobrava a
@@ -6285,7 +5944,6 @@ table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
 .botao-juntar { color: var(--text-fraco); font-size: var(--fs-xs); min-height: 0; padding: 0; }
 .botao-juntar:hover, .botao-juntar:focus-visible { color: var(--accent-bright); }
 
-
 .separar-lote[open] { display: block; flex-basis: 100%; }
 .form-separar .botao-link { min-height: 30px; padding: 0 4px; font-size: var(--fs-sm); }
 .conta-filtro { flex-shrink: 0; white-space: nowrap; }
@@ -6295,7 +5953,6 @@ table.tabela-conta tbody td { padding-top: 8px; padding-bottom: 8px; }
 table.tabela-conta tbody:first-of-type tr:last-child td,
 table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 .tabela-conta .corpo-nenhum .linha-nenhum td { border-bottom: 0; border-top: 1px solid var(--border); }
-
 
 /* ── Conta, terceira passada de acabamento (2026-11-15) ───────────── */
 
@@ -6335,8 +5992,7 @@ table.tabela-conta tr.ultima-visivel td { border-bottom: 0; }
 
 /* Mais de uma unidade: "cada" e o total, pra não confundir o preço de
    uma unidade com o lucro do total. */
-.valor-cada,
-.custo-cada { color: var(--text-muted); font-size: var(--fs-xs); }
+.valor-cada { color: var(--text-muted); font-size: var(--fs-xs); }
 .valor-total { display: block; color: var(--text-muted); font-size: var(--fs-xs); }
 
 /* "remover" só aparece na linha sob o mouse ou com foco (computador com
@@ -6445,7 +6101,6 @@ th[aria-sort] .ordenar-coluna { color: var(--text-bright); }
 th[aria-sort="descending"] .ordenar-seta::before { content: "↓"; }
 th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 
-
 #explica-meta a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* ── Conta, pacote de acabamento (2026-11-15) ─────────────────────── */
@@ -6537,7 +6192,6 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   text-underline-offset: 2px;
 }
 
-
 /* ── Conta e item: mudança, lotes, "Na sua conta" (2026-11-15) ────── */
 .card-mudanca .valor-positivo,
 .card-mudanca .valor-negativo { font-weight: 600; }
@@ -6620,7 +6274,6 @@ input, textarea { caret-color: var(--accent); }
 .status-inventario a.acao-texto { text-decoration: none; }
 .status-inventario a.acao-texto:hover,
 .status-inventario a.acao-texto:focus-visible { text-decoration: underline; }
-
 
 @media (min-width: 641px) and (max-width: 1000px) {
   .tabela-conta .campo-reais-cada .input-custo { width: 7.4em; padding-right: 38px; }
@@ -6711,7 +6364,7 @@ input, textarea { caret-color: var(--accent); }
    mais juntos. */
 @media (max-width: 400px) {
   .topo-linha > .barra-acoes { column-gap: 4px; }
-  .conta-nav a { padding-left: 5px; padding-right: 5px; }
+
   .conta-nome { max-width: 56px; }
   .conta-pill:has(.conta-avatar) .conta-nome {
     position: absolute;
@@ -6920,15 +6573,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 /* Comprar por encomenda (pedido 16/11): mesmo quadro do "revender sem
    prejuízo", com borda neutra, e o valor de destaque em linha própria. */
 .conta-revenda.encomenda { border-color: var(--border); }
-.pagina-texto .conta-revenda .encomenda-valor,
-.conta-revenda .encomenda-valor {
-  margin: 2px 0 var(--sp-1);
-  color: var(--text-bright);
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
+
 .pagina-texto .encomenda .conta-revenda-texto + .conta-revenda-nota,
 .encomenda .conta-revenda-nota { margin-top: var(--sp-2); }
 .encomenda-linha { color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
@@ -7019,77 +6664,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .encomenda-steam:hover { color: var(--text-bright); background: var(--surface-hover); }
 .encomenda-steam:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* Página do item: botão de copiar a encomenda em destaque claro e direto */
-.encomenda-valor .btn-copiar-encomenda {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
 
-.encomenda-valor .btn-copiar-encomenda .encomenda-num {
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  color: var(--text-bright);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.encomenda-valor .btn-copiar-encomenda .btn-copiar-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: all var(--dur-base) var(--ease-standard);
-  vertical-align: middle;
-}
-
-.encomenda-valor .btn-copiar-encomenda .btn-copiar-pill .icone-ui {
-  width: 14px;
-  height: 14px;
-  color: var(--accent);
-}
-
-.encomenda-valor .btn-copiar-encomenda:hover .btn-copiar-pill,
-.encomenda-valor .btn-copiar-encomenda:focus-visible .btn-copiar-pill {
-  background: var(--surface-hover);
-  border-color: var(--accent);
-  color: var(--text-bright);
-}
-
-.encomenda-valor .btn-copiar-encomenda.copiado .encomenda-num {
-  color: var(--positive);
-}
-
-.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill {
-  background: rgba(74, 222, 128, 0.15);
-  border-color: rgba(74, 222, 128, 0.4);
-  color: var(--positive);
-}
-
-.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill .icone-ui {
-  color: var(--positive);
-}
-
-.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-txt {
-  display: none;
-}
-
-.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill::after {
-  content: "Copiado!";
-}
-.encomenda-valor .copiar-preco[data-dica]::after { top: auto; right: auto; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
 /* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar
    fica sempre à vista (antes só aparecia com o mouse em cima). */
 .encomenda-preco-hoje { display: block; margin-top: 2px; color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
@@ -7162,11 +6737,12 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   /* Item: quadros de nota/preço e legenda da faixa de dias quebram linha
      com letra grande. */
   .card { min-width: 0; }
-  .card-valor, .resumo-cards-item .card-valor, .resumo-cards-item .card-label, .faixa-dias-legenda-item { white-space: normal; }
+  .card-valor,
+.resumo-cards-item .card-valor,
+.resumo-cards-item .card-label { white-space: normal; }
   /* "Cores da borda" dentro da frase-guia (21 px de altura): área de
      toque maior sem mudar o desenho. */
-  .guia-nota .popover-legenda-toggle { position: relative; }
-  .guia-nota .popover-legenda-toggle::after { content: ""; position: absolute; inset: -12px -4px; }
+
 }
 
 /* "Meus trades" = trocas (17/11): dois lados, várias linhas por lado. */
@@ -7397,177 +6973,11 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .acoes-erro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin-top: var(--sp-4); }
 .acoes-erro .acao-texto { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
 
-.market-pulse-secao {
-margin: var(--sp-6) 0 var(--sp-7);
-}
-.market-pulse-cabecalho {
-display: flex;
-align-items: baseline;
-justify-content: space-between;
-margin-bottom: var(--sp-3);
-flex-wrap: wrap;
-gap: var(--sp-2);
-}
-.market-pulse-titulo {
-font-size: 1.0625rem;
-font-weight: 600;
-color: var(--text-bright);
-display: flex;
-align-items: center;
-gap: var(--sp-2);
-margin: 0;
-}
-.market-pulse-sub {
-font-size: var(--fs-xs);
-color: var(--text-muted);
-}
-.market-pulse-grid {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: var(--sp-3);
-}
-.pulse-card {
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-background: var(--surface);
-border: 1px solid var(--border);
-border-radius: var(--radius-sm);
-padding: 12px;
-text-decoration: none;
-color: inherit;
-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-position: relative;
-overflow: hidden;
-min-height: 110px;
-}
-.pulse-card:hover {
-transform: translateY(-2px);
-border-color: rgba(255, 255, 255, 0.2);
-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-.pulse-card-topo {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 4px;
-margin-bottom: var(--sp-2);
-}
-.pulse-badge {
-display: inline-flex;
-align-items: center;
-gap: 5px;
-font-size: 0.6875rem;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.03em;
-padding: 2px 7px;
-border-radius: var(--radius-sm);
-white-space: nowrap;
-flex-shrink: 0;
-}
-.pulse-badge-fogo {
-background: rgba(249, 115, 22, 0.08);
-color: var(--accent);
-border: 1px solid rgba(249, 115, 22, 0.22);
-}
-.pulse-badge-dip {
-background: rgba(57, 194, 102, 0.08);
-color: var(--positive);
-border: 1px solid rgba(57, 194, 102, 0.22);
-}
-.pulse-badge-volume {
-background: rgba(255, 255, 255, 0.04);
-color: var(--text-muted);
-border: 1px solid rgba(255, 255, 255, 0.09);
-}
-.pulse-badge-caixa {
-background: rgba(242, 187, 37, 0.08);
-color: var(--warn);
-border: 1px solid rgba(242, 187, 37, 0.22);
-}
-.pulse-card-corpo {
-display: flex;
-align-items: center;
-gap: 8px;
-margin-bottom: var(--sp-2);
-}
-.pulse-card-img-wrap {
-width: 40px;
-height: 40px;
-border-radius: var(--radius-xs);
-background: var(--surface-sunken);
-border: 1px solid var(--border);
-display: flex;
-align-items: center;
-justify-content: center;
-flex-shrink: 0;
-overflow: hidden;
-}
-.pulse-card-img {
-width: 100%;
-height: 100%;
-object-fit: contain;
-}
-.pulse-card-info {
-display: flex;
-flex-direction: column;
-overflow: hidden;
-min-width: 0;
-}
-.pulse-card-nome {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-bright);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.25;
-  min-height: 2.5em;
-  word-break: break-word;
-}
-.pulse-card-preco {
-  font-size: var(--fs-base);
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  margin-top: 4px;
-}
-.pulse-card-sub {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 2.7em;
-}
-.pulse-delta-pct.negativo {
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--positive);
-  font-variant-numeric: tabular-nums;
-}
-.pulse-volume-val {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
-}
 @media (max-width: 900px) {
-.market-pulse-grid {
-grid-template-columns: repeat(2, 1fr);
-}
+
 }
 @media (max-width: 480px) {
-.market-pulse-grid {
-grid-template-columns: 1fr;
-}
+
 }
 .botao-spotlight-gatilho {
 display: inline-flex;
@@ -7787,24 +7197,7 @@ border-radius: var(--radius-sm);
 padding: var(--sp-5);
 margin: var(--sp-5) 0;
 }
-.simulador-topo {
-display: flex;
-align-items: center;
-gap: var(--sp-3);
-margin-bottom: var(--sp-1);
-}
-.simulador-titulo {
-font-size: 1.125rem;
-font-weight: 700;
-color: var(--text-bright);
-margin: 0;
-}
-.simulador-desc {
-font-size: var(--fs-sm);
-color: var(--text-muted);
-margin: 4px 0 var(--sp-4);
-line-height: 1.4;
-}
+
 .simulador-controles {
 display: flex;
 flex-direction: column;
@@ -7904,74 +7297,7 @@ color: var(--warn) !important;
 grid-template-columns: 1fr;
 }
 }
-.wear-matrix-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-gap: var(--sp-3);
-margin: var(--sp-4) 0 var(--sp-5);
-}
-.wear-matrix-card {
-background: var(--surface);
-border: 1px solid var(--border);
-border-radius: var(--radius-sm);
-padding: var(--sp-3) var(--sp-4);
-text-decoration: none;
-color: inherit;
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-min-height: 100px;
-}
-.wear-matrix-card:hover {
-transform: translateY(-2px);
-border-color: rgba(255, 255, 255, 0.2);
-box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-}
-.wear-matrix-card-st {
-border-color: rgba(207, 106, 50, 0.55);
-}
-.wear-matrix-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-margin-bottom: var(--sp-2);
-}
-.wear-matrix-tag {
-font-size: 0.6875rem;
-font-weight: 700;
-padding: 2px 6px;
-border-radius: 4px;
-background: rgba(255, 255, 255, 0.08);
-color: var(--text-bright);
-}
-.wear-matrix-compras {
-font-size: var(--fs-xs);
-color: var(--text-muted);
-font-variant-numeric: tabular-nums;
-}
-.wear-matrix-nome {
-font-size: var(--fs-xs);
-color: var(--text);
-line-height: 1.3;
-margin-bottom: var(--sp-1);
-display: -webkit-box;
--webkit-line-clamp: 2;
--webkit-box-orient: vertical;
-overflow: hidden;
-}
-.wear-matrix-preco {
-font-size: 1.0625rem;
-font-weight: 700;
-color: var(--text-bright);
-font-variant-numeric: tabular-nums;
-}
-.wear-matrix-link-txt {
-font-size: 0.6875rem;
-color: var(--accent);
-margin-top: var(--sp-2);
-font-weight: 600;
-}
+
 .cartao-item {
 transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -8127,45 +7453,6 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
   box-shadow: none;
 }
 
-.simulador-presets {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: var(--sp-3);
-  flex-wrap: wrap;
-}
-
-.simulador-presets-rotulo {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.btn-sim-preset {
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 3px 10px;
-  border-radius: 980px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-sim-preset:hover,
-.btn-sim-preset.ativo {
-  border-color: var(--accent);
-  background: rgba(249, 115, 22, 0.12);
-  color: var(--accent);
-}
-
-.btn-preset-breakeven {
-  border-color: rgba(249, 115, 22, 0.4);
-  color: var(--text-bright);
-}
-
 .grafico-card {
   position: relative;
 }
@@ -8178,41 +7465,6 @@ circle.grafico-ponto-interativo:hover {
   stroke: var(--accent);
   stroke-width: 2px;
   fill: rgba(249, 115, 22, 0.4);
-}
-
-.grafico-tooltip {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  pointer-events: none;
-  background: rgba(22, 22, 22, 0.94);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.grafico-tooltip[hidden] {
-  display: none;
-}
-
-.gt-data {
-  color: var(--text-muted);
-  font-size: 0.6875rem;
-}
-
-.gt-valor {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
 }
 
 .toast-notificacao {
@@ -8267,62 +7519,9 @@ circle.grafico-ponto-interativo:hover {
   stroke: #39c266;
 }
 
-.wear-matrix-card-atual {
-  border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.10) 0%, var(--surface-sunken) 100%);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
-}
-
-.wear-matrix-badge-atual {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: rgba(249, 115, 22, 0.2);
-  color: var(--accent);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(249, 115, 22, 0.4);
-}
-
-.pulse-card {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-}
-
-.pulse-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-}
-
-.pulse-card-top:hover {
-  border-color: rgba(249, 115, 22, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-card-dip:hover {
-  border-color: rgba(57, 194, 102, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-card-volume:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-card-container:hover {
-  border-color: rgba(242, 187, 37, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
 @keyframes pulse-fogo-anim {
   0%, 100% { opacity: 0.9; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.03); }
-}
-
-
-.btn-sim-preset:active {
-  transform: scale(0.95);
 }
 
 /* ==========================================================================
@@ -8574,164 +7773,6 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 3. Termômetro do Mercado (Market Pulse) */
-.market-pulse-titulo {
-  font-size: 1.0625rem;
-  color: var(--text-bright);
-}
-
-.market-pulse-sub {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.pulse-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(32, 32, 32, 0.8) 0%, rgba(20, 20, 20, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.25);
-  border-radius: var(--radius-sm);
-  padding: 13px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-}
-
-.pulse-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--card-neon, rgba(255, 255, 255, 0.12));
-  opacity: 0.85;
-  transition: opacity 0.2s ease, box-shadow 0.2s ease;
-}
-
-.pulse-card:hover::before {
-  opacity: 1;
-  box-shadow: 0 0 10px var(--card-neon, var(--accent));
-}
-
-.pulse-card-destaque { --card-neon: #f97316; }
-.pulse-card-dip { --card-neon: #39c266; }
-.pulse-card-volume { --card-neon: #b3b3b3; }
-.pulse-card-container { --card-neon: #f2bb25; }
-
-.pulse-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(249, 115, 22, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.45);
-}
-
-.pulse-card.pulse-card-dip:hover {
-  border-color: rgba(57, 194, 102, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-card.pulse-card-volume:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-card.pulse-card-container:hover {
-  border-color: rgba(242, 187, 37, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-.pulse-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: var(--radius-sm);
-  line-height: 1.2;
-}
-
-.pulse-badge-fogo {
-  background: rgba(249, 115, 22, 0.08);
-  color: var(--accent);
-  border: 1px solid rgba(249, 115, 22, 0.22);
-}
-
-.pulse-badge-dip {
-  background: rgba(57, 194, 102, 0.08);
-  color: var(--positive);
-  border: 1px solid rgba(57, 194, 102, 0.22);
-}
-
-.pulse-badge-volume {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.pulse-badge-container,
-.pulse-badge-caixa {
-  background: rgba(242, 187, 37, 0.08);
-  color: var(--warn);
-  border: 1px solid rgba(242, 187, 37, 0.22);
-}
-
-.pulse-card-img-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.3) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 3px;
-}
-
-.pulse-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
-}
-
-.pulse-card-nome {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: 0.8125rem;
-  font-weight: 650;
-  line-height: 1.28;
-  color: #ffffff;
-  min-height: 2.56em;
-}
-
-.pulse-card-preco {
-  font-size: 0.875rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  margin-top: 2px;
-}
-
-.pulse-volume-val {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.pulse-card-sub {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.35;
-  margin-top: 6px;
-}
 
 /* 4. Vitrine Cards (.cartao-item) */
 .cartao-item {
@@ -8898,14 +7939,12 @@ circle.grafico-ponto-interativo:hover {
   color: #ffffff;
 }
 
-.campo-busca,
-.filtro-select {
+.campo-busca {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.campo-busca:focus,
-.filtro-select:focus {
+.campo-busca:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   outline: none;
@@ -9088,31 +8127,6 @@ circle.grafico-ponto-interativo:hover {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.btn-sim-preset {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-pill);
-  padding: 3px 11px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  transition: all 0.15s ease;
-}
-
-.btn-sim-preset:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.btn-sim-preset.ativo,
-.btn-preset-breakeven:hover {
-  background: rgba(249, 115, 22, 0.15);
-  border-color: rgba(249, 115, 22, 0.45);
-  color: var(--accent);
-}
-
 .simulador-metrica-card {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -9142,33 +8156,6 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 14. Ações da Ficha do Item */
-.acoes-item .botao-acao {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition: all 0.15s ease;
-}
-
-.acoes-item .botao-acao:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.acoes-item .botao-secundario,
-.acoes-item .botao-favorito-item {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-pill);
-  padding: 6px 14px;
-  font-size: 0.8125rem;
-  transition: all 0.15s ease;
-}
-
-.acoes-item .botao-secundario:hover,
-.acoes-item .botao-favorito-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
 
 /* ==========================================================================
    Craftsmanship System: Base44 / Linear / Raycast Polish
@@ -9336,24 +8323,6 @@ circle.grafico-ponto-interativo:hover {
   color: #a3a3a3;
 }
 
-.metodo-limites-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-}
-
-.metodo-limites-lista {
-  margin: var(--sp-3) 0 0;
-  padding-left: 20px;
-  color: #a3a3a3;
-  line-height: 1.65;
-}
-
-.metodo-limites-lista li + li {
-  margin-top: 10px;
-}
-
 /* 17. Status Page Micro-Components (/status) */
 .busca-tags-grid {
   display: flex;
@@ -9408,21 +8377,6 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 18. Termômetro do Mercado Tightening */
-.pulse-card-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  white-space: nowrap;
-}
-.pulse-card-topo[hidden] { display: none; }
-
-.pulse-volume-val {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-weight: 550;
-  font-size: 0.75rem;
-}
 
 /* 19. Tabela de Candidatos Precision Polishing (Modo Lista) */
 .tabela-candidatos th {
@@ -9438,11 +8392,6 @@ circle.grafico-ponto-interativo:hover {
   padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   vertical-align: middle;
-}
-
-.tabela-candidatos .celula-preco .preco-num {
-  font-weight: 600;
-  color: #ffffff;
 }
 
 .tabela-candidatos .sparkline-svg polyline {
@@ -9537,7 +8486,6 @@ circle.grafico-ponto-interativo:hover {
   transform: translateY(-1px);
 }
 
-.aba-categoria.aba-ativa,
 .aba-categoria[aria-current="page"] {
   background: rgba(249, 115, 22, 0.16);
   border-color: rgba(249, 115, 22, 0.45);
@@ -9563,7 +8511,6 @@ circle.grafico-ponto-interativo:hover {
 }
 .aba-contagem[hidden] { display: none; }
 
-.aba-categoria.aba-ativa .aba-contagem,
 .aba-categoria[aria-current="page"] .aba-contagem {
   background: rgba(249, 115, 22, 0.3);
   color: #ffffff;
@@ -9696,36 +8643,6 @@ circle.grafico-ponto-interativo:hover {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-.wear-matrix-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 8px;
-  margin: var(--sp-3) 0 var(--sp-5);
-}
-.wear-matrix-grid[hidden] { display: none; }
-
-.wear-card {
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.6) 0%, rgba(18, 18, 18, 0.85) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.wear-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(249, 115, 22, 0.4);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-}
-
-.wear-card.wear-card-atual {
-  border-color: rgba(249, 115, 22, 0.6);
-  background: rgba(249, 115, 22, 0.08);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-}
-
 /* 24. Mobile Bottom Dock Floating Polish */
 .nav-inferior {
   background: rgba(14, 14, 14, 0.88);
@@ -9767,30 +8684,15 @@ body {
 
 /* Números tabulares de alta precisão para métricas, valores e tabelas financeiras */
 .valor,
-.preco-num,
 .card-valor,
-.pulse-card-preco,
 .nota-numero,
 .hero-destaque-nota-num,
-.encomenda-valor,
-.tabela-linha-preco,
-.termometro-item-preco,
-.detalhe-metrica-valor,
 .celula-preco,
 .celula-nota,
 .cartao-item-preco,
-.pulse-delta-pct,
-.pulse-volume-val,
 .cartao-item-nota-numero,
 .hero-destaque-preco,
-.ranking-posicao,
-.tabela-ranking-pos,
-.wear-preco,
-.wear-vendas,
-.historico-ranking-pos,
-.movimento-linha-numeros strong,
-.ranking-media-nota,
-.simulador-resultado-valor {
+.movimento-linha-numeros strong {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;
 }
@@ -9799,16 +8701,14 @@ body {
 h1,
 .home-tese-titulo,
 .titulo-pagina,
-.hero-destaque-nome,
-.nome-item-destaque {
+.hero-destaque-nome {
   letter-spacing: -0.03em;
   color: #ffffff;
 }
 
 h2,
 h3,
-.secao-titulo,
-.market-pulse-titulo {
+.secao-titulo {
   letter-spacing: -0.02em;
   color: #f8fafc;
 }
@@ -9824,10 +8724,8 @@ h3,
 }
 
 /* Micro-etiquetas, selos e cápsulas informativas */
-.pulse-badge,
 .hero-destaque-rotulo,
 .aba-contagem,
-.ranking-seletor-btn,
 .cartao-item-caixa,
 .selo-descontinuada,
 .selo-risco,
@@ -9842,8 +8740,6 @@ h3,
   color: var(--text-muted);
   font-weight: 400;
 }
-
-
 
 /* Subnav da conta */
 .subnav-conta-link {
@@ -10217,9 +9113,6 @@ h3,
   color: var(--text-muted);
 }
 
-
-
-
 /* ==========================================================================
    POLIMENTO REFINADO: AÇÕES DO TOPO & TOOLBAR DE FILTROS DO CATÁLOGO
    - Header 3 itens: Buscar [Ctrl K], pílula da conta [avatar + nome], e botão sair
@@ -10537,24 +9430,6 @@ h3,
 }
 
 /* Campo de filtro rápido inline, compacto e discreto */
-.form-filtros .campo-busca-rotulo {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  position: relative;
-  flex: 0 1 260px;
-}
-
-.form-filtros .campo-busca-rotulo .icone-ui-lupa {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 13px;
-  height: 13px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
 
 .form-filtros input[type="text"]#campo-busca {
   width: 100%;
@@ -10707,11 +9582,7 @@ h3,
   .filtros-barra-acoes {
     flex-wrap: wrap;
   }
-  .form-filtros .campo-busca-rotulo {
-    order: 3;
-    flex: 1 1 100%;
-    margin-left: 0;
-  }
+
   .filtros-mais-corpo {
     grid-template-columns: 1fr 1fr;
   }
@@ -11528,11 +10399,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   outline: none;
 }
 
-.tabela-conta .form-separar .separar-de {
-  font-size: 0.78125rem;
-  color: rgba(255, 255, 255, 0.50);
-}
-
 .tabela-conta .form-separar .botao-link {
   height: 30px;
   padding: 0 12px;
@@ -11961,7 +10827,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   transform: translateX(-2px);
 }
 
-
 /* ==========================================================================
    28. Supreme Polish Global - Todas as Abas e Componentes (Linear/Base44-grade)
    ========================================================================== */
@@ -12037,145 +10902,11 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 /* Termômetro do Mercado (Market Pulse) */
-.market-pulse-secao {
-  margin: var(--sp-6) 0 var(--sp-6);
-}
 
-.market-pulse-cabecalho {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin-bottom: var(--sp-3);
-}
-
-.market-pulse-titulo {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #f1f5f9;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
-
-.market-pulse-titulo svg {
-  color: var(--accent);
-}
-
-.market-pulse-sub {
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.50);
-}
-
-.market-pulse-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-
-.pulse-card {
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(30, 30, 30, 0.40);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  text-decoration: none;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pulse-card:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transform: translateY(-1.5px);
-  text-decoration: none;
-}
-
-.pulse-card-rotulo {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.50);
-  margin-bottom: 6px;
-}
-
-.pulse-card-nome {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #f8fafc;
-  margin-bottom: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pulse-card-valor {
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-top: auto;
-}
-
-.pulse-card-img-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.35) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 3px;
-}
-
-.pulse-card-img-wrap { position: relative; overflow: hidden; }
 /* O placeholder global é absoluto: sem o "position: relative" acima ele
    cobria o cartão inteiro quando o item não tinha imagem (revisão 19/11). */
-.pulse-card-img-wrap .icone-item-placeholder {
-  display: flex !important;
-  position: absolute;
-  inset: 0;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: rgba(255, 255, 255, 0.25);
-  font-size: 1.25rem;
-}
 
 /* Barra de Busca & Filtros Expansíveis */
-.barra-busca-vitrine {
-  border-radius: 12px;
-  background: rgba(30, 30, 30, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  padding: 6px 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.busca-vitrine-input {
-  background: transparent;
-  border: none;
-  color: #f8fafc;
-  font-size: 0.875rem;
-  padding: 8px 12px;
-  width: 100%;
-}
-
-.busca-vitrine-input:focus {
-  outline: none;
-}
 
 .filtros-mais {
   margin-top: 8px;
@@ -12210,12 +10941,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 /* Vitrine de Itens (Cards de Oportunidade) */
-.vitrine-itens {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: var(--sp-4);
-}
 
 .cartao-item {
   position: relative;
@@ -12431,14 +11156,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   transform: translateY(-1px);
 }
 
-.faq-pergunta {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: #ffffff;
-  margin: 0 0 10px;
-}
-
 .faq-resposta {
   font-size: 0.9375rem;
   line-height: 1.6;
@@ -12618,55 +11335,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: #39c266;
 }
 
-.simulador-metrica-card.card-destaque-lucro .simulador-metrica-valor {
-  color: #39c266;
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.wear-matrix-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: var(--sp-2) 0 var(--sp-4);
-}
-
-.wear-matrix-item {
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.75);
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-
-.wear-matrix-item:hover,
-.wear-matrix-item.ativo {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-
 /* 30 Quadrados de Histórico de Top 20 */
-.faixa-dias {
-  display: flex;
-  gap: 4px;
-  padding: 0;
-  list-style: none;
-  margin: var(--sp-2) 0 var(--sp-3);
-}
-
-.faixa-dias li {
-  border-radius: 3px;
-  transition: transform 0.15s ease;
-}
-
-.faixa-dias li:hover {
-  transform: scale(1.2);
-}
 
 /* --- 7. Glossário (/glossario) & Institucionais (/novidades, /sobre) --- */
 
@@ -12736,7 +11405,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 /* --- 8. Rodapé Global (footer.rodape-global) --- */
 
-footer.rodape-global,
 footer.rodape {
   margin-top: var(--sp-8);
   padding-top: 36px;
@@ -12744,14 +11412,12 @@ footer.rodape {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-footer.rodape-global a,
 footer.rodape a {
   color: rgba(255, 255, 255, 0.60);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
-footer.rodape-global a:hover,
 footer.rodape a:hover {
   color: #ffffff;
 }
@@ -12764,14 +11430,12 @@ footer.rodape a:hover {
    que dá a mesma leitura sobre a imagem. */
 .cartao-item-nota,
 .cartao-item-margem,
-.cartao-item-posicao,
 .selo-sem-nota,
 .hero-destaque-nota {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   background-color: rgba(12, 12, 12, 0.82);
 }
-.pulse-card,
 .movimento-do-dia,
 .ranking-bloco,
 .hero-destaque,
@@ -13002,43 +11666,6 @@ button.confira { min-height: 24px; padding-block: 3px; }
 .grafico-card {
   position: relative;
   overflow: visible;
-}
-
-.grafico-scrubber-linha {
-  position: absolute;
-  top: 14px;
-  bottom: 14px;
-  width: 1px;
-  background: var(--accent);
-  opacity: 0.55;
-  pointer-events: none;
-  z-index: 2;
-  box-shadow: 0 0 6px var(--accent);
-  transition: opacity 0.1s ease;
-}
-
-.grafico-scrubber-linha[hidden] {
-  display: none;
-}
-
-circle.grafico-ponto-interativo.ponto-ativo {
-  stroke: var(--accent);
-  stroke-width: 3px;
-  fill: var(--accent);
-  r: 5px;
-}
-
-.gt-linha-preco {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.gt-variacao {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 
 .simulador-input-linha {
