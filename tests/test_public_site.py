@@ -4819,7 +4819,8 @@ def test_index_traduz_caixa_igual_coluna_item(client, monkeypatch, tmp_path):
     ])
     body = client.get("/").data.decode("utf-8")
 
-    assert ">Caixa CS:GO Weapon (descontinuada, 2013)</span>" in body
+    assert ">CS:GO Weapon · 2013</span>" in body
+    assert 'title="Caixa CS:GO Weapon (descontinuada, 2013)"' in body
     assert "<title>Lodout — análise do mercado de skins de Counter-Strike 2</title>" in body
 
 
@@ -4858,7 +4859,8 @@ def test_coluna_caixa_nao_repete_nome_da_propria_capsula(
 
     assert ">Descontinuada · 2024</span>" in body
     assert f">{nome} (descontinuada, 2024)</span>" not in body
-    assert ">Caixa Fênix da Operação (descontinuada, 2014)</span>" in body
+    assert ">Fênix da Operação · 2014</span>" in body
+    assert 'title="Caixa Fênix da Operação (descontinuada, 2014)"' in body
 
 
 def test_favoritos_fora_da_pagina_e_estilos_da_tabela(client):

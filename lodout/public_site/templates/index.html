@@ -211,9 +211,9 @@
       {% if enc %}<p class="encomenda-linha cartao-item-encomenda" title="Encomenda: você define o preço e espera alguém vender. Este valor fica um centavo acima da maior encomenda ({{ enc.maior_fmt }}), na frente da fila, e {{ enc.abaixo_pct }}% abaixo do preço de hoje.">Encomendar por <strong>{{ enc.valor_fmt }}</strong></p>{% endif %}
       <div class="cartao-item-selos">
         {% if c.case_label %}
-        <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa(c.name) }}</span>
+        <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa_curto(c.name) }}</span>
         {% endif %}
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>
@@ -245,7 +245,7 @@
       </div>
       <div class="cartao-item-selos">
         <span class="cartao-item-caixa">Preço do dia</span>
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>

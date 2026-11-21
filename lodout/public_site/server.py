@@ -1825,6 +1825,14 @@ def _motivo_sem_pontos(label: "str | None") -> str:
     return _PONTOS_NO_FIM.sub("", label or "")
 
 
+_STATUS_PT = {
+    "discontinued": "Descontinuada",
+    "rare": "Rara",
+    "active": "Ativa",
+    "collection": "Coleção",
+}
+
+
 def _rotulo_caixa(case_label: "str | None",
                   item_name: "str | None" = None) -> str:
     """Traduz o nome da caixa em "X Case (descontinuada, 2014)" com o mesmo
@@ -1839,7 +1847,8 @@ def _rotulo_caixa(case_label: "str | None",
     nome, sep, resto = case_label.partition(" (")
     if item_name and nome == item_name and resto:
         status, _, ano = resto.rstrip(")").partition(", ")
-        texto = status[:1].upper() + status[1:]
+        status_limpo = status.strip().lower()
+        texto = _STATUS_PT.get(status_limpo, status[:1].upper() + status[1:])
         return f"{texto} · {ano}" if ano else texto
     return localize_name(nome) + sep + resto
 
@@ -1855,7 +1864,7 @@ def _rotulo_caixa_curto(case_label: "str | None",
         return ""
     nome, sep, resto = rotulo.partition(" (")
     curto = re.sub(
-        r"^(Caixa de Armas da Operação|Caixa da Operação|Caixa de Armas do|Caixa de Armas|Caixa de|Caixa|Cápsula de Autógrafos de|Cápsula de Autógrafo de|Cápsula de|Coleção|The)\s+",
+        r"^(Caixa de Armas da Operação|Caixa da Operação|Caixa de Armas do|Caixa de Armas|Caixa de|Caixa|Cápsula de Autógrafos de|Cápsula de Autógrafo de|Cápsula de|Coleção da Operação|Coleção de|Coleção|The)\s+",
         "",
         nome,
         flags=re.I,
@@ -1863,9 +1872,11 @@ def _rotulo_caixa_curto(case_label: "str | None",
     curto = re.sub(r"\s+(Case|Collection)$", "", curto, flags=re.I).strip()
     if resto:
         status, _, ano = resto.rstrip(")").partition(", ")
+        status_limpo = status.strip().lower()
+        texto_status = _STATUS_PT.get(status_limpo, "")
         if ano:
             return f"{curto} · {ano}"
-        return curto
+        return f"{curto} · {texto_status}" if texto_status else curto
     return curto
 
 
