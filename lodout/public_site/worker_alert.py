@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
-from lodout.public_site import db_backup, discord_notify
+from lodout.public_site import catalogo, db_backup, discord_notify
 from lodout._ambiente import ambiente
 
 _ESTADO_PATH = DATA_DIR / "worker_alert_state.json"
@@ -39,6 +39,13 @@ _ESTADO_BACKUP_PATH = DATA_DIR / "backup_alert_state.json"
 # reiniciando) não virar alarme falso.
 _BACKUP_IDADE_LIMITE_H = 48.0
 _DEDUP_BACKUP_HORAS = 24.0
+
+_ESTADO_CATALOGO_PATH = DATA_DIR / "catalogo_alert_state.json"
+# Uma volta completa renova a cada ~24h (catalogo._INTERVALO_RODADA_H_
+# PADRAO); 72h é 3x essa janela -- margem pra 1-2 voltas perdidas por
+# bloqueio real da Steam não virarem alarme falso.
+_CATALOGO_IDADE_LIMITE_H = 72.0
+_DEDUP_CATALOGO_HORAS = 24.0
 
 
 def verificar_e_alertar(historico_ciclos: list[dict],
@@ -196,6 +203,47 @@ def verificar_backup_e_alertar(now: "float | None" = None,
         webhook,
         f"⚠️ Lodout: backup sem renovar há mais tempo que o esperado — "
         f"{partes}. Ver /api/health -> backups.")
+    if enviado:
+        try:
+            atomic_write_text(p, json.dumps({"ultimo_alerta_ts": agora}))
+        except OSError:
+            pass
+    return enviado
+
+
+def verificar_catalogo_e_alertar(now: "float | None" = None,
+                                 path: "Path | str | None" = None) -> bool:
+    """Alerta se o catálogo amplo está ligado (`LODOUT_CATALOGO=1`) mas
+    não completa uma volta há mais de `_CATALOGO_IDADE_LIMITE_H` -- nunca
+    antes da primeira volta completar (catálogo ligado agora mesmo não é
+    atraso). Dedup de 24h, mesmo princípio dos outros alertas deste
+    módulo."""
+    webhook = ambiente("ADMIN_DISCORD_WEBHOOK", "")
+    if not webhook or not catalogo.ligado():
+        return False
+    resumo = catalogo.resumo()
+    ultima = resumo.get("ultima_completa_ts")
+    if not ultima:
+        return False
+    agora = time.time() if now is None else now
+    idade_h = (agora - ultima) / 3600
+    if idade_h <= _CATALOGO_IDADE_LIMITE_H:
+        return False
+
+    p = Path(path) if path is not None else _ESTADO_CATALOGO_PATH
+    estado = load_json_record(p, {})
+    if not isinstance(estado, dict):
+        estado = {}
+    if agora - estado.get("ultimo_alerta_ts", 0) < _DEDUP_CATALOGO_HORAS * 3600:
+        return False
+
+    motivo = resumo.get("motivo") or "desconhecido"
+    bloqueios = resumo.get("bloqueios") or 0
+    enviado = discord_notify.enviar(
+        webhook,
+        f"⚠️ Lodout: catálogo amplo sem completar uma volta há "
+        f"{idade_h:.0f}h (motivo: {motivo}, {bloqueios} bloqueio(s)). "
+        "Ver /api/health -> catalogo.")
     if enviado:
         try:
             atomic_write_text(p, json.dumps({"ultimo_alerta_ts": agora}))
