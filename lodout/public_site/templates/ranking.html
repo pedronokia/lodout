@@ -90,7 +90,7 @@
   <main id="conteudo">
     <header class="cabecalho-pagina">
       <h1 class="titulo-pagina">Ranking</h1>
-      <p class="descricao-pagina">As melhores notas médias do período.</p>
+      <p class="descricao-pagina">{% if modo == "media" %}As melhores notas médias do período.{% else %}Itens mais frequentes no Top 20 no período.{% endif %}</p>
       {% if quando %}<p class="cabecalho-meta">Última coleta completa {{ quando }}.</p>{% endif %}
     </header>
     <div class="ranking-controles">
@@ -184,7 +184,6 @@
   </main>
 
   <footer class="rodape">
-    <p>Nota alta não garante lucro.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   <script src="{{ static_v('copiar_preco.js') }}" defer></script>

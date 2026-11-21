@@ -121,7 +121,6 @@
 
     {% include "partials/_na_sua_conta.html" %}
     {% include "partials/_simulador.html" %}
-
     <h2 class="secao-titulo">Por quê</h2>
     {% if not item.breakdown %}
     <p>{{ item.reasons|join("; ") if item.reasons else "Sem fator em destaque" }}</p>

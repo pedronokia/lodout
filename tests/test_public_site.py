@@ -6231,3 +6231,23 @@ def test_item_detail_transparencia_sem_fila(client, monkeypatch, tmp_path):
     ])
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert "Fila de encomendas da Steam não disponível na última coleta" in body
+    assert "Copiar oferta" in body
+
+
+def test_ranking_descricao_dinamica_e_sem_aviso_orfao_no_rodape(client, monkeypatch):
+    agora = time.time()
+    snaps = [{"ts": agora - h * 3600, "items": [{"name": "Sempre", "score": 80, "position": 1}]}
+             for h in range(48, -1, -6)]
+    monkeypatch.setattr("lodout.public_site.server.ranking.load_snapshots", lambda *a, **k: snaps)
+    body = client.get("/ranking").data.decode("utf-8")
+    assert "Itens mais frequentes no Top 20 no período." in body
+    assert "<p>Nota alta não garante lucro.</p>" not in body
+
+
+def test_index_modo_lista_link_vai_para_pagina_do_item(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/?ver=lista").data.decode("utf-8")
+    assert '<a class="link-item" href="/item/AK-47%20%7C%20Redline%20(Field-Tested)" translate="no">AK-47 | Redline (Testada em Campo)</a>' in body

@@ -2475,17 +2475,19 @@ table.tabela-candidatos td.celula-preco {
 .selo-confianca-baixa .icone-ui { width: 0.9em; height: 0.9em; }
 
 .selo-descontinuada {
-  display: -webkit-box;
+  display: inline-block;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+  vertical-align: middle;
   padding: 2px 8px;
   border: 1px solid rgba(57, 194, 102, 0.28);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-xs);
   background: rgba(57, 194, 102, 0.06);
   color: var(--positive-selo);
   font-size: var(--fs-xs);
   cursor: help;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .selo-meta-atingida {
@@ -4407,28 +4409,35 @@ table.tabela-conta th { white-space: normal; }
    quadrado de 44px com o texto vazando pra linha de baixo). */
 .hero-item-acoes .link-secundario,
 .hero-item-acoes .botao-copiar,
+.hero-item-acoes .botao-compartilhar,
 .hero-item-acoes .botao-favorito {
   display: inline-flex;
   width: auto;
-  min-height: 44px;
+  min-height: 40px;
   height: auto;
   align-items: center;
   gap: 6px;
   margin: 0;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--text-muted);
   font-size: var(--fs-sm);
   font-weight: 500;
   text-decoration: none;
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-standard);
 }
 
 .hero-item-acoes > .botao-acao:first-child { margin-right: var(--sp-2); }
 
 .hero-item-acoes .link-secundario:hover,
 .hero-item-acoes .botao-copiar:hover,
+.hero-item-acoes .botao-compartilhar:hover,
 .hero-item-acoes .botao-favorito:hover {
   background: var(--surface-hover);
+  border-color: var(--accent);
   color: var(--text-bright);
 }
 
@@ -6356,9 +6365,9 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 
 /* "Encomenda sugerida" copiável; a dica "copiado" sai por cima. */
 .tabela-top20 .celula-encomenda { white-space: nowrap; }
-.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0;  }
-/* Avisos e explicações do Ranking em medida de leitura (~75 letras). */
-.ranking-base, .aviso-periodo-ranking { max-width: 75ch; }
+.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0; font-size: var(--fs-xs); }
+/* Avisos e explicações do Ranking */
+.ranking-base, .aviso-periodo-ranking { width: 100%; box-sizing: border-box; }
 /* Quadros "revender sem prejuízo" e "comprar por encomenda" do item. */
 .pagina-item .conta-revenda-texto, .pagina-item .conta-revenda-nota { max-width: 58ch; }
 /* "Abrir na Steam" ao lado do valor: copiar e já ir colar (17/11). */
@@ -6689,9 +6698,9 @@ font-family: inherit;
 .spotlight-overlay {
 position: fixed;
 inset: 0;
-background: rgba(0, 0, 0, 0.78);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
+background: rgba(0, 0, 0, 0.85);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
 z-index: 1000;
 display: flex;
 align-items: flex-start;
@@ -6704,10 +6713,10 @@ display: none !important;
 .spotlight-modal {
 width: 92%;
 max-width: 620px;
-background: #181818;
-border: 1px solid rgba(255, 255, 255, 0.16);
+background: #141414;
+border: 1px solid rgba(255, 255, 255, 0.14);
 border-radius: var(--radius-md);
-box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
 overflow: hidden;
 display: flex;
 flex-direction: column;
@@ -6788,11 +6797,15 @@ display: flex;
 align-items: center;
 justify-content: center;
 flex-shrink: 0;
+position: relative;
+overflow: hidden;
+padding: 2px;
 }
 .spotlight-item-img {
 width: 100%;
 height: 100%;
 object-fit: contain;
+filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 .spotlight-item-info {
 flex: 1;
@@ -8396,9 +8409,13 @@ h3,
   font-size: 0.8125rem;
   font-weight: 600;
   color: #f1f5f9;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
   text-decoration: none;
 }
 
@@ -10361,6 +10378,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .ranking-movimento {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
   gap: 16px;
   margin-top: var(--sp-4);
 }
