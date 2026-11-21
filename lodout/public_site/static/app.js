@@ -410,23 +410,9 @@ document.addEventListener("error", function (e) {
       barra.classList.remove("barra-comparar-limite");
     }, 3000);
   }
-  function atualizarBotoesComparar() {
-    var lista = ler();
-    document.querySelectorAll(".botao-comparar-item").forEach(function (btn) {
-      var nome = btn.getAttribute("data-comparar");
-      var ativo = lista.indexOf(nome) !== -1;
-      btn.classList.toggle("ativo", ativo);
-      btn.setAttribute("aria-pressed", ativo ? "true" : "false");
-      var txt = btn.querySelector(".texto-comparar-btn");
-      if (txt) {
-        txt.textContent = ativo ? "Na comparação" : "Comparar";
-      }
-    });
-  }
   function atualizarBarra() {
     var lista = ler();
     var barra = document.getElementById("barra-comparar");
-    atualizarBotoesComparar();
     if (!barra) return;
     if (lista.length < 1) { barra.hidden = true; return; }
     barra.hidden = false;
@@ -462,42 +448,11 @@ document.addEventListener("error", function (e) {
     anunciar(lista.length + " de " + MAX + " selecionados pra comparar");
   });
   document.addEventListener("click", function (e) {
-    if (e.target.id === "botao-limpar-comparar") {
-      salvar([]);
-      document.querySelectorAll(".checkbox-comparar").forEach(function (cb) { cb.checked = false; });
-      atualizarBarra();
-      anunciar("Seleção pra comparar limpa");
-      return;
-    }
-    var btn = e.target.closest ? e.target.closest(".botao-comparar-item") : null;
-    if (!btn) return;
-    var nome = btn.getAttribute("data-comparar");
-    if (!nome) return;
-    var lista = ler();
-    var idx = lista.indexOf(nome);
-    if (idx !== -1) {
-      if (lista.length >= 2) {
-        window.location.href = "/comparar?nomes=" + lista.map(encodeURIComponent).join(",");
-        return;
-      }
-      lista.splice(idx, 1);
-      salvar(lista);
-      atualizarBarra();
-      anunciar("Removido da comparação");
-      if (window.lodoutToast) window.lodoutToast("Removido da comparação");
-    } else {
-      if (lista.length >= MAX) {
-        anunciar("Limite de " + MAX + " itens pra comparar. Desmarque um pra trocar.");
-        avisarLimite();
-        if (window.lodoutToast) window.lodoutToast("Limite de 3 itens atingido.");
-        return;
-      }
-      lista.push(nome);
-      salvar(lista);
-      atualizarBarra();
-      anunciar("Adicionado à comparação (" + lista.length + "/" + MAX + ")");
-      if (window.lodoutToast) window.lodoutToast("Adicionado à comparação (" + lista.length + "/" + MAX + ")");
-    }
+    if (e.target.id !== "botao-limpar-comparar") return;
+    salvar([]);
+    document.querySelectorAll(".checkbox-comparar").forEach(function (cb) { cb.checked = false; });
+    atualizarBarra();
+    anunciar("Seleção pra comparar limpa");
   });
 })();
 (function () {
@@ -784,21 +739,6 @@ if ("serviceWorker" in navigator) {
   var elRetorno = document.getElementById("sim-retorno-pct");
   var elFila = document.getElementById("sim-fila-status");
   var elFilaDesc = document.getElementById("sim-fila-desc");
-
-  // Abas do simulador
-  var tabOferta = document.getElementById("tab-sim-oferta");
-  var tabMeta = document.getElementById("tab-sim-meta");
-  var painelOferta = document.getElementById("painel-sim-oferta");
-  var painelMeta = document.getElementById("painel-sim-reversa");
-
-  // Controles da meta reversa
-  var inputMeta = document.getElementById("sim-input-meta");
-  var elMetaSteam = document.getElementById("meta-steam-val");
-  var elMetaSteamSub = document.getElementById("meta-steam-sub");
-  var elMetaCSFloat = document.getElementById("meta-csfloat-val");
-  var elMetaCSFloatSub = document.getElementById("meta-csfloat-sub");
-  var elMetaVantagem = document.getElementById("meta-vantagem-val");
-  var elMetaVantagemSub = document.getElementById("meta-vantagem-sub");
   var btnCopiarSimOferta = document.getElementById("btn-copiar-sim-oferta");
 
   // Mesmo formato do resto do site (fmt.brl): "R$ 1.234,56" e prejuízo
@@ -836,18 +776,6 @@ if ("serviceWorker" in navigator) {
         elRetorno.textContent = (retornoPct > 0.05 ? "+" : retornoPct < -0.05 ? "\u2212" : "") + Math.abs(retornoPct).toFixed(1).replace(".", ",") + "% depois da taxa";
         elRetorno.className = "simulador-metrica-sub " + (retornoPct >= 0 ? "texto-positivo" : "texto-perigo");
       }
-      var elArbSteam = document.getElementById("arb-steam-liquido");
-      var elArbExterno = document.getElementById("arb-externo-liquido");
-      var elArbSpread = document.getElementById("arb-spread-val");
-      var liqSteam = precoAtual / 1.15;
-      var liqExterno = precoAtual * 0.98;
-      var spreadValor = liqExterno - liqSteam;
-      var spreadPct = ((liqExterno - liqSteam) / precoAtual) * 100;
-      if (elArbSteam) elArbSteam.textContent = formatarBrl(liqSteam);
-      if (elArbExterno) elArbExterno.textContent = formatarBrl(liqExterno);
-      if (elArbSpread) {
-        elArbSpread.textContent = "+" + spreadPct.toFixed(1).replace(".", ",") + "% (+" + formatarBrl(spreadValor) + ")";
-      }
     }
     if (elFila && elFilaDesc) {
       if (maiorEncomenda > 0) {
@@ -869,61 +797,6 @@ if ("serviceWorker" in navigator) {
         elFilaDesc.textContent = "Fila desconhecida";
       }
     }
-  }
-
-  function calcularMetaReversa() {
-    if (!inputMeta || precoAtual <= 0) return;
-    var metaLucro = lerValor(inputMeta.value);
-    if (isNaN(metaLucro) || metaLucro <= 0) return;
-
-    var custoBase = precoAtual;
-    var liquidoAlvo = custoBase + metaLucro;
-
-    // Steam: líquido = bruto / 1.15 => bruto = líquido * 1.15
-    var vendaSteam = liquidoAlvo * 1.15;
-    // CSFloat: líquido = bruto * 0.98 => bruto = líquido / 0.98
-    var vendaCSFloat = liquidoAlvo / 0.98;
-    var vantagemP2P = vendaSteam - vendaCSFloat;
-
-    var diffSteamPct = ((vendaSteam - precoAtual) / precoAtual) * 100;
-    var diffCSFloatPct = ((vendaCSFloat - precoAtual) / precoAtual) * 100;
-
-    if (elMetaSteam) elMetaSteam.textContent = formatarBrl(vendaSteam);
-    if (elMetaSteamSub) {
-      elMetaSteamSub.textContent = (diffSteamPct >= 0 ? "+" : "") + diffSteamPct.toFixed(1).replace(".", ",") + "% do preço atual";
-    }
-
-    if (elMetaCSFloat) elMetaCSFloat.textContent = formatarBrl(vendaCSFloat);
-    if (elMetaCSFloatSub) {
-      elMetaCSFloatSub.textContent = (diffCSFloatPct >= 0 ? "+" : "") + diffCSFloatPct.toFixed(1).replace(".", ",") + "% do preço atual";
-    }
-
-    if (elMetaVantagem) elMetaVantagem.textContent = formatarBrl(vantagemP2P);
-    if (elMetaVantagemSub) {
-      elMetaVantagemSub.textContent = "Anúncio " + formatarBrl(vantagemP2P) + " mais barato no P2P com mesmo lucro";
-    }
-  }
-
-  // Alternar abas do simulador
-  if (tabOferta && tabMeta && painelOferta && painelMeta) {
-    tabOferta.addEventListener("click", function () {
-      tabOferta.classList.add("ativa");
-      tabOferta.setAttribute("aria-selected", "true");
-      tabMeta.classList.remove("ativa");
-      tabMeta.setAttribute("aria-selected", "false");
-      painelOferta.hidden = false;
-      painelMeta.hidden = true;
-    });
-
-    tabMeta.addEventListener("click", function () {
-      tabMeta.classList.add("ativa");
-      tabMeta.setAttribute("aria-selected", "true");
-      tabOferta.classList.remove("ativa");
-      tabOferta.setAttribute("aria-selected", "false");
-      painelMeta.hidden = false;
-      painelOferta.hidden = true;
-      calcularMetaReversa();
-    });
   }
 
   if (input && slider) {
@@ -964,28 +837,6 @@ if ("serviceWorker" in navigator) {
         }
       });
     });
-  }
-
-  // Controles de meta reversa
-  if (inputMeta) {
-    inputMeta.addEventListener("input", function () {
-      calcularMetaReversa();
-    });
-    var btnMetaPresets = box.querySelectorAll(".btn-meta-preset");
-    btnMetaPresets.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        btnMetaPresets.forEach(function (b) { b.classList.remove("ativo"); });
-        btn.classList.add("ativo");
-        var tipo = btn.getAttribute("data-tipo");
-        var val = parseFloat(btn.getAttribute("data-val"));
-        if (!isNaN(val)) {
-          var lucroAlvo = tipo === "pct" ? precoAtual * val : val;
-          inputMeta.value = escreverValor(lucroAlvo);
-          calcularMetaReversa();
-        }
-      });
-    });
-    calcularMetaReversa();
   }
 })();
 
@@ -1132,26 +983,6 @@ if ("serviceWorker" in navigator) {
     card.addEventListener("touchstart", onPointerMove, { passive: true });
     card.addEventListener("mouseleave", desativar);
   });
-})();
-
-/* Barra Flutuante Compacta no Scroll (Sticky Header Bar) */
-(function () {
-  var bar = document.getElementById("item-sticky-bar");
-  if (!bar) return;
-  var hero = document.querySelector(".hero-item");
-  function onScroll() {
-    var limite = hero ? (hero.offsetTop + hero.offsetHeight - 40) : 300;
-    var y = window.scrollY || window.pageYOffset || 0;
-    if (y > limite) {
-      bar.hidden = false;
-      bar.setAttribute("aria-hidden", "false");
-    } else {
-      bar.hidden = true;
-      bar.setAttribute("aria-hidden", "true");
-    }
-  }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
 })();
 
 // Alternador suave para painel de "+ Filtros" do catálogo

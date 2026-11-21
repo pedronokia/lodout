@@ -2814,10 +2814,10 @@ def test_item_detail_tem_hero_cinematografico(client, monkeypatch, tmp_path):
     assert "Ver no Mercado da Steam" in body
 
 
-def test_item_detail_tem_sticky_bar_e_atalho_comparar(client, monkeypatch, tmp_path):
-    """Verifica que a página do item contém a barra flutuante compacta
-    (sticky action bar) no scroll, o botão de atalho de comparar e a barra
-    de comparação inferior."""
+def test_item_detail_fiel_ao_proposito_sem_poluicao(client, monkeypatch, tmp_path):
+    """Verifica que a página do item mantém o design calmo e focado:
+    sem barras flutuantes intrusivas (sticky bar), sem caixa de arbitragem CSFloat/PIX,
+    e sem gavetas de comparação soltas."""
     resultados = [
         {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
          "icon": "skin-icon-hash", "case_label": "", "category": "Rifles",
@@ -2827,16 +2827,15 @@ def test_item_detail_tem_sticky_bar_e_atalho_comparar(client, monkeypatch, tmp_p
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
 
-    assert 'id="item-sticky-bar"' in body
-    assert 'item-sticky-bar' in body
-    assert 'botao-comparar-item' in body
-    assert 'botao-comparar-sticky' in body
-    assert 'id="barra-comparar"' in body
+    assert 'id="item-sticky-bar"' not in body
+    assert 'arbitragem-box' not in body
+    assert 'CSFloat' not in body
+    assert 'id="barra-comparar"' not in body
 
 
-def test_item_detail_tem_simulador_meta_reversa_e_abas(client, monkeypatch, tmp_path):
-    """Verifica que o simulador na ficha do item tem abas para alternar entre
-    a simulação de oferta e a meta reversa de ROI com CSFloat."""
+def test_item_detail_simulador_limpo_com_copiar_oferta(client, monkeypatch, tmp_path):
+    """Verifica que o simulador na ficha do item é limpo, direto e sem abas
+    desnecessárias, mantendo o botão de copiar a oferta simulada."""
     resultados = [
         {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
          "case_label": "", "category": "Rifles",
@@ -2845,14 +2844,11 @@ def test_item_detail_tem_simulador_meta_reversa_e_abas(client, monkeypatch, tmp_
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
 
-    assert 'class="simulador-abas"' in body
-    assert 'id="tab-sim-oferta"' in body
-    assert 'id="tab-sim-meta"' in body
-    assert 'id="painel-sim-oferta"' in body
-    assert 'id="painel-sim-reversa"' in body
-    assert 'id="meta-steam-val"' in body
-    assert 'id="meta-csfloat-val"' in body
-    assert 'id="meta-vantagem-val"' in body
+    assert 'class="simulador-encomenda-box"' in body
+    assert 'id="sim-input-encomenda"' in body
+    assert 'id="btn-copiar-sim-oferta"' in body
+    assert 'class="simulador-abas"' not in body
+    assert 'id="painel-sim-reversa"' not in body
 
 
 def test_item_detail_grafico_tem_scrubber_linha(client, monkeypatch, tmp_path):

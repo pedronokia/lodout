@@ -7018,10 +7018,44 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .encomenda-steam:hover { color: var(--text-bright); background: var(--surface-hover); }
 .encomenda-steam:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* Página do item: o valor sugerido é o botão de copiar, em destaque. */
-.encomenda-valor .copiar-preco { font-weight: inherit; color: inherit; }
-.encomenda-valor .copiar-preco .icone-copiar { opacity: 0.5; margin-left: 8px; }
-.encomenda-valor .copiar-preco .icone-copiar svg { width: 18px; height: 18px; }
-.encomenda-valor .copiar-preco.copiado { color: var(--positive); }
+.encomenda-valor .copiar-preco {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-bright);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-standard);
+}
+.encomenda-valor .copiar-preco:hover {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #ffffff;
+}
+.encomenda-valor .copiar-preco:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.encomenda-valor .copiar-preco .icone-copiar {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.85;
+  color: var(--accent);
+  margin-left: 2px;
+}
+.encomenda-valor .copiar-preco .icone-copiar svg {
+  width: 18px;
+  height: 18px;
+}
+.encomenda-valor .copiar-preco.copiado {
+  color: var(--positive);
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.1);
+}
 .encomenda-valor .copiar-preco[data-dica]::after { top: auto; right: auto; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
 /* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar
    fica sempre à vista (antes só aparecia com o mouse em cima). */
@@ -12563,180 +12597,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   font-weight: 700;
 }
 
-/* Matriz de Arbitragem Multi-Mercado & Spread Real */
-.arbitragem-box {
-  margin-top: 24px;
-  padding: 20px 22px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.arbitragem-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-
-.arbitragem-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: var(--text-bright);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.arbitragem-titulo {
-  margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.arbitragem-desc {
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.5;
-  margin: 0 0 16px;
-}
-
-.arbitragem-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.arbitragem-card {
-  padding: 16px 18px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-}
-
-.arbitragem-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.arbitragem-card-steam {
-  border-left: 3px solid rgba(255, 255, 255, 0.35);
-}
-
-.arbitragem-card-externo {
-  border-left: 3px solid var(--positive);
-  background: color-mix(in srgb, var(--positive) 6%, transparent);
-}
-
-.arbitragem-card-topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.arbitragem-mercado-nome {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.arbitragem-taxa-badge {
-  font-size: 0.6875rem;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.arbitragem-taxa-badge.badge-destaque-taxa {
-  background: color-mix(in srgb, var(--positive) 18%, transparent);
-  color: var(--positive);
-  border: 1px solid color-mix(in srgb, var(--positive) 35%, transparent);
-  font-weight: 600;
-}
-
-.arbitragem-card-corpo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.arbitragem-label {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.arbitragem-valor-liquido {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #f1f5f9;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.arbitragem-valor-liquido.destaque-verde {
-  color: var(--positive);
-}
-
-.arbitragem-sub {
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin-top: 2px;
-}
-
-.arbitragem-spread-barra {
-  padding: 12px 16px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--positive) 10%, rgba(255, 255, 255, 0.03));
-  border: 1px solid color-mix(in srgb, var(--positive) 25%, transparent);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.arbitragem-spread-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.arbitragem-spread-rotulo {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.arbitragem-spread-val {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--positive);
-}
-
-.arbitragem-spread-dica {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.65);
-}
-
 .wear-matrix-grid {
   display: flex;
   flex-wrap: wrap;
@@ -13153,220 +13013,6 @@ circle.grafico-ponto-interativo.ponto-ativo {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 2. Simulador: Abas e Meta Reversa de ROI ── */
-.simulador-abas {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-2);
-}
-
-.simulador-aba {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--dur-base) var(--ease-standard);
-}
-
-.simulador-aba:hover {
-  color: var(--text-bright);
-  background: var(--surface-hover);
-}
-
-.simulador-aba.ativa {
-  color: var(--accent);
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.35);
-}
-
-.simulador-painel-reversa[hidden] {
-  display: none;
-}
-
-.btn-meta-preset {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: all var(--dur-base) var(--ease-standard);
-}
-
-.btn-meta-preset:hover {
-  background: var(--surface-hover);
-  border-color: var(--accent);
-  color: var(--text-bright);
-}
-
-.btn-meta-preset.ativo {
-  border-color: var(--positive);
-  color: var(--positive);
-  background: color-mix(in srgb, var(--positive) 12%, transparent);
-  font-weight: 600;
-}
-
-/* ── 3. Barra Flutuante Compacta no Scroll (Sticky Capsule) ── */
-.item-sticky-bar {
-  position: fixed;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%) translateY(0);
-  width: min(calc(100% - 32px), 940px);
-  z-index: 95;
-  background: rgba(22, 22, 22, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
-  padding: 8px 16px;
-  transition: opacity var(--dur-base) var(--ease-standard),
-              transform var(--dur-base) var(--ease-standard),
-              visibility var(--dur-base);
-}
-
-.item-sticky-bar[hidden] {
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-50%) translateY(-14px);
-  pointer-events: none;
-}
-
-.item-sticky-dentro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-}
-
-.item-sticky-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  min-width: 0;
-}
-
-.item-sticky-thumb {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.item-sticky-thumb img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.item-sticky-texto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.item-sticky-nome {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-bright);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 320px;
-}
-
-.item-sticky-tag {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-}
-
-.item-sticky-dados {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  flex-shrink: 0;
-}
-
-.item-sticky-nota {
-  font-size: 0.8125rem;
-}
-
-.item-sticky-preco {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--text-bright);
-  font-variant-numeric: tabular-nums;
-}
-
-.item-sticky-acoes {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  flex-shrink: 0;
-}
-
-.item-sticky-btn {
-  padding: 6px 14px;
-  font-size: 0.8125rem;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-/* ── 4. Botão de Comparação Rápida em 1 Clique ── */
-.botao-comparar-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--dur-base) var(--ease-standard);
-  height: 32px;
-}
-
-.botao-comparar-item:hover {
-  background: var(--surface-hover);
-  border-color: var(--accent);
-  color: var(--text-bright);
-}
-
-.botao-comparar-item.ativo {
-  background: rgba(249, 115, 22, 0.15);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.botao-comparar-item .icone-ui {
-  width: 14px;
-  height: 14px;
-}
-
-.botao-comparar-sticky {
-  background: var(--surface-hover);
-}
-
 .simulador-input-linha {
   display: flex;
   align-items: center;
@@ -13398,28 +13044,4 @@ circle.grafico-ponto-interativo.ponto-ativo {
 .btn-copiar-simulador .icone-ui {
   width: 14px;
   height: 14px;
-}
-
-@media (max-width: 640px) {
-  .item-sticky-bar {
-    top: auto;
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    width: calc(100% - 24px);
-    padding: 8px 12px;
-  }
-  .item-sticky-bar[hidden] {
-    transform: translateX(-50%) translateY(16px);
-  }
-  .item-sticky-tag {
-    display: none;
-  }
-  .item-sticky-nome {
-    max-width: 140px;
-  }
-  .botao-comparar-sticky span {
-    display: none;
-  }
-  .botao-comparar-sticky {
-    padding: 6px 8px;
-  }
 }
