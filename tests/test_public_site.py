@@ -348,7 +348,7 @@ def test_index_mostra_hero_destaque_com_maior_nota(client, monkeypatch, tmp_path
     body = client.get("/").data.decode("utf-8")
     assert 'class="hero-destaque"' in body
     hero = body.split('class="hero-destaque"', 1)[1].split("</section>", 1)[0]
-    assert "Nota mais alta hoje" in hero
+    assert "Destaque do dia" in hero
     assert "Item Alto" in hero
     assert "Item Baixo" not in hero
     assert ">95<" in hero
@@ -400,8 +400,8 @@ def test_index_hero_destaque_tem_anel_da_nota_e_preco(client, monkeypatch, tmp_p
          "pump_risk": {"level": "low"}, "breakdown": []},
     ])
     body = client.get("/").data.decode("utf-8")
-    hero = body.split('aria-label="Item com a nota mais alta hoje"', 1)[1].split("</section>", 1)[0]
-    assert 'class="hero-destaque-nota nota-alta" role="img" aria-label="Nota 95 de 100"' in hero
+    hero = body.split('aria-label="Destaque do dia"', 1)[1].split("</section>", 1)[0]
+    assert 'class="hero-destaque-nota nota-alta"' in hero
     assert 'class="nota-anel"' in hero
     assert '<span class="hero-destaque-nota-num" aria-hidden="true">95</span>' in hero
     assert 'class="hero-destaque-preco cartao-item-preco"' in hero
@@ -1256,8 +1256,8 @@ def test_index_tem_botao_copiar_e_atalho_js(client, monkeypatch, tmp_path):
     body = client.get("/?ver=lista").data.decode("utf-8")
     assert "botao-copiar" in body
     assert 'data-copiar="AK-47 | Redline (Field-Tested)"' in body
-    assert "campo-busca" in body
-    assert "static/app.js" in body  # atalho "/" mora no JS externo (CSP)
+    assert "gatilho-spotlight" in body
+    assert "static/app.js" in body  # atalho "/" e busca moram no JS externo (CSP)
 
 
 def test_index_linha_tem_data_nota_pro_selo_de_mudanca(client, monkeypatch,
@@ -6338,12 +6338,10 @@ def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
 
 
 def test_queda_recente_usa_virgula_e_sinal_de_menos():
-    """O cartão "Queda recente" mostrava "-6.8%" (ponto e hífen); o resto
-    do site usa "−6,8%" (revisão 20/11)."""
+    """Variação percentual usa vírgula e sinal no index (revisão 20/11)."""
     from pathlib import Path as _P
     t = (_P(server.__file__).parent / "templates" / "index.html").read_text(encoding="utf-8")
-    trecho = t.split('class="pulse-delta-pct negativo">', 1)[1].split("</span>", 1)[0]
-    assert 'replace(".", ",")' in trecho and "−" in trecho
+    assert 'replace(".", ",")' in t and "icone-tendencia" in t
 
 
 def test_nome_do_jogo_por_extenso(client):
@@ -6366,6 +6364,8 @@ def test_index_destaque_do_dia_sem_termometro(client, monkeypatch, tmp_path):
     assert "Destaque do dia" in body
     assert "Termômetro do Mercado" not in body
     assert 'class="guia-nota"' not in body
+    assert 'class="market-pulse-grid"' not in body
+    assert 'id="campo-busca"' not in body
 
 
 def test_item_detail_transparencia_sem_fila(client, monkeypatch, tmp_path):

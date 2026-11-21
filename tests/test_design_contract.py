@@ -204,10 +204,10 @@ def test_polimento_da_maquete_v4():
     # O laranja de ação virou token (auditoria 17/11), com o mesmo valor.
     assert "background: var(--accent-acao);" in aba_ativa
     assert "--accent-acao: rgba(249, 115, 22, 0.7);" in css
-    # Estado da coleta na home: linha leve com bolinha de status (era a
-    # caixa .painel-info com fios laranja, até 2026-11-14).
+    # Estado da coleta na home: linha leve com bolinha de status (revisão 20/11:
+    # polimento compacto com fs-xs).
     linha = _bloco(css, ".status-coleta")
-    assert "padding-left: 18px;" in linha and "font-size: var(--fs-sm);" in linha
+    assert "padding-left: 14px;" in linha and "font-size: var(--fs-xs);" in linha
     assert "background: var(--positive);" in _bloco(css, ".status-coleta-ponto")
     # CTA laranja da página do item, em pílula com texto branco (70% opacidade).
     acao = _bloco(css, ".botao-acao")
