@@ -7017,44 +7017,76 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .encomenda .conta-revenda-texto + .conta-revenda-texto { margin-top: var(--sp-2); }
 .encomenda-steam:hover { color: var(--text-bright); background: var(--surface-hover); }
 .encomenda-steam:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
-/* Página do item: o valor sugerido é o botão de copiar, em destaque. */
-.encomenda-valor .copiar-preco {
+/* Página do item: botão de copiar a encomenda em destaque claro e direto */
+.encomenda-valor .btn-copiar-encomenda {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--text-bright);
-  font-weight: 700;
+  gap: 12px;
+  background: transparent;
+  border: 0;
+  padding: 0;
   cursor: pointer;
-  transition: all var(--dur-base) var(--ease-standard);
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
-.encomenda-valor .copiar-preco:hover {
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.4);
-  color: #ffffff;
+
+.encomenda-valor .btn-copiar-encomenda .encomenda-num {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
-.encomenda-valor .copiar-preco:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-.encomenda-valor .copiar-preco .icone-copiar {
+
+.encomenda-valor .btn-copiar-encomenda .btn-copiar-pill {
   display: inline-flex;
   align-items: center;
-  opacity: 0.85;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all var(--dur-base) var(--ease-standard);
+  vertical-align: middle;
+}
+
+.encomenda-valor .btn-copiar-encomenda .btn-copiar-pill .icone-ui {
+  width: 14px;
+  height: 14px;
   color: var(--accent);
-  margin-left: 2px;
 }
-.encomenda-valor .copiar-preco .icone-copiar svg {
-  width: 18px;
-  height: 18px;
+
+.encomenda-valor .btn-copiar-encomenda:hover .btn-copiar-pill,
+.encomenda-valor .btn-copiar-encomenda:focus-visible .btn-copiar-pill {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--text-bright);
 }
-.encomenda-valor .copiar-preco.copiado {
+
+.encomenda-valor .btn-copiar-encomenda.copiado .encomenda-num {
   color: var(--positive);
+}
+
+.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill {
+  background: rgba(74, 222, 128, 0.15);
   border-color: rgba(74, 222, 128, 0.4);
-  background: rgba(74, 222, 128, 0.1);
+  color: var(--positive);
+}
+
+.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill .icone-ui {
+  color: var(--positive);
+}
+
+.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-txt {
+  display: none;
+}
+
+.encomenda-valor .btn-copiar-encomenda.copiado .btn-copiar-pill::after {
+  content: "Copiado!";
 }
 .encomenda-valor .copiar-preco[data-dica]::after { top: auto; right: auto; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); }
 /* Preço de hoje embaixo da encomenda, para comparar; o ícone de copiar

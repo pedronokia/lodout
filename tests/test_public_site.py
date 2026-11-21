@@ -2885,7 +2885,8 @@ def test_item_detail_sem_fila_tem_botao_copiar_encomenda(client, monkeypatch, tm
     _salva_scan(tmp_path, monkeypatch, resultados)
     body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
     assert 'class="encomenda-valor"' in body
-    assert 'class="copiar-preco"' in body
+    assert 'copiar-preco' in body
+    assert 'btn-copiar-encomenda' in body
     assert 'data-copiar-preco="36,23"' in body
 
 

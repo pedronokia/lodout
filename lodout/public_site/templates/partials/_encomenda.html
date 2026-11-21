@@ -11,14 +11,14 @@
   {% if encomenda_sugestao is mapping %}
   {% set sug = encomenda_sugestao %}
   <p class="conta-revenda-texto">Para ficar na frente da fila de encomendas:</p>
-  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida">{{ sug.valor_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
+  <p class="encomenda-valor"><button type="button" class="copiar-preco btn-copiar-encomenda" data-copiar-preco="{{ sug.copiar }}" title="Copiar {{ sug.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ sug.valor_fmt }}, encomenda sugerida"><span class="encomenda-num">{{ sug.valor_fmt }}</span><span class="btn-copiar-pill">{{ icone("copiar") }}<span class="btn-copiar-txt">Copiar</span></span></button></p>
   <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
   <p class="conta-revenda-texto">Um centavo acima da maior encomenda{% if quando_fila %} ({{ quando_fila }}){% endif %}: {{ sug.maior_fmt }}{% if sug.pedidos %} ({{ "{:,}".format(sug.pedidos).replace(",", ".") }} {{ "pedido" if sug.pedidos == 1 else "pedidos" }}){% endif %}. {{ sug.abaixo_pct }}% abaixo do preço de hoje.</p>
   <p class="conta-revenda-texto">Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo hoje: até <strong>{{ encomenda.ate_fmt }}</strong>.
   {%- if encomenda.situacao == "abaixo" %} Fica atrás da fila e pode não ser atendido.{% endif %}</p>
   {% else %}
   <p class="conta-revenda-texto">Para lucrar <strong>{{ encomenda.meta }}%</strong> revendendo hoje, encomende por até:</p>
-  <p class="encomenda-valor"><button type="button" class="copiar-preco" data-copiar-preco="{{ encomenda.copiar }}" title="Copiar {{ encomenda.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ encomenda.ate_fmt }}, encomende por até">{{ encomenda.ate_fmt }}<span class="icone-copiar" aria-hidden="true">{{ icone("copiar") }}</span></button></p>
+  <p class="encomenda-valor"><button type="button" class="copiar-preco btn-copiar-encomenda" data-copiar-preco="{{ encomenda.copiar }}" title="Copiar {{ encomenda.copiar }} para colar na encomenda da Steam" aria-label="Copiar {{ encomenda.ate_fmt }}, encomende por até"><span class="encomenda-num">{{ encomenda.ate_fmt }}</span><span class="btn-copiar-pill">{{ icone("copiar") }}<span class="btn-copiar-txt">Copiar</span></span></button></p>
   <p class="visualmente-oculto" aria-live="polite" data-copiado></p>
   {% if encomenda.maior_fmt %}
   <p class="conta-revenda-texto">Maior encomenda hoje: <strong>{{ encomenda.maior_fmt }}</strong>{% if encomenda.pedidos %} ({{ "{:,}".format(encomenda.pedidos).replace(",", ".") }} {{ "pedido" if encomenda.pedidos == 1 else "pedidos" }}){% endif %}.
