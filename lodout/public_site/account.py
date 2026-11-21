@@ -171,6 +171,8 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         row["confira"] = _confira(custo if row.get("has_cost") else None, row.get("price"))
         row["pnl_pct_fmt"] = _pct_curto(row.get("pnl_pct")) \
             if row.get("has_cost") and row.get("pnl") is not None and custo > 0 else None
+        pnl_pct = row.get("pnl_pct")
+        row["atingiu_meta"] = bool(row.get("has_cost") and custo > 0 and pnl_pct is not None and pnl_pct >= meta_pct)
         row["score"] = raw.get("score") if raw else None
         # Item do inventário fora da coleta: a imagem vem do próprio
         # inventário (hash do CDN da Steam), em vez de ficar sem foto.
@@ -187,6 +189,7 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["market_fmt"] = fmt.brl(t.get("market"))
     t["net_if_sold_fmt"] = fmt.brl(t.get("net_if_sold"))
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
+    t["atingiu_meta_n"] = sum(1 for r in avaliacao["rows"] if r.get("atingiu_meta"))
     avaliacao["textos"] = _textos_totais(t)
     return avaliacao
 
@@ -544,6 +547,7 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
             "tipo": "lucro" if pnl > 0.005 else ("prejuízo" if pnl < -0.005 else "empate"),
             "classe": "valor-positivo" if pnl > 0.005 else ("valor-negativo" if pnl < -0.005 else ""),
             "pct_fmt": _pct_curto(pct) if pct is not None else "",
+            "atingiu_meta": bool(pct is not None and pct >= meta),
         }
     return {"unidades": unidades, "lotes": com_valor, "sem_valor": sem_valor, "meta": meta,
             "lucro": lucro, "busca": localize_name(name),
@@ -778,6 +782,7 @@ def editar_custo(name: str):
             "lucro": round(pnl, 4) if pnl is not None else None,
             "lucro_classe": ("valor-positivo" if pnl and pnl > 0 else
                              "valor-negativo" if pnl and pnl < 0 else ""),
+            "atingiu_meta": row.get("atingiu_meta", False),
         })
     if erro:
         flash(erro, "error")

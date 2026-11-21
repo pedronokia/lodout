@@ -6355,3 +6355,23 @@ def test_nome_do_jogo_por_extenso(client):
         body = client.get(url).data.decode("utf-8")
         visivel = _re.sub(r"<script.*?</script>|<!--.*?-->", "", body, flags=_re.S)
         assert not _re.search(r"(?<![\w:])CS2\b", visivel), url
+
+
+def test_index_destaque_do_dia_sem_termometro(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/").data.decode("utf-8")
+    assert "Destaque do dia" in body
+    assert "Termômetro do Mercado" not in body
+    assert 'class="guia-nota"' not in body
+
+
+def test_item_detail_transparencia_sem_fila(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    assert "Fila de encomendas da Steam não disponível na última coleta" in body

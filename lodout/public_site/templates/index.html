@@ -307,7 +307,9 @@
        linha, com o link para o Método. #}
     <header class="home-tese">
       <h1 class="home-tese-titulo">Entenda o mercado de skins de Counter-Strike 2</h1>
-      <p class="home-tese-texto">Notas, preços e encomendas com dados públicos da Steam, e o motivo de cada nota. <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      {% set ns_risco = namespace(tem=false) %}
+      {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
+      <p class="home-tese-texto">Notas, preços e encomendas com dados públicos da Steam, e o motivo de cada nota. A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
@@ -342,10 +344,9 @@
     {% endif %}
 
     {% if market_pulse %}
-    <section class="market-pulse-secao" aria-label="Termômetro do Mercado hoje">
+    <section class="market-pulse-secao" aria-label="Destaque do dia">
       <div class="market-pulse-cabecalho">
-        <h2 class="market-pulse-titulo">{{ icone("grafico") }} Termômetro do Mercado</h2>
-        <span class="market-pulse-sub">Destaques do dia</span>
+        <h2 class="market-pulse-titulo">Destaque do dia</h2>
       </div>
       <div class="market-pulse-grid">
         {# Sem repetir o item do destaque logo acima (revisão 19/11). #}
@@ -633,16 +634,6 @@
 
     {% if candidatos or itens_catalogo %}
     <h2 class="visualmente-oculto">Todos os itens</h2>
-    {# Frase-guia mais curta e "Cores da borda" na mesma linha (2026-11-14):
-       a explicação do selo de risco só entra quando há selo na página. #}
-    <div class="guia-nota">
-      {# A explicação do selo de risco só aparece quando algum item desta
-         página tem o selo (risco baixo não mostra selo nenhum). #}
-      {% set ns_risco = namespace(tem=false) %}
-      {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
-      <p class="ajuda-nota">A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como a nota é calculada {{ icone("seta-direita") }}</a> · <a class="link-com-seta" href="{{ url_for('glossario') }}">Glossário</a></p>
-      {% include "partials/_legenda_raridade.html" %}
-    </div>
     {% endif %}
 
     {% if candidatos or itens_catalogo %}
@@ -682,6 +673,7 @@
         <a href="{{ url_for('index', categoria=categoria_sel, nota_min=nota_min_sel, preco_max=preco_max_sel, liquidez_min=liquidez_min_sel, exterior=exterior_sel, raridade=raridade_filtro_sel, versao=versao_sel, q=busca_sel, ordenar='preco', ver='vitrine') }}"{% if ordenar_sel == 'preco' %} aria-current="page"{% endif %}>Preço</a>
       </div>
       {% endif %}
+      {% include "partials/_legenda_raridade.html" %}
     </nav>
     {% endif %}
 

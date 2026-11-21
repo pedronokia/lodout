@@ -156,6 +156,7 @@
       <div class="conta-filtros" role="group" aria-label="Mostrar">
         <button type="button" class="conta-filtro" data-conta-filtro="todos" aria-pressed="true">Todos <span data-conta-contagem="todos"></span></button>
         <button type="button" class="conta-filtro" data-conta-filtro="sem-valor" aria-pressed="false">Sem valor pago <span data-conta-contagem="sem-valor"></span></button>
+        <button type="button" class="conta-filtro" data-conta-filtro="meta" aria-pressed="false">Na meta <span data-conta-contagem="meta"></span></button>
         <button type="button" class="conta-filtro" data-conta-filtro="lucro" aria-pressed="false">No lucro <span data-conta-contagem="lucro"></span></button>
         <button type="button" class="conta-filtro" data-conta-filtro="prejuizo" aria-pressed="false">No prejuízo <span data-conta-contagem="prejuizo"></span></button>
         {% if avaliacao.fora_n %}<button type="button" class="conta-filtro conta-filtro-fora" data-conta-filtro="fora" aria-pressed="false">Fora do inventário <span data-conta-contagem="fora"></span></button>{% endif %}
@@ -206,7 +207,7 @@
       </thead>
       <tbody role="rowgroup">
         {% for row in avaliacao.rows %}
-        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}">
+        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}" data-meta-atingida="{{ '1' if row.atingiu_meta else '0' }}">
           <td role="cell" data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -331,6 +332,7 @@
           <td role="cell" data-label="Lucro hoje" data-campo="lucro" class="celula-numero {{ 'valor-positivo' if row.has_cost and row.pnl and row.pnl > 0 else ('valor-negativo' if row.has_cost and row.pnl and row.pnl < 0 else 'celula-sem-valor') }}">
             <span data-campo="lucro-valor">{{ row.pnl_fmt if row.has_cost and row.pnl is not none else "—" }}</span>
             <span class="lucro-pct" data-campo="lucro-pct">{{ row.pnl_pct_fmt or "" }}</span>
+            {% if row.atingiu_meta %}<span class="selo-meta-atingida" title="Atingiu a meta de {{ meta_lucro }}% de lucro se vender hoje">na meta</span>{% endif %}
           </td>
           <td role="cell" data-label="Venda por" class="celula-venda-por">
             <button type="button" class="acao-texto venda-por-falta" data-ir-ao-campo aria-label="Informar quanto pagou em {{ row.name_fmt }}">informe quanto pagou</button>

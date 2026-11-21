@@ -979,3 +979,14 @@ def test_conta_js_lotes_juntos_e_ordem_natural():
     assert "grupos[itemDe(tr)]" in js
     assert '{ numeric: true }' in js
     assert "nVisiveis" in js
+
+
+def test_conta_filtro_meta_e_atingiu_meta(client, monkeypatch):
+    """Filtro 'Na meta' e atributo data-meta-atingida na lista da conta."""
+    from lodout.public_site import user_portfolio
+    _login(client, monkeypatch)
+    for i in range(8):
+        user_portfolio.add_position("76561198000000000", f"Caixa {i}", 1.0)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'data-conta-filtro="meta"' in pagina
+    assert 'data-meta-atingida=' in pagina

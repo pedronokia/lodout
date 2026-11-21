@@ -58,7 +58,32 @@
       if (!empate) return;
       texto(tr.querySelector('[data-campo="alvo"]'), reais(empate * (1 + meta / 100)));
       titulosVenda(tr);
+      var pnl = lucroDe(tr);
+      var campoCusto = tr.querySelector('input[name="cost"]');
+      var custo = campoCusto ? Number(campoCusto.value.replace(/\./g, "").replace(",", ".")) : 0;
+      var atingiu = false;
+      if (custo > 0 && pnl !== null) {
+        var pct = (pnl / custo) * 100;
+        atingiu = pct >= meta;
+      }
+      tr.setAttribute("data-meta-atingida", atingiu ? "1" : "0");
+      var lucroEl = tr.querySelector('[data-campo="lucro"]');
+      if (lucroEl) {
+        var selo = lucroEl.querySelector(".selo-meta-atingida");
+        if (atingiu) {
+          if (!selo) {
+            selo = document.createElement("span");
+            selo.className = "selo-meta-atingida";
+            selo.textContent = "na meta";
+            lucroEl.appendChild(selo);
+          }
+          selo.title = "Atingiu a meta de " + meta + "% de lucro se vender hoje";
+        } else if (selo) {
+          selo.remove();
+        }
+      }
     });
+    aplicar();
   }
 
   // "Quero lucrar X%" sem recarregar (2026-11-15): salva a preferência e
@@ -128,6 +153,7 @@
     var lucro = lucroDe(tr);
     if (filtro === "sem-valor") return tr.classList.contains("linha-sem-custo");
     if (filtro === "fora") return tr.classList.contains("linha-fora");
+    if (filtro === "meta") return tr.getAttribute("data-meta-atingida") === "1";
     if (filtro === "lucro") return lucro !== null && lucro > 0;
     if (filtro === "prejuizo") return lucro !== null && lucro < 0;
     return true;
@@ -151,7 +177,7 @@
     if (!ferramentas || !corpo) return;
     var todas = linhas();
     var palavras = semAcento(estado.busca).split(/\s+/).filter(Boolean);
-    var contagem = { todos: 0, "sem-valor": 0, lucro: 0, prejuizo: 0, fora: 0 };
+    var contagem = { todos: 0, "sem-valor": 0, meta: 0, lucro: 0, prejuizo: 0, fora: 0 };
     var visiveis = 0;
     todas.forEach(function (tr) {
       var texto = semAcento(tr.getAttribute("data-busca"));
@@ -872,10 +898,24 @@
           texto(lucro.querySelector('[data-campo="lucro-pct"]'), d.lucro_pct_fmt || "");
           lucro.classList.remove("valor-positivo", "valor-negativo");
           if (d.lucro_classe) lucro.classList.add(d.lucro_classe);
+          var seloMeta = lucro.querySelector(".selo-meta-atingida");
+          if (d.atingiu_meta) {
+            if (!seloMeta) {
+              seloMeta = document.createElement("span");
+              seloMeta.className = "selo-meta-atingida";
+              seloMeta.textContent = "na meta";
+              lucro.appendChild(seloMeta);
+            }
+          } else if (seloMeta) {
+            seloMeta.remove();
+          }
         }
         if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
         else linha.classList.add("linha-sem-custo");
         linha.setAttribute("data-empate", d.empate ? String(d.empate) : "");
+        if (d.atingiu_meta !== undefined) {
+          linha.setAttribute("data-meta-atingida", d.atingiu_meta ? "1" : "0");
+        }
         titulosVenda(linha);
         var confira = linha.querySelector('[data-campo="confira"]');
         if (confira) {

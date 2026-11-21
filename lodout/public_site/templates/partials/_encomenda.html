@@ -27,6 +27,6 @@
   {%- else %} Há encomendas maiores na frente.{% endif %}</p>
   {% endif %}
   {% endif %}
-  <p class="conta-revenda-nota">Com o preço de hoje e a taxa da Steam. Não é previsão.{% if not session.get("steamid") %} Meta de {{ encomenda.meta }}%, ajustável em “Minha conta”.{% endif %}</p>
+  <p class="conta-revenda-nota">{% if not (encomenda_sugestao is mapping) %}Fila de encomendas da Steam não disponível na última coleta{% if preco_coletado_txt %} ({{ preco_coletado_txt }}){% endif %}. O valor sugerido calcula a meta de {{ encomenda.meta }}% sobre o preço de mercado de hoje. Não é previsão.{% else %}Com o preço de hoje e a taxa da Steam. Não é previsão.{% endif %}{% if not session.get("steamid") %} Meta de {{ encomenda.meta }}%, ajustável em “Minha conta”.{% endif %}</p>
 </section>
 {% endif %}
