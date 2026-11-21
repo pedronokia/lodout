@@ -1,23 +1,24 @@
 {% macro icone(nome) -%}
 <svg class="icone-ui icone-ui-{{ nome }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
   {% if nome == "favorito" %}
-  <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/>
+  <path d="M12 2.5l2.9 6.2 6.5.6-4.9 4.6 1.4 6.5L12 17.2l-5.9 3.2 1.4-6.5-4.9-4.6 6.5-.6L12 2.5Z"/>
   {% elif nome == "filtro" %}
-  <path d="M4 6h16M7 12h10M10 18h4"/>
+  <path d="M3.5 6h17M6.5 12h11M9.5 18h5"/>
   {% elif nome == "copiar" %}
-  <rect x="8" y="8" width="12" height="13" rx="2"/>
-  <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/>
+  <rect x="8" y="8" width="13" height="13" rx="2.5"/>
+  <path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v10A2.5 2.5 0 0 0 5.5 18H8"/>
   {% elif nome == "mais" %}
-  <circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/>
-  <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
-  <circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/>
+  <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+  <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+  <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>
   {% elif nome == "troca" %}
   <path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>
   {% elif nome == "sair" %}
-  <path d="M10 17v3H5V4h5v3M14 8l4 4-4 4M8 12h10"/>
+  <path d="M10 18.5v1A2.5 2.5 0 0 1 7.5 22h-3A2.5 2.5 0 0 1 2 19.5v-15A2.5 2.5 0 0 1 4.5 2h3A2.5 2.5 0 0 1 10 4.5V6"/>
+  <path d="M14 8l4 4-4 4M7 12h11"/>
   {% elif nome == "aviso" %}
-  <path d="M12 3 2.8 20h18.4L12 3Z"/>
-  <path d="M12 9v5m0 3h.01"/>
+  <path d="M10.29 3.86a2 2 0 0 1 3.42 0l7.71 13.5A2 2 0 0 1 19.71 20H4.29a2 2 0 0 1-1.71-2.64l7.71-13.5Z"/>
+  <path d="M12 9v4.5m0 3.5h.01"/>
   {% elif nome == "topo" %}
   <path d="m5 12 7-7 7 7M12 19V5"/>
   {% elif nome == "seta-esquerda" %}
@@ -33,13 +34,14 @@
   {% elif nome == "chevron-baixo" %}
   <path d="m6 9 6 6 6-6"/>
   {% elif nome == "check" %}
-  <path d="m5 12 4 4L19 6"/>
+  <path d="M4.5 12.5l5 5L19.5 6"/>
   {% elif nome == "lupa" %}
-  <circle cx="11" cy="11" r="7"/>
-  <path d="m16 16 6 6"/>
+  <circle cx="10.5" cy="10.5" r="7"/>
+  <path d="m15.5 15.5 5.5 5.5"/>
   {% elif nome == "grafico" %}
-  <path d="M3 3v15h18"/>
-  <path d="m7 14 4-4 3 2 5-6"/>
+  <path d="M3 3.5v14a3 3 0 0 0 3 3h15"/>
+  <path d="M7 14.5l4-4.5 3.5 3.5 6-6.5"/>
+  <path d="M16.5 7h4v4"/>
   {% elif nome == "rifle" %}
   <rect x="1" y="10" width="19" height="2.5" rx="0.6"/>
   <rect x="17" y="12.3" width="2.5" height="4" rx="0.8"/>
@@ -59,7 +61,10 @@
   {% elif nome == "luva" %}
   <path d="M7 11V5a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v6M15 10V6a2 2 0 0 1 4 0v8a6 6 0 0 1-6 6H9a5 5 0 0 1-5-5v-4a2 2 0 0 1 4 0v1"/>
   {% elif nome == "caixa" %}
-  <path d="M3 8 12 4l9 4-9 4-9-4Zm0 0v9l9 4 9-4V8M12 12v9"/>
+  <path d="M11 2.37a2 2 0 0 1 2 0l7.25 4.19A2 2 0 0 1 21.25 8.3v7.4a2 2 0 0 1-1 1.74l-7.25 4.19a2 2 0 0 1-2 0l-7.25-4.19a2 2 0 0 1-1-1.74V8.3a2 2 0 0 1 1-1.74L11 2.37Z"/>
+  <path d="M3.3 7.8 12 12.8l8.7-5"/>
+  <path d="M12 12.8v8.9"/>
+  <path d="m7.5 5.3 9 5.2"/>
   {% elif nome == "capsula" %}
   <rect x="7" y="3" width="10" height="18" rx="5"/>
   <path d="M7 12h10"/>
@@ -71,17 +76,16 @@
   <rect x="10" y="10" width="4" height="11" rx="1"/>
   <rect x="17" y="5" width="4" height="16" rx="1"/>
   {% elif nome == "ajuda" %}
-  <circle cx="12" cy="12" r="9"/>
-  <path d="M12 11v6"/>
-  <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none"/>
+  <circle cx="12" cy="12" r="9.5"/>
+  <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2 2-2 3.5m0 3.5h.01"/>
   {% elif nome == "inicio" %}
-  <path d="m4 11 8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9Z"/>
+  <path d="M3.5 10.5l8-7 8 7v9a2 2 0 0 1-2 2h-4.5v-6h-3v6H5.5a2 2 0 0 1-2-2v-9Z"/>
   {% elif nome == "ranking" %}
-  <path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/>
-  <path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 13v4m-2 4h4"/>
+  <path d="M7 4h10v4.5a5 5 0 0 1-10 0V4Z"/>
+  <path d="M7 5H4.5A2.5 2.5 0 0 0 7 9.5M17 5h2.5A2.5 2.5 0 0 1 17 9.5M12 13.5v4.5m-3.5 3h7"/>
   {% elif nome == "metodo" %}
-  <path d="M4 4h7a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4V4Z"/>
-  <path d="M20 4h-7a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h7V4Z"/>
+  <path d="M4 4.5h6.5a2.5 2.5 0 0 1 2.5 2.5v13a2 2 0 0 0-2-2H4V4.5Z"/>
+  <path d="M20 4.5h-6.5a2.5 2.5 0 0 0-2.5 2.5v13a2 2 0 0 1 2-2h7V4.5Z"/>
   {% elif nome == "vitrine" %}
   <rect x="3" y="3" width="7" height="7" rx="1"/>
   <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -97,11 +101,8 @@
   {% elif nome == "raio" %}
   <path d="M13 2 4 14h7l-2 8 11-12h-7l2-8Z"/>
   {% elif nome == "compartilhar" %}
-  <circle cx="18" cy="5" r="3"/>
-  <circle cx="6" cy="12" r="3"/>
-  <circle cx="18" cy="19" r="3"/>
-  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  <path d="M4 12v7a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-7"/>
+  <path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/>
   {% endif %}
 </svg>
 {%- endmacro %}
