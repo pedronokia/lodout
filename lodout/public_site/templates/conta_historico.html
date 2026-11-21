@@ -70,15 +70,6 @@
     {% else %}
       <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” no seu inventário para registrar.</p>
     {% endif %}
-
-    {# Evolução do valor do inventário #}
-    <h2 class="secao-titulo">Evolução do valor do inventário</h2>
-    {% if grafico %}
-      <div class="card grafico-card{{ ' grafico-tendencia-' ~ grafico_tendencia if grafico_tendencia else '' }}">{{ grafico|safe }}</div>
-      {% if grafico_legenda %}<p class="status-muted">{{ grafico_legenda }}</p>{% endif %}
-    {% else %}
-      <p class="status status-vazio">O gráfico aparece quando o valor do inventário mudar.</p>
-    {% endif %}
   </main>
 
   <footer class="rodape">

@@ -50,7 +50,7 @@ def test_listar_sem_pontos_mostra_empty_state(client, monkeypatch):
     resp = client.get("/conta/historico")
     assert resp.status_code == 200
     assert "Nenhum item vendido".encode("utf-8") in resp.data
-    assert "O gráfico aparece quando o valor do inventário mudar".encode("utf-8") in resp.data
+    assert "Evolução do valor do inventário".encode("utf-8") not in resp.data
 
 
 def test_visitar_conta_grava_ponto_de_historico(client, monkeypatch):
@@ -72,73 +72,65 @@ def test_visitar_conta_duas_vezes_sem_mudar_nao_duplica(client, monkeypatch):
     assert len(pontos) == 1
 
 
-def test_grafico_aparece_apos_dois_pontos_distintos(client, monkeypatch):
+def test_historico_mostra_item_vendido_e_lucro(client, monkeypatch):
     _login(client, monkeypatch)
-    token_html = client.get("/conta").data.decode("utf-8")
-    import re
-    token = re.search(r'name="csrf_token" value="([^"]+)"', token_html).group(1)
-    client.post("/conta/posicoes", data={
-        "name": "AK-47", "cost": "10", "quantity": "1", "csrf_token": token,
-    })
-    client.get("/conta")  # custo nao afeta market sem preco, mas garante 2a visita
-    from lodout.public_site import user_history
-    # Forca dois pontos distintos direto no banco pra testar so' a tela.
-    user_history.record_if_changed(
-        "76561198000000000", 50.0, now=1.0)
-    user_history.record_if_changed(
-        "76561198000000000", 80.0, now=2.0)
+    from lodout.public_site import user_vendidos
+    user_vendidos.adicionar(
+        "76561198000000000",
+        name="AK-47 | Redline (Field-Tested)",
+        custo=50.0,
+        preco_venda=100.0,
+        quantidade=1,
+    )
     pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert "<svg" in pagina
+    assert "Nenhum item vendido" not in pagina
+    assert "AK-47 | Redline" in pagina
+    assert "R$ 50,00" in pagina
+    assert "R$ 100,00" in pagina
+    assert "Evolução do valor do inventário" not in pagina
 
 
 def test_historico_mostra_hora_de_brasilia_nao_utc(client, monkeypatch):
-    # achado 2026-11-08: a data usava time.localtime() -- no servidor
-    # (container roda em UTC, sem TZ configurado) isso mostrava a hora
-    # UTC como se fosse a do visitante, 3h adiantada em relação a
-    # Brasília. Tooltip do gráfico SVG traz data/hora em Brasília.
+    # Data da venda formatada no fuso de Brasília.
     _login(client, monkeypatch)
-    from lodout.public_site import user_history
+    from lodout.public_site import user_vendidos
     import datetime
     ts_utc = datetime.datetime(
         2024, 1, 2, 2, 30, tzinfo=datetime.timezone.utc).timestamp()
-    user_history.record_if_changed(
-        "76561198000000000", 50.0, now=ts_utc)
-    user_history.record_if_changed(
-        "76561198000000000", 80.0, now=ts_utc + 3600)
+    user_vendidos.adicionar(
+        "76561198000000000",
+        name="AK-47 | Redline (Field-Tested)",
+        custo=50.0,
+        preco_venda=100.0,
+        quantidade=1,
+    )
+    # Ajusta o sell_ts para o instante UTC de teste
+    vendas = user_vendidos.load("76561198000000000")
+    vendas[0]["sell_ts"] = ts_utc
+    from lodout.public_site import user_store
+    user_store.save_user_json("76561198000000000", "vendidos", vendas)
+
     pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert "01/01/2024 23:30" in pagina
-    assert "02/01/2024 02:30" not in pagina
-
-
-def test_grafico_tem_tooltip_e_legenda_de_range(client, monkeypatch):
-    # item #4 do planejamento de melhorias maiores (2026-11-08): mesmo
-    # padrão de tooltip por ponto + legenda de range já usado no gráfico
-    # de preço de /item/<name> (charts.line_chart_svg(rotulos=...)).
-    _login(client, monkeypatch)
-    from lodout.public_site import user_history
-    user_history.record_if_changed("76561198000000000", 50.0, now=1.0)
-    user_history.record_if_changed("76561198000000000", 80.0, now=2.0)
-    pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert 'class="card grafico-card grafico-tendencia-alta"' in pagina
-    assert "<title>" in pagina
-    assert "R$ 50,00 – R$ 80,00 no período" in pagina
-
-
-def test_grafico_tendencia_baixa_quando_valor_cai(client, monkeypatch):
-    _login(client, monkeypatch)
-    from lodout.public_site import user_history
-    user_history.record_if_changed("76561198000000000", 80.0, now=1.0)
-    user_history.record_if_changed("76561198000000000", 50.0, now=2.0)
-    pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert 'class="card grafico-card grafico-tendencia-baixa"' in pagina
+    # 02/01/2024 02:30 UTC == 01/01/2024 23:30 em Brasília (UTC-3)
+    assert "01/01/2024" in pagina
+    assert "02/01/2024" not in pagina
 
 
 def test_historico_isolado_entre_contas(client, monkeypatch):
     _login(client, monkeypatch, steamid="111")
-    client.get("/conta")
+    from lodout.public_site import user_vendidos
+    user_vendidos.adicionar(
+        "111",
+        name="AWP | Asiimov (Field-Tested)",
+        custo=200.0,
+        preco_venda=300.0,
+        quantidade=1,
+    )
+    pagina_111 = client.get("/conta/historico").data.decode("utf-8")
+    assert "AWP | Asiimov" in pagina_111
+
     client.get("/logout")
     _login(client, monkeypatch, steamid="222")
-    from lodout.public_site import user_history
-    assert user_history.load_history("222") == []
-    pagina = client.get("/conta/historico").data.decode("utf-8")
-    assert "O gráfico aparece quando o valor do inventário mudar" in pagina
+    pagina_222 = client.get("/conta/historico").data.decode("utf-8")
+    assert "AWP | Asiimov" not in pagina_222
+    assert "Nenhum item vendido" in pagina_222
