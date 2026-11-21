@@ -617,6 +617,12 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         worker_alert.verificar_disco_e_alertar()
     except Exception:
         _logger.warning("alerta de disco falhou", exc_info=True)
+    # Alerta Discord do dono se algum grupo de backup parou de renovar
+    # -- mesmo webhook, dedup próprio de 24h (worker_alert.py).
+    try:
+        worker_alert.verificar_backup_e_alertar()
+    except Exception:
+        _logger.warning("alerta de backup falhou", exc_info=True)
     return resultados
 
 

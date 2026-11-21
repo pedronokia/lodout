@@ -173,3 +173,34 @@ def test_backup_sqlite_falho_nao_deixa_arquivo_parcial(tmp_path):
     assert db_backup.fazer_backup_se_necessario(corrompido, out, now=1000.0) is None
     assert list(out.glob("public_site-*.db")) == []
 
+
+# ── idade_dos_backups (/api/health + alerta de backup atrasado) ─────
+
+def test_idade_sem_nenhum_backup_e_tudo_none(tmp_path):
+    out = tmp_path / "backups"
+    assert db_backup.idade_dos_backups(out, now=1000.0) == {
+        "banco": None, "notas": None, "json": None}
+
+
+def test_idade_so_do_grupo_que_tem_backup(tmp_path):
+    db = tmp_path / "x.db"
+    _cria_db(db)
+    out = tmp_path / "backups"
+    db_backup.fazer_backup_se_necessario(db, out, now=1000.0)
+
+    idades = db_backup.idade_dos_backups(out, now=1000.0 + 5 * 3600)
+    assert idades["banco"] == 5.0
+    assert idades["notas"] is None
+    assert idades["json"] is None
+
+
+def test_idade_usa_o_mais_recente_do_grupo(tmp_path):
+    db = tmp_path / "x.db"
+    _cria_db(db)
+    out = tmp_path / "backups"
+    db_backup.fazer_backup_se_necessario(db, out, now=1000.0)
+    db_backup.fazer_backup_se_necessario(db, out, now=1000.0 + 21 * 3600)
+
+    idades = db_backup.idade_dos_backups(out, now=1000.0 + 21 * 3600 + 3600)
+    assert idades["banco"] == 1.0
+

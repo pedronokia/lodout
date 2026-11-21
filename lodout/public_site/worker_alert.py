@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
-from lodout.public_site import discord_notify
+from lodout.public_site import db_backup, discord_notify
 from lodout._ambiente import ambiente
 
 _ESTADO_PATH = DATA_DIR / "worker_alert_state.json"
@@ -32,6 +32,13 @@ _COBERTURA_MIN_PCT = 85.0
 _DEDUP_QUALIDADE_HORAS = 24.0
 _DISCO_LIVRE_PCT_LIMITE = 10.0
 _DEDUP_DISCO_HORAS = 24.0
+
+_ESTADO_BACKUP_PATH = DATA_DIR / "backup_alert_state.json"
+# Os três grupos renovam a cada ~20h (db_backup._INTERVALO_MIN_S); 48h é
+# 2x essa janela -- margem pra 1 ciclo perdido (Steam bloqueando, VM
+# reiniciando) não virar alarme falso.
+_BACKUP_IDADE_LIMITE_H = 48.0
+_DEDUP_BACKUP_HORAS = 24.0
 
 
 def verificar_e_alertar(historico_ciclos: list[dict],
@@ -151,6 +158,44 @@ def verificar_qualidade_e_alertar(historico_ciclos: list[dict],
         webhook,
         "⚠️ Lodout: última coleta de preços degradada — "
         + "; ".join(partes) + ". Ver /status (itens sem preço) e /api/health.")
+    if enviado:
+        try:
+            atomic_write_text(p, json.dumps({"ultimo_alerta_ts": agora}))
+        except OSError:
+            pass
+    return enviado
+
+
+def verificar_backup_e_alertar(now: "float | None" = None,
+                               path: "Path | str | None" = None) -> bool:
+    """Alerta se algum grupo de backup (banco/notas/json) que JÁ teve
+    pelo menos um backup está há mais de `_BACKUP_IDADE_LIMITE_H` sem
+    renovar -- nunca antes do primeiro backup de um grupo (instalação
+    nova, ou grupo desligado, não é motivo de alerta). Dedup de 24h,
+    mesmo princípio dos outros alertas deste módulo."""
+    webhook = ambiente("ADMIN_DISCORD_WEBHOOK", "")
+    if not webhook:
+        return False
+    agora = time.time() if now is None else now
+    idades = db_backup.idade_dos_backups(now=agora)
+    atrasados = {k: v for k, v in idades.items()
+                if v is not None and v > _BACKUP_IDADE_LIMITE_H}
+    if not atrasados:
+        return False
+
+    p = Path(path) if path is not None else _ESTADO_BACKUP_PATH
+    estado = load_json_record(p, {})
+    if not isinstance(estado, dict):
+        estado = {}
+    if agora - estado.get("ultimo_alerta_ts", 0) < _DEDUP_BACKUP_HORAS * 3600:
+        return False
+
+    partes = ", ".join(f"{chave} há {horas:.0f}h"
+                       for chave, horas in sorted(atrasados.items()))
+    enviado = discord_notify.enviar(
+        webhook,
+        f"⚠️ Lodout: backup sem renovar há mais tempo que o esperado — "
+        f"{partes}. Ver /api/health -> backups.")
     if enviado:
         try:
             atomic_write_text(p, json.dumps({"ultimo_alerta_ts": agora}))
