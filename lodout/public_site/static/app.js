@@ -870,16 +870,75 @@ if ("serviceWorker" in navigator) {
   }
 })();
 
-// Alternador suave para painel de "+ Filtros" do catálogo
+// Alternador do painel de Filtros integrado à barra de pesquisa do topo
 (function () {
-  var btnFiltros = document.getElementById("gatilho-filtros-toggle");
+  var btnFiltroTopo = document.getElementById("gatilho-filtros-topo");
   var detFiltros = document.querySelector(".filtros-mais");
-  if (!btnFiltros || !detFiltros) return;
-  btnFiltros.addEventListener("click", function () {
-    detFiltros.open = !detFiltros.open;
-    btnFiltros.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
-  });
-  detFiltros.addEventListener("toggle", function () {
-    btnFiltros.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
-  });
+  var btnFecharPopover = document.getElementById("fechar-filtros-popover");
+  var btnFiltroSpotlight = document.getElementById("spotlight-filtro-btn");
+
+  function alternarFiltros(forcar) {
+    if (!detFiltros) {
+      window.location.href = "/?abrir_filtros=1";
+      return;
+    }
+    var novoEstado = (typeof forcar === "boolean") ? forcar : !detFiltros.open;
+    detFiltros.open = novoEstado;
+    if (btnFiltroTopo) {
+      btnFiltroTopo.setAttribute("aria-expanded", novoEstado ? "true" : "false");
+    }
+    if (novoEstado) {
+      detFiltros.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
+  if (btnFiltroTopo) {
+    btnFiltroTopo.addEventListener("click", function (e) {
+      e.preventDefault();
+      alternarFiltros();
+    });
+  }
+
+  if (btnFecharPopover) {
+    btnFecharPopover.addEventListener("click", function (e) {
+      e.preventDefault();
+      alternarFiltros(false);
+    });
+  }
+
+  if (btnFiltroSpotlight) {
+    btnFiltroSpotlight.addEventListener("click", function (e) {
+      e.preventDefault();
+      var fecharSpot = document.getElementById("spotlight-fechar");
+      if (fecharSpot) fecharSpot.click();
+      setTimeout(function () { alternarFiltros(true); }, 120);
+    });
+  }
+
+  if (detFiltros) {
+    detFiltros.addEventListener("toggle", function () {
+      if (btnFiltroTopo) {
+        btnFiltroTopo.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!detFiltros.open) return;
+      if (detFiltros.contains(e.target) || (btnFiltroTopo && btnFiltroTopo.contains(e.target))) return;
+      detFiltros.open = false;
+      if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "false");
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && detFiltros.open) {
+        detFiltros.open = false;
+        if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  if (window.location.search.indexOf("abrir_filtros=1") !== -1 && detFiltros) {
+    detFiltros.open = true;
+    if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "true");
+  }
 })();

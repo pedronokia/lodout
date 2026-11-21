@@ -8478,9 +8478,126 @@ h3,
   vertical-align: middle;
 }
 
+.topo-linha .topo-busca-grupo + .barra-acoes,
+.topo-linha .topo-busca-grupo + .entrar-cta,
 .topo-linha .botao-spotlight-gatilho + .barra-acoes,
 .topo-linha .botao-spotlight-gatilho + .entrar-cta {
   margin-left: -8px;
+}
+
+.topo-busca-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.botao-filtro-topo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 11px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.025) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.botao-filtro-topo .icone-ui {
+  width: 13px;
+  height: 13px;
+  color: rgba(255, 255, 255, 0.50);
+  transition: color 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.botao-filtro-topo:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.045) 100%);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: #ffffff;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translateY(-0.5px);
+}
+
+.botao-filtro-topo:hover .icone-ui {
+  color: var(--accent);
+  transform: scale(1.05);
+}
+
+.botao-filtro-topo.ativo,
+.botao-filtro-topo[aria-expanded="true"] {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.55);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.botao-filtro-topo.ativo .icone-ui,
+.botao-filtro-topo[aria-expanded="true"] .icone-ui {
+  color: var(--accent);
+}
+
+.botao-filtro-topo .badge-contagem-filtros {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4.5px;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.spotlight-filtro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-right: 6px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.spotlight-filtro-btn .icone-ui {
+  width: 12px;
+  height: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.spotlight-filtro-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #fff;
+}
+
+.spotlight-filtro-btn:hover .icone-ui {
+  color: var(--accent);
 }
 
 .botao-spotlight-gatilho {
@@ -8675,59 +8792,125 @@ h3,
 }
 
 .filtros-barra-acoes {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
+  display: none;
 }
 
-.form-filtros button.filtros-mais-toggle {
+/* Card popover elegante do Filtros */
+.filtros-mais {
+  display: flex;
+  flex-direction: column;
+}
+
+.filtros-mais:not([open]) {
+  display: none;
+}
+
+.filtros-mais[open] {
+  margin: 8px 0 24px;
+  background: rgba(22, 22, 24, 0.90);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 16px 20px 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.filtros-cabecalho-popover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.filtros-popover-titulo {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 36px;
-  padding: 0 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-  box-shadow: none;
-  transition: all 0.15s ease;
-  width: fit-content;
-  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
-.form-filtros button.filtros-mais-toggle:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
-  color: var(--text-bright);
-}
-
-.form-filtros button.filtros-mais-toggle[aria-expanded="true"] {
-  background: rgba(249, 115, 22, 0.1);
-  border-color: rgba(249, 115, 22, 0.4);
-  color: var(--text-bright);
-}
-
-.form-filtros button.filtros-mais-toggle .icone-ui-filtro {
+.filtros-popover-titulo .icone-ui {
   width: 14px;
   height: 14px;
   color: var(--accent);
 }
 
-.form-filtros button.filtros-mais-toggle .icone-ui-chevron-baixo {
-  width: 12px;
-  height: 12px;
-  color: var(--text-muted);
-  transition: transform 0.2s ease;
+.filtros-fechar-popover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.form-filtros button.filtros-mais-toggle[aria-expanded="true"] .icone-ui-chevron-baixo {
-  transform: rotate(180deg);
+.filtros-fechar-popover:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.filtros-favoritos-linha {
+  margin-bottom: 14px;
+}
+
+.botao-filtro-favorito-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.botao-filtro-favorito-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.botao-filtro-favorito-item[aria-pressed="true"],
+.botao-filtro-favorito-item.ativo {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.5);
+  color: #ffffff;
+}
+
+.botao-filtro-favorito-item[aria-pressed="true"] .icone-ui-favorito,
+.botao-filtro-favorito-item.ativo .icone-ui-favorito {
+  fill: currentColor;
+  color: var(--accent);
 }
 
 .badge-contagem-filtros {
@@ -8750,12 +8933,12 @@ h3,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
+  height: 34px;
   padding: 0 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -8764,15 +8947,15 @@ h3,
 }
 
 .form-filtros button#botao-favoritos:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
-  color: var(--text-bright);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .form-filtros button#botao-favoritos[aria-pressed="true"] {
-  background: rgba(242, 187, 37, 0.1);
-  border-color: rgba(242, 187, 37, 0.35);
-  color: var(--warn);
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.5);
+  color: #ffffff;
 }
 
 .form-filtros button#botao-favoritos .icone-ui-favorito {

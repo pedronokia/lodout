@@ -6,11 +6,18 @@
   <a href="{{ url_for('faq') }}"{% if request.endpoint == 'faq' %} aria-current="page"{% endif %}>FAQ</a>
   <a href="{{ url_for('status') }}"{% if request.endpoint == 'status' %} aria-current="page"{% endif %}>Status</a>
 </nav>
-<button type="button" class="botao-spotlight-gatilho" id="gatilho-spotlight" title="Buscar skin ou caixa (Ctrl+K)" aria-label="Abrir busca rápida">
-  {{ icone("lupa") }}
-  <span class="spotlight-gatilho-txt">Buscar</span>
-  <kbd class="spotlight-gatilho-kbd">Ctrl K</kbd>
-</button>
+<div class="topo-busca-grupo">
+  <button type="button" class="botao-spotlight-gatilho" id="gatilho-spotlight" title="Buscar skin ou caixa (Ctrl+K)" aria-label="Abrir busca rápida">
+    {{ icone("lupa") }}
+    <span class="spotlight-gatilho-txt">Buscar</span>
+    <kbd class="spotlight-gatilho-kbd">Ctrl K</kbd>
+  </button>
+  <button type="button" class="botao-filtro-topo{{ ' ativo' if n_filtros and n_filtros > 0 else '' }}" id="gatilho-filtros-topo" title="Filtros do catálogo" aria-label="Abrir filtros" aria-expanded="false">
+    {{ icone("filtro") }}
+    <span class="filtro-topo-txt">Filtros</span>
+    {% if n_filtros and n_filtros > 0 %}<span class="badge-contagem-filtros">{{ n_filtros }}</span>{% endif %}
+  </button>
+</div>
 {% if session.steamid %}
   <span class="barra-acoes">
     <a class="conta-pill" href="{{ url_for('account.conta') }}" title="Minha conta"{% if request.endpoint == 'account.conta' %} aria-current="page"{% endif %}>
