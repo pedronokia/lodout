@@ -127,13 +127,44 @@ def verificar_disco_e_alertar(now: "float | None" = None,
     return enviado
 
 
+def _ciclo_bom(ciclo: dict) -> bool:
+    """True se `ciclo` teve cobertura boa (>= `_COBERTURA_MIN_PCT`) e sem
+    throttle silencioso -- o mesmo critério de "deu certo" que decide se
+    `verificar_qualidade_e_alertar` dispara, usado também pra saber se a
+    situação se recuperou entre um alerta e outro."""
+    alvos = ciclo.get("alvos")
+    if not isinstance(alvos, int) or alvos <= 0:
+        return False
+    itens = int(ciclo.get("itens") or 0)
+    cobertura = 100.0 * itens / alvos
+    throttle = int(ciclo.get("throttle_silencioso") or 0)
+    return cobertura >= _COBERTURA_MIN_PCT and not throttle
+
+
+def _teve_ciclo_bom_desde(historico_ciclos: list[dict], desde_ts: float) -> bool:
+    """True se algum ciclo depois de `desde_ts` (exceto o mais recente,
+    que é o que `verificar_qualidade_e_alertar` está avaliando agora)
+    teve cobertura boa -- usado pra NÃO deixar o dedup de 24h engolir um
+    novo episódio de bloqueio só porque o anterior ainda está dentro da
+    janela (achado real, 2026-11-21: uma coleta de 0,4% de cobertura
+    ficou muda porque o alerta de uma coleta de 28%, outro episódio,
+    tinha disparado 18h antes -- no meio das duas, uma coleta de 100%)."""
+    for ciclo in historico_ciclos[:-1]:
+        ts = ciclo.get("ts")
+        if isinstance(ts, (int, float)) and ts > desde_ts and _ciclo_bom(ciclo):
+            return True
+    return False
+
+
 def verificar_qualidade_e_alertar(historico_ciclos: list[dict],
                                   now: "float | None" = None,
                                   path: "Path | str | None" = None) -> bool:
     """Alerta se o ÚLTIMO ciclo trouxe preço novo pra menos de
     `_COBERTURA_MIN_PCT`% dos alvos, ou se detectou throttle silencioso.
     O alerta de atraso só dispara com zero item por horas; um scan que
-    volta pela metade todo ciclo passava em silêncio. Dedup de 24 h."""
+    volta pela metade todo ciclo passava em silêncio. Dedup de 24h --
+    mas só enquanto a degradação for a MESMA: um ciclo de cobertura boa
+    no meio reseta a janela, pra um novo episódio sempre avisar."""
     webhook = ambiente("ADMIN_DISCORD_WEBHOOK", "")
     if not webhook or not historico_ciclos:
         return False
@@ -152,7 +183,9 @@ def verificar_qualidade_e_alertar(historico_ciclos: list[dict],
     estado = load_json_record(p, {})
     if not isinstance(estado, dict):
         estado = {}
-    if agora - estado.get("ultimo_alerta_ts", 0) < _DEDUP_QUALIDADE_HORAS * 3600:
+    ultimo_alerta_ts = estado.get("ultimo_alerta_ts", 0)
+    dentro_do_dedup = agora - ultimo_alerta_ts < _DEDUP_QUALIDADE_HORAS * 3600
+    if dentro_do_dedup and not _teve_ciclo_bom_desde(historico_ciclos, ultimo_alerta_ts):
         return False
 
     partes = []
