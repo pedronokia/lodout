@@ -2915,13 +2915,12 @@ a.paginacao-passo:hover {
    Hover/foque: elevação sutil + brilho diagonal animado (70% opacidade
    do laranja). Respeita prefers-reduced-motion. */
 .cartao-item {
-
+  position: relative;
+  overflow: hidden;
   min-width: 0;
-  
   border: 0;
   border-radius: var(--radius-md);
   background: var(--surface);
-  
   transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);
 }
 
