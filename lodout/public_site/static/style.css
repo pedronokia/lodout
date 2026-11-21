@@ -2975,12 +2975,10 @@ a.paginacao-passo:hover {
 .cartao-item-imagem {
   position: relative;
   display: grid;
-  
   place-items: center;
-  
   background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.15)) 22%, transparent) 0%, rgba(10, 10, 10, 0.6) 72%, rgba(0, 0, 0, 0.85) 100%),
-    var(--surface-strong);
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.12)) 16%, transparent) 0%, transparent 75%),
+    var(--surface);
 }
 
 .cartao-item-imagem-link {
@@ -3044,7 +3042,19 @@ a.paginacao-passo:hover {
   border-radius: 50%;
   background: rgba(14, 14, 14, 0.85);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  transition: transform var(--dur-base) var(--ease-standard);
+  transition: transform var(--dur-base) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard);
+}
+
+.cartao-item-nota.nota-alta {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px color-mix(in srgb, var(--positive) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.cartao-item-nota.nota-media {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px color-mix(in srgb, var(--warn) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.cartao-item-nota.nota-baixa {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 12px color-mix(in srgb, var(--danger) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .cartao-item-nota .nota-anel-fundo { stroke: rgba(255, 255, 255, 0.12); stroke-width: 3; }
@@ -3071,29 +3081,33 @@ a.paginacao-passo:hover {
   .cartao-item-nota-numero { font-size: 0.6875rem; }
 }
 
-/* Etiqueta "☐ Comparar": mesmo visual da posição (#1) do Ranking, que
-   ocupa este canto lá. Antes era uma caixinha num fundo branco sem
-   rótulo -- no celular (sempre visível) parecia uma pílula branca solta. */
+/* Etiqueta "☐ Comparar": micro-pílula de vidro Apple polida */
 .cartao-item-comparar-alvo {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  min-height: 26px;
-  padding: 3px 8px 3px 5px;
-  border-radius: var(--radius-xs);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 600;
+  gap: 6px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 9px 0 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(14, 14, 14, 0.70);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   cursor: pointer;
   opacity: 0;
-  transform: scale(0.9);
-  transition: opacity var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard);
+  transform: scale(0.92);
+  transition: opacity var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard), background var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard);
+  user-select: none;
 }
 
 .cartao-item:hover .cartao-item-comparar-alvo,
@@ -3103,14 +3117,25 @@ a.paginacao-passo:hover {
   transform: scale(1);
 }
 
-@media (hover: none) {
-  /* Sem hover a etiqueta fica sempre à mostra -- e no tamanho cheio: o
-     scale(0.9) é só o ponto de partida da animação de aparecer no
-     hover, e encolhia o alvo de toque pra 90% no celular. */
-  .cartao-item-comparar-alvo { opacity: 1; transform: none; }
+.cartao-item-comparar-alvo:hover {
+  background: rgba(24, 24, 24, 0.90);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  transform: scale(1.02);
 }
 
-.cartao-item-comparar-alvo:has(:checked) { color: var(--text-bright); }
+.cartao-item-comparar-alvo:has(:checked) {
+  opacity: 1;
+  transform: scale(1);
+  background: rgba(249, 115, 22, 0.22);
+  border-color: rgba(249, 115, 22, 0.55);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@media (hover: none) {
+  .cartao-item-comparar-alvo { opacity: 1; transform: none; }
+}
 
 /* Posição no card do Ranking (#1, #2...): canto que na Vitrine da home
    pertence ao alvo de comparação -- o Ranking não tem comparar, então
@@ -3122,8 +3147,8 @@ a.paginacao-passo:hover {
   flex: 1;
   flex-direction: column;
   gap: 6px;
-  padding: var(--sp-3) var(--sp-4) var(--sp-4);
-  border-top: 1px solid color-mix(in srgb, var(--rar-cor, var(--border)) 45%, transparent);
+  padding: 8px 4px 4px;
+  border-top: 0;
 }
 
 /* Sem altura mínima de 2 linhas: com nome curto ficava um vão embaixo
@@ -3417,25 +3442,36 @@ a.paginacao-passo:hover {
 
 .checkbox-comparar:hover { border-color: var(--text-muted); }
 
-/* Dentro da etiqueta "Comparar" dos cartões: alvo de 24x24 (WCAG 2.2,
-   apontado pelo Lighthouse em 2026-11-14 -- era 14px), mas o quadrado
-   visível continua com 16px: o anel de 4px da cor do chip é desenhado
-   por dentro (box-shadow) e a margem negativa não muda o layout. */
+/* Checkbox do botão Comparar no cartão */
 .cartao-item-comparar-alvo .checkbox-comparar {
-  width: 24px;
-  height: 24px;
-  margin: -4px;
-  border: 0;
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--border-strong);
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 3.5px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: none !important;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
-.cartao-item-comparar-alvo .checkbox-comparar:hover {
-  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--text-muted);
+.cartao-item-comparar-alvo:hover .checkbox-comparar {
+  border-color: rgba(255, 255, 255, 0.75);
 }
 
 .cartao-item-comparar-alvo .checkbox-comparar:checked {
-  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px var(--accent);
+  background: var(--accent-acao);
+  border-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 6L5 8.5L9.5 3.5' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 9px 9px;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.4) !important;
 }
 
 .checkbox-comparar:checked {
@@ -7354,8 +7390,9 @@ circle.grafico-ponto-interativo:hover {
   aspect-ratio: 4 / 3;
   padding: 14px;
   background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.15)) 22%, transparent) 0%, rgba(10, 10, 10, 0.6) 72%, rgba(0, 0, 0, 0.85) 100%),
-    var(--surface-strong);
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.12)) 16%, transparent) 0%, transparent 75%),
+    var(--surface);
+  border: 0;
 }
 
 .cartao-item-icon {
@@ -8599,8 +8636,118 @@ h3,
 .topo-busca-grupo {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  height: 32px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.025) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  padding: 2px;
+  gap: 0;
   vertical-align: middle;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.topo-busca-grupo:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.035) 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.topo-busca-grupo:focus-within {
+  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15), 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.topo-busca-divisor {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.topo-busca-grupo .botao-spotlight-gatilho {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 6px 0 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.topo-busca-grupo .botao-spotlight-gatilho:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  transform: none;
+}
+
+.topo-busca-grupo .botao-spotlight-gatilho:hover .icone-ui {
+  color: var(--accent);
+  transform: scale(1.05);
+}
+
+.topo-busca-grupo .botao-filtro-topo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px 0 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.topo-busca-grupo .botao-filtro-topo:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  transform: none;
+}
+
+.topo-busca-grupo .botao-filtro-topo:hover .icone-ui {
+  color: var(--accent);
+  transform: scale(1.05);
+}
+
+.topo-busca-grupo .botao-filtro-topo.ativo,
+.topo-busca-grupo .botao-filtro-topo[aria-expanded="true"] {
+  background: rgba(249, 115, 22, 0.22);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.topo-busca-grupo .botao-filtro-topo.ativo .icone-ui,
+.topo-busca-grupo .botao-filtro-topo[aria-expanded="true"] .icone-ui {
+  color: var(--accent);
 }
 
 .botao-filtro-topo {
