@@ -31,7 +31,7 @@
       {# Quem é o dono da conta, com o avatar da Steam (2026-11-15). #}
       <p class="descricao-pagina conta-identidade">
         {% if avatar_local %}<img class="conta-identidade-avatar" src="{{ url_for('account.avatar') }}" alt="" width="32" height="32">{% endif %}
-        <span>{% if usuario and usuario.persona_name %}<strong class="conta-identidade-nome" translate="no">{{ usuario.persona_name }}</strong><span class="conta-identidade-frase"> · </span>{% endif %}<span class="conta-identidade-frase">seus itens, quanto valem e por quanto vender.</span></span>
+        <span>{% if usuario and usuario.persona_name %}<strong class="conta-identidade-nome" translate="no">{{ usuario.persona_name }}</strong><span class="conta-identidade-frase"> · </span>{% endif %}<span class="conta-identidade-frase">{{ "seus" if usuario and usuario.persona_name else "Seus" }} itens, quanto valem e por quanto vender.</span></span>
       </p>
     </header>
 
@@ -388,7 +388,7 @@
     {# Baixar e excluir separados (revisão 2026-11-16): o "Excluir" ficava
        colado aos downloads, no mesmo cinza, só com um "·" entre eles. #}
     <div class="link-excluir-conta">
-      <p class="conta-baixar">Baixar: {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a> · {% endif %}<a href="{{ url_for('account.exportar_dados') }}">uma cópia dos meus dados (arquivo .json)</a></p>
+      <p class="conta-baixar">Baixar: {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a><span class="conta-baixar-sep"> · </span>{% endif %}<a href="{{ url_for('account.exportar_dados') }}">uma cópia dos meus dados (arquivo .json)</a></p>
       <p class="conta-excluir"><a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta no Lodout</a></p>
     </div>
   </main>

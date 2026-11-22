@@ -12038,3 +12038,20 @@ button.confira { min-height: 24px; padding-block: 3px; }
   /* Celular: os quatro blocos do "O que mudou" um embaixo do outro. */
   .ranking-movimento { grid-template-columns: 1fr; }
 }
+
+/* Conta no celular (polimento 22/11): cada item já é um cartão; a moldura
+   da tabela em volta deles fazia "cartão dentro de cartão". E os botões de
+   "Baixar" não se partem mais no meio ("uma cópia dos / meus dados"). */
+@media (max-width: 640px) {
+  .tabela-wrap:has(> .tabela-conta) {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+.link-excluir-conta .conta-baixar a { display: inline-block; margin: 2px 0; }
+@media (max-width: 640px) {
+  .link-excluir-conta .conta-baixar-sep { display: none; }
+  .link-excluir-conta .conta-baixar a { margin-right: 6px; }
+}
