@@ -1681,6 +1681,11 @@ def _tendencia_do_historico(hist: list) -> "str | None":
     if len(hist) < 2:
         return None
     anterior, atual = hist[-2]["price"], hist[-1]["price"]
+    if not anterior or atual == anterior:
+        return None
+    pct = (atual - anterior) / anterior * 100
+    if round(abs(pct), 1) < 0.1:
+        return None
     if atual > anterior:
         return "alta"
     if atual < anterior:
@@ -1697,7 +1702,10 @@ def _variacao_pct_do_historico(hist: list) -> "float | None":
     anterior, atual = hist[-2]["price"], hist[-1]["price"]
     if not anterior or atual == anterior:
         return None
-    return (atual - anterior) / anterior * 100
+    pct = (atual - anterior) / anterior * 100
+    if round(abs(pct), 1) < 0.1:
+        return None
+    return pct
 
 
 _PONTOS_NO_FIM_RE = re.compile(r"\s*\(([+-]\d+(?:\.\d+)?)\)\s*$")
