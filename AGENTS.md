@@ -260,3 +260,7 @@ desatualizadas. Regras para toda sessão:
    de outra sessão.
 7. **Depois do push**, acompanhe os workflows `tests` e `deploy` até o fim e
    confira a página mudada no ar (lodout.com).
+8. **`[restart-worker]` pode se perder.** O `tests` cancela a rodada anterior
+   quando chega outro push no `main` (concurrency), e o `deploy` só olha a
+   mensagem do último commit. Se outro push passou na frente do seu, rode o
+   workflow `deploy` à mão com `restart_worker` marcado (aconteceu em 22/11).
