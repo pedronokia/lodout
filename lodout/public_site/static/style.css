@@ -11140,7 +11140,9 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 /* Blocos de Movimentação do Ranking */
 .ranking-movimento {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* 2 x 2: Entraram ao lado de Saíram, Subiram ao lado de Caíram (17/11).
+     Com auto-fit viravam 3 colunas e "Caíram" ficava sozinho embaixo. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 16px;
   margin-top: var(--sp-4);
@@ -12030,4 +12032,9 @@ button.confira { min-height: 24px; padding-block: 3px; }
     width: 210px;
     height: 210px;
   }
+}
+
+@media (max-width: 640px) {
+  /* Celular: os quatro blocos do "O que mudou" um embaixo do outro. */
+  .ranking-movimento { grid-template-columns: 1fr; }
 }

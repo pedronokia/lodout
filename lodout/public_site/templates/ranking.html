@@ -152,6 +152,34 @@
     {% else %}
       <p class="status status-vazio">Ainda não há notas para esse período.</p>
     {% endif %}
+
+    {% if movimento %}
+    {% set novos = movimento.entraram|length %}
+    <h2 class="secao-titulo ranking-mudou-titulo">O que mudou no Top 20 desde ontem</h2>
+    <p class="status-muted ranking-base">Comparando o Top 20 de agora com o de {{ anterior_quando }}.{% if novos %} {{ novos }} {{ "dos" if novos > 1 else "de" }} {{ tamanho_top }} itens {{ "são novos" if novos > 1 else "é novo" }}. A nota varia muito de um dia para outro; por isso a lista de cima usa a média.{% endif %}</p>
+    {# Entraram ao lado de Saíram, Subiram ao lado de Caíram; cada bloco
+       mostra até `visiveis_por_bloco` e guarda o resto em "Ver mais"
+       (17/11: 17 entradas num dia deixavam um bloco 3x mais alto). #}
+    <div class="ranking-movimento">
+      {% for chave, titulo, vazio in (("entraram", "Entraram", "Ninguém entrou no Top 20."), ("saidas", "Saíram", "Ninguém saiu do Top 20."), ("subiram", "Subiram", "Ninguém subiu de posição."), ("cairam", "Caíram", "Ninguém caiu de posição.")) %}
+      {% set itens_bloco = movimento[chave] %}
+      <section class="card ranking-bloco ranking-bloco-{{ chave }}" aria-labelledby="titulo-{{ chave }}">
+        <h3 class="ranking-bloco-titulo" id="titulo-{{ chave }}">{{ titulo }}{% if itens_bloco %} <span class="ranking-bloco-n">{{ itens_bloco|length }}</span>{% endif %}</h3>
+        {% if itens_bloco %}
+        <ul class="movimento-lista">{% for it in itens_bloco[:visiveis_por_bloco] %}{{ linha_movimento(it, chave == "saidas") }}{% endfor %}</ul>
+        {% if itens_bloco|length > visiveis_por_bloco %}
+        <details class="movimento-mais">
+          <summary>Ver mais {{ itens_bloco|length - visiveis_por_bloco }}</summary>
+          <ul class="movimento-lista">{% for it in itens_bloco[visiveis_por_bloco:] %}{{ linha_movimento(it, chave == "saidas") }}{% endfor %}</ul>
+        </details>
+        {% endif %}
+        {% else %}
+        <p class="status-muted">{{ vazio }}</p>
+        {% endif %}
+      </section>
+      {% endfor %}
+    </div>
+    {% endif %}
   </main>
 
   <footer class="rodape">
