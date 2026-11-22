@@ -20,6 +20,8 @@ ENTRADAS = [
             "O botão “+ Adicionar” da conta ficou igual aos outros botões principais do site, e a linha que divide cada item da conta no celular não tem mais um vão no meio.",
             "Privacidade e “Excluir conta” agora falam em “favoritos”, o novo nome da antiga watchlist.",
             "No celular, a faixa da coleta no topo da página inicial mostra uma informação por linha, com a bolinha de status na primeira, e os botões Copiar, Compartilhar e Favoritar do item não encostam mais na borda.",
+            "No celular, o “Destaque do dia” mostra a imagem do item maior, ao lado da nota. As perguntas do FAQ não quebram mais a linha no meio de uma frase curta, e a página “não encontrada” tem um botão principal só (Buscar).",
+            "Coleta de preços com menos itens extras (cerca de 383 no total, antes 533): com a lista maior, a Steam pedia pausa em cerca de metade das coletas e muitos preços ficavam de uma coleta anterior.",
         ],
     },
     {

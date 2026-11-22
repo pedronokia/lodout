@@ -54,7 +54,11 @@
       </div>
     </div>
 
-    <p><a class="botao-acao" href="{{ url_for('index') }}">{{ icone("seta-esquerda") }} Ir para a página inicial</a></p>
+    {# Uma ação principal (Buscar); a página inicial vira link de texto,
+       como nas páginas 403, 429 e 500 (polimento 22/11). #}
+    <div class="acoes-erro">
+      <a class="acao-texto" href="{{ url_for('index') }}">Ir para a página inicial</a>
+    </div>
   </main>
 
   <footer class="rodape">

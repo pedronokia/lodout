@@ -12008,3 +12008,26 @@ button.confira { min-height: 24px; padding-block: 3px; }
   .hero-item-acoes .botao-compartilhar,
   .hero-item-acoes .botao-favorito { font-size: 0.8125rem; padding: 0 10px; }
 }
+
+/* Perguntas do FAQ: "balance" quebrava no meio exato da frase e deixava
+   palavras soltas no fim da linha ("…Mercado. O / que acontece…").
+   "pretty" enche a linha e só evita a última linha curta demais. */
+.faq-item .secao-titulo { text-wrap: pretty; }
+
+@media (max-width: 640px) {
+  /* Destaque do dia no celular: a imagem ficava num quadro de 140px com
+     um vão vazio até a nota. Agora o quadro ocupa o espaço à esquerda da
+     nota e a arma aparece maior, centralizada. */
+  .hero-destaque { align-items: center; }
+  .hero-destaque .icone-item-quadro {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    height: 130px;
+  }
+  .hero-destaque .icone-item-quadro img,
+  .hero-destaque .icone-item-quadro .icone-item {
+    width: 210px;
+    height: 210px;
+  }
+}
