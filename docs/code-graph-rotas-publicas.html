@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotas públicas do site — Lodout</title>
+<style>
+  :root{
+    --bg:#0d0f14; --surface:#161923; --surface2:#1c2030; --border:#252a3a;
+    --text:#e6e8ec; --text2:#9aa3b2; --text3:#6b7280; --hc:#845ef7;
+    --l0:#5d6478; --l1:#845ef7; --l2:#ff6b6b; --l3:#fab005;
+    --l4:#20c997; --l5:#4dabf7; --l6:#e64980; --l7:#868e96;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5}
+  .layout{display:flex;height:100vh}
+  main{flex:1;overflow-y:auto;padding:24px 28px;position:relative}
+  #edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+  #edges path{fill:none;stroke:var(--border);stroke-width:1.2;opacity:.3;transition:.15s}
+  #edges path.hi-out{stroke:var(--hc);stroke-width:2;opacity:.95}
+  #edges path.hi-in{stroke:var(--hc);stroke-width:1.6;opacity:.7;stroke-dasharray:4 3}
+  #edges path.dim{opacity:.04}
+  .content{position:relative;z-index:2}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:8px}
+  .hint{color:var(--text3);font-size:11.5px;margin-bottom:18px}
+  .hint b{color:var(--text2)}
+  .lane{margin-bottom:20px;border-left:3px solid var(--lc);padding-left:14px}
+  .lane-h{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--lc);margin-bottom:2px}
+  .lane-sub{color:var(--text3);font-size:11.5px;margin-bottom:10px}
+  .nodes{display:flex;flex-wrap:wrap;gap:8px}
+  .node{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;transition:.12s;min-width:0;position:relative}
+  .node:hover{border-color:var(--lc);background:var(--surface2)}
+  .node.sel{border-color:var(--lc);background:var(--surface2);box-shadow:0 0 0 2px var(--lc)}
+  .node.neigh-out{border-color:var(--hc)}
+  .node.neigh-in{border-color:var(--hc);border-style:dashed}
+  .node.faded{opacity:.28}
+  .node .lbl{font-family:"SFMono-Regular",Menlo,monospace;font-size:12.5px}
+  .node .deg{color:var(--text3);font-size:10.5px;margin-top:2px}
+  aside{width:390px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:22px 20px;z-index:3}
+  .p-empty{color:var(--text3);font-size:13px;line-height:1.7}
+  .p-file{font-family:monospace;font-size:11px;color:var(--text3);word-break:break-all;margin-bottom:12px}
+  .p-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin:14px 0 4px}
+  .p-val{font-size:13.5px;line-height:1.6}
+  .p-deg{display:flex;gap:16px;margin:10px 0 4px}
+  .p-deg span{font-size:12px;color:var(--text2)}
+  .p-deg b{color:var(--text);font-size:15px}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:var(--lc);color:#0d0f14}
+  .rel{font-size:12px;color:var(--text2);margin:3px 0;cursor:pointer}
+  .rel:hover{color:var(--text)}
+  .rel .arrow{color:var(--text3);font-family:monospace}
+  .rel .rt{color:var(--text3);font-size:10px;margin-left:4px}
+  .warn{background:#2a1e14;border-left:3px solid var(--l3);padding:10px 12px;border-radius:6px;font-size:12.5px;margin-top:16px;color:#ffd8a8}
+  .clr{float:right;font-size:11px;color:var(--text3);cursor:pointer;border:1px solid var(--border);border-radius:5px;padding:2px 8px}
+  .clr:hover{color:var(--text)}
+  .searchbar{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  #search{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 12px;outline:none}
+  #search:focus{border-color:var(--l1)}
+  .scount{font-size:11.5px;color:var(--text3);white-space:nowrap}
+  .cbox{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+  .results{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .results:empty{display:none}
+  .rchip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:"SFMono-Regular",Menlo,monospace;font-size:12px;display:flex;align-items:center;gap:6px}
+  .rchip:hover{border-color:var(--l1)}
+  .rchip .rlayer{width:8px;height:8px;border-radius:2px}
+  .rchip .rfile{color:var(--text3);font-size:10px}
+  .node .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#3a4152}
+  .node.curated .dot{background:#20c997}
+  .node.hit{outline:2px solid var(--l1);outline-offset:1px}
+  .node.hidden{display:none}
+  .filterbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .fl{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}
+  .fchip{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;user-select:none}
+  .fchip.on{color:var(--text);border-color:var(--fc);background:color-mix(in srgb, var(--fc) 16%, var(--surface))}
+  .fchip .fdot{width:8px;height:8px;border-radius:2px;background:var(--fc)}
+  .fchip:not(.on) .fdot{opacity:.3}
+  .btn{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer}
+  .btn:hover{color:var(--text);border-color:var(--l1)}
+  .lane.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="layout">
+  <main>
+    <svg id="edges"></svg>
+    <div class="content">
+      <h1>Rotas públicas do site — Lodout</h1>
+      <div class="sub">server.py: a fábrica Flask e as ~35 rotas públicas (home, item, ranking, método, glossário, status, mudanças, feeds) agrupadas por página, e os módulos de domínio que cada uma usa.</div>
+      <div class="hint">As linhas são as dependências reais entre arquivos/grupos (vindas do AST, não inventadas). Clique num nó: <b>sólidas</b> = o que ele usa, <b>pontilhadas</b> = quem usa ele.</div>
+      <div class="searchbar">
+        <input id="search" type="text" placeholder="Buscar página ou arquivo por nome…" autocomplete="off">
+        <span id="searchcount" class="scount"></span>
+        <label class="cbox"><input type="checkbox" id="onlyuncurated"> só sem curadoria</label>
+      </div>
+      <div class="filterbar">
+        <span class="fl">Camadas</span>
+        <span id="layerchips"></span>
+        <span class="fl" style="margin-left:14px">Arestas</span>
+        <span id="relchips"></span>
+        <span class="btn" id="resetfilters">Limpar filtros</span>
+      </div>
+      <div id="results" class="results"></div>
+      <div id="lanes"></div>
+    </div>
+  </main>
+  <aside id="panel">
+    <div class="p-empty" id="panel-empty">Selecione um nó para ver seu papel e destacar suas conexões.</div>
+  </aside>
+</div>
+
+<script id="data" type="application/json">{"nodes": [{"id": "grp_infra", "label": "Fábrica Flask e infraestrutura", "file": "lodout/public_site/server.py#infra", "layer": 3, "in": 1, "out": 23}, {"id": "grp_listagem", "label": "Helpers de listagem e filtro", "file": "lodout/public_site/server.py#listagem", "layer": 3, "in": 8, "out": 10}, {"id": "grp_formato", "label": "Helpers de formatação (filtros Jinja)", "file": "lodout/public_site/server.py#formato", "layer": 3, "in": 1, "out": 1}, {"id": "grp_home", "label": "Home (/)", "file": "lodout/public_site/server.py#home", "layer": 4, "in": 1, "out": 12}, {"id": "grp_item", "label": "Item (/item, /comparar, /og)", "file": "lodout/public_site/server.py#item", "layer": 4, "in": 1, "out": 13}, {"id": "grp_ranking", "label": "Ranking (/ranking)", "file": "lodout/public_site/server.py#ranking", "layer": 4, "in": 1, "out": 8}, {"id": "grp_metodo", "label": "Método/Institucional", "file": "lodout/public_site/server.py#metodo", "layer": 4, "in": 1, "out": 0}, {"id": "grp_status", "label": "Status/Observabilidade", "file": "lodout/public_site/server.py#status", "layer": 4, "in": 1, "out": 13}, {"id": "grp_mudancas", "label": "Mudanças/Novidades", "file": "lodout/public_site/server.py#mudancas", "layer": 4, "in": 1, "out": 6}, {"id": "grp_feeds", "label": "Feeds e SEO", "file": "lodout/public_site/server.py#feeds", "layer": 4, "in": 1, "out": 4}, {"id": "grp_api", "label": "API auxiliar", "file": "lodout/public_site/server.py#api", "layer": 4, "in": 1, "out": 9}, {"id": "grp_admin", "label": "Admin (privilegiado)", "file": "lodout/public_site/server.py#admin", "layer": 5, "in": 1, "out": 16}, {"id": "lodout__ambiente", "label": "_ambiente.py", "file": "lodout/_ambiente.py", "layer": 0, "in": 6, "out": 0}, {"id": "lodout__paths", "label": "_paths.py", "file": "lodout/_paths.py", "layer": 0, "in": 14, "out": 0}, {"id": "lodout_cases", "label": "cases.py", "file": "lodout/cases.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_gamedata", "label": "gamedata.py", "file": "lodout/gamedata.py", "layer": 1, "in": 2, "out": 1}, {"id": "lodout_localization", "label": "localization.py", "file": "lodout/localization.py", "layer": 0, "in": 12, "out": 0}, {"id": "lodout_portfolio", "label": "portfolio.py", "file": "lodout/portfolio.py", "layer": 1, "in": 1, "out": 1}, {"id": "lodout_public_site_account", "label": "account.py", "file": "lodout/public_site/account.py", "layer": 2, "in": 0, "out": 4}, {"id": "lodout_public_site_auth", "label": "auth.py", "file": "lodout/public_site/auth.py", "layer": 0, "in": 5, "out": 0}, {"id": "lodout_public_site_backtest_diario", "label": "backtest_diario.py", "file": "lodout/public_site/backtest_diario.py", "layer": 1, "in": 1, "out": 1}, {"id": "lodout_public_site_buscas", "label": "buscas.py", "file": "lodout/public_site/buscas.py", "layer": 1, "in": 3, "out": 1}, {"id": "lodout_public_site_catalogo", "label": "catalogo.py", "file": "lodout/public_site/catalogo.py", "layer": 1, "in": 5, "out": 2}, {"id": "lodout_public_site_changelog", "label": "changelog.py", "file": "lodout/public_site/changelog.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_public_site_charts", "label": "charts.py", "file": "lodout/public_site/charts.py", "layer": 0, "in": 3, "out": 0}, {"id": "lodout_public_site_db_backup", "label": "db_backup.py", "file": "lodout/public_site/db_backup.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_public_site_discord_notify", "label": "discord_notify.py", "file": "lodout/public_site/discord_notify.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_public_site_encomenda", "label": "encomenda.py", "file": "lodout/public_site/encomenda.py", "layer": 0, "in": 3, "out": 0}, {"id": "lodout_public_site_erro_stats", "label": "erro_stats.py", "file": "lodout/public_site/erro_stats.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_public_site_estaticos_minificados", "label": "estaticos_minificados.py", "file": "lodout/public_site/estaticos_minificados.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_public_site_fmt", "label": "fmt.py", "file": "lodout/public_site/fmt.py", "layer": 0, "in": 6, "out": 0}, {"id": "lodout_public_site_history_routes", "label": "history_routes.py", "file": "lodout/public_site/history_routes.py", "layer": 2, "in": 0, "out": 3}, {"id": "lodout_public_site_icon_cache", "label": "icon_cache.py", "file": "lodout/public_site/icon_cache.py", "layer": 1, "in": 3, "out": 1}, {"id": "lodout_public_site_latencia", "label": "latencia.py", "file": "lodout/public_site/latencia.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_public_site_notas_historico", "label": "notas_historico.py", "file": "lodout/public_site/notas_historico.py", "layer": 0, "in": 4, "out": 0}, {"id": "lodout_public_site_og_cards", "label": "og_cards.py", "file": "lodout/public_site/og_cards.py", "layer": 1, "in": 1, "out": 1}, {"id": "lodout_public_site_online", "label": "online.py", "file": "lodout/public_site/online.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_public_site_profile_fetcher", "label": "profile_fetcher.py", "file": "lodout/public_site/profile_fetcher.py", "layer": 1, "in": 2, "out": 1}, {"id": "lodout_public_site_raridade", "label": "raridade.py", "file": "lodout/public_site/raridade.py", "layer": 0, "in": 6, "out": 0}, {"id": "lodout_public_site_rate_limit", "label": "rate_limit.py", "file": "lodout/public_site/rate_limit.py", "layer": 0, "in": 7, "out": 0}, {"id": "lodout_public_site_scan_progress", "label": "scan_progress.py", "file": "lodout/public_site/scan_progress.py", "layer": 1, "in": 2, "out": 1}, {"id": "lodout_public_site_trades_routes", "label": "trades_routes.py", "file": "lodout/public_site/trades_routes.py", "layer": 2, "in": 0, "out": 1}, {"id": "lodout_public_site_uptime", "label": "uptime.py", "file": "lodout/public_site/uptime.py", "layer": 1, "in": 1, "out": 1}, {"id": "lodout_public_site_user_store", "label": "user_store.py", "file": "lodout/public_site/user_store.py", "layer": 0, "in": 1, "out": 0}, {"id": "lodout_public_site_visits", "label": "visits.py", "file": "lodout/public_site/visits.py", "layer": 1, "in": 4, "out": 1}, {"id": "lodout_public_site_watchlist_routes", "label": "watchlist_routes.py", "file": "lodout/public_site/watchlist_routes.py", "layer": 2, "in": 0, "out": 3}, {"id": "lodout_ranking", "label": "ranking.py", "file": "lodout/ranking.py", "layer": 1, "in": 3, "out": 1}, {"id": "lodout_recommendations", "label": "recommendations.py", "file": "lodout/recommendations.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_scan_store", "label": "scan_store.py", "file": "lodout/scan_store.py", "layer": 1, "in": 10, "out": 1}, {"id": "lodout_scan_targets", "label": "scan_targets.py", "file": "lodout/scan_targets.py", "layer": 0, "in": 2, "out": 0}, {"id": "lodout_signals", "label": "signals.py", "file": "lodout/signals.py", "layer": 1, "in": 2, "out": 1}, {"id": "lodout_steam_news", "label": "steam_news.py", "file": "lodout/steam_news.py", "layer": 1, "in": 1, "out": 1}], "edges": [{"s": "grp_infra", "t": "grp_listagem", "r": "contains"}, {"s": "grp_infra", "t": "grp_home", "r": "contains"}, {"s": "grp_infra", "t": "grp_item", "r": "contains"}, {"s": "grp_infra", "t": "grp_admin", "r": "contains"}, {"s": "grp_infra", "t": "grp_api", "r": "contains"}, {"s": "grp_infra", "t": "grp_status", "r": "contains"}, {"s": "grp_infra", "t": "grp_feeds", "r": "contains"}, {"s": "grp_infra", "t": "grp_metodo", "r": "contains"}, {"s": "grp_infra", "t": "grp_mudancas", "r": "contains"}, {"s": "grp_infra", "t": "grp_ranking", "r": "contains"}, {"s": "grp_infra", "t": "grp_formato", "r": "contains"}, {"s": "grp_home", "t": "grp_listagem", "r": "calls"}, {"s": "grp_item", "t": "grp_listagem", "r": "calls"}, {"s": "grp_api", "t": "grp_listagem", "r": "calls"}, {"s": "grp_feeds", "t": "grp_listagem", "r": "calls"}, {"s": "grp_mudancas", "t": "grp_listagem", "r": "calls"}, {"s": "grp_ranking", "t": "grp_listagem", "r": "calls"}, {"s": "grp_admin", "t": "grp_infra", "r": "calls"}, {"s": "grp_status", "t": "grp_listagem", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_auth", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_auth", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_auth", "r": "references"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_public_site_auth", "r": "calls"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "grp_infra", "t": "lodout__ambiente", "r": "calls"}, {"s": "grp_infra", "t": "lodout__paths", "r": "calls"}, {"s": "grp_infra", "t": "lodout_localization", "r": "indirect_call"}, {"s": "grp_home", "t": "lodout__ambiente", "r": "calls"}, {"s": "grp_item", "t": "lodout_localization", "r": "calls"}, {"s": "grp_status", "t": "lodout__ambiente", "r": "calls"}, {"s": "grp_api", "t": "lodout_localization", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_localization", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_auth", "r": "calls"}, {"s": "grp_admin", "t": "lodout__ambiente", "r": "calls"}, {"s": "grp_status", "t": "lodout_localization", "r": "calls"}, {"s": "grp_formato", "t": "lodout_localization", "r": "calls"}, {"s": "grp_home", "t": "lodout_localization", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_gamedata", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_portfolio", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_ranking", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_scan_store", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_signals", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_steam_news", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_backtest_diario", "t": "lodout__ambiente", "r": "calls"}, {"s": "lodout_public_site_buscas", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout__ambiente", "r": "calls"}, {"s": "lodout_public_site_icon_cache", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_og_cards", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_profile_fetcher", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_scan_progress", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_uptime", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_visits", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_profile_fetcher", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_watchlist_routes", "t": "lodout_localization", "r": "calls"}, {"s": "grp_status", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_recommendations", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_signals", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_db_backup", "r": "references"}, {"s": "grp_home", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_icon_cache", "r": "references"}, {"s": "grp_admin", "t": "lodout_public_site_notas_historico", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_estaticos_minificados", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_gamedata", "r": "calls"}, {"s": "grp_infra", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_profile_fetcher", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_online", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_visits", "r": "calls"}, {"s": "grp_mudancas", "t": "lodout_public_site_fmt", "r": "references"}, {"s": "grp_mudancas", "t": "lodout_steam_news", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_latencia", "r": "calls"}, {"s": "grp_home", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_public_site_notas_historico", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_ranking", "r": "calls"}, {"s": "grp_listagem", "t": "lodout_public_site_charts", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_buscas", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_charts", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_erro_stats", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_latencia", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_scan_progress", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_visits", "r": "calls"}, {"s": "grp_admin", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_rate_limit", "r": "calls"}, {"s": "grp_admin", "t": "lodout_public_site_discord_notify", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_backtest_diario", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_db_backup", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_uptime", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_visits", "r": "calls"}, {"s": "grp_api", "t": "lodout_public_site_rate_limit", "r": "calls"}, {"s": "grp_api", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_mudancas", "t": "lodout_public_site_changelog", "r": "references"}, {"s": "grp_item", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_infra", "t": "lodout_public_site_encomenda", "r": "references"}, {"s": "grp_feeds", "t": "lodout_public_site_rate_limit", "r": "calls"}, {"s": "grp_feeds", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_feeds", "t": "lodout_scan_targets", "r": "references"}, {"s": "grp_api", "t": "lodout_public_site_icon_cache", "r": "calls"}, {"s": "grp_home", "t": "lodout_public_site_buscas", "r": "calls"}, {"s": "grp_home", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "grp_home", "t": "lodout_public_site_raridade", "r": "references"}, {"s": "grp_home", "t": "lodout_public_site_visits", "r": "calls"}, {"s": "grp_home", "t": "lodout_ranking", "r": "calls"}, {"s": "grp_home", "t": "lodout_recommendations", "r": "calls"}, {"s": "grp_home", "t": "lodout_scan_targets", "r": "references"}, {"s": "grp_item", "t": "lodout_cases", "r": "calls"}, {"s": "grp_item", "t": "lodout_portfolio", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_encomenda", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "grp_item", "t": "lodout_signals", "r": "calls"}, {"s": "grp_mudancas", "t": "lodout_gamedata", "r": "calls"}, {"s": "grp_mudancas", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_icon_cache", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_og_cards", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "grp_item", "t": "lodout_public_site_rate_limit", "r": "calls"}, {"s": "grp_api", "t": "lodout_public_site_online", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_public_site_encomenda", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_public_site_notas_historico", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_ranking", "r": "calls"}, {"s": "grp_ranking", "t": "lodout_scan_store", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_notas_historico", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_buscas", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_charts", "r": "calls"}, {"s": "grp_status", "t": "lodout_public_site_scan_progress", "r": "calls"}, {"s": "grp_api", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "grp_api", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "grp_api", "t": "lodout_public_site_raridade", "r": "calls"}]}</script>
+<script id="curation" type="application/json">{"lodout/_ambiente.py": {"what": "Variável de ambiente com fallback de prefixo — usado por `inventario.diario_ligado()` e pelo catálogo."}, "lodout/_paths.py": {"what": "Escrita atômica e `DATA_DIR` — usado por praticamente todo arquivo deste grafo que persiste algo (cópias de recuperação, portfolio.json legado, trades.json legado)."}, "lodout/cases.py": {"what": "`is_container`/`case_status` usados por `portfolio.py` pra classificar e listar as caixas/cápsulas da carteira com o status de drop de cada uma."}, "lodout/gamedata.py": {"what": "Compara os arquivos públicos do CS2 a cada ciclo do worker e, quando mudam, grava eventos (caixa nova, saída do Armory). `check_for_updates()` alimenta `retirements.record_from_events` automaticamente.", "why": "É a fonte que dá a `retirements.py` a data exata de aposentadoria, sem precisar de um humano conferindo nota de patch item por item.", "gotcha": "`record_events_as_alerts()` (grava eventos do jogo no log de alertas da watchlist, via `alerts.record_alert`) existe e tem teste próprio, mas nenhum caminho de produção chama essa função — só `retirements.record_from_events` está de fato ligado em `check_for_updates`. Um evento de jogo hoje atualiza a aposentadoria sozinho, mas não aparece como alerta pra quem tem o item na watchlist."}, "lodout/localization.py": {"what": "Traduz `market_hash_name` pra português — usado em toda exibição de nome de item na conta."}, "lodout/portfolio.py": {"what": "A matemática fee-aware do portfólio: `net_proceeds`/`break_even_price` (a taxa de ~15% da Steam incide sobre o que o VENDEDOR recebe, não o que o comprador paga), `evaluate_portfolio` (agrega posições em linhas + totais), `classify_item`/`composition`/`containers` (como a carteira se divide).", "why": "\"Vale mais do que paguei\" não é lucro — só é lucro DEPOIS da taxa. `has_cost_basis` distingue origem (sync da Steam grava `cost: 0.0` porque ela não diz quanto você pagou — isso é \"desconhecido\", não \"custou zero\") exatamente para não reportar o inventário inteiro como lucro.", "gotcha": "Dois totais de custo existem de propósito: `cost_known` (tudo que a pessoa declarou, tenha cotação ou não — o \"Total investido\" da tela) vs. `cost` (só o que entrou no P&L). Misturar os dois daria uma porcentagem de lucro sobre um custo cujo retorno não foi medido."}, "lodout/public_site/account.py": {"what": "O blueprint da conta: login/logout (Steam OpenID), a página `/conta` (avaliação do portfólio + inventário + histórico resumido), e todas as ações de mutação — adicionar/remover/editar custo de posição, separar/juntar lotes, marcar anunciado/vendido, exportar CSV/JSON, excluir conta, e o quadro de recuperação de valores apagados.", "why": "É o hub de verdade: concentra toda a formatação de exibição (_formatar_linhas, _textos_totais) num só lugar, igual ao padrão de `server.py:_candidatos` — o template fica simples, a lógica de apresentação fica testável em Python.", "gotcha": "`usuario` NÃO é passado pro template de propósito: o context processor de `server.py` já busca `user_store.get_user(steamid)` pra toda página com sessão ativa — passar nos aqui dobraria a leitura SQLite sem mudar nenhum valor. O `RECUPERAR_ATE_TS` (2026-11-23) é uma data-limite hardcoded: depois dela, o quadro de recuperação de valores apagados some de propósito (backups só guardam 7 dias)."}, "lodout/public_site/auth.py": {"what": "`login_required` (redireciona pro login sem sessão) e CSRF (`csrf_token`/`csrf_valid`/`csrf_protect`) compartilhados por todas as rotas pessoais.", "why": "Sem CSRF, qualquer site externo montaria um formulário que muda dados da conta só por a pessoa estar logada — o ataque clássico.", "gotcha": "`csrf_valid` usa `secrets.compare_digest` (tempo constante) em vez de `==` — comparar caractere a caractere vazaria, pelo tempo de resposta, em que posição a tentativa divergiu (achado de auditoria, 2026-11-04). Também exige que um token EXISTA na sessão: sem isso, uma sessão que nunca visitou formulário nenhum (sem token gerado) e um form forjado que também omite o campo comparariam None==None e passariam — exatamente o cenário que o CSRF tenta impedir."}, "lodout/public_site/backtest_diario.py": {"what": "Roda `score_backtest.relatorio()` 1x por dia, no servidor, usando as cópias de página que a coleta já guarda (`data/rodizio_paginas/`, via `scan_engine._ler_pagina_guardada`) — nenhuma consulta nova à Steam. Grava em `data/backtest_resultado.json`, mostrado em `/api/health`. Também tem um experimento desligado por padrão (`LODOUT_EXPERIMENTO_CAIXAS`) que mede variantes do score só em caixas.", "why": "É a única forma de obter, em produção, 'será que a nota ordena bem o retorno real' sem rodar um script manual — e sem gastar rate limit da Steam, porque reaproveita o histórico que o worker já coletou pelo motivo oposto (o rodízio de página, AGENTS.md)."}, "lodout/public_site/catalogo.py": {"what": "Fonte de preço de fallback pra itens sem coleta (`precos`, `exterior_do_item`) — usado por `account.py:_preco_do_dia` quando o item não tem nota."}, "lodout/public_site/charts.py": {"what": "Gera o SVG do gráfico de linha do histórico de valor da conta, usado em `/conta/historico`."}, "lodout/public_site/db_backup.py": {"what": "Faz backup do SQLite de contas/portfólio e dos arquivos JSON globais (scan_store/ranking), auto-limitado a 1x por ~20h mesmo sendo chamado a cada ciclo do worker."}, "lodout/public_site/discord_notify.py": {"what": "Envia uma mensagem de texto simples a um webhook do Discord — usado por `worker_alert` para os alertas do dono do site."}, "lodout/public_site/fmt.py": {"what": "Formatação de exibição compartilhada: `brl()` (reais), `pct()`, `ler_reais()` (aceita \"35,10\" e \"35.10\"), `data_hora_br()`/`dia_mes_br()`."}, "lodout/public_site/history_routes.py": {"what": "Blueprint de `/conta/historico`: mostra a série de valor total ao longo do tempo (gravada em `account.py:conta()` a cada visita, com dedup) e a lista de itens vendidos, com \"desfazer venda\".", "why": "\"Desfazer venda\" só devolve o lote pra conta se a venda veio de \"Vendi\" na própria conta (`source == \"conta\"`); uma registrada à mão em \"Meus trades\" antigo só é apagada do histórico, sem lote pra devolver."}, "lodout/public_site/notas_historico.py": {"what": "Grava, a cada coleta COMPLETA, a nota de TODOS os itens num SQLite próprio — não só o Top 20 do `rankings.json`: 35 dias inteiros, depois 1 foto por dia até 400 dias. Alimenta o gráfico de nota do item e o Ranking consistente (média do período).", "why": "`rankings.json` guarda só ~150 fotos do Top 20 (~37 dias) e é relido inteiro a cada página — não serve para 90 dias/1 ano, nem para um item que não esteve sempre no Top 20.", "gotcha": "As fotos importadas do `rankings.json` entram marcadas `completo=0`: servem só para a comparação do Ranking, nunca para o gráfico de um item (mostrariam presença no Top 20, não a nota real, nos dias em que ele estava fora dele)."}, "lodout/public_site/profile_fetcher.py": {"what": "Busca avatar e nome de um perfil público da Steam (endpoint XML legado, sem login), com cache de 24h em disco e download do avatar pra servir localmente.", "why": "O XML do perfil passou a devolver um host (`avatars.fastly.steamstatic.com`) fora da CSP (`img-src`), quebrando o avatar — servir local (`/conta/avatar.jpg`) resolve isso sem depender do host que a Steam decidir usar.", "gotcha": "Dois níveis de lock protegem o ciclo leitura-modificação-escrita do cache: `threading.Lock` (threads do mesmo processo) + `fcntl.flock` num arquivo dedicado (processos diferentes — o site roda `gunicorn --workers 2`). Achado real (2026-10-27): dois logins quase simultâneos faziam o mais lento sobrescrever o cache inteiro com uma cópia carregada ANTES do mais rápido salvar, apagando a entrada dele em silêncio."}, "lodout/public_site/raridade.py": {"what": "Cor/sufixo de raridade de exibição e `completar_com_catalogo` (preenche ícone/raridade de itens sem imagem) — usado na conta e em \"Meus trades\"."}, "lodout/public_site/rate_limit.py": {"what": "Limitador de tentativas por IP nas rotas (login, mutações de conta) — janela deslizante em memória, sem dependência nova. Não tem nenhuma relação com o disjuntor de rate limit da Steam em `steam_api.py` (achado ao montar o grafo do worker: são dois mecanismos completamente diferentes, apesar do nome parecido)."}, "lodout/public_site/scan_progress.py": {"what": "Grava (sobrescrevendo a cada item, a cada ~4s) qual item o ciclo de scan está processando agora, para o `/api/health` mostrar progresso sem precisar abrir `docker logs`.", "why": "É status efêmero, não registro — arquivo ilegível ou ausente vira só 'sem progresso agora', sem quarentena, ao contrário dos arquivos de registro do usuário."}, "lodout/public_site/trades_routes.py": {"what": "Blueprint de `/conta/trades` (\"Meus trades\"): formulário de troca (itens que deu/recebeu, valor de cada um no dia) e a lista com saldo do dia da troca e saldo a preço de hoje.", "why": "Mostra os DOIS saldos (do dia da troca e a preço de hoje) porque respondem perguntas diferentes: \"a troca foi justa\" vs. \"quanto isso vale agora\"."}, "lodout/public_site/user_store.py": {"what": "Acesso à conta e ao dado pessoal por usuário no SQLite: `upsert_user`/`get_user` (tabela `users`) e `load_user_json`/`save_user_json` (tabela `user_data`, uma linha por `kind` — \"portfolio\", \"vendidos\", \"trocas\", \"preferencias\" etc., todas reusando a mesma tabela).", "why": "Mesma forma de dado que `portfolio.json`/`trades.json` já usavam no app local — só troca ONDE mora (uma linha de `user_data` por conta, não um arquivo global); as funções puras de cálculo (`portfolio.evaluate_portfolio`) continuam as mesmas."}, "lodout/public_site/watchlist_routes.py": {"what": "Rotas Flask da watchlist: liga `alerts.py` (avaliação de regras) e `signals.py`/`scan_store.py` (dado do último scan) à tela onde a pessoa configura o que quer ser avisada."}, "lodout/ranking.py": {"what": "Usa só `signals.raw_score()` (a nota antes do corte em [0,100]) como critério de desempate ao ordenar o Top 20 — dois itens empatados em 100 de nota exibida podem ter mérito bem diferente por baixo do corte."}, "lodout/recommendations.py": {"what": "Cruza o último scan com o portfólio do usuário: compra = melhores notas que a pessoa ainda não tem (descontando risco de pump); venda = posições já possuídas perto do all-time-high ou com o mesmo alerta de subida rápida.", "why": "Não inventa sinal novo de propósito — só reusa `signals`/`cases` e o que o Scanner já persiste, mesma regra do projeto de nunca prever, só descrever (AGENTS.md)."}, "lodout/scan_store.py": {"what": "Último scan e formatação de idade (\"há 20 min\") — usado pela conta pra saber se um preço é fresco."}, "lodout/scan_targets.py": {"what": "Lista fixa de ~85 nomes de itens por categoria (Rifles, Pistolas, Facas, Luvas, SMGs, Caixas, cápsulas e adesivos), extraída de uma UI antiga para não duplicar a lista entre telas.", "why": "É o FALLBACK: `discovery.py` resolve os itens de cada categoria por busca no Market quando a descoberta está ligada; esta lista entra quando a descoberta falha ou está desligada — o scanner nunca fica pior do que era."}, "lodout/signals.py": {"what": "O motor da nota (0-100): `enhanced_score()` soma deltas de ~10 fatores (diferença vs. mediana, spread, livro de ofertas, tendência de 7 dias, oferta/demanda, drawdown, momentum, concordância multi-período, distância do all-time-high, nível de preço absoluto em containers, status de caixa/cápsula, risco de pump) e devolve (nota, breakdown). Também tem os sinais descritivos usados fora do score: `pump_risk`, `data_quality`, `relative_to_ath`, `exit_context`, `revenda_historica`, `liquidity_depth`, `volume_anomaly`.", "why": "Cada fator carrega, em comentário, o experimento que o calibrou ou reprovou (V1...V6 do vintage bonus, V1-V3B do pump risk) com o Spearman/Pearson medido — é a 'ata' do modelo, não só o código. Dois fatores já têm sinal INVERTIDO de propósito (`_MOMENTUM_SIGN = -1`, `_MULTI_PERIOD_SIGN = -1`): o backtest de 2026-07-28 achou reversão à média em skins em vez de continuação de tendência.", "gotcha": "`enhanced_score(now_ts=...)` existe só por causa de um bug real: a idade do vintage bonus era calculada como `hoje - ano`, então uma amostra de 2013 numa caixa de 2013 já nascia com o bônus — o fator virava constante por item e 'confirmava' lookahead. O backtest tem que passar `now_ts` (o instante simulado), nunca confiar no `date.today()` default."}, "lodout/steam_news.py": {"what": "Busca os anúncios oficiais do CS2 a cada ~6h no máximo, numa família própria do disjuntor da Steam — chamado pelo worker DEPOIS do scan de preços, para nunca atrasar a coleta."}, "lodout/public_site/server.py#infra": {"what": "create_app() monta a aplicação Flask inteira: registra os 4 blueprints de conta (account/trades/watchlist/history), configura sessão/cookies e ProxyFix (atrás do Caddy), carrega/gera a chave secreta persistida, liga o log de erro rotativo, define os 5 context processors (versão/build do static, usuário logado, visitas e frescor no rodapé, legenda de raridade), registra os filtros Jinja e os hooks before/after_request (latência por rota, servir style.css/app.js minificados, não guardar página no navegador de quem está logado). Também define os 5 handlers de erro (404/403/500/429/413), cada um respondendo HTML ou JSON conforme o path começa com /api/.", "why": "Um arquivo só porque o site é pequeno e toda rota compartilha a mesma configuração (sessão, CSP, rate limit); separar a fábrica do resto das rotas faria pouco sentido aqui. A chave secreta é persistida (não gerada a cada boot) porque trocá-la invalidaria toda sessão ativa.", "gotcha": "_admin_required nega SEMPRE com 404 (nunca 401/403) quando não há hash de senha configurado -- por design, para não revelar nem que a rota /admin existe num deploy sem senha definida. _sem_copia_com_login só ativa quando JÁ existe cookie de sessão com steamid, para não marcar toda visita anônima como \"não cachear\"."}, "lodout/public_site/server.py#listagem": {"what": "O pipeline compartilhado que transforma o scan bruto em candidatos exibíveis: _candidatos_filtrados aplica categoria/nota/preço/busca/liquidez/filtros \"da Steam\" (exterior/raridade/versão) sobre recommendations.buy_candidates, formata preço e nome, calcula a margem da nota crua e o selo de confiança baixa. _enriquecer_com_historico/_enriquecer_com_icone completam tendência+sparkline e ícone só na FATIA exibida, nunca nos ~150 candidatos inteiros. _busca_bate/_passa_filtros_steam/_cartao_do_catalogo/_nomes_com_pagina/_snapshot_de_comparacao/_eventos_do_jogo são os helpers de apoio chamados por mais de uma página.", "why": "Até 2026-10-26/2026-11-09 cada rota calculava isso para TODOS os candidatos mesmo mostrando só 10 -- profiling ao vivo achou 42% do tempo da home gasto em url_for de ícone para itens nunca exibidos. Centralizar aqui, com com_historico/com_icone=False por padrão, deixa quem chama (a rota) decidir explicitamente a fatia certa.", "gotcha": "_snapshot_de_comparacao, _nomes_com_pagina e _eventos_do_jogo são usados por mais de uma página (Home E Ranking; Ranking E Mudanças; Item E Mudanças) -- mudar o comportamento aqui afeta todas elas de uma vez, não só a que motivou a mudança. Código morto confirmado: _PERIODOS_RANKING (chaves \"scan\"/\"24h\"/\"7d\"/\"30d\") e _PERIODO_RANKING_PADRAO existem para um seletor de período que a página de Ranking tinha ANTES da revisão de 17/11 -- hoje os dois únicos chamadores de _snapshot_de_comparacao (aqui e em _resumo_do_dia) passam o literal \"24h\" direto, nunca o valor escolhido pela pessoa (que agora alimenta _PERIODOS_CONSISTENCIA, um dicionário DIFERENTE, com chaves 7d/30d/90d/365d). As chaves \"scan\", \"7d\" e \"30d\" de _PERIODOS_RANKING, e a constante _PERIODO_RANKING_PADRAO, são inalcançáveis -- confirmado por grep, não há nenhum outro call site.", "issue": "dead"}, "lodout/public_site/server.py#formato": {"what": "Os filtros Jinja registrados uma vez em create_app() (nota_classe, nota_anel, risco_nivel, risco_label, rotulo_caixa, rotulo_caixa_curto, motivo_sem_pontos, pontos_fmt, motivo_fmt, liquidez_label, titulo_sem_pipe_orfao, data_extenso) -- texto e classe CSS derivados da nota/risco/raridade, reutilizados por index/item/comparar/ranking/admin sem repetir a lógica em cada template.", "why": "Centralizado em 2026-10-26: a mesma classificação de nota (alta/média/baixa) estava repetida em 4 templates e divergia se a faixa mudasse num só lugar.", "gotcha": "O AST só enxerga a chamada de REGISTRO (app.jinja_env.filters[...] = _func, dentro de create_app) -- o verdadeiro chamador, a cada render de cada linha da tabela, é o motor Jinja, que uma análise estática de Python não acompanha. A frequência real de uso é muito maior do que a única aresta \"infra -> formato\" sugere."}, "lodout/public_site/server.py#home": {"what": "A rota \"/\" -- a página mais visitada do site. Lê o último scan, aplica os filtros da querystring (categoria, nota mínima, preço máximo, busca, liquidez, exterior/raridade/versão, ordenar, modo vitrine/lista, página), complementa com o catálogo amplo quando ainda não há nota, calcula o \"Termômetro do mercado\" (_calcular_market_pulse, 4 destaques distintos) e o resumo \"o que mudou desde ontem\" (_resumo_do_dia, reaproveitando o mesmo snapshot que o Ranking usa). Mede e expõe a duração de cada etapa no header Server-Timing.", "why": "Preferências de ordenar/ver persistem em cookie, não em sessão, para sobreviver a navegação sem login. O selo \"nota mais alta hoje\" e o Termômetro só aparecem na visão principal (página 1, sem filtro, ordenar=nota) para não destacar um item que pode nem estar na lista filtrada abaixo.", "gotcha": "O total da aba \"Todas\" e a linha de status podem diferir -- buy_candidates já descarta item de risco alto de alta artificial antes de qualquer filtro do visitante; ocultos_risco existe só para explicar essa diferença em vez de deixá-la confusa (achado 2026-11-14)."}, "lodout/public_site/server.py#item": {"what": "item_detail (permalink por item: resumo, simulador de encomenda, motivos da nota -- sem gráficos nem listas extras desde a revisão de 21/11), og_item (prévia 1200x630 para compartilhamento, só com dado já em cache local) e comparar (até 3 itens lado a lado, com a seleção vinda do sessionStorage do navegador).", "why": "A página do item ficou enxuta por pedido do usuário (21/11): saíram gráficos, parecidos, outras versões e histórico no ranking, para focar no essencial no celular.", "gotcha": "_na_sua_conta importa account.py DENTRO da função, não no topo do arquivo -- evita um ciclo de import entre o blueprint de conta e server.py. _resposta_item marca Cache-Control: private, no-store quando há dado da conta na página, senão o resumo pessoal de uma pessoa poderia ficar em cache compartilhado."}, "lodout/public_site/server.py#ranking": {"what": "ranking_page -- os melhores de forma CONSISTENTE (nota média em 7d/30d/90d/1 ano, via notas_historico.ranking_consistente), e embaixo o que mudou no Top 20 desde ontem (quem entrou, saiu, subiu, caiu), com a encomenda sugerida copiável ao lado de cada item.", "why": "Revisão de 17/11 -- antes o Ranking repetia a home na mesma ordem (nota de hoje), que oscila muito de uma coleta para outra; a nota média no período mostra quem se mantém bem avaliado, não quem bateu 100 numa coleta isolada.", "gotcha": "_saidas_do_top monta a outra metade do selo \"NOVO\" (quem SAIU do Top 20, não só quem entrou) -- sem ele, um item que cai do Top 20 simplesmente desaparece da tela sem explicação nenhuma."}, "lodout/public_site/server.py#metodo": {"what": "As páginas de texto estático que não dependem do scan: /metodo (explicação completa da nota), /faq, /glossario, /sobre, /privacidade e /api (documentação da API pública).", "why": "Agrupadas porque são puro render_template sem lógica de dados -- a única fonte de verdade da explicação da nota fica em /metodo; as outras páginas resumem e linkam para lá em vez de duplicar o texto (arquitetura da informação, revisão de 14/11).", "gotcha": "Nenhuma dessas rotas toca scan_store nem qualquer dado do worker -- uma mudança nelas nunca precisa do marcador [restart-worker] no commit."}, "lodout/public_site/server.py#status": {"what": "/status (transparência da coleta: histórico de ciclos, progresso ao vivo, catálogo amplo, gráfico de visitas, termos mais buscados), /healthz (só \"o processo está de pé\"), /readyz (confere se o SQLite abre de verdade, não só SELECT 1) e /api/health (versão JSON detalhada para quem consome a API).", "why": "/readyz lê sqlite_master em vez de SELECT 1 desde 2026-10-25 -- um banco corrompido passava como \"pronto\" com a checagem antiga, achado ao escrever o teste.", "gotcha": "/api/health expõe db_backup.idade_dos_backups() -- o MESMO dado que alimenta o alerta de backup atrasado do worker (worker_alert.py); os dois lêem a mesma fonte, não duas contas separadas que podem divergir."}, "lodout/public_site/server.py#mudancas": {"what": "/novidades (eventos detectados nos arquivos do jogo -- drop pool, Armory, caixa nova -- mais os anúncios oficiais da Valve, só leitura do que o worker já gravou) e /changelog + /changelog.xml (o que mudou no SITE, mantido manualmente, na linguagem de quem usa).", "why": "/status mostra SE o site está saudável (operação); /changelog é sobre PRODUTO -- o que mudou para quem usa -- por isso são páginas e fontes de dado completamente separadas, uma não substitui a outra.", "gotcha": "_eventos_do_jogo é compartilhado com a página do Item (filtrado por so_do_item) -- mudar seu formato de saída afeta as duas páginas, não só Novidades."}, "lodout/public_site/server.py#feeds": {"what": "/feed.xml (RSS dos candidatos atuais), /sitemap.xml, /opensearch.xml, /robots.txt, /favicon.ico, /sw.js (service worker, fora de /static/ de propósito, para controlar o escopo \"/\"), a verificação do Google Search Console e /api/csp-report (onde o navegador reporta violação de política de conteúdo).", "why": "Todas são rotas \"de infraestrutura web\" sem UI própria, consumidas por crawler/navegador/ferramenta, não por uma pessoa lendo a página.", "gotcha": "/robots.txt bloqueia /admin por defesa em profundidade -- o token/senha já nega a rota sem isso; é só para um crawler nem tentar ou indexar a URL por engano."}, "lodout/public_site/server.py#api": {"what": "/api/recommendations (os candidatos atuais em JSON, cache de 5 min), /api/sugestoes (autocomplete de nome para os formulários de Watchlist/Trades, só do banco local), /api/online (POST do rodapé, \"N pessoas no site agora\") e /icone/<hash>.webp (ícone servido do próprio domínio, cache em disco, nunca busca no CDN para quem já está em cache).", "why": "Agrupadas como \"API\" porque nenhuma delas renderiza uma página para navegação humana -- são consumidas por script, do próprio site ou de terceiro.", "gotcha": "icone_cache nunca devolve 500 por cache miss com rede fora -- cai num redirect direto para o CDN da Steam, nunca um erro para quem está vendo a imagem."}, "lodout/public_site/server.py#admin": {"what": "O painel privado do dono do site: /admin/login (senha com hash, nunca token em URL), /admin (dashboard: erros agregados, backups, ciclos do worker, latência por rota, espaço em disco, contagem de usuários), /admin/testar-webhook, /admin/backup/<nome> (download, nome validado por regex exato) e /admin/log-bruto.", "why": "Toda rota nega com 404 (nunca 401/403) quando o hash de senha não está configurado -- não revela nem que a rota existe num ambiente sem senha definida.", "gotcha": "_disco_info e _contagem_usuarios só são usados aqui, não em /status -- o espaço em disco e a contagem de usuários são informação privilegiada do dono, não transparência pública."}, "lodout/public_site/encomenda.py": {"what": "Calcula os textos do bloco \"Comprar por encomenda\": o máximo a pagar para lucrar a meta de quem visita (20% sem login, via portfolio.max_buy_price) revendendo pelo preço de hoje, e a encomenda sugerida no Ranking (um centavo acima da maior encomenda real já na Steam, para ficar na frente da fila).", "why": "Pedido do usuário em 16/11 -- a Steam permite comprar por encomenda (esperar alguém vender pelo preço que você escolhe); o site só soma e formata, nunca promete que a encomenda será atendida.", "gotcha": "meta_do_visitante() importa account DENTRO da função, não no topo, para evitar um ciclo de import com o blueprint de conta, e cacheia em `g` -- uma leitura por página, não uma por cartão exibido."}, "lodout/public_site/latencia.py": {"what": "Latência média por rota, em memória (deque de até 200 amostras por endpoint), consumida pelo painel /admin.", "why": "Mesmo espírito do rate_limit.py -- aproximado de propósito, \"por worker\" do gunicorn, não agregado entre processos; suficiente para notar uma rota lenta sem trazer infraestrutura de métrica nova (Prometheus etc.) para um site de visitante único por request.", "gotcha": "reset() limpa o dict de módulo entre testes do pytest -- sem ele, amostras de um teste contaminariam a média lida pelo teste seguinte, na mesma sessão."}, "lodout/public_site/online.py": {"what": "Guarda só (código aleatório da aba, hora) num SQLite próprio (online.sqlite3, fora do banco de contas) e conta quantos códigos distintos deram sinal nos últimos 3 minutos -- alimenta o \"N pessoas no site agora\" do rodapé.", "why": "Precisa de um lugar comum porque o gunicorn roda em vários processos (a memória de um worker não é a de outro); sem cookie, IP nem ligação com a conta, por design de privacidade.", "gotcha": "id_valido() exige um hex de 16 a 64 caracteres -- qualquer outro valor no POST de /api/online é rejeitado com 400 antes de tocar o banco."}, "lodout/public_site/changelog.py": {"what": "A lista ENTRADAS do changelog público (data, título, itens), mantida manualmente -- não gerada a partir do histórico do git.", "why": "/status mostra SE o site está saudável (operação); esta lista é sobre PRODUTO, o que mudou para quem usa, na linguagem de quem usa -- por isso é editorial, não automática.", "gotcha": "Entradas antigas (2026-10/11) ainda citam os nomes anteriores do site (GalaSeca, galaseca.com) -- histórico preservado de propósito, não é erro de digitação a corrigir."}, "lodout/public_site/erro_stats.py": {"what": "Agrega as linhas cruas de errors.log por tipo de exceção (agregar_por_tipo) e por dia (serie_por_dia), para o painel /admin mostrar tendência em vez de só a lista crua das últimas linhas.", "why": "Sem isto, saber \"qual erro é mais comum\" ou \"hoje teve mais erro que ontem\" exigia ler o arquivo inteiro à mão.", "gotcha": "\"CSP violation\" é tratado como categoria própria ANTES do regex de exceção Python -- é o /api/csp-report logando como erro, não uma exceção de verdade, e cairia em \"Outro\" sem esse caso especial."}, "lodout/public_site/estaticos_minificados.py": {"what": "Entrega style.css e app.js sem comentários, minificando em memória na primeira leitura de cada versão do arquivo (cache por mtime+tamanho) e servindo com ETag.", "why": "Revisão 20/11 -- em produção a pasta lodout/ é montada por cima da imagem Docker (deploy rápido), então o Dockerfile já minifica no build, mas o servidor ainda lia o fonte comentado (362 KB vs 72 KB comprimido) até essa correção.", "gotcha": "A minificação é deliberadamente \"leve\" -- só tira comentário e linha em branco, nunca reescreve token; o fonte no repositório continua comentado, só o bytes servido muda."}, "lodout/public_site/visits.py": {"what": "Contador de visitas total + série por dia (para o gráfico de /status), sem cookie nem IP por visitante.", "why": "dia_local() usa o fuso de Brasília explicitamente (achado 2026-11-08) -- usar UTC fazia o \"dia\" virar às 21h local, quase 3h antes da meia-noite real de quem visita, zerando o contador \"hoje\" cedo demais.", "gotcha": "Mantém só os últimos 60 dias de série (_DIAS_MANTIDOS) -- diferente do histórico de ciclos do worker, que tem teto próprio e maior."}, "lodout/public_site/buscas.py": {"what": "Contador agregado e anônimo de termos digitados na busca (mais_buscados), consumido pelo /status.", "why": "Mesma filosofia de visits.py -- nenhum dado por visitante, só \"quantas vezes esse termo foi digitado\"; existe para dar noção do que as pessoas procuram, não para rastrear quem procurou.", "gotcha": "Mantém só os 200 termos mais buscados (_CAP) -- ao exceder, descarta os MENOS buscados primeiro, preservando o topo relevante em vez de truncar por ordem de chegada."}, "lodout/public_site/icon_cache.py": {"what": "Cache local em disco do ícone de cada item: a primeira visita busca do CDN da Steam, reencoda para WebP (recortando a margem transparente e centralizando a arte, v4) e cacheia; todas as visitas seguintes são leitura local, sem rede.", "why": "Decisão de 2026-10-25 -- hotlinkar direto no CDN de imagem (steamstatic.com) era a postura original para não criar NENHUM tráfego novo contra endpoint sensível da Steam; mas esse CDN de imagem (diferente de market/inventory) não tem rate limit documentado, e cachear localmente reduz uma dependência externa sem reintroduzir o risco original.", "gotcha": "obter() sanitiza o hash ANTES de usá-lo nos dois lugares (caminho em disco E a URL de busca) -- até 2026-10-27 só o caminho em disco era sanitizado, e um hash arbitrário na rota pública /icone/<hash>.webp fazia o servidor buscar (e cachear) qualquer path dentro de steamstatic.com por conta de qualquer visitante."}, "lodout/public_site/og_cards.py": {"what": "Gera as imagens de prévia Open Graph (1200x630) para quando um link do Lodout é colado no Discord/WhatsApp/X -- cartao_padrao() para páginas gerais e cartao_item() por item (ícone, nome, nota, preço, cor da raridade), com cache em disco por hash do conteúdo.", "why": "Feito só com dado já guardado (scan + ícone já em cache local) de propósito -- gerar a prévia nunca consulta a Steam nem o CDN dela, mesmo princípio de \"visitar página pública não dispara rede\" do resto do site.", "gotcha": "A chave de cache (cartao_item_em_cache) inclui uma tag de versão (\"v5\") -- mudar o desenho do cartão sem mudar essa tag serviria imagens antigas do cache para quem já tinha o link compartilhado antes da mudança."}, "lodout/public_site/uptime.py": {"what": "no_ar_desde() -- grava, na primeira chamada depois de criado o arquivo, o timestamp de quando essa instalação do site existe; idempotente nas chamadas seguintes.", "why": "Não é uptime de processo (reinício não reseta -- é \"desde quando existe esta instalação\", não \"desde o último restart\"), usado pelo rodapé/status para mostrar continuidade do serviço.", "gotcha": "É a leitura mais simples do grafo: um arquivo JSON com um único timestamp, sem lógica condicional de negócio."}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const CUR = JSON.parse(document.getElementById('curation').textContent);
+// Las capas vienen de meta (una por grupo del Paso 4). Cada {id, name, sub}.
+// El color se asigna por indice desde la paleta, no fijo — asi sirve con cualquier
+// numero de capas. NADA especifico de un proyecto se hardcodea aqui (ver Paso 7b).
+const LAYER_PALETTE = ['--l0','--l1','--l2','--l3','--l4','--l5','--l6','--l7'];
+const LAYERS = ([{"id": 0, "name": "Utilitários de base", "sub": "sem dependência de outro vizinho neste grafo"}, {"id": 1, "name": "Domínio e coleta", "sub": "scan_store, catalogo, signals, ranking... -- usam a camada 0"}, {"id": 2, "name": "Blueprints de conta", "sub": "account/trades/watchlist/history -- outro subsistema, registrados aqui"}, {"id": 3, "name": "Infraestrutura de server.py", "sub": "fábrica Flask, helpers de listagem e de formatação"}, {"id": 4, "name": "Páginas públicas", "sub": "home, item, ranking, método, status, mudanças, feeds, API"}, {"id": 5, "name": "Admin", "sub": "painel privado do dono do site"}]).map((l, i) => ({ ...l, c: LAYER_PALETTE[i % LAYER_PALETTE.length] }));
+const byId = Object.fromEntries(DATA.nodes.map(n=>[n.id,n]));
+const layerColor = id => `var(${(LAYERS.find(l=>l.id===id)||LAYERS[0]).c})`;
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Nombres genericos (index.js, styles.js...) no dicen a que se refieren: los prefijamos con la carpeta padre.
+const GENERIC = new Set(['index.js','index.ios.js','index.android.js','styles.js','package.json','actions.js','reducer.js']);
+const displayLabel = n => {
+  if(!GENERIC.has(n.label)) return n.label;
+  const parts = n.file.split('/');
+  const parent = parts.length>=2 ? parts[parts.length-2] : '';
+  return parent ? `${parent}/${n.label}` : n.label;
+};
+const nodeEls = {};
+const outMap = {}, inMap = {};
+DATA.edges.forEach(e=>{ (outMap[e.s]=outMap[e.s]||[]).push(e); (inMap[e.t]=inMap[e.t]||[]).push(e); });
+
+const lanesEl = document.getElementById('lanes');
+LAYERS.forEach(L=>{
+  const ns = DATA.nodes.filter(n=>n.layer===L.id).sort((a,b)=>b.out-a.out);
+  if(!ns.length) return;
+  const lane = document.createElement('div');
+  lane.className='lane'; lane.dataset.layer=L.id; lane.style.setProperty('--lc',`var(${L.c})`);
+  lane.innerHTML = `<div class="lane-h">${L.id} · ${L.name}</div><div class="lane-sub">${L.sub}</div>`;
+  const wrap = document.createElement('div'); wrap.className='nodes';
+  ns.forEach(n=>{
+    const el = document.createElement('div');
+    const isCur = !!(CUR[n.file] && CUR[n.file].what);
+    el.className='node'+(isCur?' curated':''); el.style.setProperty('--lc',`var(${L.c})`); el.dataset.id=n.id;
+    el.innerHTML=`<span class="dot" title="${isCur?'curado':'sin curar'}"></span><div class="lbl">${esc(displayLabel(n))}</div><div class="deg">in ${n.in} · out ${n.out}</div>`;
+    el.onclick=(ev)=>{ev.stopPropagation();select(n.id);};
+    wrap.appendChild(el); nodeEls[n.id]=el;
+  });
+  lane.appendChild(wrap); lanesEl.appendChild(lane);
+});
+
+const svg = document.getElementById('edges');
+const SVGNS='http://www.w3.org/2000/svg';
+function drawEdges(){
+  svg.innerHTML='';
+  const main = document.querySelector('main');
+  const ox = main.scrollLeft, oy = main.scrollTop;
+  const base = main.getBoundingClientRect();
+  const box = el => { const r=el.getBoundingClientRect(); return {x:r.left-base.left+ox+r.width/2, top:r.top-base.top+oy, bot:r.top-base.top+oy+r.height}; };
+  DATA.edges.forEach(e=>{
+    const a=nodeEls[e.s], b=nodeEls[e.t]; if(!a||!b) return;
+    const p1=box(a), p2=box(b);
+    let y1, y2;
+    if(p2.top >= p1.bot){ y1=p1.bot; y2=p2.top; }
+    else if(p1.top >= p2.bot){ y1=p1.top; y2=p2.bot; }
+    else { y1=p1.bot; y2=p2.bot; }
+    const dy=Math.abs(y2-y1);
+    const c=Math.min(Math.max(dy*0.4,24),110);
+    const cy1 = y1<=y2 ? y1+c : y1-c;
+    const cy2 = y2>=y1 ? y2-c : y2+c;
+    const path=document.createElementNS(SVGNS,'path');
+    path.setAttribute('d',`M ${p1.x} ${y1} C ${p1.x} ${cy1}, ${p2.x} ${cy2}, ${p2.x} ${y2}`);
+    path.dataset.s=e.s; path.dataset.t=e.t;
+    svg.appendChild(path);
+  });
+  if(curSel) paintPaths(curSel);
+}
+window.addEventListener('load',drawEdges);
+window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(drawEdges,150);});
+document.querySelector('main').addEventListener('scroll',()=>{clearTimeout(window._st);window._st=setTimeout(drawEdges,50);});
+
+let curSel=null;
+function paintPaths(id){
+  const hc=layerColor(byId[id].layer);
+  document.documentElement.style.setProperty('--hc',hc);
+  svg.querySelectorAll('path').forEach(p=>{
+    p.classList.remove('hi-out','hi-in','dim');
+    if(p.dataset.s===id) p.classList.add('hi-out');
+    else if(p.dataset.t===id) p.classList.add('hi-in');
+    else p.classList.add('dim');
+  });
+}
+// Ejemplos generados desde los datos (top-3 por out) — nunca hardcodeados.
+function emptyPanelHTML(){
+  const top = [...DATA.nodes].sort((a,b)=>b.out-a.out).slice(0,3)
+    .map(n=>`<b>${esc(displayLabel(n))}</b> (out ${n.out})`).join(', ');
+  const hint = top ? `<br><br>Comece pelos de maior <b>out</b>: ${top}.` : '';
+  return `<div class="p-empty">Selecione um nó para ver seu papel e destacar suas conexões.${hint}</div>`;
+}
+function clearSel(){
+  curSel=null;
+  Object.values(nodeEls).forEach(el=>el.classList.remove('sel','neigh-out','neigh-in','faded'));
+  svg.querySelectorAll('path').forEach(p=>p.classList.remove('hi-out','hi-in','dim'));
+  document.getElementById('panel').innerHTML=emptyPanelHTML();
+}
+document.querySelector('main').addEventListener('click',clearSel);
+
+function select(id){
+  curSel=id;
+  const n=byId[id], hc=layerColor(n.layer);
+  const outs=outMap[id]||[], ins=inMap[id]||[];
+  const neighOut=new Set(outs.map(e=>e.t)), neighIn=new Set(ins.map(e=>e.s));
+  Object.entries(nodeEls).forEach(([nid,el])=>{
+    el.classList.remove('sel','neigh-out','neigh-in','faded');
+    el.style.setProperty('--hc',hc);
+    if(nid===id) el.classList.add('sel');
+    else if(neighOut.has(nid)) el.classList.add('neigh-out');
+    else if(neighIn.has(nid)) el.classList.add('neigh-in');
+    else el.classList.add('faded');
+  });
+  paintPaths(id);
+  renderPanel(n,outs,ins);
+}
+
+function renderPanel(n,outs,ins){
+  const cur=CUR[n.file]||{};
+  const L=LAYERS.find(l=>l.id===n.layer)||LAYERS[0];
+  let h=`<span class="clr" onclick="clearSel()">✕ limpar</span><span class="badge" style="--lc:var(${L.c})">${L.id} · ${L.name}</span>`;
+  h+=`<div class="p-file" style="margin-top:10px">${esc(n.file)}</div>`;
+  h+=`<div class="p-deg"><span><b>${n.in}</b> usam</span><span><b>${n.out}</b> usa</span></div>`;
+  if(cur.what){ h+=`<div class="p-lbl">O que faz</div><div class="p-val">${esc(cur.what)}</div>`; }
+  if(cur.why){ h+=`<div class="p-lbl">Por quê</div><div class="p-val">${esc(cur.why)}</div>`; }
+  if(cur.gotcha){ h+=`<div class="warn">${esc(cur.gotcha)}</div>`; }
+  if(!cur.what){ h+=`<div class="warn">Nó sem curadoria ainda -- fora do escopo deste grafo.</div>`; }
+  if(outs.length){ h+=`<div class="p-lbl">Usa (${outs.length})</div>`+outs.map(e=>{const o=byId[e.t];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">→</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  if(ins.length){ h+=`<div class="p-lbl">É usado por (${ins.length})</div>`+ins.map(e=>{const o=byId[e.s];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">←</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  document.getElementById('panel').innerHTML=h;
+}
+
+// ── Buscador ──────────────────────────────────────────────────
+const isCurated = n => !!(CUR[n.file] && CUR[n.file].what);
+const totalCurated = DATA.nodes.filter(isCurated).length;
+const searchEl = document.getElementById('search');
+const resultsEl = document.getElementById('results');
+const countEl = document.getElementById('searchcount');
+const onlyUncEl = document.getElementById('onlyuncurated');
+
+function updateCount(){
+  countEl.textContent = `${totalCurated}/${DATA.nodes.length} com curadoria`;
+}
+function jumpTo(id){
+  const el = nodeEls[id]; if(!el) return;
+  Object.values(nodeEls).forEach(e=>e.classList.remove('hit'));
+  el.classList.add('hit');
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  select(id);
+}
+function runSearch(){
+  const q = searchEl.value.trim().toLowerCase();
+  const onlyUnc = onlyUncEl.checked;
+  resultsEl.innerHTML='';
+  if(!q && !onlyUnc){ return; }
+  let matches = DATA.nodes.filter(n=>{
+    const hit = !q || n.label.toLowerCase().includes(q) || n.file.toLowerCase().includes(q);
+    const unc = !onlyUnc || !isCurated(n);
+    return hit && unc;
+  }).sort((a,b)=>b.out-a.out).slice(0,40);
+  matches.forEach(n=>{
+    const chip=document.createElement('div'); chip.className='rchip';
+    chip.innerHTML=`<span class="rlayer" style="background:${layerColor(n.layer)}"></span>${esc(displayLabel(n))}<span class="dot" style="position:static;width:6px;height:6px;background:${isCurated(n)?'#20c997':'#3a4152'}"></span><span class="rfile">${esc(n.file.replace(/^(core|components)\//,''))}</span>`;
+    chip.onclick=()=>jumpTo(n.id);
+    resultsEl.appendChild(chip);
+  });
+  if(!matches.length){ resultsEl.innerHTML='<div class="rfile" style="padding:4px">Sem resultados</div>'; }
+}
+searchEl.addEventListener('input', runSearch);
+onlyUncEl.addEventListener('change', runSearch);
+updateCount();
+
+// ── Filtros de capa y tipo de arista ──────────────────────────
+const activeLayers = new Set(LAYERS.map(l=>l.id));
+const REL_TYPES = [...new Set(DATA.edges.map(e=>e.r))];
+const activeRels = new Set(REL_TYPES);
+
+function buildFilterChips(){
+  const lc = document.getElementById('layerchips');
+  LAYERS.forEach(L=>{
+    if(!DATA.nodes.some(n=>n.layer===L.id)) return;
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc',`var(${L.c})`);
+    c.innerHTML=`<span class="fdot"></span>${L.id}·${L.name}`;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeLayers.add(L.id):activeLayers.delete(L.id); applyFilters(); };
+    lc.appendChild(c);
+  });
+  const rc = document.getElementById('relchips');
+  REL_TYPES.forEach(r=>{
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc','var(--l1)');
+    c.textContent=r;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeRels.add(r):activeRels.delete(r); applyFilters(); };
+    rc.appendChild(c);
+  });
+}
+function applyFilters(){
+  // nodos: ocultar los de capas apagadas
+  Object.entries(nodeEls).forEach(([id,el])=>{
+    el.classList.toggle('hidden', !activeLayers.has(byId[id].layer));
+  });
+  // carriles: ocultar el carril entero si su capa esta apagada
+  document.querySelectorAll('.lane').forEach(lane=>{
+    const lid = Number(lane.dataset.layer);
+    lane.classList.toggle('hidden', !activeLayers.has(lid));
+  });
+  // aristas: ocultar las de tipo apagado o que tocan un nodo oculto
+  svg.querySelectorAll('path').forEach(p=>{
+    const e = DATA.edges.find(x=>x.s===p.dataset.s && x.t===p.dataset.t);
+    const relOff = e && !activeRels.has(e.r);
+    const nodeOff = !activeLayers.has(byId[p.dataset.s]?.layer) || !activeLayers.has(byId[p.dataset.t]?.layer);
+    p.style.display = (relOff || nodeOff) ? 'none' : '';
+  });
+  drawEdges();
+}
+document.getElementById('resetfilters').onclick=()=>{
+  LAYERS.forEach(l=>activeLayers.add(l.id)); REL_TYPES.forEach(r=>activeRels.add(r));
+  document.querySelectorAll('#layerchips .fchip, #relchips .fchip').forEach(c=>c.classList.add('on'));
+  applyFilters();
+};
+buildFilterChips();
+// Panel inicial con los ejemplos top-3 generados desde los datos.
+document.getElementById('panel').innerHTML = emptyPanelHTML();
+</script>
+</body>
+</html>
