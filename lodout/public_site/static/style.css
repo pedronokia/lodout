@@ -5590,8 +5590,8 @@ a.paginacao-passo:active {
 
 }
 
-/* Sem valor pago: borda tracejada, sem gritar em todas as linhas. */
-.linha-sem-custo .input-custo { border-style: dashed; background: transparent; }
+/* Sem valor pago: borda sutil sólida, sem gritar em todas as linhas. */
+.linha-sem-custo .input-custo { border-style: solid; background: rgba(255, 255, 255, 0.03); }
 
 @media (min-width: 641px) {
   .tabela-conta .col-num,
@@ -6010,6 +6010,10 @@ button.venda-por-falta:focus-visible { outline: 2px solid var(--focus); outline-
   background: transparent;
   color: inherit;
   font: inherit;
+  text-transform: uppercase;
+  letter-spacing: inherit;
+  font-size: inherit;
+  font-weight: inherit;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -10205,17 +10209,56 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-conta .linha-sem-custo .input-custo {
-  border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.02);
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabela-conta .linha-sem-custo .input-custo:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Preços de Venda por Alvo / Breakeven */
-.tabela-conta .venda-por-bloco {
-  display: grid;
+.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+  display: inline-grid;
   grid-template-columns: auto auto;
   gap: 4px 12px;
   align-items: center;
+}
+
+.tabela-conta .linha-sem-custo .venda-por-bloco {
+  display: none !important;
+}
+
+.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-falta {
+  display: none !important;
+}
+
+.tabela-conta .venda-por-falta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .venda-por-falta:hover,
+.tabela-conta .venda-por-falta:focus-visible {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.40);
+  color: var(--accent-bright);
+  text-decoration: none;
 }
 
 .tabela-conta .copiar-preco {
@@ -10727,6 +10770,39 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .home-tese {
   margin: 0 0 var(--sp-5);
+}
+
+.home-tese-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 11px 0 9px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  width: fit-content;
+  line-height: 1;
+}
+.home-tese-selo[hidden] { display: none; }
+
+.home-tese-selo::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
+  flex-shrink: 0;
 }
 
 .home-tese-titulo {

@@ -335,7 +335,7 @@
             {% if row.atingiu_meta %}<span class="selo-meta-atingida" title="Atingiu a meta de {{ meta_lucro }}% de lucro se vender hoje">na meta</span>{% endif %}
           </td>
           <td role="cell" data-label="Venda por" class="celula-venda-por">
-            <button type="button" class="acao-texto venda-por-falta" data-ir-ao-campo aria-label="Informar quanto pagou em {{ row.name_fmt }}">informe quanto pagou</button>
+            <button type="button" class="venda-por-falta" data-ir-ao-campo aria-label="Informar quanto pagou em {{ row.name_fmt }}">informe quanto pagou</button>
             <span class="venda-por-bloco">
             {# Clicar no preço copia o número (ex.: "53,41") para colar na
                tela de venda da Steam (conta.js). #}

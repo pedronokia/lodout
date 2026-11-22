@@ -219,15 +219,8 @@ def test_index_mostra_resumo_do_dia_com_alta_e_queda(client, monkeypatch, tmp_pa
     assert "maior alta de nota foi" not in resumo
     assert "maior queda foi" not in resumo
     assert "Nenhum item novo entrou no Top 20" in resumo
-    # item #19: mini-cards com os vaivens de nota, pra alta E pra baixa
-    assert 'class="movimentos-do-dia"' in body
-    cards = body.split('class="movimentos-do-dia"', 1)[1].split("</ul>", 1)[0]
-    assert "X" in cards
-    assert "Y" in cards
-    assert "movimento-alta" in cards
-    assert "movimento-baixa" in cards
-    assert "+30 na nota" in cards
-    assert "-30 na nota" in cards
+    # Seção 'Maiores mudanças de nota hoje' foi removida da home a pedido do usuário
+    assert 'class="movimentos-do-dia"' not in body
 
 
 def test_index_resumo_do_dia_mostra_mesmo_sem_mudanca_de_nota(client, monkeypatch, tmp_path):
@@ -258,10 +251,8 @@ def test_index_resumo_do_dia_mostra_mesmo_sem_mudanca_de_nota(client, monkeypatc
     assert "movimentos-do-dia" not in body
 
 
-def test_index_movimentos_do_dia_limita_a_tres_e_ordena_por_tamanho(
+def test_index_movimentos_do_dia_removido_da_home(
         client, monkeypatch, tmp_path):
-    # item #19: so os 3 maiores vaivens (em modulo) viram card, sem
-    # escolher "melhor" item -- alta e queda contam igual.
     _salva_scan(tmp_path, monkeypatch, [
         {"name": "Item A", "score": 70, "price": 1.0, "case_label": "",
          "pump_risk": {"level": "low"}, "breakdown": []},
@@ -270,30 +261,17 @@ def test_index_movimentos_do_dia_limita_a_tres_e_ordena_por_tamanho(
         "lodout.public_site.server.ranking.load_snapshots",
         lambda: [{"ts": 1000.0, "items": [
             {"name": "A1", "score": 50, "position": 1},
-            {"name": "A2", "score": 50, "position": 2},
-            {"name": "A3", "score": 50, "position": 3},
-            {"name": "A4", "score": 50, "position": 4},
-            {"name": "A5", "score": 50, "position": 5},
+            {"name": "A2", "score": 58, "position": 2},
         ]}])
     monkeypatch.setattr(
         "lodout.public_site.server.ranking.latest_before",
         lambda ts: {"ts": 900.0, "items": [
-            {"name": "A1", "score": 45, "position": 1},   # +5
-            {"name": "A2", "score": 58, "position": 2},   # -8
-            {"name": "A3", "score": 30, "position": 3},   # +20
-            {"name": "A4", "score": 48, "position": 4},   # +2
-            {"name": "A5", "score": 39, "position": 5},   # +11
+            {"name": "A1", "score": 45, "position": 1},
+            {"name": "A2", "score": 50, "position": 2},
         ]})
     body = client.get("/").data.decode("utf-8")
-    cards = body.split('class="movimentos-do-dia"', 1)[1].split("</ul>", 1)[0]
-    assert cards.count('class="movimento-do-dia"') == 3
-    # Ordem: +20 (A3), +11 (A5), -8 (A2). Os pequenos (+5, +2) ficam fora.
-    pos_a3 = cards.index("A3")
-    pos_a5 = cards.index("A5")
-    pos_a2 = cards.index("A2")
-    assert pos_a3 < pos_a5 < pos_a2
-    assert "A1" not in cards
-    assert "A4" not in cards
+    assert 'class="movimentos-do-dia"' not in body
+    assert "Maiores mudanças de nota hoje" not in body
 
 
 def test_index_resumo_do_dia_some_com_filtro_ativo(client, monkeypatch, tmp_path):
@@ -5487,17 +5465,20 @@ def test_secret_key_gravada_com_permissao_restrita(tmp_path, monkeypatch):
     """Achado de auditoria 2026-11-22: a chave de sessão não pode ficar
     legível por qualquer usuário local -- quem a lesse forjaria cookie
     de sessão de qualquer pessoa."""
+    import sys
     caminho = tmp_path / "secret.key"
     monkeypatch.setattr(server, "_SECRET_KEY_PATH", caminho)
     chave = server._load_or_create_secret_key()
     assert chave and len(chave) == 32
-    assert oct(caminho.stat().st_mode)[-3:] == "600"
+    if sys.platform != "win32":
+        assert oct(caminho.stat().st_mode)[-3:] == "600"
     # Instalação já existente (antes desta mudança): a chave muda de dono
     # do umask padrão pra 0600 na próxima subida, sem invalidar sessões.
     caminho.chmod(0o644)
     chave2 = server._load_or_create_secret_key()
     assert chave2 == chave
-    assert oct(caminho.stat().st_mode)[-3:] == "600"
+    if sys.platform != "win32":
+        assert oct(caminho.stat().st_mode)[-3:] == "600"
 
 
 def test_deploy_repassa_senha_do_admin_sem_aspas_manuais():
