@@ -112,7 +112,8 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   a coluna `preco` direto como reais.
 - Itens a mais com nota (`public_site/itens_extras.py`, 2026-11-16; degrau 2 em
   2026-11-19): os mais anunciados do catálogo (sem adesivos, a partir de R$ 1)
-  somam-se aos alvos da coleta; `LODOUT_ITENS_EXTRAS` (padrão 200, máx. 400).
+  somam-se aos alvos da coleta; `LODOUT_ITENS_EXTRAS` (padrão 200, máx. 400;
+  em produção 200 desde 22/11: com 350, metade das coletas parava por 429).
   Cada item custa ~50 s/dia que saem da volta do catálogo. Suba em degraus de +100 só
   com `/api/health` -> `ultimo_ciclo_worker.pausas_429` limpo por 2–3 dias;
   acima de ~500 a volta do catálogo passa de 1,5 dia. O rodízio (histórico
