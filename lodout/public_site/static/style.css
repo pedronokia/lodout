@@ -12478,3 +12478,20 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   }
   .tabela-conta .venda-por-bloco .copiar-preco { justify-content: flex-end; }
 }
+
+/* "Venda por" (polimento 22/11): o ícone de copiar aparece sempre,
+   discreto, como no Ranking -- antes só no mouse, e o botão parecia um
+   rótulo. Valor à esquerda, ícone à direita, números alinhados. */
+.tabela-conta .venda-por-bloco .copiar-preco {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.tabela-conta .venda-por-bloco .icone-copiar { opacity: 0.45; margin-left: 0; }
+.tabela-conta .venda-por-bloco .copiar-preco:hover .icone-copiar,
+.tabela-conta .venda-por-bloco .copiar-preco:focus-visible .icone-copiar { opacity: 0.9; }
+@media (min-width: 641px) {
+  .tabela-conta .venda-por-bloco .copiar-preco { justify-content: space-between; }
+}
