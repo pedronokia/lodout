@@ -12495,3 +12495,23 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
 @media (min-width: 641px) {
   .tabela-conta .venda-por-bloco .copiar-preco { justify-content: space-between; }
 }
+
+/* "informe quanto pagou" (polimento 22/11): no computador o campo do
+   valor pago fica na mesma linha, então a pílula repetida em cada item
+   sem valor (7 na conta real) vira um link discreto que leva ao campo.
+   No celular, onde o campo fica longe, continua pílula. */
+@media (min-width: 641px) {
+  .tabela-conta .venda-por-falta {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  .tabela-conta .venda-por-falta:hover,
+  .tabela-conta .venda-por-falta:focus-visible {
+    background: none;
+    color: var(--accent-bright);
+  }
+}

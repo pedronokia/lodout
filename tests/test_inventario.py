@@ -215,7 +215,7 @@ def test_buscando_inventario_nao_fica_preso(client):
     _logado(client, sid)
     pagina = client.get("/conta").data.decode("utf-8")
     assert "Buscando seu inventário" not in pagina
-    assert "Inventário da Steam atualizado" in pagina
+    assert "Inventário da Steam lido" in pagina
 
 
 def test_conta_vazia_buscando_mostra_so_uma_mensagem(client):
@@ -352,7 +352,7 @@ def test_conta_mostra_item_fora_do_inventario_com_vendi(client):
     assert "> Está anunciado<span" in pagina
     assert 'name="sell_price"' in pagina
     assert 'id="dialogo-vendi"' in pagina and "data-vendi-custo=\"3.0000\"" in pagina
-    assert "1 item não aparece no inventário agora" in pagina
+    assert "1 item fora do inventário (anunciado ou vendido)" in pagina
 
 
 def test_anunciado_fica_e_vendi_vai_para_o_historico(client):
