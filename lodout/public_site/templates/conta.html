@@ -61,7 +61,7 @@
       {% set n_recuperar = recuperar.voltam|length + recuperar.conferir|length %}
       <form method="post" action="{{ url_for('account.dispensar_recuperar') }}" class="conta-recuperar-dispensar form-remover" data-nome="{{ 'este item' if n_recuperar == 1 else 'esses itens' }}" data-dialogo-titulo="Não devolver" data-dialogo-texto="{{ 'Ele não volta' if n_recuperar == 1 else 'Eles não voltam' }} para a sua lista e este aviso some. O valor pago não fica guardado em outro lugar." data-dialogo-botao="Não devolver" data-confirmar="Não devolver {{ 'este item' if n_recuperar == 1 else 'esses itens' }}? O valor pago não fica guardado em outro lugar.">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="botao-link">Não quero de volta</button>
+        <button type="submit" class="botao-link acao-texto">Não quero de volta</button>
       </form>
     </section>
     {% endif %}
@@ -394,7 +394,6 @@
   </main>
 
   <footer class="rodape">
-    <p>Preços da última coleta.</p>
     {% include "partials/_rodape_links.html" %}
   </footer>
   {% include "partials/_dialogo_vendi.html" %}

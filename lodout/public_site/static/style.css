@@ -12468,3 +12468,13 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
    "Vendi" ora ficava em cima, ora embaixo. */
 .tabela-conta .item-fora .item-fora-pergunta,
 .tabela-conta .item-fora .form-anunciado { flex-basis: 100%; }
+
+/* "Venda por" no computador: a coluna dos valores volta a ter largura
+   mínima, para "Sem prejuízo / Lucrar X%" ficarem alinhados de uma linha
+   da tabela para a outra (com "auto", cada linha tinha sua largura). */
+@media (min-width: 641px) {
+  .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+    grid-template-columns: auto minmax(6.4em, auto);
+  }
+  .tabela-conta .venda-por-bloco .copiar-preco { justify-content: flex-end; }
+}
