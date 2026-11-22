@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subsistema de Conta/Portfólio — Lodout</title>
+<style>
+  :root{
+    --bg:#0d0f14; --surface:#161923; --surface2:#1c2030; --border:#252a3a;
+    --text:#e6e8ec; --text2:#9aa3b2; --text3:#6b7280; --hc:#845ef7;
+    --l0:#5d6478; --l1:#845ef7; --l2:#ff6b6b; --l3:#fab005;
+    --l4:#20c997; --l5:#4dabf7; --l6:#e64980; --l7:#868e96;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5}
+  .layout{display:flex;height:100vh}
+  main{flex:1;overflow-y:auto;padding:24px 28px;position:relative}
+  #edges{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+  #edges path{fill:none;stroke:var(--border);stroke-width:1.2;opacity:.3;transition:.15s}
+  #edges path.hi-out{stroke:var(--hc);stroke-width:2;opacity:.95}
+  #edges path.hi-in{stroke:var(--hc);stroke-width:1.6;opacity:.7;stroke-dasharray:4 3}
+  #edges path.dim{opacity:.04}
+  .content{position:relative;z-index:2}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--text2);font-size:13px;margin-bottom:8px}
+  .hint{color:var(--text3);font-size:11.5px;margin-bottom:18px}
+  .hint b{color:var(--text2)}
+  .lane{margin-bottom:20px;border-left:3px solid var(--lc);padding-left:14px}
+  .lane-h{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--lc);margin-bottom:2px}
+  .lane-sub{color:var(--text3);font-size:11.5px;margin-bottom:10px}
+  .nodes{display:flex;flex-wrap:wrap;gap:8px}
+  .node{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;transition:.12s;min-width:0;position:relative}
+  .node:hover{border-color:var(--lc);background:var(--surface2)}
+  .node.sel{border-color:var(--lc);background:var(--surface2);box-shadow:0 0 0 2px var(--lc)}
+  .node.neigh-out{border-color:var(--hc)}
+  .node.neigh-in{border-color:var(--hc);border-style:dashed}
+  .node.faded{opacity:.28}
+  .node .lbl{font-family:"SFMono-Regular",Menlo,monospace;font-size:12.5px}
+  .node .deg{color:var(--text3);font-size:10.5px;margin-top:2px}
+  aside{width:390px;border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;padding:22px 20px;z-index:3}
+  .p-empty{color:var(--text3);font-size:13px;line-height:1.7}
+  .p-file{font-family:monospace;font-size:11px;color:var(--text3);word-break:break-all;margin-bottom:12px}
+  .p-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin:14px 0 4px}
+  .p-val{font-size:13.5px;line-height:1.6}
+  .p-deg{display:flex;gap:16px;margin:10px 0 4px}
+  .p-deg span{font-size:12px;color:var(--text2)}
+  .p-deg b{color:var(--text);font-size:15px}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;background:var(--lc);color:#0d0f14}
+  .rel{font-size:12px;color:var(--text2);margin:3px 0;cursor:pointer}
+  .rel:hover{color:var(--text)}
+  .rel .arrow{color:var(--text3);font-family:monospace}
+  .rel .rt{color:var(--text3);font-size:10px;margin-left:4px}
+  .warn{background:#2a1e14;border-left:3px solid var(--l3);padding:10px 12px;border-radius:6px;font-size:12.5px;margin-top:16px;color:#ffd8a8}
+  .clr{float:right;font-size:11px;color:var(--text3);cursor:pointer;border:1px solid var(--border);border-radius:5px;padding:2px 8px}
+  .clr:hover{color:var(--text)}
+  .searchbar{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  #search{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 12px;outline:none}
+  #search:focus{border-color:var(--l1)}
+  .scount{font-size:11.5px;color:var(--text3);white-space:nowrap}
+  .cbox{font-size:11.5px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+  .results{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .results:empty{display:none}
+  .rchip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:"SFMono-Regular",Menlo,monospace;font-size:12px;display:flex;align-items:center;gap:6px}
+  .rchip:hover{border-color:var(--l1)}
+  .rchip .rlayer{width:8px;height:8px;border-radius:2px}
+  .rchip .rfile{color:var(--text3);font-size:10px}
+  .node .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#3a4152}
+  .node.curated .dot{background:#20c997}
+  .node.hit{outline:2px solid var(--l1);outline-offset:1px}
+  .node.hidden{display:none}
+  .filterbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .fl{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}
+  .fchip{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer;display:inline-flex;align-items:center;gap:5px;user-select:none}
+  .fchip.on{color:var(--text);border-color:var(--fc);background:color-mix(in srgb, var(--fc) 16%, var(--surface))}
+  .fchip .fdot{width:8px;height:8px;border-radius:2px;background:var(--fc)}
+  .fchip:not(.on) .fdot{opacity:.3}
+  .btn{font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text3);cursor:pointer}
+  .btn:hover{color:var(--text);border-color:var(--l1)}
+  .lane.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="layout">
+  <main>
+    <svg id="edges"></svg>
+    <div class="content">
+      <h1>Subsistema de Conta/Portfólio — Lodout</h1>
+      <div class="sub">Login com Steam, sincronização do inventário público, lotes, vendidos e trocas — como o portfólio pessoal (opcional, sem conta não há rastro) é calculado e persistido.</div>
+      <div class="hint">As linhas são as dependências reais entre arquivos (vindas do AST, não inventadas). Clique num nó: <b>sólidas</b> = o que ele usa, <b>pontilhadas</b> = quem usa ele.</div>
+      <div class="searchbar">
+        <input id="search" type="text" placeholder="Buscar arquivo por nome…" autocomplete="off">
+        <span id="searchcount" class="scount"></span>
+        <label class="cbox"><input type="checkbox" id="onlyuncurated"> só sem curadoria</label>
+      </div>
+      <div class="filterbar">
+        <span class="fl">Camadas</span>
+        <span id="layerchips"></span>
+        <span class="fl" style="margin-left:14px">Arestas</span>
+        <span id="relchips"></span>
+        <span class="btn" id="resetfilters">Limpar filtros</span>
+      </div>
+      <div id="results" class="results"></div>
+      <div id="lanes"></div>
+    </div>
+  </main>
+  <aside id="panel">
+    <div class="p-empty" id="panel-empty">Selecione um nó para ver seu papel e destacar suas conexões.</div>
+  </aside>
+</div>
+
+<script id="data" type="application/json">{"nodes": [{"id": "lodout__paths", "label": "_paths.py", "file": "lodout/_paths.py", "layer": 0, "in": 9, "out": 1}, {"id": "lodout__ambiente", "label": "_ambiente.py", "file": "lodout/_ambiente.py", "layer": 0, "in": 3, "out": 0}, {"id": "lodout_public_site_fmt", "label": "fmt.py", "file": "lodout/public_site/fmt.py", "layer": 0, "in": 3, "out": 0}, {"id": "lodout_public_site_db", "label": "db.py", "file": "lodout/public_site/db.py", "layer": 0, "in": 1, "out": 1}, {"id": "lodout_public_site_auth", "label": "auth.py", "file": "lodout/public_site/auth.py", "layer": 1, "in": 3, "out": 0}, {"id": "lodout_public_site_steam_openid", "label": "steam_openid.py", "file": "lodout/public_site/steam_openid.py", "layer": 1, "in": 1, "out": 0}, {"id": "lodout_public_site_profile_fetcher", "label": "profile_fetcher.py", "file": "lodout/public_site/profile_fetcher.py", "layer": 1, "in": 1, "out": 1}, {"id": "lodout_public_site_inventario", "label": "inventario.py", "file": "lodout/public_site/inventario.py", "layer": 2, "in": 1, "out": 4}, {"id": "lodout_public_site_user_store", "label": "user_store.py", "file": "lodout/public_site/user_store.py", "layer": 3, "in": 8, "out": 1}, {"id": "lodout_public_site_user_portfolio", "label": "user_portfolio.py", "file": "lodout/public_site/user_portfolio.py", "layer": 3, "in": 4, "out": 1}, {"id": "lodout_portfolio", "label": "portfolio.py", "file": "lodout/portfolio.py", "layer": 3, "in": 2, "out": 2}, {"id": "lodout_public_site_recuperar_posicoes", "label": "recuperar_posicoes.py", "file": "lodout/public_site/recuperar_posicoes.py", "layer": 3, "in": 2, "out": 3}, {"id": "lodout_public_site_user_vendidos", "label": "user_vendidos.py", "file": "lodout/public_site/user_vendidos.py", "layer": 4, "in": 3, "out": 2}, {"id": "lodout_public_site_user_trocas", "label": "user_trocas.py", "file": "lodout/public_site/user_trocas.py", "layer": 4, "in": 3, "out": 2}, {"id": "lodout_trades", "label": "trades.py", "file": "lodout/trades.py", "layer": 4, "in": 1, "out": 2}, {"id": "lodout_public_site_account", "label": "account.py", "file": "lodout/public_site/account.py", "layer": 5, "in": 1, "out": 21}, {"id": "lodout_public_site_history_routes", "label": "history_routes.py", "file": "lodout/public_site/history_routes.py", "layer": 5, "in": 0, "out": 10}, {"id": "lodout_public_site_trades_routes", "label": "trades_routes.py", "file": "lodout/public_site/trades_routes.py", "layer": 5, "in": 0, "out": 8}, {"id": "lodout_public_site_user_history", "label": "user_history.py", "file": "lodout/public_site/user_history.py", "layer": 6, "in": 2, "out": 1}, {"id": "lodout_public_site_user_watchlist", "label": "user_watchlist.py", "file": "lodout/public_site/user_watchlist.py", "layer": 6, "in": 1, "out": 1}, {"id": "lodout_public_site_rate_limit", "label": "rate_limit.py", "file": "lodout/public_site/rate_limit.py", "layer": 6, "in": 3, "out": 0}, {"id": "lodout_public_site_catalogo", "label": "catalogo.py", "file": "lodout/public_site/catalogo.py", "layer": 6, "in": 2, "out": 6}, {"id": "lodout_public_site_raridade", "label": "raridade.py", "file": "lodout/public_site/raridade.py", "layer": 6, "in": 3, "out": 1}, {"id": "lodout_localization", "label": "localization.py", "file": "lodout/localization.py", "layer": 6, "in": 4, "out": 0}, {"id": "lodout_prices", "label": "prices.py", "file": "lodout/prices.py", "layer": 6, "in": 1, "out": 2}, {"id": "lodout_scan_store", "label": "scan_store.py", "file": "lodout/scan_store.py", "layer": 6, "in": 3, "out": 1}, {"id": "lodout_steam_api", "label": "steam_api.py", "file": "lodout/steam_api.py", "layer": 6, "in": 4, "out": 0}, {"id": "lodout_public_site_charts", "label": "charts.py", "file": "lodout/public_site/charts.py", "layer": 6, "in": 1, "out": 0}, {"id": "lodout_cases", "label": "cases.py", "file": "lodout/cases.py", "layer": 6, "in": 1, "out": 0}], "edges": [{"s": "lodout_public_site_account", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_prices", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_auth", "r": "references"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_profile_fetcher", "r": "calls"}, {"s": "lodout_public_site_profile_fetcher", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_db", "t": "lodout__paths", "r": "imports_from"}, {"s": "lodout_portfolio", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_trades", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_trades", "t": "lodout_portfolio", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_auth", "r": "references"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_auth", "r": "references"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_rate_limit", "r": "references"}, {"s": "lodout_public_site_catalogo", "t": "lodout_localization", "r": "calls"}, {"s": "lodout_prices", "t": "lodout__paths", "r": "calls"}, {"s": "lodout__paths", "t": "lodout__ambiente", "r": "imports_from"}, {"s": "lodout_scan_store", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_inventario", "t": "lodout__ambiente", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_account", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout__ambiente", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_portfolio", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_scan_store", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_inventario", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_steam_openid", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_history", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_portfolio", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_trocas", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_vendidos", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_user_watchlist", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_steam_api", "r": "calls"}, {"s": "lodout_public_site_account", "t": "lodout_public_site_recuperar_posicoes", "r": "calls"}, {"s": "lodout_public_site_inventario", "t": "lodout_steam_api", "r": "calls"}, {"s": "lodout_public_site_inventario", "t": "lodout_public_site_user_portfolio", "r": "calls"}, {"s": "lodout_public_site_inventario", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_user_store", "t": "lodout_public_site_db", "r": "calls"}, {"s": "lodout_public_site_user_portfolio", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_portfolio", "t": "lodout_cases", "r": "calls"}, {"s": "lodout_public_site_user_vendidos", "t": "lodout_trades", "r": "calls"}, {"s": "lodout_public_site_user_vendidos", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_user_trocas", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_user_trocas", "t": "lodout_public_site_user_vendidos", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_charts", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_user_history", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_user_vendidos", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_user_trocas", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_recuperar_posicoes", "r": "calls"}, {"s": "lodout_public_site_history_routes", "t": "lodout_public_site_user_portfolio", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_scan_store", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_fmt", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "lodout_public_site_trades_routes", "t": "lodout_public_site_user_trocas", "r": "calls"}, {"s": "lodout_public_site_recuperar_posicoes", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_recuperar_posicoes", "t": "lodout_public_site_user_portfolio", "r": "calls"}, {"s": "lodout_public_site_recuperar_posicoes", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_user_history", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_user_watchlist", "t": "lodout_public_site_user_store", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout__paths", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout_public_site_raridade", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout_steam_api", "r": "calls"}, {"s": "lodout_public_site_catalogo", "t": "lodout_scan_store", "r": "calls"}, {"s": "lodout_public_site_raridade", "t": "lodout_public_site_catalogo", "r": "calls"}, {"s": "lodout_prices", "t": "lodout_steam_api", "r": "calls"}]}</script>
+<script id="curation" type="application/json">{"lodout/public_site/account.py": {"what": "O blueprint da conta: login/logout (Steam OpenID), a página `/conta` (avaliação do portfólio + inventário + histórico resumido), e todas as ações de mutação — adicionar/remover/editar custo de posição, separar/juntar lotes, marcar anunciado/vendido, exportar CSV/JSON, excluir conta, e o quadro de recuperação de valores apagados.", "why": "É o hub de verdade: concentra toda a formatação de exibição (_formatar_linhas, _textos_totais) num só lugar, igual ao padrão de `server.py:_candidatos` — o template fica simples, a lógica de apresentação fica testável em Python.", "gotcha": "`usuario` NÃO é passado pro template de propósito: o context processor de `server.py` já busca `user_store.get_user(steamid)` pra toda página com sessão ativa — passar nos aqui dobraria a leitura SQLite sem mudar nenhum valor. O `RECUPERAR_ATE_TS` (2026-11-23) é uma data-limite hardcoded: depois dela, o quadro de recuperação de valores apagados some de propósito (backups só guardam 7 dias)."}, "lodout/public_site/auth.py": {"what": "`login_required` (redireciona pro login sem sessão) e CSRF (`csrf_token`/`csrf_valid`/`csrf_protect`) compartilhados por todas as rotas pessoais.", "why": "Sem CSRF, qualquer site externo montaria um formulário que muda dados da conta só por a pessoa estar logada — o ataque clássico.", "gotcha": "`csrf_valid` usa `secrets.compare_digest` (tempo constante) em vez de `==` — comparar caractere a caractere vazaria, pelo tempo de resposta, em que posição a tentativa divergiu (achado de auditoria, 2026-11-04). Também exige que um token EXISTA na sessão: sem isso, uma sessão que nunca visitou formulário nenhum (sem token gerado) e um form forjado que também omite o campo comparariam None==None e passariam — exatamente o cenário que o CSRF tenta impedir."}, "lodout/public_site/steam_openid.py": {"what": "Implementa o fluxo público \"Entrar com Steam\" via OpenID 2.0: monta a URL de redirecionamento (`login_redirect_url`) e verifica a volta (`verify_callback`) reenviando os mesmos parâmetros à Steam com `openid.mode=check_authentication` para confirmar que a assinatura é legítima.", "why": "Distingue de propósito do F10 (um recurso antigo revertido que automatizava uma sessão LOGADA com cookies pra ler dado privado — proibido pelo Steam Subscriber Agreement). Este fluxo nunca vê senha nem cookie: o navegador do visitante loga direto no domínio da Steam, e ela devolve só um SteamID64 verificado."}, "lodout/public_site/profile_fetcher.py": {"what": "Busca avatar e nome de um perfil público da Steam (endpoint XML legado, sem login), com cache de 24h em disco e download do avatar pra servir localmente.", "why": "O XML do perfil passou a devolver um host (`avatars.fastly.steamstatic.com`) fora da CSP (`img-src`), quebrando o avatar — servir local (`/conta/avatar.jpg`) resolve isso sem depender do host que a Steam decidir usar.", "gotcha": "Dois níveis de lock protegem o ciclo leitura-modificação-escrita do cache: `threading.Lock` (threads do mesmo processo) + `fcntl.flock` num arquivo dedicado (processos diferentes — o site roda `gunicorn --workers 2`). Achado real (2026-10-27): dois logins quase simultâneos faziam o mais lento sobrescrever o cache inteiro com uma cópia carregada ANTES do mais rápido salvar, apagando a entrada dele em silêncio."}, "lodout/public_site/inventario.py": {"what": "Sincroniza o inventário público da Steam com as posições da conta: `mesclar()` decide item por item — novo entra sem custo, existente atualiza quantidade/ícone preservando o valor pago, e o que sai do inventário (anunciado ou vendido) fica marcado `fora_desde` em vez de desaparecer.", "why": "Antes (até 15/11), sair do inventário apagava o item E o valor pago — e anunciar no Mercado também tira o item do inventário público até vender, então virou motivo de queixa real de usuário (16/11).", "gotcha": "`_acertar_lotes` trata TODOS os lotes do mesmo nome juntos: se a pessoa separou por valor pago e o inventário muda de quantidade, as unidades que saem primeiro são as sem valor pago, depois as mais antigas — as com valor pago nunca somem, viram um lote `fora_desde` novo."}, "lodout/public_site/user_store.py": {"what": "Acesso à conta e ao dado pessoal por usuário no SQLite: `upsert_user`/`get_user` (tabela `users`) e `load_user_json`/`save_user_json` (tabela `user_data`, uma linha por `kind` — \"portfolio\", \"vendidos\", \"trocas\", \"preferencias\" etc., todas reusando a mesma tabela).", "why": "Mesma forma de dado que `portfolio.json`/`trades.json` já usavam no app local — só troca ONDE mora (uma linha de `user_data` por conta, não um arquivo global); as funções puras de cálculo (`portfolio.evaluate_portfolio`) continuam as mesmas."}, "lodout/public_site/db.py": {"what": "Schema SQLite do site público (tabelas `users` e `user_data`) e `connect()` — abre uma conexão nova por chamada, garante o schema e o modo WAL uma vez por arquivo.", "why": "É a ÚNICA parte do site com banco de verdade (o resto é JSON global sem dono, como `scan_store.json`) — só o que PRECISA de dono (conta de alguém) está aqui.", "gotcha": "`synchronous=NORMAL` em vez de `FULL` é deliberado: com WAL o SO já garante consistência após um crash do PROCESSO; `FULL` só importaria para sobreviver a um crash do SO ou queda de energia, que este site não promete. `_chave_arquivo` compara `(caminho, st_dev, st_ino)` antes de reusar a inicialização cacheada — protege contra o SO reutilizar o mesmo inode se o arquivo for apagado e recriado."}, "lodout/public_site/user_portfolio.py": {"what": "CRUD das posições de uma conta: adicionar, remover, editar custo, marcar anunciado, tirar vendidas, e o par separar/juntar lotes (unidades do mesmo item com valores pagos diferentes).", "why": "`juntar()` recusa misturar lotes com e sem valor pago (\"misto\") de propósito — juntar inventaria um preço que ninguém informou. `has_cost_basis`/distância entre lotes dentro/fora do inventário é a mesma lógica que `inventario.py` usa para decidir o que mesclar."}, "lodout/portfolio.py": {"what": "A matemática fee-aware do portfólio: `net_proceeds`/`break_even_price` (a taxa de ~15% da Steam incide sobre o que o VENDEDOR recebe, não o que o comprador paga), `evaluate_portfolio` (agrega posições em linhas + totais), `classify_item`/`composition`/`containers` (como a carteira se divide).", "why": "\"Vale mais do que paguei\" não é lucro — só é lucro DEPOIS da taxa. `has_cost_basis` distingue origem (sync da Steam grava `cost: 0.0` porque ela não diz quanto você pagou — isso é \"desconhecido\", não \"custou zero\") exatamente para não reportar o inventário inteiro como lucro.", "gotcha": "Dois totais de custo existem de propósito: `cost_known` (tudo que a pessoa declarou, tenha cotação ou não — o \"Total investido\" da tela) vs. `cost` (só o que entrou no P&L). Misturar os dois daria uma porcentagem de lucro sobre um custo cujo retorno não foi medido."}, "lodout/public_site/user_vendidos.py": {"what": "Itens que a pessoa marcou \"Vendi\" na conta: guarda quanto pagou, por quanto vendeu e o lucro líquido da taxa, e o lote de origem (pra \"desfazer venda\" devolver exatamente como estava).", "why": "A Steam não mostra vendas publicamente (só com login ou chave de API, que o site nunca pede) — a venda é um fato que só a própria pessoa pode confirmar."}, "lodout/public_site/user_trocas.py": {"what": "\"Meus trades\" desde 17/11: troca DIRETA entre jogadores (o que deu, o que recebeu, valor de cada lado no dia) — sem taxa da Steam, porque não passa pelo Mercado. `migrar_trades_antigos` move os registros antigos de compra/venda (até 17/11) para `user_vendidos`.", "why": "Antes, \"Meus trades\" registrava compra e venda encerradas — o mesmo que \"Vendi\" já cobre. Pro usuário, troca é um conceito diferente (dois lados, sem dinheiro), e a migração idempotente evita duplicar o histórico de quem já tinha registros no formato antigo."}, "lodout/trades.py": {"what": "O registro de trade no formato antigo (compra→venda, usado pelo app local e pelos registros migrados): `build_trade`/`record_trade`, estatísticas agregadas (`trade_stats`, `monthly_pnl`).", "why": "`build_trade` existe separado de `record_trade` porque uma importação em massa da Steam gravaria centenas de trades de uma vez — passar cada um por `record_trade` faria um load+save do arquivo inteiro por trade."}, "lodout/public_site/history_routes.py": {"what": "Blueprint de `/conta/historico`: mostra a série de valor total ao longo do tempo (gravada em `account.py:conta()` a cada visita, com dedup) e a lista de itens vendidos, com \"desfazer venda\".", "why": "\"Desfazer venda\" só devolve o lote pra conta se a venda veio de \"Vendi\" na própria conta (`source == \"conta\"`); uma registrada à mão em \"Meus trades\" antigo só é apagada do histórico, sem lote pra devolver."}, "lodout/public_site/trades_routes.py": {"what": "Blueprint de `/conta/trades` (\"Meus trades\"): formulário de troca (itens que deu/recebeu, valor de cada um no dia) e a lista com saldo do dia da troca e saldo a preço de hoje.", "why": "Mostra os DOIS saldos (do dia da troca e a preço de hoje) porque respondem perguntas diferentes: \"a troca foi justa\" vs. \"quanto isso vale agora\"."}, "lodout/public_site/recuperar_posicoes.py": {"what": "Script de recuperação (`python -m lodout.public_site.recuperar_posicoes`) e função usada pela própria página da conta (`_quadro_recuperar`): procura nos backups diários (7 dias) itens com valor pago que a conta não tem mais hoje, e devolve.", "why": "Nasceu de um bug real (até 16/11): sincronizar o inventário apagava o valor pago de item que saía dele, e anunciar no Mercado também tira o item do inventário público até vender — \"sumiu\" não provava venda nenhuma.", "gotcha": "Itens vendidos, removidos de propósito ou dispensados no quadro (\"Não quero de volta\") entram na lista `preferencias -> recuperar_ignorar` e NUNCA voltam, nem rodando o script com `--aplicar` — sem isso, o quadro ofereceria de volta algo que a pessoa acabou de vender."}, "lodout/public_site/user_history.py": {"what": "Série histórica do valor total da conta (`record_if_changed`, com dedup — visitar `/conta` duas vezes seguidas sem nada mudar não dobra a série)."}, "lodout/public_site/user_watchlist.py": {"what": "Armazenamento da watchlist de preço por conta — usado por `account.py:exportar_dados` (exportação LGPD) e pelo motor de alertas (`alerts.py`, já mapeado no grafo de Nota/Score)."}, "lodout/public_site/fmt.py": {"what": "Formatação de exibição compartilhada: `brl()` (reais), `pct()`, `ler_reais()` (aceita \"35,10\" e \"35.10\"), `data_hora_br()`/`dia_mes_br()`."}, "lodout/public_site/rate_limit.py": {"what": "Limitador de tentativas por IP nas rotas (login, mutações de conta) — janela deslizante em memória, sem dependência nova. Não tem nenhuma relação com o disjuntor de rate limit da Steam em `steam_api.py` (achado ao montar o grafo do worker: são dois mecanismos completamente diferentes, apesar do nome parecido)."}, "lodout/public_site/catalogo.py": {"what": "Fonte de preço de fallback pra itens sem coleta (`precos`, `exterior_do_item`) — usado por `account.py:_preco_do_dia` quando o item não tem nota."}, "lodout/public_site/raridade.py": {"what": "Cor/sufixo de raridade de exibição e `completar_com_catalogo` (preenche ícone/raridade de itens sem imagem) — usado na conta e em \"Meus trades\"."}, "lodout/localization.py": {"what": "Traduz `market_hash_name` pra português — usado em toda exibição de nome de item na conta."}, "lodout/prices.py": {"what": "Cache de preço com TTL e backoff, usado por `account.py:_preco_do_dia` como primeira fonte (antes do catálogo)."}, "lodout/_paths.py": {"what": "Escrita atômica e `DATA_DIR` — usado por praticamente todo arquivo deste grafo que persiste algo (cópias de recuperação, portfolio.json legado, trades.json legado)."}, "lodout/scan_store.py": {"what": "Último scan e formatação de idade (\"há 20 min\") — usado pela conta pra saber se um preço é fresco."}, "lodout/_ambiente.py": {"what": "Variável de ambiente com fallback de prefixo — usado por `inventario.diario_ligado()` e pelo catálogo."}, "lodout/steam_api.py": {"what": "`fetch_inventory` é o que `inventario.py` chama pra ler o inventário público; `em_cooldown` evita sincronizar durante um bloqueio da Steam."}, "lodout/public_site/charts.py": {"what": "Gera o SVG do gráfico de linha do histórico de valor da conta, usado em `/conta/historico`."}, "lodout/cases.py": {"what": "`is_container`/`case_status` usados por `portfolio.py` pra classificar e listar as caixas/cápsulas da carteira com o status de drop de cada uma."}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const CUR = JSON.parse(document.getElementById('curation').textContent);
+// Las capas vienen de meta (una por grupo del Paso 4). Cada {id, name, sub}.
+// El color se asigna por indice desde la paleta, no fijo — asi sirve con cualquier
+// numero de capas. NADA especifico de un proyecto se hardcodea aqui (ver Paso 7b).
+const LAYER_PALETTE = ['--l0','--l1','--l2','--l3','--l4','--l5','--l6','--l7'];
+const LAYERS = ([{"id": 0, "name": "Infra compartilhada", "sub": "usado por quase tudo abaixo"}, {"id": 1, "name": "Login e perfil", "sub": "Steam OpenID, avatar, nome público"}, {"id": 2, "name": "Sincronização com a Steam", "sub": "inventário público -> posições"}, {"id": 3, "name": "Armazenamento e cálculo", "sub": "onde a posição mora e a matemática fee-aware"}, {"id": 4, "name": "Vendidos e trocas", "sub": "o que a pessoa já vendeu ou trocou"}, {"id": 5, "name": "Rotas", "sub": "/conta, /conta/historico, /conta/trades"}, {"id": 6, "name": "Vizinhos (fora do escopo)", "sub": "tocados pela conta, mas são outro subsistema"}]).map((l, i) => ({ ...l, c: LAYER_PALETTE[i % LAYER_PALETTE.length] }));
+const byId = Object.fromEntries(DATA.nodes.map(n=>[n.id,n]));
+const layerColor = id => `var(${(LAYERS.find(l=>l.id===id)||LAYERS[0]).c})`;
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Nombres genericos (index.js, styles.js...) no dicen a que se refieren: los prefijamos con la carpeta padre.
+const GENERIC = new Set(['index.js','index.ios.js','index.android.js','styles.js','package.json','actions.js','reducer.js']);
+const displayLabel = n => {
+  if(!GENERIC.has(n.label)) return n.label;
+  const parts = n.file.split('/');
+  const parent = parts.length>=2 ? parts[parts.length-2] : '';
+  return parent ? `${parent}/${n.label}` : n.label;
+};
+const nodeEls = {};
+const outMap = {}, inMap = {};
+DATA.edges.forEach(e=>{ (outMap[e.s]=outMap[e.s]||[]).push(e); (inMap[e.t]=inMap[e.t]||[]).push(e); });
+
+const lanesEl = document.getElementById('lanes');
+LAYERS.forEach(L=>{
+  const ns = DATA.nodes.filter(n=>n.layer===L.id).sort((a,b)=>b.out-a.out);
+  if(!ns.length) return;
+  const lane = document.createElement('div');
+  lane.className='lane'; lane.dataset.layer=L.id; lane.style.setProperty('--lc',`var(${L.c})`);
+  lane.innerHTML = `<div class="lane-h">${L.id} · ${L.name}</div><div class="lane-sub">${L.sub}</div>`;
+  const wrap = document.createElement('div'); wrap.className='nodes';
+  ns.forEach(n=>{
+    const el = document.createElement('div');
+    const isCur = !!(CUR[n.file] && CUR[n.file].what);
+    el.className='node'+(isCur?' curated':''); el.style.setProperty('--lc',`var(${L.c})`); el.dataset.id=n.id;
+    el.innerHTML=`<span class="dot" title="${isCur?'curado':'sin curar'}"></span><div class="lbl">${esc(displayLabel(n))}</div><div class="deg">in ${n.in} · out ${n.out}</div>`;
+    el.onclick=(ev)=>{ev.stopPropagation();select(n.id);};
+    wrap.appendChild(el); nodeEls[n.id]=el;
+  });
+  lane.appendChild(wrap); lanesEl.appendChild(lane);
+});
+
+const svg = document.getElementById('edges');
+const SVGNS='http://www.w3.org/2000/svg';
+function drawEdges(){
+  svg.innerHTML='';
+  const main = document.querySelector('main');
+  const ox = main.scrollLeft, oy = main.scrollTop;
+  const base = main.getBoundingClientRect();
+  const box = el => { const r=el.getBoundingClientRect(); return {x:r.left-base.left+ox+r.width/2, top:r.top-base.top+oy, bot:r.top-base.top+oy+r.height}; };
+  DATA.edges.forEach(e=>{
+    const a=nodeEls[e.s], b=nodeEls[e.t]; if(!a||!b) return;
+    const p1=box(a), p2=box(b);
+    let y1, y2;
+    if(p2.top >= p1.bot){ y1=p1.bot; y2=p2.top; }
+    else if(p1.top >= p2.bot){ y1=p1.top; y2=p2.bot; }
+    else { y1=p1.bot; y2=p2.bot; }
+    const dy=Math.abs(y2-y1);
+    const c=Math.min(Math.max(dy*0.4,24),110);
+    const cy1 = y1<=y2 ? y1+c : y1-c;
+    const cy2 = y2>=y1 ? y2-c : y2+c;
+    const path=document.createElementNS(SVGNS,'path');
+    path.setAttribute('d',`M ${p1.x} ${y1} C ${p1.x} ${cy1}, ${p2.x} ${cy2}, ${p2.x} ${y2}`);
+    path.dataset.s=e.s; path.dataset.t=e.t;
+    svg.appendChild(path);
+  });
+  if(curSel) paintPaths(curSel);
+}
+window.addEventListener('load',drawEdges);
+window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(drawEdges,150);});
+document.querySelector('main').addEventListener('scroll',()=>{clearTimeout(window._st);window._st=setTimeout(drawEdges,50);});
+
+let curSel=null;
+function paintPaths(id){
+  const hc=layerColor(byId[id].layer);
+  document.documentElement.style.setProperty('--hc',hc);
+  svg.querySelectorAll('path').forEach(p=>{
+    p.classList.remove('hi-out','hi-in','dim');
+    if(p.dataset.s===id) p.classList.add('hi-out');
+    else if(p.dataset.t===id) p.classList.add('hi-in');
+    else p.classList.add('dim');
+  });
+}
+// Ejemplos generados desde los datos (top-3 por out) — nunca hardcodeados.
+function emptyPanelHTML(){
+  const top = [...DATA.nodes].sort((a,b)=>b.out-a.out).slice(0,3)
+    .map(n=>`<b>${esc(displayLabel(n))}</b> (out ${n.out})`).join(', ');
+  const hint = top ? `<br><br>Comece pelos de maior <b>out</b>: ${top}.` : '';
+  return `<div class="p-empty">Selecione um nó para ver seu papel e destacar suas conexões.${hint}</div>`;
+}
+function clearSel(){
+  curSel=null;
+  Object.values(nodeEls).forEach(el=>el.classList.remove('sel','neigh-out','neigh-in','faded'));
+  svg.querySelectorAll('path').forEach(p=>p.classList.remove('hi-out','hi-in','dim'));
+  document.getElementById('panel').innerHTML=emptyPanelHTML();
+}
+document.querySelector('main').addEventListener('click',clearSel);
+
+function select(id){
+  curSel=id;
+  const n=byId[id], hc=layerColor(n.layer);
+  const outs=outMap[id]||[], ins=inMap[id]||[];
+  const neighOut=new Set(outs.map(e=>e.t)), neighIn=new Set(ins.map(e=>e.s));
+  Object.entries(nodeEls).forEach(([nid,el])=>{
+    el.classList.remove('sel','neigh-out','neigh-in','faded');
+    el.style.setProperty('--hc',hc);
+    if(nid===id) el.classList.add('sel');
+    else if(neighOut.has(nid)) el.classList.add('neigh-out');
+    else if(neighIn.has(nid)) el.classList.add('neigh-in');
+    else el.classList.add('faded');
+  });
+  paintPaths(id);
+  renderPanel(n,outs,ins);
+}
+
+function renderPanel(n,outs,ins){
+  const cur=CUR[n.file]||{};
+  const L=LAYERS.find(l=>l.id===n.layer)||LAYERS[0];
+  let h=`<span class="clr" onclick="clearSel()">✕ limpar</span><span class="badge" style="--lc:var(${L.c})">${L.id} · ${L.name}</span>`;
+  h+=`<div class="p-file" style="margin-top:10px">${esc(n.file)}</div>`;
+  h+=`<div class="p-deg"><span><b>${n.in}</b> usam</span><span><b>${n.out}</b> usa</span></div>`;
+  if(cur.what){ h+=`<div class="p-lbl">O que faz</div><div class="p-val">${esc(cur.what)}</div>`; }
+  if(cur.why){ h+=`<div class="p-lbl">Por quê</div><div class="p-val">${esc(cur.why)}</div>`; }
+  if(cur.gotcha){ h+=`<div class="warn">${esc(cur.gotcha)}</div>`; }
+  if(!cur.what){ h+=`<div class="warn">Arquivo sem curadoria ainda — fora do escopo deste grafo.</div>`; }
+  if(outs.length){ h+=`<div class="p-lbl">Usa (${outs.length})</div>`+outs.map(e=>{const o=byId[e.t];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">→</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  if(ins.length){ h+=`<div class="p-lbl">É usado por (${ins.length})</div>`+ins.map(e=>{const o=byId[e.s];return o?`<div class="rel" onclick="select('${o.id}')"><span class="arrow">←</span> ${esc(displayLabel(o))}<span class="rt">${e.r}</span></div>`:'';}).join(''); }
+  document.getElementById('panel').innerHTML=h;
+}
+
+// ── Buscador ──────────────────────────────────────────────────
+const isCurated = n => !!(CUR[n.file] && CUR[n.file].what);
+const totalCurated = DATA.nodes.filter(isCurated).length;
+const searchEl = document.getElementById('search');
+const resultsEl = document.getElementById('results');
+const countEl = document.getElementById('searchcount');
+const onlyUncEl = document.getElementById('onlyuncurated');
+
+function updateCount(){
+  countEl.textContent = `${totalCurated}/${DATA.nodes.length} com curadoria`;
+}
+function jumpTo(id){
+  const el = nodeEls[id]; if(!el) return;
+  Object.values(nodeEls).forEach(e=>e.classList.remove('hit'));
+  el.classList.add('hit');
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  select(id);
+}
+function runSearch(){
+  const q = searchEl.value.trim().toLowerCase();
+  const onlyUnc = onlyUncEl.checked;
+  resultsEl.innerHTML='';
+  if(!q && !onlyUnc){ return; }
+  let matches = DATA.nodes.filter(n=>{
+    const hit = !q || n.label.toLowerCase().includes(q) || n.file.toLowerCase().includes(q);
+    const unc = !onlyUnc || !isCurated(n);
+    return hit && unc;
+  }).sort((a,b)=>b.out-a.out).slice(0,40);
+  matches.forEach(n=>{
+    const chip=document.createElement('div'); chip.className='rchip';
+    chip.innerHTML=`<span class="rlayer" style="background:${layerColor(n.layer)}"></span>${esc(displayLabel(n))}<span class="dot" style="position:static;width:6px;height:6px;background:${isCurated(n)?'#20c997':'#3a4152'}"></span><span class="rfile">${esc(n.file.replace(/^(core|components)\//,''))}</span>`;
+    chip.onclick=()=>jumpTo(n.id);
+    resultsEl.appendChild(chip);
+  });
+  if(!matches.length){ resultsEl.innerHTML='<div class="rfile" style="padding:4px">Sem resultados</div>'; }
+}
+searchEl.addEventListener('input', runSearch);
+onlyUncEl.addEventListener('change', runSearch);
+updateCount();
+
+// ── Filtros de capa y tipo de arista ──────────────────────────
+const activeLayers = new Set(LAYERS.map(l=>l.id));
+const REL_TYPES = [...new Set(DATA.edges.map(e=>e.r))];
+const activeRels = new Set(REL_TYPES);
+
+function buildFilterChips(){
+  const lc = document.getElementById('layerchips');
+  LAYERS.forEach(L=>{
+    if(!DATA.nodes.some(n=>n.layer===L.id)) return;
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc',`var(${L.c})`);
+    c.innerHTML=`<span class="fdot"></span>${L.id}·${L.name}`;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeLayers.add(L.id):activeLayers.delete(L.id); applyFilters(); };
+    lc.appendChild(c);
+  });
+  const rc = document.getElementById('relchips');
+  REL_TYPES.forEach(r=>{
+    const c=document.createElement('span'); c.className='fchip on'; c.style.setProperty('--fc','var(--l1)');
+    c.textContent=r;
+    c.onclick=()=>{ c.classList.toggle('on'); c.classList.contains('on')?activeRels.add(r):activeRels.delete(r); applyFilters(); };
+    rc.appendChild(c);
+  });
+}
+function applyFilters(){
+  // nodos: ocultar los de capas apagadas
+  Object.entries(nodeEls).forEach(([id,el])=>{
+    el.classList.toggle('hidden', !activeLayers.has(byId[id].layer));
+  });
+  // carriles: ocultar el carril entero si su capa esta apagada
+  document.querySelectorAll('.lane').forEach(lane=>{
+    const lid = Number(lane.dataset.layer);
+    lane.classList.toggle('hidden', !activeLayers.has(lid));
+  });
+  // aristas: ocultar las de tipo apagado o que tocan un nodo oculto
+  svg.querySelectorAll('path').forEach(p=>{
+    const e = DATA.edges.find(x=>x.s===p.dataset.s && x.t===p.dataset.t);
+    const relOff = e && !activeRels.has(e.r);
+    const nodeOff = !activeLayers.has(byId[p.dataset.s]?.layer) || !activeLayers.has(byId[p.dataset.t]?.layer);
+    p.style.display = (relOff || nodeOff) ? 'none' : '';
+  });
+  drawEdges();
+}
+document.getElementById('resetfilters').onclick=()=>{
+  LAYERS.forEach(l=>activeLayers.add(l.id)); REL_TYPES.forEach(r=>activeRels.add(r));
+  document.querySelectorAll('#layerchips .fchip, #relchips .fchip').forEach(c=>c.classList.add('on'));
+  applyFilters();
+};
+buildFilterChips();
+// Panel inicial con los ejemplos top-3 generados desde los datos.
+document.getElementById('panel').innerHTML = emptyPanelHTML();
+</script>
+</body>
+</html>
