@@ -9685,7 +9685,6 @@ h3,
   width: 100%;
   height: 5px;
   margin-top: auto;
-  padding-top: 6px;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.08);
   border: none;
@@ -9888,7 +9887,7 @@ h3,
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
@@ -9897,9 +9896,10 @@ h3,
 }
 
 .conta-busca {
-  flex: 0 1 210px;
+  order: 1;
+  flex: 0 1 240px;
   margin: 0;
-  min-width: 150px;
+  min-width: 160px;
   position: relative;
 }
 
@@ -9925,10 +9925,14 @@ h3,
 }
 
 .conta-filtros {
+  order: 4;
+  width: 100%;
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .conta-filtro {
@@ -9997,6 +10001,7 @@ h3,
 }
 
 .conta-ordem {
+  order: 2;
   margin-left: auto;
   display: inline-flex;
   align-items: center;
@@ -10029,6 +10034,11 @@ h3,
 .conta-ordem select option {
   background: #1e1e1e;
   color: #f1f5f9;
+}
+
+.conta-ferramentas > .como-ler {
+  order: 3;
+  margin: 0;
 }
 
 .conta-ferramentas > .como-ler summary {
