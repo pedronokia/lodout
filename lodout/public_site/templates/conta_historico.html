@@ -56,7 +56,7 @@
           <td data-label="">
             {% if v.da_conta %}<form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-confirmar="Desfazer a venda de {{ v.nome }}? Ela sai do histórico e o item volta para o seu inventário, com o valor pago.">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="botao-link" aria-label="Desfazer a venda de {{ v.nome }}">desfazer venda</button>
+              <button type="submit" class="botao-link botao-desfazer-venda" aria-label="Desfazer a venda de {{ v.nome }}">desfazer venda</button>
             </form>{% else %}<form method="post" action="{{ url_for('history.desfazer_venda', index=v.index) }}" class="form-inline form-remover" data-nome="a venda de {{ v.nome }}" data-dialogo-titulo="Apagar" data-dialogo-texto="A venda sai do seu histórico. Não dá para desfazer." data-dialogo-botao="Apagar" data-confirmar="Apagar a venda de {{ v.nome }} do histórico?">
               <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
               <button type="submit" class="botao-link botao-remover" aria-label="Apagar a venda de {{ v.nome }}">apagar</button>
