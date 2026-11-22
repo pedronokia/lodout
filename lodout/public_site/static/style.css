@@ -12398,3 +12398,16 @@ button.confira { min-height: 24px; padding-block: 3px; }
 /* Conta: o valor da mudança ("+R$ 478,83") não se parte em duas linhas
    dentro da pílula verde no celular. */
 .card-mudanca > span:first-child { white-space: nowrap; }
+
+/* Selo "Análise independente · Não somos loja..." no celular: com altura
+   fixa de 24px, a frase quebrava e "skins" ficava espremido fora da
+   pílula. Altura livre, cantos menores e entrelinha normal. */
+@media (max-width: 640px) {
+  .home-tese-selo {
+    height: auto;
+    min-height: 24px;
+    padding: 5px 11px 5px 9px;
+    border-radius: var(--radius-sm);
+    line-height: 1.35;
+  }
+}
