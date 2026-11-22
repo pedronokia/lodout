@@ -12541,3 +12541,32 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   .resumo-cards.resumo-cards-conta .card-mudanca > span:first-child { display: inline-block; margin: 0 0 4px; }
   .resumo-cards.resumo-cards-conta .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
+
+/* Ferramentas da conta no celular (polimento 22/11; aparecem com 8+
+   itens): busca na largura toda; "Ordenar" e "Como ler" na mesma linha;
+   os filtros numa linha só que desliza para o lado (eram três linhas). */
+@media (max-width: 640px) {
+  .conta-ferramentas { gap: 10px; }
+  .conta-ferramentas .conta-busca { flex: 1 1 100%; min-width: 0; }
+  .conta-ferramentas .conta-ordem { margin-left: 0; flex: 1 1 0; min-width: 0; }
+  .conta-ferramentas .conta-ordem select { flex: 1 1 auto; min-width: 0; }
+  .conta-ferramentas > .como-ler { flex: none; }
+  .conta-ferramentas .conta-filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 10px 16px 2px;
+    width: calc(100% + 32px);
+  }
+  .conta-ferramentas .conta-filtros::-webkit-scrollbar { display: none; }
+  .conta-ferramentas .conta-filtro { flex: none; }
+}
+@media (max-width: 640px) {
+  /* "Ordenar" some da vista (o leitor de tela continua lendo): o menu já
+     diz "Mais valioso", "Maior lucro"... e precisa da largura. */
+  .conta-ferramentas .conta-ordem-rotulo {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+}
