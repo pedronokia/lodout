@@ -5590,8 +5590,8 @@ a.paginacao-passo:active {
 
 }
 
-/* Sem valor pago: borda tracejada, sem gritar em todas as linhas. */
-.linha-sem-custo .input-custo { border-style: dashed; background: transparent; }
+/* Sem valor pago: borda sutil sólida, sem gritar em todas as linhas. */
+.linha-sem-custo .input-custo { border-style: solid; background: rgba(255, 255, 255, 0.03); }
 
 @media (min-width: 641px) {
   .tabela-conta .col-num,
@@ -6010,6 +6010,10 @@ button.venda-por-falta:focus-visible { outline: 2px solid var(--focus); outline-
   background: transparent;
   color: inherit;
   font: inherit;
+  text-transform: uppercase;
+  letter-spacing: inherit;
+  font-size: inherit;
+  font-weight: inherit;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -6103,8 +6107,35 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 }
 
 /* ── Conta e item: mudança, lotes, "Na sua conta" (2026-11-15) ────── */
-.card-mudanca .valor-positivo,
-.card-mudanca .valor-negativo { font-weight: 600; }
+.card-mudanca {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+}
+.card-mudanca .valor-positivo {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--positive) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+  color: var(--positive);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+.card-mudanca .valor-negativo {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
 /* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
 /* Lotes do mesmo item: a linha entre eles é tracejada (continuação do
    mesmo item), em vez de uma faixa colorida na lateral. */
@@ -9680,7 +9711,7 @@ h3,
 .resumo-cards-conta .card-progresso {
   width: 100%;
   height: 5px;
-  margin-top: 10px;
+  margin-top: auto;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.08);
   border: none;
@@ -9715,7 +9746,7 @@ h3,
   gap: 5px;
   height: 30px;
   padding: 0 14px;
-  margin-top: 10px;
+  margin-top: auto;
   border-radius: 9999px;
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.22) 0%, rgba(249, 115, 22, 0.12) 100%);
   border: 1px solid rgba(249, 115, 22, 0.45);
@@ -9824,7 +9855,7 @@ h3,
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px 14px;
+  gap: 12px 18px;
   padding: 12px 18px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -9835,8 +9866,21 @@ h3,
   margin: 0 0 var(--sp-4);
 }
 
+.status-inventario-texto {
+  flex: 1 1 320px;
+}
+
+.status-inventario-acoes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
 .status-inventario .botao-atualizar-inventario,
-.status-inventario .acao-texto {
+.status-inventario .acao-texto,
+.status-inventario a.acao-texto {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -9854,11 +9898,14 @@ h3,
   white-space: nowrap;
 }
 
+.status-inventario a.acao-texto:hover,
+.status-inventario a.acao-texto:focus-visible,
 .status-inventario .botao-atualizar-inventario:hover,
 .status-inventario .acao-texto:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+  text-decoration: none;
 }
 
 /* 6. Barra de Ferramentas da Lista (/conta) */
@@ -9866,8 +9913,8 @@ h3,
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 10px 14px;
+  padding: 12px 16px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
@@ -9876,16 +9923,17 @@ h3,
 }
 
 .conta-busca {
-  flex: 0 1 220px;
+  order: 1;
+  flex: 0 1 240px;
   margin: 0;
-  min-width: 170px;
+  min-width: 160px;
   position: relative;
 }
 
 .conta-busca input[type="search"] {
   width: 100%;
-  height: 34px;
-  min-height: 34px;
+  height: 32px;
+  min-height: 32px;
   padding: 0 12px 0 32px;
   background: rgba(255, 255, 255, 0.04) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.45)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat 10px center;
   background-size: 14px 14px;
@@ -9904,10 +9952,14 @@ h3,
 }
 
 .conta-filtros {
+  order: 4;
+  width: 100%;
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .conta-filtro {
@@ -9940,6 +9992,18 @@ h3,
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.conta-filtro.conta-filtro-vazio {
+  opacity: 0.45;
+  background: transparent;
+  border-style: dashed;
+}
+
+.conta-filtro.conta-filtro-vazio:hover {
+  opacity: 0.85;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.20);
 }
 
 .conta-filtro span[data-conta-contagem] {
@@ -9976,6 +10040,7 @@ h3,
 }
 
 .conta-ordem {
+  order: 2;
   margin-left: auto;
   display: inline-flex;
   align-items: center;
@@ -10008,6 +10073,11 @@ h3,
 .conta-ordem select option {
   background: #1e1e1e;
   color: #f1f5f9;
+}
+
+.conta-ferramentas > .como-ler {
+  order: 3;
+  margin: 0;
 }
 
 .conta-ferramentas > .como-ler summary {
@@ -10061,6 +10131,33 @@ table.tabela-comparar th {
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.60);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.tabela-conta th .th-sub {
+  display: block;
+  font-size: 0.60rem;
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  color: rgba(255, 255, 255, 0.40);
+  margin-top: 1px;
+}
+
+.tabela-conta .ordenar-coluna {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: var(--radius-pill);
+  transition: all 0.15s ease;
+  color: inherit;
+}
+
+.tabela-conta .ordenar-coluna:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
 }
 
 table.tabela-conta tbody td,
@@ -10091,6 +10188,8 @@ table.tabela-comparar tbody tr:hover {
 }
 
 .icone-item-quadro.icone-item-quadro-compacto {
+  position: relative;
+  overflow: hidden;
   width: 42px;
   height: 42px;
   min-width: 42px;
@@ -10102,6 +10201,22 @@ table.tabela-comparar tbody tr:hover {
   align-items: center;
   justify-content: center;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.icone-item-quadro-compacto .icone-item-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.icone-item-quadro-compacto .icone-item-placeholder::before {
+  content: "◇";
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto {
@@ -10147,6 +10262,124 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   font-weight: 600;
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
+}
+
+.tabela-conta .celula-item-conta-extra .botao-remover {
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.tabela-conta .celula-item-conta-extra .botao-remover:hover,
+.tabela-conta .celula-item-conta-extra .botao-remover:focus-visible {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  text-decoration: none;
+}
+
+.tabela-conta .item-fora {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 4px 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tabela-conta .item-fora .form-anunciado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tabela-conta .item-fora .caixa-marcar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.tabela-conta .item-fora .item-fora-pergunta {
+  color: rgba(255, 255, 255, 0.50);
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tabela-conta .item-fora .vendi > summary {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.20) 0%, rgba(249, 115, 22, 0.10) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.38);
+  color: var(--accent-bright);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .item-fora .vendi > summary:hover {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.32) 0%, rgba(249, 115, 22, 0.18) 100%);
+  border-color: rgba(249, 115, 22, 0.60);
+  text-decoration: none;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.tabela-conta .item-fora .botao-mudar-anuncio {
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .item-fora .botao-mudar-anuncio:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+  text-decoration: none;
+}
+
+.tabela-conta .item-fora .botao-fora-remover {
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.40);
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.tabela-conta .item-fora .botao-fora-remover:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  text-decoration: none;
 }
 
 /* Campo de Custo Inline Integrado */
@@ -10205,17 +10438,69 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-conta .linha-sem-custo .input-custo {
-  border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.02);
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabela-conta .linha-sem-custo .input-custo:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Preços de Venda por Alvo / Breakeven */
-.tabela-conta .venda-por-bloco {
-  display: grid;
+.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+  display: inline-grid;
   grid-template-columns: auto auto;
   gap: 4px 12px;
   align-items: center;
+}
+
+.tabela-conta .linha-sem-custo .venda-por-bloco {
+  display: none !important;
+}
+
+.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-falta {
+  display: none !important;
+}
+
+.tabela-conta .venda-por-falta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabela-conta .venda-por-falta::after {
+  content: " →";
+  font-size: 0.75em;
+  opacity: 0.50;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.tabela-conta .venda-por-falta:hover,
+.tabela-conta .venda-por-falta:focus-visible {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent-bright);
+  text-decoration: none;
+}
+
+.tabela-conta .venda-por-falta:hover::after,
+.tabela-conta .venda-por-falta:focus-visible::after {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .tabela-conta .copiar-preco {
@@ -10339,17 +10624,17 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 /* 8. Links do Fim da Página e Zona de Exclusão */
 .adicionar-manual {
-  margin: var(--sp-5) 0 var(--sp-4);
+  margin: var(--sp-4) 0 var(--sp-4);
 }
 
 .adicionar-manual > summary {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 9999px;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -10357,10 +10642,31 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   transition: all 0.18s ease;
 }
 
+.adicionar-manual > summary::before {
+  content: "+";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: all 0.18s ease;
+}
+
 .adicionar-manual > summary:hover {
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(249, 115, 22, 0.35);
   color: #ffffff;
+}
+
+.adicionar-manual > summary:hover::before {
+  background: rgba(249, 115, 22, 0.25);
+  color: var(--accent-bright);
 }
 
 .adicionar-manual .form-adicionar {
@@ -10727,6 +11033,39 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .home-tese {
   margin: 0 0 var(--sp-5);
+}
+
+.home-tese-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 11px 0 9px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  width: fit-content;
+  line-height: 1;
+}
+.home-tese-selo[hidden] { display: none; }
+
+.home-tese-selo::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
+  flex-shrink: 0;
 }
 
 .home-tese-titulo {
@@ -12055,3 +12394,7 @@ button.confira { min-height: 24px; padding-block: 3px; }
   .link-excluir-conta .conta-baixar-sep { display: none; }
   .link-excluir-conta .conta-baixar a { margin-right: 6px; }
 }
+
+/* Conta: o valor da mudança ("+R$ 478,83") não se parte em duas linhas
+   dentro da pílula verde no celular. */
+.card-mudanca > span:first-child { white-space: nowrap; }

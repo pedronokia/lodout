@@ -303,10 +303,11 @@
        saber o que é o Lodout (revisão 17/11). Agora é a tese em uma
        linha, com o link para o Método. #}
     <header class="home-tese">
+      <div class="home-tese-selo">Análise independente · Não somos loja nem vendemos skins</div>
       <h1 class="home-tese-titulo">Entenda o mercado de skins de Counter-Strike 2</h1>
       {% set ns_risco = namespace(tem=false) %}
       {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
-      <p class="home-tese-texto">Notas, preços e encomendas com dados públicos da Steam, e o motivo de cada nota. A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      <p class="home-tese-texto">O Lodout é uma plataforma independente de análise: <strong>não vendemos, compramos nem intermediamos skins</strong>. Reunimos notas de mercado, preços e encomendas com dados públicos da Steam, e o motivo de cada nota para você entender o mercado antes de negociar. A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}

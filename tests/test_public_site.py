@@ -271,6 +271,7 @@ def test_index_movimentos_do_dia_removido_da_home(
         ]})
     body = client.get("/").data.decode("utf-8")
     assert 'class="movimentos-do-dia"' not in body
+    assert "Maiores mudanças de nota hoje" not in body
 
 
 def test_index_resumo_do_dia_some_com_filtro_ativo(client, monkeypatch, tmp_path):
@@ -5463,6 +5464,26 @@ def test_senha_admin_por_variavel_vira_hash(monkeypatch):
     # Hash pronto tem prioridade sobre a senha.
     monkeypatch.setenv("LODOUT_ADMIN_PASSWORD_HASH", "pbkdf2:sha256:1$x$y")
     assert server._hash_senha_admin() == "pbkdf2:sha256:1$x$y"
+
+
+def test_secret_key_gravada_com_permissao_restrita(tmp_path, monkeypatch):
+    """Achado de auditoria 2026-11-22: a chave de sessão não pode ficar
+    legível por qualquer usuário local -- quem a lesse forjaria cookie
+    de sessão de qualquer pessoa."""
+    import sys
+    caminho = tmp_path / "secret.key"
+    monkeypatch.setattr(server, "_SECRET_KEY_PATH", caminho)
+    chave = server._load_or_create_secret_key()
+    assert chave and len(chave) == 32
+    if sys.platform != "win32":
+        assert oct(caminho.stat().st_mode)[-3:] == "600"
+    # Instalação já existente (antes desta mudança): a chave muda de dono
+    # do umask padrão pra 0600 na próxima subida, sem invalidar sessões.
+    caminho.chmod(0o644)
+    chave2 = server._load_or_create_secret_key()
+    assert chave2 == chave
+    if sys.platform != "win32":
+        assert oct(caminho.stat().st_mode)[-3:] == "600"
 
 
 def test_deploy_repassa_senha_do_admin_sem_aspas_manuais():

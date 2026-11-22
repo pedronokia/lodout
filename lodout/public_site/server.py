@@ -208,12 +208,25 @@ def _load_or_create_secret_key() -> bytes:
     em toda instalação. Gerada com `secrets.token_bytes` (criptográfico),
     gravada com `atomic_write_bytes` (mesma disciplina de escrita atômica
     de sempre).
-    """
+
+    0o600 (achado de auditoria, 2026-11-22): `atomic_write_bytes` não
+    restringe permissão -- sem isto, o arquivo ficava no umask padrão
+    (normalmente legível por qualquer usuário local), e quem o lesse
+    poderia forjar cookie de sessão de qualquer pessoa. `chmod` roda
+    nos dois caminhos (recém-criado e já existente) pra corrigir
+    sozinho uma instalação de antes desta mudança; falha de permissão
+    (ex. sistema de arquivos que não suporta, Windows) não derruba o
+    site -- a chave continua funcionando, só sem esse reforço."""
     if _SECRET_KEY_PATH.exists():
-        return _SECRET_KEY_PATH.read_bytes()
-    key = secrets.token_bytes(32)
-    atomic_write_bytes(_SECRET_KEY_PATH, key)
-    return key
+        chave = _SECRET_KEY_PATH.read_bytes()
+    else:
+        chave = secrets.token_bytes(32)
+        atomic_write_bytes(_SECRET_KEY_PATH, chave)
+    try:
+        os.chmod(_SECRET_KEY_PATH, 0o600)
+    except OSError:
+        pass
+    return chave
 
 
 def _admin_required(view):
