@@ -12515,3 +12515,29 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
     color: var(--accent-bright);
   }
 }
+
+/* Conta no celular (polimento 22/11): os quatro quadros do resumo
+   (Vale hoje, Você pagou, Lucro hoje, Sem valor pago) ficavam um embaixo
+   do outro, ~600px antes do inventário. Agora 2 x 2, mais baixos, com o
+   valor um pouco menor para caber em meia tela. */
+@media (max-width: 640px) {
+  .resumo-cards.resumo-cards-conta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .resumo-cards.resumo-cards-conta .card {
+    min-height: 0;
+    padding: 14px 14px 16px;
+  }
+  .resumo-cards.resumo-cards-conta .card-valor { font-size: 1.375rem; }
+  .resumo-cards.resumo-cards-conta .card-sub { font-size: 0.75rem; }
+  .resumo-cards-conta .botao-preencher { height: 32px; padding: 0 12px; font-size: 0.75rem; }
+}
+@media (max-width: 640px) {
+  /* Em meia tela, a pílula "+R$" fica em cima e a frase embaixo, em vez
+     de uma coluna estreita ao lado. Com 3 quadros, o último ocupa a
+     largura toda (sem buraco no 2 x 2). */
+  .resumo-cards.resumo-cards-conta .card-mudanca { display: block; }
+  .resumo-cards.resumo-cards-conta .card-mudanca > span:first-child { display: inline-block; margin: 0 0 4px; }
+  .resumo-cards.resumo-cards-conta .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
