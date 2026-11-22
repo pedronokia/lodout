@@ -10848,6 +10848,10 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   color: rgba(255, 255, 255, 0.55);
 }
 
+.link-excluir-conta .conta-baixar-sep {
+  display: none;
+}
+
 .link-excluir-conta .conta-baixar a {
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
