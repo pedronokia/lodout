@@ -11,17 +11,27 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
-        "data": "2026-11-21",
-        "titulo": "Novo patamar visual: vitrine cristalina, tipografia polida e paginação Apple",
+        "data": "2026-11-22",
+        "titulo": "Acabamento no celular e na conta",
         "itens": [
-            "Vitrine cristalina: fotos das skins 100% nítidas, sem filtros embaçados ou halos artificiais de cor. As skins agora aparecem com fidelidade total sobre o fundo escuro sólido.",
-            "Rodapé dos cartões limpo: os nomes das caixas e coleções agora são apresentados de forma concisa e direta (como “Croma 2 · 2015”, “Boreal”, “Sonhos e Pesadelos”), sem reticências ou quebras deselegantes.",
-            "Link direto para a Steam simplificado para “Steam →”, liberando espaço no rodapé de cada cartão para os textos respirarem.",
-            "Paginação em cápsula estilo Apple: controles no rodapé da vitrine redesenhados em uma barra compacta e elegante com efeito de vidro fosco translúcido, mantendo todos os números e passos alinhados.",
-            "Selo “Destaque do dia” refinado em caixa mista com micro-indicador luminoso elegante, no lugar de caixas altas chamativas.",
-            "Remoção de elementos que causavam desalinhamento nos cartões (como o bloco avulso de encomenda em cards individuais), deixando a grade 100% simétrica.",
-            "Páginas de Ranking e Status limpas e minimalistas: remoção de avisos redundantes, caixas de diagnóstico desnecessárias e tabelas cortadas.",
-            "Eliminação definitiva de artefatos visuais no layout (como barras que cruzavam a tela) e estabilização de todos os testes funcionais.",
+            "Cartões da página inicial no celular: a estrela de favoritar fica sempre ao lado do preço; antes ela descia de linha quando o preço vinha com a variação do dia.",
+            "Página do item: os títulos do resumo (Nota, Preço, Caixa, Risco) ficam na mesma altura, o nome da caixa aparece inteiro, e a idade do preço aparece uma vez só, embaixo dele.",
+            "Favoritos e “Adicionar um item à mão” no celular: os campos ocupam a largura toda (antes ficavam empurrados para a direita, com um vão grande embaixo do primeiro).",
+            "O botão “+ Adicionar” da conta ficou igual aos outros botões principais do site, e a linha que divide cada item da conta no celular não tem mais um vão no meio.",
+            "Privacidade e “Excluir conta” agora falam em “favoritos”, o novo nome da antiga watchlist.",
+        ],
+    },
+    {
+        "data": "2026-11-21",
+        "titulo": "Vitrine mais limpa e conta reorganizada",
+        "itens": [
+            "Fotos das skins sem filtro nem brilho colorido em volta: aparecem como na Steam, sobre o fundo escuro.",
+            "Rodapé dos cartões mais curto: o nome da caixa ou coleção aparece resumido (como “Croma 2 · 2015”) e o link para a Steam virou só “Steam →”.",
+            "Cartões da página inicial todos com a mesma altura: o quadro de encomenda, que aparecia só em alguns, saiu do cartão. O valor sugerido continua na página do item e no Ranking.",
+            "Paginação da página inicial numa barra compacta, com os números e “Anterior” e “Próxima” alinhados. O selo “Destaque do dia” ficou menor, com um ponto laranja.",
+            "Busca e filtros juntos no topo do site, em todas as páginas.",
+            "Ranking e Status mais limpos: saíram avisos repetidos e quadros de diagnóstico. Corrigida uma linha colorida que atravessava os cartões.",
+            "Minha conta: as abas agora são Inventário, Favoritos e Histórico, e o Histórico mostra só as vendas que você confirmou.",
         ],
     },
     {
@@ -34,7 +44,6 @@ ENTRADAS = [
             "Itens que ainda não têm nota ganharam o mesmo simulador e o mesmo topo. Os botões de copiar dessa página voltaram a funcionar.",
             "O simulador agora diz “Na frente da fila” quando a oferta é a sugerida (R$ 0,01 acima da maior encomenda); antes aparecia “Empatado no topo”.",
             "Site mais leve: saiu o estilo e o script das partes retiradas e das regras que nunca valiam. O arquivo de estilo ficou cerca de 16% menor.",
-            "Cartões, quadros e painéis voltaram ao cinza sólido do Lodout, sem o efeito de vidro translúcido. Na página inicial, os cartões ficam sem borda e ganham sombra e fio laranja com o mouse em cima, e a categoria escolhida fica em laranja.",
         ],
     },
     {

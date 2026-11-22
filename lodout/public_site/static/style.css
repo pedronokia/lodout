@@ -10408,11 +10408,12 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .adicionar-manual .botao-acao {
-  height: 38px;
-  min-height: 38px;
-  padding: 0 18px;
-  border-radius: 8px;
-  background: var(--accent);
+  /* Mesmo botão principal do site: pílula no laranja de ação. */
+  height: 40px;
+  min-height: 40px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-acao);
   color: #ffffff;
   font-weight: 600;
   font-size: 0.8125rem;
@@ -10422,7 +10423,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .adicionar-manual .botao-acao:hover {
-  background: var(--accent-bright, #ea580c);
+  background: rgba(184, 72, 10, 0.7);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
@@ -11943,4 +11944,43 @@ button.confira { min-height: 24px; padding-block: 3px; }
     border-left: 1px solid var(--border);
     padding-left: var(--sp-4);
   }
+}
+
+/* ── Polimento 22/11 ─────────────────────────────────────────────── */
+
+/* Resumo do item: rótulos (NOTA, PREÇO, CAIXA…) na mesma altura em todos
+   os quadros, e a caixa com o nome inteiro em cima e "N itens desta caixa"
+   embaixo, em vez de uma coluna espremida ao lado. */
+.resumo-cards.resumo-cards-item > .card { justify-content: flex-start; }
+.resumo-cards-item .card-caixa .card-valor-texto {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  /* Vitrine no celular: preço com variação ("R$ 7,60 ↓ 5,1%") não empurra
+     mais a estrela para a linha de baixo; a variação quebra dentro do
+     preço e a estrela fica sempre à direita, igual em todos os cartões. */
+  .cartao-item-rodape { flex-wrap: nowrap; }
+  .cartao-item-rodape .cartao-item-preco { flex: 1 1 auto; }
+  .cartao-item-rodape .botao-favorito { flex: none; }
+}
+
+@media (max-width: 640px) {
+  /* Conta no celular: a linha que separa "Você pagou / Vale hoje" de
+     "Lucro hoje / Venda por" tinha um vão no meio (o espaço entre as
+     colunas). Sem o vão, a linha fica inteira; o respiro vem do padding. */
+  table.tabela-conta tbody tr.linha-posicao { column-gap: 0; }
+}
+
+@media (max-width: 640px) {
+  /* Formulários "Adicionar aos favoritos" e "Adicionar um item à mão" no
+     celular: os campos ficam em coluna, então "alinhar no fim" empurrava
+     cada campo para a direita e esticava o primeiro (~260px de vão). */
+  .card-adicionar-watchlist .form-adicionar,
+  .adicionar-manual .form-adicionar { align-items: stretch; }
+  .card-adicionar-watchlist .form-adicionar > .campo-adicionar,
+  .adicionar-manual .form-adicionar > .campo-adicionar { flex: none; }
 }

@@ -100,7 +100,7 @@
 
     <section class="resumo-cards resumo-cards-item" aria-label="Resumo do item">
       <div class="card card-nota-destaque"><span class="card-label">Nota</span><span class="card-valor nota nota-grande nota-{{ item.score|nota_classe }}">{{ item.score|nota_anel|safe }}<span class="nota-numero">{{ item.score }}</span></span>{% if item.nota_margem %}<span class="nota-margem" title="A soma dos fatores passou do limite da nota: sem o corte, a nota seria {{ item.score + item.nota_margem }}.">{{ "%+d"|format(item.nota_margem) }}</span>{% endif %}{% if item.confianca_baixa %}<span class="selo-confianca-baixa" title="{{ item.confianca_baixa_titulo }}">{{ icone("dado-limitado") }}Dado limitado</span>{% endif %}</div>
-      <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span>{% if preco_coletado_txt %}<span class="card-sub">{{ preco_coletado_txt }}</span>{% endif %}</div>
+      <div class="card"><span class="card-label">Preço</span><span class="card-valor">{{ item.price_fmt }}</span>{% if preco_coletado_txt %}<span class="card-sub">coletado {{ preco_coletado_txt }}</span>{% endif %}</div>
       <div class="card card-caixa"><span class="card-label">Caixa/Cápsula</span><span class="card-valor card-valor-texto">{{ item.case_label|rotulo_caixa(item.name) or "—" }}{% if itens_da_caixa %}<span class="card-sub" title="Skins desta caixa que o Lodout já acompanha (não é o total do jogo)">{{ itens_da_caixa }} {{ "item" if itens_da_caixa == 1 else "itens" }} desta caixa no Lodout</span>{% endif %}</span></div>
       <div class="card card-risco"><span class="card-label">Risco</span><span class="card-valor risco risco-{{ item.pump_risk|risco_nivel }}"><span class="gauge-barras gauge-risco gauge-risco-{{ item.pump_risk|risco_nivel }}" aria-hidden="true"><span class="gauge-seg"></span><span class="gauge-seg"></span><span class="gauge-seg"></span></span>{{ item.pump_risk|risco_label }}</span></div>
       {% if item.liquidity_depth and item.liquidity_depth.band %}
@@ -112,9 +112,9 @@
       {% if tempo_aposentadoria %}
       <div class="card"><span class="card-label">Aposentada há</span><span class="card-valor">{{ tempo_aposentadoria }}</span></div>
       {% endif %}
-      {% if preco_coletado_txt %}
-      <p class="card-coleta">Preço coletado {{ preco_coletado_txt }}.{% if item.mantido_do_ciclo_anterior %} Sem preço novo na última coleta; valores anteriores.{% endif %}</p>
-      {% elif item.mantido_do_ciclo_anterior %}
+      {# A idade do preço já aparece embaixo do preço ("há 4 h"); esta linha
+         só aparece quando o preço não foi atualizado na última coleta. #}
+      {% if item.mantido_do_ciclo_anterior %}
       <p class="card-coleta">Sem preço novo na última coleta; valores anteriores.</p>
       {% endif %}
     </section>

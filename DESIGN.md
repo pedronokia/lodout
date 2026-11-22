@@ -218,7 +218,7 @@ No celular (até 640px), tabelas viram cartões: o nome e a figurinha da nota em
 
 ## Elevation & Depth
 
-O sistema é tonal: a profundidade vem de camadas de cinza sólido (moldura → caderno → folha → rebaixo) e de bordas finas, e o pódio do Ranking com fundo dourado/prata/bronze bem suave. Cartões, quadros e painéis usam `--surface` (#1e1e1e), nunca cinza translúcido (decisão do usuário, 21/11: o "vidro" de 19/11 saiu). Cartão da vitrine sem fio em repouso; no hover, elevação (`--shadow-lg`) e fio laranja 35%. Aba de categoria inativa é fantasma (transparente com fio `--border`); a ativa usa `--accent-acao`. O desfoque de fundo (backdrop-filter) fica só no que flutua por cima da página — topo, barra de baixo do celular, busca, dicas e avisos —, nunca em cartões ou selos repetidos (cada um é uma camada que o navegador recalcula ao rolar).
+O sistema é tonal com vidro: a profundidade vem de camadas de cinza (moldura → caderno → folha → rebaixo), bordas finas claras e um vidro escuro estilo Apple (cinza translúcido + desfoque leve) em cartões, abas, destaque do dia, FAQ, blocos do Ranking e cápsulas (decisão do usuário, 22/11, que substitui o "cinza sólido" de 21/11). O pódio do Ranking tem fundo dourado/prata/bronze bem suave. O vidro é escuro e discreto: o texto mantém contraste de pelo menos 4,5:1 e nada fica claro ou azulado.
 
 ### Shadow Vocabulary
 - **Sutil** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04)`): cartões do celular.
@@ -228,7 +228,7 @@ O sistema é tonal: a profundidade vem de camadas de cinza sólido (moldura → 
 ### Named Rules
 **The Border-Not-Shadow Rule.** Um quadro se separa do fundo pela borda e pelo tom, nunca por borda e sombra larga juntas.
 
-**The Glass Only Floats Rule.** Desfoque de fundo só no que flutua (topo, barra de baixo, busca, popovers, avisos). Em cartões e selos, fundo escuro quase sólido, que dá a mesma leitura sem custo ao rolar.
+**The Dark Glass Rule.** Vidro só escuro (cinza neutro translúcido, nunca azulado) e com desfoque leve. Em listas longas que rolam (linhas de tabela, itens repetidos às dezenas), prefira o fundo quase sólido: cada desfoque é uma camada que o celular recalcula ao rolar.
 
 ## Shapes
 
