@@ -64,21 +64,6 @@ def test_snapshot_cap(tmp_path):
     assert len(snaps) == ranking._SNAPSHOT_CAP
 
 
-def test_previous_snapshot_none_when_single(tmp_path):
-    p = tmp_path / "r.json"
-    ranking.save_snapshot([{"name": "A", "score": 50}], path=p)
-    assert ranking.previous_snapshot(path=p) is None
-
-
-def test_previous_snapshot(tmp_path):
-    p = tmp_path / "r.json"
-    ranking.save_snapshot([{"name": "Old", "score": 50}], path=p)
-    ranking.save_snapshot([{"name": "New", "score": 60}], path=p)
-    prev = ranking.previous_snapshot(path=p)
-    assert prev is not None
-    assert prev["items"][0]["name"] == "Old"
-
-
 def test_position_delta_no_previous():
     d = ranking.position_delta("A", 1, None)
     assert d["delta"] == 0

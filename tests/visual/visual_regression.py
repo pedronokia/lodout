@@ -266,8 +266,8 @@ def _semear(data_dir: Path) -> None:
     (data_dir / "item_history.json").write_text(
         json.dumps(historico, ensure_ascii=False), encoding="utf-8")
 
-    # 3 snapshots do ranking: -3 dias, -2 dias (vira previous_snapshot) e
-    # o atual. O resumo "o que mudou hoje" usa latest_before(ts - 20h) ->
+    # 3 snapshots do ranking: -3 dias, -2 dias e o atual. O resumo "o que
+    # mudou hoje" usa latest_before(ts - 20h) ->
     # cai no de -2 dias. Sem "USP-S | Neo-Noir" e "MP9 | Rose Iron" no
     # antigo: vira 2 "NOVO" no Top 20 e variados subiu/caiu.
     ordem_atual = sorted(((it["name"], it["score"]) for it in itens),

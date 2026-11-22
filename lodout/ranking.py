@@ -67,14 +67,6 @@ def load_snapshots(path: Path | str = _RANKINGS_PATH) -> list[dict]:
     return data if isinstance(data, list) else []
 
 
-def previous_snapshot(path: Path | str = _RANKINGS_PATH) -> dict | None:
-    """Retorna o penultimo snapshot (o ultimo e o atual recem-gravado)."""
-    snaps = load_snapshots(path)
-    if len(snaps) < 2:
-        return None
-    return snaps[-2]
-
-
 def latest_before(ts: float, path: Path | str = _RANKINGS_PATH) -> dict | None:
     """Retorna o snapshot mais recente anterior a ts (ex: snapshot de uma semana atras)."""
     snaps = load_snapshots(path)
