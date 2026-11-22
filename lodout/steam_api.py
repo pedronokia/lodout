@@ -24,7 +24,6 @@ especificamente sendo sinalizado (ver `_http_get`).
 from __future__ import annotations
 
 import concurrent.futures
-import html as _html
 import json
 import re
 import time
@@ -63,13 +62,6 @@ _ICON_IMAGE_RE = re.compile(
 # ban de conta -- a Valve nao usa ban por IP, so' por conta, e reservado
 # pra fraude/trapaca, nao trafego de leitura publica.
 RATE_LIMIT_DELAY_S = 4.0
-
-# Multiplicadores de RATE_LIMIT_DELAY_S pra retentativa automatica de
-# UM pedido que topou com 429 -- so' pra bloqueio passageiro (uso normal,
-# 1 usuario, 1 clique). Um bloqueio longo de verdade (muitas chamadas
-# seguidas na mesma sessao, como num teste) continua precisando de
-# retentativa manual depois -- isto nao e' um backoff infinito.
-RATE_LIMIT_RETRY_BACKOFF_MULT = (4, 8)
 
 # Disjuntor (circuit breaker): achado real de 2026-10-19 -- um bloqueio
 # que comecou isolado (gotcha #19, paginacao sem pausa) virou um
