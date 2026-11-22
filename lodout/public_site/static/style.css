@@ -5992,8 +5992,7 @@ button.venda-por-falta {
   font: inherit;
   font-size: var(--fs-xs);
   cursor: pointer;
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
 button.venda-por-falta:hover { color: var(--accent-bright); }
 button.venda-por-falta:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -9591,6 +9590,35 @@ h3,
   color: rgba(255, 255, 255, 0.55);
 }
 
+.cabecalho-conta-com-itens {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 16px 24px;
+  margin-bottom: var(--sp-4);
+  border-radius: 14px;
+}
+
+.cabecalho-conta-com-itens .titulo-pagina {
+  font-size: 1.45rem;
+  margin: 0;
+}
+
+.cabecalho-conta-com-itens .conta-identidade {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cabecalho-conta-com-itens .conta-identidade-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+}
+
 /* 2. Subnav da Conta em Cápsula Segmentada */
 .subnav-conta {
   display: inline-flex;
@@ -10054,15 +10082,20 @@ h3,
 .conta-ordem select {
   height: 32px;
   min-height: 32px;
-  padding: 0 24px 0 10px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0 28px 0 14px;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 8px;
+  border-radius: 9999px;
   color: #f1f5f9;
   font-size: 0.75rem;
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
+}
+
+.conta-ordem select:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.20);
 }
 
 .conta-ordem select:focus {
@@ -10806,6 +10839,10 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .link-excluir-conta .conta-baixar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   margin: 0;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.55);
@@ -10814,8 +10851,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .link-excluir-conta .conta-baixar a {
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.15s ease;
@@ -10823,6 +10860,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .link-excluir-conta .conta-baixar a:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
@@ -10832,18 +10870,19 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .link-excluir-conta .conta-excluir a {
-  color: rgba(255, 110, 112, 0.75);
+  color: var(--danger);
   text-decoration: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 110, 112, 0.25);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
   transition: all 0.15s ease;
 }
 
 .link-excluir-conta .conta-excluir a:hover {
-  color: #ff6e70;
-  background: rgba(255, 110, 112, 0.12);
-  border-color: rgba(255, 110, 112, 0.45);
+  color: #ffffff;
+  background: color-mix(in srgb, var(--danger) 22%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
 }
 
 /* 9. Tema Unificado para Watchlist, Trades, Histórico e Componentes Gerais */

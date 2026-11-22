@@ -388,8 +388,8 @@
     {# Baixar e excluir separados (revisão 2026-11-16): o "Excluir" ficava
        colado aos downloads, no mesmo cinza, só com um "·" entre eles. #}
     <div class="link-excluir-conta">
-      <p class="conta-baixar">Baixar: {% if avaliacao.rows %}<a href="{{ url_for('account.exportar_tabela') }}">a tabela (planilha .csv)</a><span class="conta-baixar-sep"> · </span>{% endif %}<a href="{{ url_for('account.exportar_dados') }}">uma cópia dos meus dados (arquivo .json)</a></p>
-      <p class="conta-excluir"><a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta no Lodout</a></p>
+      <p class="conta-baixar"><span>Baixar:</span>{% if avaliacao.rows %} <a href="{{ url_for('account.exportar_tabela') }}">a tabela (.csv)</a><span class="conta-baixar-sep"> · </span>{% endif %}<a href="{{ url_for('account.exportar_dados') }}">meus dados (.json)</a></p>
+      <p class="conta-excluir"><a href="{{ url_for('account.excluir_confirmar') }}">Excluir minha conta</a></p>
     </div>
   </main>
 
