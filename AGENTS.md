@@ -203,6 +203,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   páginas resumem e linkam); Glossário = termos pra iniciante; Status =
   transparência da coleta; Mudanças = o que mudou no site, na linguagem
   de quem usa (sem jargão técnico interno).
+- Home SEM os cartões "Maiores mudanças de nota hoje" (pedido do usuário,
+  21/11; não recolocar). O Ranking mantém o "O que mudou no Top 20 desde
+  ontem" e o aviso de que a encomenda sugerida não é previsão de lucro;
+  o Status mantém as listas de itens sem preço novo e em espera, o ritmo
+  da coleta e a hora do Top 20 (confirmado pelo usuário em 22/11).
 - A home tem `<h1>` descritivo (oculto) e `<h2>` por seção; a frase-guia
   da nota leva a "Como a nota é calculada" (Método) e ao Glossário. O
   "Por quê" do item também leva ao Método.

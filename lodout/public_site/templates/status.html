@@ -60,9 +60,49 @@
       <progress class="estado-scan-barra" value="{{ estado_scan.indice }}" max="{{ estado_scan.total }}" aria-label="Progresso da coleta: {{ estado_scan.indice }} de {{ estado_scan.total }} itens"></progress>
       <p class="status-muted">Agora: {{ estado_scan.item_fmt }}. Os preços mudam no site ao fim da coleta.</p>
     </div>
+    {% elif estado_scan.proximo_txt %}
+    <p class="estado-scan-proximo">Próxima coleta {{ estado_scan.proximo_txt }}.</p>
     {% endif %}
+    {% if rodada_top %}
+    <p class="status-muted">Entre as coletas completas, o Top 20 é atualizado a cada 2 horas. Última atualização {{ rodada_top.quando }}: {{ rodada_top.itens }} de {{ rodada_top.alvos }} itens.</p>
+    {% endif %}
+    <p>A cada 6 horas, os preços são atualizados. Se a Steam pede pausa, a
+    coleta espera; após 45 minutos, termina e os itens restantes mantêm o
+    preço anterior. Sem resposta da Steam, tenta de novo em 1 hora.</p>
 
     {% if ciclos %}
+    <div class="saude-ciclos" aria-hidden="true">
+      {% for c in ciclos|reverse %}
+      <span class="saude-ciclo saude-ciclo-{{ 'ok' if c.sucesso else 'falha' }}"></span>
+      {% endfor %}
+    </div>
+    <p class="status-muted">{{ ciclos_sucesso_txt }} (mais antigo à esquerda, mais recente à direita)</p>
+    {% set ultimo = ciclos[0] %}
+    {% if ultimo.alvos %}
+    <p class="cobertura-ciclo">Na última coleta, <strong>{{ ultimo.itens }} de {{ ultimo.alvos }}</strong> itens vieram com preço novo{% if ultimo.mantidos %}; {{ ultimo.mantidos }} {{ "mantém" if ultimo.mantidos == 1 else "mantêm" }} o preço anterior, com aviso{% endif %}.</p>
+    {% if ultimo.ritmo and ultimo.ritmo > 1 %}
+    <p class="status-muted">Esta coleta andou mais devagar ({{ "%.2f"|format(ultimo.ritmo)|replace(".", ",") }}× o intervalo normal entre itens) porque a anterior teve pausas da Steam. O ritmo volta ao normal depois de coletas sem pausa.</p>
+    {% endif %}
+    {% if ultimo.em_espera %}
+    <details class="falhas-ciclo">
+      <summary>Itens em espera ({{ ultimo.em_espera|length }})</summary>
+      <p class="status-muted">Sem preço em 3 coletas seguidas, sem bloqueio da Steam: em geral, ninguém está vendendo. São consultados uma vez por dia até aparecer preço.</p>
+      <ul>
+        {% for nome in ultimo.em_espera %}<li>{{ nome|nome_pt }}</li>{% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+    {% if ultimo.falhas %}
+    <details class="falhas-ciclo">
+      <summary>Itens que ficaram sem preço novo ({{ ultimo.falhas|length }})</summary>
+      <p class="status-muted">A Steam não enviou preço para estes itens nesta coleta (pausa ou ninguém vendendo). A próxima coleta tenta de novo.</p>
+      <ul>
+        {% for nome in ultimo.falhas %}<li>{{ nome|nome_pt }}</li>{% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+    {% endif %}
+
     <p class="dica-rolagem-tabela">Deslize a tabela para ver mais colunas.</p>
     <div class="tabela-wrap" role="region" tabindex="0" aria-label="Tabela das últimas coletas de preços, com rolagem lateral">
     <table class="tabela-candidatos tabela-status">

@@ -15,7 +15,7 @@ ENTRADAS = [
         "titulo": "Acabamento no celular e na conta",
         "itens": [
             "Voltou ao Ranking o quadro “O que mudou no Top 20 desde ontem”: quem entrou, quem saiu, quem subiu e quem caiu, com “Ver mais” quando a lista é longa. Tinha saído por engano em 21/11.",
-            "Voltaram à página inicial os cartões “Maiores mudanças de nota hoje”: os três itens cuja nota mais subiu ou caiu desde a coleta anterior. Também tinham saído por engano em 21/11.",
+            "Status: voltaram as listas de itens que ficaram sem preço novo na última coleta e dos itens em espera, a explicação de quando a coleta anda mais devagar e o horário da última atualização do Top 20. No Ranking, voltou o aviso de que a encomenda sugerida não é previsão de lucro.",
             "A nota mudou. Saiu o fator “preço abaixo ou acima do típico”: no histórico de preços, os itens “baratos” continuaram caindo em vez de se recuperar, e os “caros” se saíram melhor. “Subindo/Caindo em todos os períodos” agora conta só em caixas e cápsulas, onde acertou. Algumas notas devem mudar a partir da próxima coleta.",
             "O Lodout começou a medir a própria nota “para a frente”: compara a nota que o site mostrou em cada dia com o preço 30 dias depois. O primeiro resultado sai por volta de 17/12.",
             "Cartões da página inicial no celular: a estrela de favoritar fica sempre ao lado do preço; antes ela descia de linha quando o preço vinha com a variação do dia.",
