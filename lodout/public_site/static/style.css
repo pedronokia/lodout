@@ -11984,3 +11984,27 @@ button.confira { min-height: 24px; padding-block: 3px; }
   .card-adicionar-watchlist .form-adicionar > .campo-adicionar,
   .adicionar-manual .form-adicionar > .campo-adicionar { flex: none; }
 }
+
+@media (max-width: 640px) {
+  /* Faixa da coleta no celular: em três linhas, a pílula (raio 9999px)
+     cortava os cantos, a bolinha ficava no meio do bloco e as linhas 2 e
+     3 começavam com "·". Aqui vira um quadro de cantos suaves, uma
+     informação por linha, sem os pontos, e a bolinha na primeira linha. */
+  .status-coleta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    border-radius: var(--radius-sm);
+    padding: 10px 16px 10px 32px;
+  }
+  .status-coleta .status-coleta-ponto { top: 17px; transform: none; }
+  .status-coleta > span:not(.status-coleta-ponto) + span::before { content: none; }
+}
+
+@media (max-width: 420px) {
+  /* Três ações do item lado a lado: "Compartilhar" encostava na borda
+     da pílula em telas de ~390px. Letra um ponto menor e respiro igual. */
+  .hero-item-acoes .botao-copiar,
+  .hero-item-acoes .botao-compartilhar,
+  .hero-item-acoes .botao-favorito { font-size: 0.8125rem; padding: 0 10px; }
+}

@@ -19,6 +19,7 @@ ENTRADAS = [
             "Favoritos e “Adicionar um item à mão” no celular: os campos ocupam a largura toda (antes ficavam empurrados para a direita, com um vão grande embaixo do primeiro).",
             "O botão “+ Adicionar” da conta ficou igual aos outros botões principais do site, e a linha que divide cada item da conta no celular não tem mais um vão no meio.",
             "Privacidade e “Excluir conta” agora falam em “favoritos”, o novo nome da antiga watchlist.",
+            "No celular, a faixa da coleta no topo da página inicial mostra uma informação por linha, com a bolinha de status na primeira, e os botões Copiar, Compartilhar e Favoritar do item não encostam mais na borda.",
         ],
     },
     {
