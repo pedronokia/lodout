@@ -1252,34 +1252,10 @@ footer.rodape .rodape-base a:hover {
 
 }
 
-/* Brilho diagonal sutil (mesma linguagem dos cards vitrine). */
+/* Efeito de varredura diagonal desativado para serenidade visual */
 .hero-destaque::before {
   content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 40%,
-    rgba(249, 115, 22, 0.08) 50%,
-    transparent 60%
-  );
-  transform: translateX(-100%);
-  transition: opacity var(--dur-base) var(--ease-standard), transform var(--dur-sweep) var(--ease-out-expo);
-}
-
-.hero-destaque:focus-within::before {
-  opacity: 1;
-  transform: translateX(200%);
-}
-
-@media (hover: hover) {
-  .hero-destaque:hover::before {
-    opacity: 1;
-    transform: translateX(200%);
-  }
+  display: none;
 }
 
 .hero-destaque:focus-within {
@@ -1317,7 +1293,7 @@ footer.rodape .rodape-base a:hover {
   border-color: transparent;
   background: transparent;
   overflow: visible;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
+  filter: none;
 }
 
 /* A imagem herdava o tamanho das listas (.icone-item: 40px com borda
@@ -2116,7 +2092,7 @@ table.tabela-itens th.celula-sparkline { white-space: nowrap; }
 }
 
 @media (hover: hover) {
-  .icone-item-quadro:hover .icone-item { transform: scale(1.05); }
+  .icone-item-quadro:hover .icone-item { transform: none; }
 }
 
 .icone-item-indisponivel { display: none; }
@@ -2950,14 +2926,14 @@ a.paginacao-passo:hover {
   transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard);
 }
 
-/* Brilho diagonal (Apple-style specular highlight): varre da
-   esquerda pra direita no hover/focus. */
+/* Brilho diagonal (Apple-style specular highlight): mantido para contrato, desativado visualmente para serenidade */
 .cartao-item-brilho {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   opacity: 0;
+  display: none;
   background: linear-gradient(
     110deg,
     transparent 40%,
@@ -2970,16 +2946,14 @@ a.paginacao-passo:hover {
 }
 
 .cartao-item:focus-within .cartao-item-brilho {
-  opacity: 1;
-  transform: translateX(200%);
-  transition: opacity var(--dur-base) var(--ease-standard), transform var(--dur-sweep) var(--ease-out-expo);
+  opacity: 0;
+  display: none;
 }
 
 @media (hover: hover) {
   .cartao-item:hover .cartao-item-brilho {
-    opacity: 1;
-    transform: translateX(200%);
-    transition: opacity var(--dur-base) var(--ease-standard), transform var(--dur-sweep) var(--ease-out-expo);
+    opacity: 0;
+    display: none;
   }
 }
 
@@ -3001,6 +2975,7 @@ a.paginacao-passo:hover {
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(249, 115, 22, 0.35);
     z-index: 1;
+    transform: translateY(-2px);
   }
 }
 
@@ -3045,12 +3020,12 @@ a.paginacao-passo:hover {
 }
 
 .cartao-item:focus-within .cartao-item-icon {
-  transform: scale(1.05);
+  transform: none;
 }
 
 @media (hover: hover) {
   .cartao-item:hover .cartao-item-icon {
-    transform: scale(1.06) translateY(-2px);
+    transform: none;
     filter: none;
   }
 }
@@ -3118,10 +3093,10 @@ a.paginacao-passo:hover {
   line-height: 1;
 }
 
-.cartao-item:focus-within .cartao-item-nota { transform: scale(1.04); }
+.cartao-item:focus-within .cartao-item-nota { transform: none; }
 
 @media (hover: hover) {
-  .cartao-item:hover .cartao-item-nota { transform: scale(1.04); }
+  .cartao-item:hover .cartao-item-nota { transform: none; }
 }
 
 @media (max-width: 640px) {
@@ -7509,7 +7484,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .hero-destaque:hover .icone-item-quadro .icone-item {
-  transform: scale(1.04);
+  transform: none;
 }
 
 /* 3. Termômetro do Mercado (Market Pulse) */
@@ -7532,7 +7507,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .cartao-item:hover .cartao-item-icon {
-  transform: scale(1.06) translateY(-2px);
+  transform: none;
   filter: none;
 }
 
@@ -7545,13 +7520,13 @@ circle.grafico-ponto-interativo:hover {
   height: 3px;
   background: var(--rar-cor, var(--border));
   opacity: 0.85;
-  transition: height 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .cartao-item:hover::after {
-  height: 4px;
+  height: 3px;
   opacity: 1;
-  box-shadow: 0 0 12px var(--rar-cor);
+  box-shadow: none;
 }
 
 .cartao-item-rodape .botao-favorito {
@@ -8045,7 +8020,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .hero-destaque:hover .icone-item-quadro img {
-  transform: scale(1.05);
+  transform: none;
 }
 
 /* 21. Category Pills & Search Controls (Apple Glass Polish) */
@@ -11177,8 +11152,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.055) 0%, transparent 72%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, transparent 72%);
+  border: 0;
   padding: 0;
   overflow: visible;
 }
@@ -11190,7 +11165,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   max-width: none;
   max-height: none;
   object-fit: contain;
-  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.7));
+  filter: none;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   image-rendering: -webkit-optimize-contrast;
   -webkit-backface-visibility: hidden;
@@ -11199,7 +11174,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .hero-destaque:hover .icone-item-quadro img,
 .hero-destaque:hover .icone-item-quadro .icone-item {
-  transform: scale(1.05);
+  transform: none;
 }
 
 @media (max-width: 880px) {
@@ -12545,17 +12520,25 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
    No celular, onde o campo fica longe, continua pílula. */
 @media (min-width: 641px) {
   .tabela-conta .venda-por-falta {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--text-muted);
-    text-decoration: underline dotted;
-    text-underline-offset: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
   }
   .tabela-conta .venda-por-falta:hover,
   .tabela-conta .venda-por-falta:focus-visible {
-    background: none;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
     color: var(--accent-bright);
+    text-decoration: none;
   }
 }
 
