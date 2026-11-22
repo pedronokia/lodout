@@ -12450,3 +12450,21 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   .alerta-discord .form-adicionar .input-webhook { flex: none; }
 }
 .form-adicionar button.botao-acao { font-size: var(--fs-sm); font-weight: 600; }
+
+/* Conta (polimento 22/11, tela real do usuário): as ações de item fora do
+   inventário ("Está anunciado · informar preço · Vendi · remover") vinham
+   numa caixa com borda e fundo dentro de cada linha -- 9 caixinhas iguais
+   numa conta com 9 itens anunciados. Sem a moldura: só a linha de ações
+   embaixo do nome, com o mesmo espaçamento. */
+.tabela-conta .item-fora {
+  padding: 0;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+/* Mesma ordem em todo item fora: 1ª linha "Está anunciado" (e "mudar
+   preço"); 2ª linha "Vendi" e "remover". Antes, conforme a largura,
+   "Vendi" ora ficava em cima, ora embaixo. */
+.tabela-conta .item-fora .item-fora-pergunta,
+.tabela-conta .item-fora .form-anunciado { flex-basis: 100%; }
