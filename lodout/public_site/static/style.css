@@ -12593,3 +12593,35 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   color: var(--text-bright);
   border-color: rgba(255, 255, 255, 0.24);
 }
+
+/* Favoritos (polimento 22/11): aberto, o "Receber os alertas no Discord"
+   mostrava a frase em letra grande solta e o campo num cartão à parte.
+   Agora explicação e campo ficam num cartão só, e o "+" vira "−". */
+.adicionar-manual[open] > summary::before { content: "−"; }
+.alerta-discord-corpo {
+  margin-top: 12px;
+  padding: 16px 20px 20px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.alerta-discord .alerta-discord-corpo > .status {
+  margin: 0 0 12px;
+  font-size: var(--fs-sm);
+}
+.alerta-discord .alerta-discord-corpo > .status:not(.status-erro) {
+  color: var(--text-muted);
+}
+.alerta-discord .alerta-discord-corpo .form-adicionar {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+  margin-bottom: 0;
+  align-items: center;
+}
+
+/* Histórico (polimento 22/11): logo abaixo das abas da conta, o título
+   da seção não precisa da margem cheia de 48px (somava ~70px de vão). */
+.subnav-conta + .secao-titulo { margin-top: var(--sp-4); }
