@@ -73,7 +73,7 @@ def _caminho_antigo(hash_icone: str, tamanho: int) -> Path:
 # visíveis em bordas e letras finas, ex. o "CS:GO" das caixas).
 _OCUPACAO = 0.88
 _AMPLIACAO_MAX = 2.0
-_WEBP_QUALIDADE_V4 = 92
+_WEBP_QUALIDADE_V4 = 95
 
 
 def _enquadrar(im):
