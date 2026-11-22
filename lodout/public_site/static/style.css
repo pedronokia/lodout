@@ -11056,34 +11056,47 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .home-tese-selo {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 24px;
-  padding: 0 11px 0 9px;
-  margin-bottom: 12px;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 16px 6px 12px;
+  margin-bottom: 14px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.72rem;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(20, 20, 20, 0.92));
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.15));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 24%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   width: fit-content;
-  line-height: 1;
+  max-width: 100%;
+  line-height: 1.35;
+  transition: all 0.15s ease;
 }
 .home-tese-selo[hidden] { display: none; }
+
+.home-tese-selo:hover {
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 20, 20, 0.95));
+  border-color: color-mix(in srgb, var(--accent) 75%, rgba(255, 255, 255, 0.25));
+}
 
 .home-tese-selo::before {
   content: "";
   display: block;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px rgba(249, 115, 22, 0.6);
+  background: var(--accent-bright);
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.9);
   flex-shrink: 0;
+}
+
+.home-tese-selo strong {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .home-tese-titulo {
@@ -12423,10 +12436,11 @@ button.confira { min-height: 24px; padding-block: 3px; }
 @media (max-width: 640px) {
   .home-tese-selo {
     height: auto;
-    min-height: 24px;
-    padding: 5px 11px 5px 9px;
-    border-radius: var(--radius-sm);
-    line-height: 1.35;
+    min-height: 32px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
 }
 
