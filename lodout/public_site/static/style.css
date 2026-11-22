@@ -6107,8 +6107,35 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 }
 
 /* ── Conta e item: mudança, lotes, "Na sua conta" (2026-11-15) ────── */
-.card-mudanca .valor-positivo,
-.card-mudanca .valor-negativo { font-weight: 600; }
+.card-mudanca {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+}
+.card-mudanca .valor-positivo {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--positive) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+  color: var(--positive);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+.card-mudanca .valor-negativo {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
 /* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
 /* Lotes do mesmo item: a linha entre eles é tracejada (continuação do
    mesmo item), em vez de uma faixa colorida na lateral. */
@@ -9967,6 +9994,18 @@ h3,
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
+.conta-filtro.conta-filtro-vazio {
+  opacity: 0.45;
+  background: transparent;
+  border-style: dashed;
+}
+
+.conta-filtro.conta-filtro-vazio:hover {
+  opacity: 0.85;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
 .conta-filtro span[data-conta-contagem] {
 
   font-family: var(--font-sans);
@@ -10092,6 +10131,33 @@ table.tabela-comparar th {
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.60);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.tabela-conta th .th-sub {
+  display: block;
+  font-size: 0.60rem;
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: normal;
+  color: rgba(255, 255, 255, 0.40);
+  margin-top: 1px;
+}
+
+.tabela-conta .ordenar-coluna {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: var(--radius-pill);
+  transition: all 0.15s ease;
+  color: inherit;
+}
+
+.tabela-conta .ordenar-coluna:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
 }
 
 table.tabela-conta tbody td,
@@ -10222,23 +10288,41 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  padding: 5px 10px;
+  gap: 6px 8px;
+  padding: 4px 10px;
   margin-top: 5px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+.tabela-conta .item-fora .form-anunciado {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tabela-conta .item-fora .caixa-marcar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .tabela-conta .item-fora .item-fora-pergunta {
   color: rgba(255, 255, 255, 0.50);
   font-size: 0.72rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .tabela-conta .item-fora .vendi > summary {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   padding: 2px 9px;
   border-radius: var(--radius-pill);
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.20) 0%, rgba(249, 115, 22, 0.10) 100%);
@@ -10259,6 +10343,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-conta .item-fora .botao-mudar-anuncio {
+  white-space: nowrap;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.05);
@@ -10279,6 +10364,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-conta .item-fora .botao-fora-remover {
+  white-space: nowrap;
   color: rgba(255, 255, 255, 0.40);
   font-size: 0.6875rem;
   padding: 2px 8px;
@@ -10383,7 +10469,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 4px 11px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -10396,12 +10482,25 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   transition: all 0.15s ease;
 }
 
+.tabela-conta .venda-por-falta::after {
+  content: " →";
+  font-size: 0.75em;
+  opacity: 0.50;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
 .tabela-conta .venda-por-falta:hover,
 .tabela-conta .venda-por-falta:focus-visible {
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.40);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   color: var(--accent-bright);
   text-decoration: none;
+}
+
+.tabela-conta .venda-por-falta:hover::after,
+.tabela-conta .venda-por-falta:focus-visible::after {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .tabela-conta .copiar-preco {
