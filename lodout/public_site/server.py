@@ -1434,6 +1434,7 @@ def create_app() -> Flask:
             "admin.html",
             build=_build_id(),
             visitas=visits.total(),
+            visitas_fmt=f"{visits.total():,}".replace(",", "."),
             mais_buscados=buscas.mais_buscados(limite=20),
             erros=erros,
             erros_agregados=erros_agregados,
@@ -1555,6 +1556,7 @@ def create_app() -> Flask:
                                _INTERVALO_HORAS_DEFAULT))),
             no_ar_desde_txt=scan_store.idade_txt(desde),
             visitas=visits.total(),
+            visitas_fmt=f"{visits.total():,}".replace(",", "."),
             ciclos=ciclos,
             ciclos_sucesso_txt=(
                 f"{ciclos_ok} de {len(ciclos)} coletas com sucesso"

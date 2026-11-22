@@ -30,14 +30,21 @@
     </div>
   </header>
 
-  <main id="conteudo" class="pagina-texto">
-    <header class="cabecalho-pagina">
-      <h1 class="titulo-pagina">Status</h1>
-      <p class="descricao-pagina">A coleta de preços, inclusive quando falha.</p>
+  <main id="conteudo" class="pagina-texto pagina-status">
+    <header class="cabecalho-pagina cabecalho-status">
+      <div class="cabecalho-status-texto">
+        <h1 class="titulo-pagina">Status</h1>
+        <p class="descricao-pagina">A coleta de preços, inclusive quando falha.</p>
+      </div>
+      <div class="cabecalho-status-badge" role="status" aria-label="Sistema operacional">
+        <span class="ponto-status-vivo" aria-hidden="true"></span>
+        <span>Operacional</span>
+      </div>
     </header>
     <section class="resumo-cards resumo-cards-status">
       <div class="card"><span class="card-label">No ar</span><span class="card-valor">{{ no_ar_desde_txt }}</span></div>
-      <div class="card"><span class="card-label">Visitas ao site</span><span class="card-valor">{{ visitas }}</span></div>
+      {% if rodada_top %}<div class="card"><span class="card-label">Última coleta</span><span class="card-valor">{{ rodada_top.quando }}</span></div>{% endif %}
+      <div class="card"><span class="card-label">Visitas ao site</span><span class="card-valor">{{ visitas_fmt or visitas }}</span></div>
     </section>
 
     {% if grafico_visitas %}
