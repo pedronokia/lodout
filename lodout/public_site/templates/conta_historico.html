@@ -68,7 +68,7 @@
     </table>
     </div>
     {% else %}
-      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” no seu inventário para registrar.</p>
+      <p class="status status-vazio">Nenhum item vendido. Marque “Vendi” no seu <a href="{{ url_for('account.conta') }}">inventário</a> para registrar.</p>
     {% endif %}
   </main>
 

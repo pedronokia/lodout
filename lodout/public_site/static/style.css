@@ -12411,3 +12411,42 @@ button.confira { min-height: 24px; padding-block: 3px; }
     line-height: 1.35;
   }
 }
+
+/* Conta (polimento 22/11): "remover" tinha 17px de altura, letra de 11px
+   e cinza fraco demais para ler (≈3:1). Agora é a mesma pílula discreta
+   de "mudar preço", legível, e fica vermelho só no mouse/foco. */
+table.tabela-conta .botao-link.botao-remover {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.62);
+}
+table.tabela-conta .botao-link.botao-remover:hover,
+table.tabela-conta .botao-link.botao-remover:focus-visible {
+  color: var(--danger);
+  border-color: rgba(255, 110, 112, 0.4);
+}
+/* "separar" (valores diferentes?) usa o botão principal do site. */
+table.tabela-conta .form-separar button[type="submit"],
+table.tabela-conta .separar-lote button[type="submit"] {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-acao);
+  color: var(--text-bright);
+  font-weight: 600;
+}
+table.tabela-conta .form-separar button[type="submit"]:hover,
+table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(184, 72, 10, 0.7); }
+
+/* Favoritos (polimento 22/11): no celular o campo do webhook do Discord
+   esticava para ~320px de altura (flex-basis numa coluna); e "+ Favoritar"
+   usa o mesmo tamanho de letra dos outros botões principais. */
+@media (max-width: 640px) {
+  .alerta-discord .form-adicionar .input-webhook { flex: none; }
+}
+.form-adicionar button.botao-acao { font-size: var(--fs-sm); font-weight: 600; }
