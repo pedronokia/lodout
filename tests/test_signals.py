@@ -294,7 +294,8 @@ def test_scan_score_below_median():
     assert signals.scan_score(v) == 100
 
 
-def test_scan_score_overpriced():
+def test_scan_score_overpriced(monkeypatch):
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)  # fórmula antiga, desligada em 22/11
     v = {"verdict": "overpriced", "diff_pct": 30, "spread_verdict": "wide",
          "book_verdict": "seller_dominant", "trend_verdict": "falling"}
     assert signals.scan_score(v) == 0
@@ -373,16 +374,18 @@ def test_scan_score_momentum_insuficiente():
     assert signals.scan_score(v, price_history=[{"price_median": 100}]) == 50
 
 
-def test_scan_score_multi_trend_all_rising():
+def test_scan_score_multi_trend_all_rising(monkeypatch):
     """Todos os periodos subindo PERDEM 10 (reversao a media, AGENTS 4e)."""
+    monkeypatch.setattr(signals, "_MULTI_PERIOD_EM_SKINS", True)  # fórmula antiga, desligada em 22/11
     v = {"verdict": "fair", "diff_pct": 0}
     mt = {"24h": {"change_pct": 2.0}, "7d": {"change_pct": 5.0},
           "30d": {"change_pct": 8.0}}
     assert signals.scan_score(v, multi_trend=mt) == 40
 
 
-def test_scan_score_multi_trend_all_falling():
+def test_scan_score_multi_trend_all_falling(monkeypatch):
     """Todos os periodos caindo GANHAM 10."""
+    monkeypatch.setattr(signals, "_MULTI_PERIOD_EM_SKINS", True)  # fórmula antiga, desligada em 22/11
     v = {"verdict": "fair", "diff_pct": 0}
     mt = {"24h": {"change_pct": -2.0}, "7d": {"change_pct": -5.0},
           "30d": {"change_pct": -8.0}}
@@ -405,6 +408,7 @@ def test_reversao_nao_vale_para_container():
 
 
 def test_scan_score_multi_trend_sinal_antigo_via_flag(monkeypatch):
+    monkeypatch.setattr(signals, "_MULTI_PERIOD_EM_SKINS", True)  # fórmula antiga, desligada em 22/11
     monkeypatch.setattr(signals, "_MULTI_PERIOD_SIGN", 1)
     v = {"verdict": "fair", "diff_pct": 0}
     mt = {"24h": {"change_pct": 2.0}, "7d": {"change_pct": 5.0},
@@ -425,7 +429,8 @@ def test_enhanced_score_returns_tuple():
     assert breakdown == []
 
 
-def test_enhanced_score_below_median_breakdown():
+def test_enhanced_score_below_median_breakdown(monkeypatch):
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)  # fórmula antiga, desligada em 22/11
     v = {"verdict": "below_median", "diff_pct": -15, "spread_verdict": "tight",
          "book_verdict": "buyer_dominant", "trend_verdict": "rising"}
     score, breakdown = signals.enhanced_score(v)
@@ -437,13 +442,14 @@ def test_enhanced_score_below_median_breakdown():
     assert "trend" in factors
 
 
-def test_enhanced_score_diff_pct_pequeno_nao_rotula_pontos_como_zero():
+def test_enhanced_score_diff_pct_pequeno_nao_rotula_pontos_como_zero(monkeypatch):
     """achado 2026-11-01: diff_pct pequeno (tipo 0.3) arredondava os
     pontos do fator "mediana" pra inteiro e virava "(-0)"/"(+0)" no
     rótulo -- lia como contradição (0 pontos, mas a linha pintada de
     vermelho/verde porque o delta de verdade é != 0). O `delta`
     numérico continua correto (nunca exatamente 0 quando diff_pct != 0);
     só o texto exibido ganha uma casa decimal nesse caso."""
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)  # fórmula antiga, desligada em 22/11
     v_acima = {"verdict": "fair", "diff_pct": 0.3}
     _, breakdown_acima = signals.enhanced_score(v_acima)
     label_acima = next(b["label"] for b in breakdown_acima if b["factor"] == "mediana")
@@ -457,11 +463,12 @@ def test_enhanced_score_diff_pct_pequeno_nao_rotula_pontos_como_zero():
     assert "(+0.4)" in label_abaixo
 
 
-def test_raw_score_nao_tem_teto():
+def test_raw_score_nao_tem_teto(monkeypatch):
     """achado 2026-10-31: o mesmo combo de below_median_breakdown soma
     128 bruto (50 base + 18+25+20+15), mas enhanced_score() corta em
     100 -- raw_score() devolve o valor sem corte, usado só como
     desempate de ordenação (ver recommendations.buy_candidates)."""
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)  # fórmula antiga, desligada em 22/11
     v = {"verdict": "below_median", "diff_pct": -15, "spread_verdict": "tight",
          "book_verdict": "buyer_dominant", "trend_verdict": "rising"}
     score, breakdown = signals.enhanced_score(v)
@@ -1563,8 +1570,9 @@ def test_multi_trend_diario_nao_cai_por_uma_venda_avulsa():
     assert signals.veredito_multiperiodo(mt) is None
 
 
-def test_veredito_multiperiodo_igual_ao_fator_da_nota():
+def test_veredito_multiperiodo_igual_ao_fator_da_nota(monkeypatch):
     from lodout import signals
+    monkeypatch.setattr(signals, "_MULTI_PERIOD_EM_SKINS", True)  # fórmula antiga, desligada em 22/11
     for mt, rotulo in [
         ({"24h": {"change_pct": 1}, "7d": {"change_pct": 2}, "30d": {"change_pct": 3}}, "Subindo em todos"),
         ({"24h": {"change_pct": -1}, "7d": {"change_pct": -2}, "30d": {"change_pct": -3}}, "Caindo em todos"),
@@ -1612,3 +1620,25 @@ def test_revenda_historica_sem_amostra_suficiente_fica_de_fora():
     r = signals.revenda_historica(curto)
     assert "365" not in r and "90" not in r
     assert signals.revenda_historica(None) == {}
+
+
+def test_fator_mediana_fica_fora_da_nota():
+    """22/11 (ok do usuário): "Preço X% abaixo/acima do típico" errou o
+    sentido no backtest (confirmação, 1 ano) em skins e caixas; peso 0."""
+    for diff in (-30, -5, 5, 30):
+        score, br = signals.enhanced_score({"diff_pct": diff})
+        assert score == 50
+        assert not any(b["factor"] == "mediana" for b in br)
+
+
+def test_multi_periodo_so_em_caixas():
+    """22/11 (ok do usuário): em skins a aposta de reversão errou o
+    sentido; em caixas, subindo em todos +10 e caindo -10 acertou."""
+    subindo = {"24h": {"change_pct": 1}, "7d": {"change_pct": 2}, "30d": {"change_pct": 3}}
+    caindo = {"24h": {"change_pct": -1}, "7d": {"change_pct": -2}, "30d": {"change_pct": -3}}
+    for mt in (subindo, caindo):
+        _, br = signals.enhanced_score({}, multi_trend=mt)
+        assert not any(b["factor"] == "multi_period" for b in br)
+    s_sub, _ = signals.enhanced_score({}, multi_trend=subindo, is_container=True)
+    s_cai, _ = signals.enhanced_score({}, multi_trend=caindo, is_container=True)
+    assert (s_sub, s_cai) == (60, 40)

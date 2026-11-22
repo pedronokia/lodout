@@ -156,6 +156,18 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   caixas, com split por item (`backtest_diario._FATORES_SEED`): tire
   hipóteses da calibração, reporte a confirmação, e mostre ao usuário
   antes de mudar qualquer peso.
+- Mudança de pesos de 2026-11-22 (com o ok do usuário, a partir do
+  backtest diário, confirmação a 1 ano): o fator "mediana" ("Preço X%
+  abaixo/acima do típico", até ±35) saiu da nota (`signals._MEDIANA_PESO
+  = 0.0`) porque errou o sentido em skins e caixas; "multi_period"
+  ("Subindo/Caindo em todos os períodos") ficou só em caixas e cápsulas
+  (`_MULTI_PERIOD_EM_SKINS = False`). Os fatores do livro de ofertas
+  (spread +25, book +20), que mais pesam no Top 20, não têm histórico:
+  o teste "para a frente" (`backtest_diario.teste_para_frente`, em
+  `/api/health` -> backtest -> para_frente) compara a nota que o site
+  mostrou (notas_historico) com o preço 30 dias depois; primeiro
+  resultado por volta de 17/12. Notas antes e depois de 22/11 usam
+  réguas diferentes.
 
 ## Interface pública
 

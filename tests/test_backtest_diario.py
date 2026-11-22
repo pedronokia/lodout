@@ -162,3 +162,39 @@ def test_relatorio_mede_cada_fator_em_calibracao_e_confirmacao():
     # Sem a semente, o relatório fica como antes.
     assert "fatores" not in score_backtest.relatorio(
         itens, horizontes=(30,), agora=agora)["horizontes"]["30"]
+
+
+def test_teste_para_frente_usa_a_nota_que_o_site_mostrou():
+    """22/11: nota de verdade (notas_historico) x preço 30 dias depois."""
+    from lodout.public_site import notas_historico
+    t0 = 1_700_000_000 - (1_700_000_000 % 86400)
+    hist_sobe = [{"time": t0 + d * 86400, "price_median": 10.0 + d * 0.1}
+                 for d in range(80)]
+    hist_cai = [{"time": t0 + d * 86400, "price_median": 20.0 - d * 0.1}
+                for d in range(80)]
+    for d in range(40):
+        notas_historico.gravar_snapshot(
+            {"ts": t0 + d * 86400 + 3600, "items": [
+                {"name": "Sobe", "score": 90, "position": 1},
+                {"name": "Cai", "score": 30, "position": 2}]},
+            agora=t0 + d * 86400 + 3600)
+    itens = [{"name": "Sobe", "price_history": hist_sobe},
+             {"name": "Cai", "price_history": hist_cai}]
+    r = backtest_diario.teste_para_frente(itens, 30, agora=t0 + 79 * 86400)
+    assert r["itens"] == 2 and r["pares"] >= 30
+    assert r["spearman"] > 0.8  # só duas notas distintas: o máximo é ~0,87
+    assert r["faixas"]["85-100"]["mediana_pct"] > 0 > r["faixas"]["0-49"]["mediana_pct"]
+    assert r["pesos_mudaram_em"] == "2026-11-22"
+
+
+def test_teste_para_frente_sem_30_dias_so_diz_quando():
+    from lodout.public_site import notas_historico
+    agora = 1_700_000_000.0
+    notas_historico.gravar_snapshot(
+        {"ts": agora - 5 * 86400, "items": [{"name": "X", "score": 50, "position": 1}]},
+        agora=agora - 5 * 86400)
+    r = backtest_diario.teste_para_frente(
+        [{"name": "X", "price_history": [{"time": agora - 5 * 86400, "price_median": 1.0}]}],
+        30, agora=agora)
+    assert r["pares"] == 0 and "spearman" not in r
+    assert r["primeiro_resultado_ts"] == agora - 5 * 86400 + 30 * 86400

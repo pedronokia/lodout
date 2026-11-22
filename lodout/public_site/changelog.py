@@ -14,6 +14,8 @@ ENTRADAS = [
         "data": "2026-11-22",
         "titulo": "Acabamento no celular e na conta",
         "itens": [
+            "A nota mudou. Saiu o fator “preço abaixo ou acima do típico”: no histórico de preços, os itens “baratos” continuaram caindo em vez de se recuperar, e os “caros” se saíram melhor. “Subindo/Caindo em todos os períodos” agora conta só em caixas e cápsulas, onde acertou. Algumas notas devem mudar a partir da próxima coleta.",
+            "O Lodout começou a medir a própria nota “para a frente”: compara a nota que o site mostrou em cada dia com o preço 30 dias depois. O primeiro resultado sai por volta de 17/12.",
             "Cartões da página inicial no celular: a estrela de favoritar fica sempre ao lado do preço; antes ela descia de linha quando o preço vinha com a variação do dia.",
             "Página do item: os títulos do resumo (Nota, Preço, Caixa, Risco) ficam na mesma altura, o nome da caixa aparece inteiro, e a idade do preço aparece uma vez só, embaixo dele.",
             "Favoritos e “Adicionar um item à mão” no celular: os campos ocupam a largura toda (antes ficavam empurrados para a direita, com um vão grande embaixo do primeiro).",

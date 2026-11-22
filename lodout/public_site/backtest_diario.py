@@ -117,6 +117,51 @@ def experimento_caixas(itens: "list[dict]") -> dict:
     return out
 
 
+# Teste "para a frente" (22/11, pedido do usuário): o replay acima não
+# consegue medir os fatores do livro de ofertas ("Fácil de comprar e
+# vender" +25, "Mais gente querendo comprar" +20), que não têm histórico
+# na Steam -- e são eles que mais pesam no Top 20 de hoje. Aqui a nota é
+# a de VERDADE, a que o site mostrou naquele dia (notas_historico, desde
+# 17/11), comparada com o preço `horizonte` dias depois (a mesma conta de
+# retorno do replay: bruto, sem a taxa de 15%). Os pesos mudaram em 22/11
+# (fatores "mediana" e "multi_period" de skins saíram): notas antes e
+# depois disso não são a mesma régua. Pares do mesmo item em dias
+# seguidos não são independentes: ler o Spearman com cuidado.
+_PARA_FRENTE_HORIZONTES = (30,)
+_PARA_FRENTE_MIN_PARES = 30
+PESOS_MUDARAM_EM = "2026-11-22"
+
+
+def teste_para_frente(itens: "list[dict]", horizonte_dias: int = 30,
+                      agora: "float | None" = None) -> dict:
+    from lodout.public_site import notas_historico
+    agora = time.time() if agora is None else agora
+    historico = {i["name"]: i["price_history"] for i in itens if i.get("price_history")}
+    linhas, nomes, dias = [], set(), set()
+    for nome, ts, nota in notas_historico.fotos_diarias(agora - horizonte_dias * 86400):
+        ph = historico.get(nome)
+        if not ph:
+            continue
+        ret = score_backtest.forward_return(ph, ts, horizonte_dias, tolerancia_dias=2.0)
+        if ret is None:
+            continue
+        linhas.append({"score": nota, "retorno_pct": ret})
+        nomes.add(nome)
+        dias.add(int(ts // 86400))
+    inicio = notas_historico.primeiro_ts_completo()
+    out = {"horizonte_dias": horizonte_dias, "pares": len(linhas),
+           "itens": len(nomes), "dias": len(dias),
+           "notas_desde": inicio, "pesos_mudaram_em": PESOS_MUDARAM_EM}
+    if inicio:
+        out["primeiro_resultado_ts"] = inicio + horizonte_dias * 86400
+    if len(linhas) >= _PARA_FRENTE_MIN_PARES:
+        sp = score_backtest.spearman([r["score"] for r in linhas],
+                                     [r["retorno_pct"] for r in linhas])
+        out["spearman"] = round(sp, 3) if sp is not None else None
+        out["faixas"] = score_backtest.resumo_por_faixa(linhas)
+    return out
+
+
 def rodar_se_preciso() -> bool:
     """Roda no máximo 1x por dia. True se rodou."""
     if time.time() - float(ler().get("ts") or 0) < INTERVALO_S:
@@ -126,6 +171,11 @@ def rodar_se_preciso() -> bool:
     if not itens:
         return False
     rel = score_backtest.relatorio(itens, fatores_seed=_FATORES_SEED)
+    try:
+        rel["para_frente"] = {str(h): teste_para_frente(itens, h)
+                              for h in _PARA_FRENTE_HORIZONTES}
+    except Exception:  # medir não pode derrubar o backtest do dia
+        _logger.exception("Teste para a frente falhou")
     # O experimento das caixas saiu daqui (16/11): rodando dentro do worker,
     # ele não terminou em mais de 2 h e segurou a coleta e o Top 20 a tarde
     # toda (o backtest sem ele leva ~4 min). Só roda se ligado de propósito

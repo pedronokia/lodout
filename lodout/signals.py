@@ -147,6 +147,22 @@ _DRAWDOWN_AT_HIGH_ENABLED = True
 _MEDIANA_BONUS_CAIXAS = 1.0
 _REL_ATH_PESO_CAIXAS = 1.0
 
+# Fator "mediana" ("Preço X% abaixo/acima do típico", até ±35) DESLIGADO
+# em 2026-11-22, com o ok do usuário. Backtest diário (/api/health ->
+# backtest -> horizontes -> fatores), grupo de CONFIRMAÇÃO, mediana do
+# preço 1 ano depois, com o fator x sem: skins "abaixo do típico" -2,9 pp
+# e "acima" +1,9 pp; caixas -8,7 pp e +8,4 pp -- o sinal ao contrário nos
+# dois grupos, e igual na calibração. Estava em 100% das notas 85-100 do
+# backtest. 0.0 = fora da nota (para revisitar, um teste pode ligar com
+# 1.0 e medir de novo no backtest).
+_MEDIANA_PESO = 0.0
+# "Subindo/Caindo em todos os períodos" (multi_period) só em caixas e
+# cápsulas desde 2026-11-22 (ok do usuário). Em skins a aposta de reversão
+# (+10 caindo / -10 subindo) errou o sentido na confirmação a 1 ano
+# (-4,9 pp e +3,4 pp); em caixas (+10 subindo / -10 caindo) acertou
+# (+14,4 pp e -6,0 pp).
+_MULTI_PERIOD_EM_SKINS = False
+
 # relative_to_ath (fator rel_ath + flag de ATH do pump_risk) com o topo da
 # série DIÁRIA ponderada por volume em vez do ponto bruto.
 # Medido ON x OFF em 2026-10-17 (373 series): dSp 0.0000 em 7d/90d/365d,
@@ -1239,9 +1255,9 @@ def enhanced_score(verdict: dict, volume: int | None = None,
         })
 
     # Diferenca da mediana
-    diff = verdict.get("diff_pct") or 0
+    diff = (verdict.get("diff_pct") or 0) if _MEDIANA_PESO else 0
     if diff < 0:
-        bonus = min(abs(diff) * 1.2, 35)
+        bonus = min(abs(diff) * 1.2, 35) * _MEDIANA_PESO
         if is_container:
             bonus *= _MEDIANA_BONUS_CAIXAS
         # `diff` perto de 0 arredonda o `%` pra "0" e os pontos pra "+0"
@@ -1251,7 +1267,7 @@ def enhanced_score(verdict: dict, volume: int | None = None,
         _add("mediana", bonus,
              f"Preço {abs(diff):.0f}% abaixo do típico (+{bonus_txt})")
     elif diff > 0:
-        penalty = min(diff * 0.8, 35)
+        penalty = min(diff * 0.8, 35) * _MEDIANA_PESO
         penalty_txt = f"{penalty:.0f}" if round(penalty) else f"{penalty:.1f}"
         _add("mediana", -penalty,
              f"Preço {diff:.0f}% acima do típico (-{penalty_txt})")
@@ -1366,7 +1382,8 @@ def enhanced_score(verdict: dict, volume: int | None = None,
                  f"Abaixo da média dos últimos 15 dias ({d:+d})")
 
     # Concordancia multi-periodo
-    if multi_trend and len(multi_trend) >= 3:
+    if multi_trend and len(multi_trend) >= 3 and (
+            is_container or _MULTI_PERIOD_EM_SKINS):
         dirs = []
         for lbl in ("24h", "7d", "30d", "90d"):
             if lbl in multi_trend:

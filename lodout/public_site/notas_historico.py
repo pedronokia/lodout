@@ -183,6 +183,18 @@ def snapshot_ate(ts_alvo: float) -> "dict | None":
                                 for n, s, p in itens]}
 
 
+def fotos_diarias(ate_ts: float) -> "list[tuple[str, float, int]]":
+    """(name, ts, nota) da última foto completa de cada dia de Brasília,
+    até `ate_ts`. Uma por item por dia: é o que sobra depois da
+    compactação, e evita contar 4x o mesmo dia no teste "para a frente"
+    (backtest_diario.teste_para_frente)."""
+    return [(n, ts, s) for n, ts, s in _ler("""
+        SELECT name, ts, score FROM pontos WHERE completo = 1 AND ts <= :ate
+          AND ts IN (SELECT MAX(ts) FROM pontos WHERE completo = 1 AND ts <= :ate
+                     GROUP BY CAST((ts + :fuso) / 86400 AS INTEGER))""",
+        {"ate": ate_ts, "fuso": _FUSO_BR_S})]
+
+
 # ── Ranking "os melhores de forma consistente" (pedido 17/11) ─────────
 # Quem quer comprar procura o que SE MANTÉM bem avaliado, não o que bateu
 # 100 numa coleta (parte da nota vem de retratos do livro de ofertas, que
