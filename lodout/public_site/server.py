@@ -1288,7 +1288,7 @@ def create_app() -> Flask:
         # O que mudou desde ontem (24 h), como antes, numa seção menor.
         snaps = ranking.load_snapshots()
         atual = snaps[-1] if snaps else None
-        anterior = _snapshot_de_comparacao(atual, "24h")
+        anterior = _snapshot_de_comparacao(atual)
         # Item que a coleta trouxe sem imagem: completa com a do catálogo
         # (leitura local; antes ficava um quadrado vazio, achado 17/11).
         por_nome_scan = raridade.completar_com_catalogo(por_nome_scan, list({
@@ -2012,16 +2012,6 @@ def _tempo_desde_aposentadoria(data_iso: "str | None") -> "str | None":
 _MOVIMENTOS_DESTAQUE = 3
 
 
-# Períodos de comparação do /ranking: chave da URL -> (horas, rótulo).
-# `None` = scan imediatamente anterior. Com o worker de 6 em 6h, 30 dias
-# são ~120 snapshots -- cabe no `ranking._SNAPSHOT_CAP`.
-_PERIODOS_RANKING = {
-    "scan": (None, "Anterior"),
-    "24h": (24, "24 horas"),
-    "7d": (7 * 24, "7 dias"),
-    "30d": (30 * 24, "30 dias"),
-}
-_PERIODO_RANKING_PADRAO = "24h"
 # /ranking = os melhores de forma consistente (pedido 17/11): nota média no
 # período (notas_historico.ranking_consistente). chave -> (dias, rótulo).
 _PERIODOS_CONSISTENCIA = {
@@ -2036,17 +2026,13 @@ _PERIODO_CONSISTENCIA_PADRAO = "7d"
 _FOLGA_PERIODO_H = 4
 
 
-def _snapshot_de_comparacao(atual: "dict | None",
-                            periodo: str) -> "dict | None":
-    """Snapshot contra o qual o /ranking compara. None quando ainda não
-    existe um velho o suficiente pro período -- a tela diz isso em vez de
-    comparar com um mais recente e chamar de "7 dias"."""
+def _snapshot_de_comparacao(atual: "dict | None") -> "dict | None":
+    """Snapshot de ~24h atrás, contra o qual o /ranking e o resumo da home
+    comparam. None quando ainda não existe um velho o suficiente -- a tela
+    diz isso em vez de comparar com um mais recente e chamar de "24h"."""
     if not atual:
         return None
-    horas = _PERIODOS_RANKING[periodo][0]
-    if horas is None:
-        return ranking.previous_snapshot()
-    alvo = atual["ts"] - (horas - _FOLGA_PERIODO_H) * 3600
+    alvo = atual["ts"] - (24 - _FOLGA_PERIODO_H) * 3600
     antigo = ranking.latest_before(alvo)
     if antigo is None:
         # Mais velho que o rankings.json guarda: a foto do dia no histórico
@@ -2064,7 +2050,7 @@ def _resumo_do_dia(atual: "dict | None") -> "dict | None":
     snapshot velho o suficiente (site novo ou só 1 scan até agora)."""
     if not atual:
         return None
-    return _resumo_entre(atual, _snapshot_de_comparacao(atual, "24h"))
+    return _resumo_entre(atual, _snapshot_de_comparacao(atual))
 
 
 def _resumo_entre(atual: "dict | None",
