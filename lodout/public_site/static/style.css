@@ -11061,16 +11061,16 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
-  height: 34px;
-  margin-bottom: 10px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  height: 36px;
+  margin-bottom: var(--sp-4);
   overflow: hidden;
   background: linear-gradient(180deg, color-mix(in srgb, var(--warn) 90%, #ffffff) 0%, var(--warn) 55%, color-mix(in srgb, var(--warn) 88%, #000000) 100%);
   color: #000000;
-  border-radius: 2px;
-  border-top: 1px solid rgba(0, 0, 0, 0.16);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.42);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.42);
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   user-select: none;
   cursor: default;
 }
@@ -11093,25 +11093,25 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 28px;
-  padding-right: 28px;
+  gap: 36px;
+  padding-right: 36px;
 }
 
 .tarja-aviso-tape-item {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: 0.875rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #000000;
   white-space: nowrap;
 }
 
 .tarja-aviso-tape-sep {
-  color: rgba(0, 0, 0, 0.35);
-  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.8125rem;
   user-select: none;
 }
 
@@ -11133,19 +11133,19 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .home-tese-selo {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 26px;
-  padding: 4px 12px 4px 10px;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 14px 4px 11px;
   margin-bottom: 14px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.75rem;
-  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   width: fit-content;
   line-height: 1;
@@ -11153,11 +11153,11 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .home-tese-selo[hidden] { display: none; }
 
 .home-tese-selo-ponto {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
+  box-shadow: 0 0 8px var(--accent);
   flex-shrink: 0;
 }
 
@@ -12497,24 +12497,23 @@ button.confira { min-height: 24px; padding-block: 3px; }
    pílula. Altura livre, cantos menores e entrelinha normal. */
 @media (max-width: 640px) {
   .tarja-aviso-loja {
-    height: 30px;
-    border-radius: 2px;
-    margin-bottom: 10px;
+    height: 32px;
+    margin-bottom: var(--sp-3);
   }
   .tarja-aviso-tape-item {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     letter-spacing: 0.1em;
   }
   .tarja-aviso-tape-grupo {
-    gap: 20px;
-    padding-right: 20px;
+    gap: 24px;
+    padding-right: 24px;
   }
   .home-tese-selo {
     height: auto;
     min-height: 26px;
     padding: 3px 10px;
     border-radius: var(--radius-pill);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     margin-bottom: 12px;
   }
 }
