@@ -8,6 +8,11 @@
 #             dados. Idempotente: se o swap já existe, só mostra o estado.
 #   estado -> mostra memória, swap, disco, containers, processos e serviços
 #             (só leitura).
+#   aliviar -> desliga serviços do Oracle Linux que o site não usa (PCP:
+#             pmcd/pmlogger/pmie, que grava no disco o tempo todo;
+#             libstoragemgmt, rpcbind, gssproxy, dtprobed). Pedido do
+#             usuário em 23/11, para sobrar memória na VM de 1 GB.
+#   religar -> desfaz o "aliviar" (liga os mesmos serviços de novo).
 name: manutencao-vm
 
 on:
@@ -16,7 +21,7 @@ on:
       acao:
         description: "O que fazer"
         type: choice
-        options: [estado, swap]
+        options: [estado, aliviar, religar, swap]
         required: true
 
 permissions:
@@ -43,6 +48,21 @@ jobs:
           command_timeout: 10m
           script: |
             set -euo pipefail
+            EXTRAS="pmie_farm pmlogger_farm pmie pmlogger pmcd libstoragemgmt rpcbind rpcbind.socket gssproxy dtprobed"
+            if [ "$ACAO" = "aliviar" ]; then
+              echo "--- memória antes"; free -h
+              for s in $EXTRAS; do
+                if systemctl list-unit-files "$s" "$s.service" --no-legend 2>/dev/null | grep -q .; then
+                  sudo systemctl disable --now "$s" >/dev/null 2>&1 && echo "desligado: $s" || echo "não deu para desligar: $s"
+                fi
+              done
+              sleep 5
+            fi
+            if [ "$ACAO" = "religar" ]; then
+              for s in $EXTRAS; do
+                sudo systemctl enable --now "$s" >/dev/null 2>&1 && echo "religado: $s" || true
+              done
+            fi
             if [ "$ACAO" = "swap" ]; then
               swap_mb=$(free -m | awk '/^Swap:/ {print $2}')
               if [ "${swap_mb:-0}" -ge 2048 ]; then
