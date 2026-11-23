@@ -1,0 +1,169 @@
+# Mudança do site para uma VM nova (23/11: a VM.Standard.E2.1.Micro, com
+# 1 GB de memória, travou com site + worker + catálogo + backtest juntos;
+# a nova é uma Ampere A1 do Always Free da Oracle).
+#
+# Rodado à mão, uma etapa por vez:
+#   preparar  -> instala Docker na VM nova, abre 80/443, baixa o repositório
+#                e constrói as imagens. Não mexe na VM antiga.
+#   ensaio    -> copia os dados da VM antiga COM ELA NO AR (cópia de teste),
+#                sobe só o web na nova e confere /readyz e a home por dentro
+#                da VM. Depois desliga o web da nova. Não mexe na antiga.
+#   ativar    -> para web e worker da antiga (o site fica fora do ar ~2 min),
+#                copia os dados e os certificados do Caddy para a nova e sobe
+#                web + worker + caddy lá. A antiga fica parada, sem apagar
+#                nada, para poder voltar. Em seguida: trocar o IP no Cloudflare
+#                e os segredos ORACLE_HOST / ORACLE_SSH_KEY no GitHub.
+#   reverter  -> desfaz o "ativar": para tudo na nova e religa a antiga.
+#
+# Só um worker pode coletar por vez (limites da Steam): o worker da nova só
+# sobe no "ativar", depois que o da antiga parou.
+#
+# Segredos: ORACLE_HOST / ORACLE_SSH_KEY (VM antiga, os do deploy) e
+# ORACLE_HOST_NOVO / ORACLE_SSH_KEY_NOVO (VM nova). Os dados (volume
+# skinvault_data) nunca são apagados em nenhuma das duas VMs.
+name: migrar-vm
+
+on:
+  workflow_dispatch:
+    inputs:
+      etapa:
+        description: "Etapa da mudança"
+        type: choice
+        options: [preparar, ensaio, ativar, reverter]
+        required: true
+
+permissions:
+  contents: read
+
+# Nunca junto com um deploy (os dois mexem nos containers).
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      VELHA: ${{ secrets.ORACLE_HOST }}
+      NOVA: ${{ secrets.ORACLE_HOST_NOVO }}
+      ETAPA: ${{ inputs.etapa }}
+      SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
+      ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+    steps:
+      - name: Chaves SSH das duas VMs
+        env:
+          KEY_VELHA: ${{ secrets.ORACLE_SSH_KEY }}
+          KEY_NOVA: ${{ secrets.ORACLE_SSH_KEY_NOVO }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NOVA}" ] || [ -z "${KEY_NOVA}" ]; then
+            echo "Faltam os segredos ORACLE_HOST_NOVO / ORACLE_SSH_KEY_NOVO."; exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY_VELHA" > ~/.ssh/velha && chmod 600 ~/.ssh/velha
+          printf '%s\n' "$KEY_NOVA" > ~/.ssh/nova && chmod 600 ~/.ssh/nova
+          cat > ~/.ssh/config <<'EOF'
+          Host *
+            User opc
+            StrictHostKeyChecking accept-new
+            ServerAliveInterval 30
+            ConnectTimeout 30
+          EOF
+          echo "VELHA_SSH=ssh -i $HOME/.ssh/velha opc@${VELHA}" >> "$GITHUB_ENV"
+          echo "NOVA_SSH=ssh -i $HOME/.ssh/nova opc@${NOVA}" >> "$GITHUB_ENV"
+
+      - name: "preparar: Docker, firewall, repositório e imagens na VM nova"
+        if: inputs.etapa == 'preparar'
+        run: |
+          set -euo pipefail
+          $NOVA_SSH 'bash -s' <<'EOF'
+          set -euo pipefail
+          uname -m; cat /etc/os-release | head -2; free -h
+          if ! command -v docker >/dev/null; then
+            sudo dnf install -y dnf-plugins-core git
+            sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            sudo systemctl enable --now docker
+          fi
+          sudo docker version --format 'docker {{.Server.Version}}'
+          # A Oracle filtra no painel E no firewall do sistema: abre 80/443 aqui.
+          if command -v firewall-cmd >/dev/null; then
+            sudo firewall-cmd --permanent --add-service=http --add-service=https
+            sudo firewall-cmd --reload
+          fi
+          if [ ! -d ~/skinvault/.git ]; then
+            git clone https://github.com/pedronokia/lodout.git ~/skinvault
+          fi
+          cd ~/skinvault && git fetch origin && git reset --hard origin/main
+          sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml build
+          # Cria containers e volumes sem ligar nada (o worker NÃO pode subir aqui).
+          SITE_DOMAIN=x sudo -E docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml create
+          sudo docker volume ls
+          echo "VM nova pronta."
+          EOF
+
+      - name: "ensaio/ativar: para a VM antiga (só no ativar)"
+        if: inputs.etapa == 'ativar'
+        run: |
+          set -euo pipefail
+          # O worker grava checkpoint no SIGTERM; o web para por último.
+          $VELHA_SSH 'cd ~/skinvault && sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml stop worker web caddy'
+
+      - name: "ensaio/ativar: copia dados (e certificados) da antiga para a nova"
+        if: inputs.etapa == 'ensaio' || inputs.etapa == 'ativar'
+        run: |
+          set -euo pipefail
+          vol() { $1 "sudo docker volume ls --format '{{.Name}}' | grep -E '(^|_)$2\$' | head -1"; }
+          # A cópia substitui o conteúdo do volume da NOVA (o da antiga só é lido).
+          for nome in skinvault_data caddy_data; do
+            V_VELHA="$(vol "$VELHA_SSH" "$nome")"; V_NOVA="$(vol "$NOVA_SSH" "$nome")"
+            echo "$nome: antiga=$V_VELHA nova=$V_NOVA"
+            if [ -z "$V_VELHA" ] || [ -z "$V_NOVA" ]; then echo "volume não encontrado"; exit 1; fi
+            $VELHA_SSH "sudo docker run --rm -v $V_VELHA:/v:ro alpine tar czf - -C /v ." \
+              | $NOVA_SSH "sudo docker run --rm -i -v $V_NOVA:/v alpine sh -c 'find /v -mindepth 1 -delete; tar xzf - -C /v'"
+            $NOVA_SSH "sudo docker run --rm -v $V_NOVA:/v:ro alpine du -sh /v"
+          done
+
+      - name: "ensaio: sobe só o web na nova e confere por dentro"
+        if: inputs.etapa == 'ensaio'
+        run: |
+          set -euo pipefail
+          $NOVA_SSH 'bash -s' <<'EOF'
+          set -euo pipefail
+          cd ~/skinvault && git fetch origin && git reset --hard origin/main
+          SITE_DOMAIN=x sudo -E docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml up -d web
+          for i in $(seq 1 30); do
+            sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml exec -T web \
+              python -c "import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:8000/readyz',timeout=5); sys.exit(r.status!=200)" && break
+            sleep 5
+          done
+          sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml exec -T web \
+            python -c "import urllib.request,time; t=time.time(); r=urllib.request.urlopen('http://127.0.0.1:8000/',timeout=30); print('home', r.status, round(time.time()-t,2),'s')"
+          free -h
+          sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml stop web
+          echo "Ensaio OK (web da nova desligado de novo)."
+          EOF
+
+      - name: "ativar: sobe web + worker + caddy na nova"
+        if: inputs.etapa == 'ativar'
+        run: |
+          set -euo pipefail
+          $NOVA_SSH "cd ~/skinvault && git fetch origin && git reset --hard origin/main && \
+            SITE_DOMAIN='${SITE_DOMAIN}' LODOUT_ADMIN_DISCORD_WEBHOOK='${ADMIN_DISCORD_WEBHOOK}' \
+            LODOUT_ADMIN_PASSWORD='${ADMIN_PASSWORD}' LODOUT_BUILD_ID=\"migracao-\$(git rev-parse --short HEAD)\" \
+            sudo -E docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml up -d web worker caddy && \
+            sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml ps"
+          echo "Pronto. Agora: no Cloudflare, aponte o registro A de ${SITE_DOMAIN:-lodout.com} para o IP da VM nova;"
+          echo "no GitHub, troque ORACLE_HOST e ORACLE_SSH_KEY pelos valores da VM nova."
+
+      - name: "reverter: para a nova e religa a antiga"
+        if: inputs.etapa == 'reverter'
+        run: |
+          set -euo pipefail
+          $NOVA_SSH 'cd ~/skinvault && sudo docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml stop worker web caddy' || true
+          $VELHA_SSH "cd ~/skinvault && SITE_DOMAIN='${SITE_DOMAIN}' LODOUT_ADMIN_DISCORD_WEBHOOK='${ADMIN_DISCORD_WEBHOOK}' \
+            LODOUT_ADMIN_PASSWORD='${ADMIN_PASSWORD}' \
+            sudo -E docker compose -f docker-compose.public-site.yml -f docker-compose.oracle.yml up -d web worker caddy"
+          echo "VM antiga religada. Volte o registro A no Cloudflare para o IP antigo, se já tiver trocado."
