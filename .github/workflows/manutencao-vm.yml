@@ -1,0 +1,69 @@
+# Manutenção da VM de produção, rodada à mão.
+#
+#   swap   -> cria (uma vez) um arquivo de swap de 4 GB na VM e o deixa
+#             ligado nos reboots. A VM atual (E2.1.Micro) tem 1 GB de
+#             memória e travou em 23/11 com site + worker + catálogo +
+#             backtest juntos; com swap, falta de memória vira lentidão
+#             em vez de travamento. Não reinicia containers nem mexe em
+#             dados. Idempotente: se o swap já existe, só mostra o estado.
+#   estado -> mostra memória, swap, disco e os containers (só leitura).
+name: manutencao-vm
+
+on:
+  workflow_dispatch:
+    inputs:
+      acao:
+        description: "O que fazer"
+        type: choice
+        options: [estado, swap]
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+jobs:
+  manutencao:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: ${{ inputs.acao }}
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          ACAO: ${{ inputs.acao }}
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: opc
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          envs: ACAO
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+            if [ "$ACAO" = "swap" ]; then
+              if sudo swapon --show=NAME --noheadings | grep -q '/swapfile'; then
+                echo "Swap /swapfile já está ligado."
+              else
+                livre_gb=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
+                if [ "$livre_gb" -lt 8 ]; then
+                  echo "Pouco espaço livre no disco (${livre_gb} GB); não criei o swap."; exit 1
+                fi
+                if [ ! -f /swapfile ]; then
+                  sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
+                  sudo chmod 600 /swapfile
+                  sudo mkswap /swapfile >/dev/null
+                fi
+                sudo swapon /swapfile
+                grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap defaults 0 0' | sudo tee -a /etc/fstab >/dev/null
+                # Usa o swap só quando a memória de verdade está acabando.
+                echo 'vm.swappiness=10' | sudo tee /etc/sysctl.d/90-lodout-swap.conf >/dev/null
+                sudo sysctl -q -p /etc/sysctl.d/90-lodout-swap.conf
+                echo "Swap de 4 GB criado e ligado."
+              fi
+            fi
+            echo "--- memória"; free -h
+            echo "--- swap"; sudo swapon --show || true
+            echo "--- disco"; df -h / | tail -1
+            echo "--- containers"; sudo docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' || true
