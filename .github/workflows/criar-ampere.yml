@@ -1,0 +1,115 @@
+# Tenta criar a VM Ampere A1 (Always Free) a cada 10 minutos até conseguir
+# (23/11: a Oracle estava sem capacidade A1 em São Paulo; a tentativa manual
+# pelo painel dava "Capacidade insuficiente").
+#
+# Usa a API da Oracle com uma chave de API do usuário (segredos OCI_*).
+# A VM nova recebe a MESMA chave SSH da VM atual (ORACLE_SSH_KEY): a chave
+# pública é derivada dela aqui, sem sair do runner. Quando a VM existe, avisa
+# no Discord do admin com o IP e as próximas rodadas não fazem nada.
+#
+# Segredos: OCI_USER, OCI_TENANCY, OCI_FINGERPRINT, OCI_REGION, OCI_KEY
+# (conteúdo do .pem da chave de API) + ORACLE_SSH_KEY e ADMIN_DISCORD_WEBHOOK.
+name: criar-ampere
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: criar-ampere
+  cancel-in-progress: false
+
+jobs:
+  tentar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NOME: lodout-a1
+      OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
+    steps:
+      - name: Configura a API da Oracle
+        id: cfg
+        env:
+          OCI_USER: ${{ secrets.OCI_USER }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_KEY: ${{ secrets.OCI_KEY }}
+          SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$OCI_USER" ] || [ -z "$OCI_KEY" ]; then
+            echo "Segredos OCI_* ainda não configurados; nada a fazer."
+            echo "pronto=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          pip install -q oci-cli
+          mkdir -p ~/.oci && chmod 700 ~/.oci
+          printf '%s\n' "$OCI_KEY" > ~/.oci/key.pem && chmod 600 ~/.oci/key.pem
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=$OCI_USER
+          fingerprint=$OCI_FINGERPRINT
+          tenancy=$OCI_TENANCY
+          region=${OCI_REGION:-sa-saopaulo-1}
+          key_file=$HOME/.oci/key.pem
+          EOF
+          chmod 600 ~/.oci/config
+          printf '%s\n' "$SSH_KEY" > /tmp/vm.key && chmod 600 /tmp/vm.key
+          ssh-keygen -y -f /tmp/vm.key > /tmp/vm.pub && rm -f /tmp/vm.key
+          echo "pronto=1" >> "$GITHUB_OUTPUT"
+
+      - name: Cria a VM (se ainda não existir)
+        if: steps.cfg.outputs.pronto == '1'
+        env:
+          TENANCY: ${{ secrets.OCI_TENANCY }}
+          WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
+        run: |
+          set -euo pipefail
+          existente=$(oci compute instance list --compartment-id "$TENANCY" --display-name "$NOME" --all \
+            --query "data[?\"lifecycle-state\"!='TERMINATED' && \"lifecycle-state\"!='TERMINATING'].id | [0]" --raw-output 2>/dev/null || true)
+          if [ -n "$existente" ] && [ "$existente" != "null" ]; then
+            ip=$(oci compute instance list-vnics --instance-id "$existente" --query 'data[0]."public-ip"' --raw-output 2>/dev/null || true)
+            echo "A VM $NOME já existe (IP público: ${ip:-ainda sem IP}). Nada a fazer."
+            exit 0
+          fi
+
+          AD=$(oci iam availability-domain list --compartment-id "$TENANCY" --query 'data[0].name' --raw-output)
+          SUBNET=$(oci network subnet list --compartment-id "$TENANCY" --all \
+            --query 'data[?"prohibit-public-ip-on-vnic"==`false`].id | [0]' --raw-output)
+          IMG=$(oci compute image list --compartment-id "$TENANCY" --operating-system "Oracle Linux" \
+            --operating-system-version 9 --shape VM.Standard.A1.Flex --sort-by TIMECREATED --sort-order DESC \
+            --query 'data[0].id' --raw-output)
+          echo "AD=$AD"; echo "sub-rede: ${SUBNET:0:24}…"; echo "imagem: ${IMG:0:24}…"
+          if [ -z "$SUBNET" ] || [ "$SUBNET" = "null" ] || [ -z "$IMG" ] || [ "$IMG" = "null" ]; then
+            echo "Não achei a sub-rede pública ou a imagem Oracle Linux 9 (ARM)."; exit 1
+          fi
+
+          # Tenta o tamanho maior primeiro; sem capacidade, tenta o menor.
+          for cfg in '{"ocpus":2,"memoryInGBs":12}' '{"ocpus":1,"memoryInGBs":6}'; do
+            echo "Tentando $cfg…"
+            if oci compute instance launch --availability-domain "$AD" --compartment-id "$TENANCY" \
+                 --shape VM.Standard.A1.Flex --shape-config "$cfg" --display-name "$NOME" \
+                 --image-id "$IMG" --subnet-id "$SUBNET" --assign-public-ip true \
+                 --ssh-authorized-keys-file /tmp/vm.pub --wait-for-state RUNNING --max-wait-seconds 480 \
+                 >/tmp/saida.json 2>/tmp/erro.txt; then
+              id=$(python3 -c 'import json; print(json.load(open("/tmp/saida.json"))["data"]["id"])')
+              ip=$(oci compute instance list-vnics --instance-id "$id" --query 'data[0]."public-ip"' --raw-output)
+              echo "VM criada! $cfg — IP público: $ip"
+              if [ -n "$WEBHOOK" ]; then
+                curl -s -H 'Content-Type: application/json' \
+                  -d "{\"content\":\"Lodout: a VM Ampere ($NOME) foi criada. IP público: $ip ($cfg). Próximo passo: segredo ORACLE_HOST_NOVO no GitHub e migrar-vm → preparar.\"}" \
+                  "$WEBHOOK" >/dev/null || true
+              fi
+              exit 0
+            fi
+            if grep -qiE 'out of host capacity|capacidade insuficiente|InternalError' /tmp/erro.txt /tmp/saida.json 2>/dev/null; then
+              echo "Sem capacidade para $cfg agora."
+              continue
+            fi
+            echo "Erro inesperado:"; tail -20 /tmp/erro.txt; exit 1
+          done
+          echo "Sem capacidade A1 nesta rodada; tento de novo em 10 minutos."

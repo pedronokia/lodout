@@ -19,7 +19,8 @@
 # sobe no "ativar", depois que o da antiga parou.
 #
 # Segredos: ORACLE_HOST / ORACLE_SSH_KEY (VM antiga, os do deploy) e
-# ORACLE_HOST_NOVO / ORACLE_SSH_KEY_NOVO (VM nova). Os dados (volume
+# ORACLE_HOST_NOVO (VM nova; a chave é ORACLE_SSH_KEY_NOVO ou, sem ela, a
+# mesma ORACLE_SSH_KEY, como na VM criada pelo criar-ampere.yml). Os dados (volume
 # skinvault_data) nunca são apagados em nenhuma das duas VMs.
 name: migrar-vm
 
@@ -55,11 +56,12 @@ jobs:
       - name: Chaves SSH das duas VMs
         env:
           KEY_VELHA: ${{ secrets.ORACLE_SSH_KEY }}
-          KEY_NOVA: ${{ secrets.ORACLE_SSH_KEY_NOVO }}
+          # A VM criada pelo criar-ampere usa a mesma chave da antiga.
+          KEY_NOVA: ${{ secrets.ORACLE_SSH_KEY_NOVO || secrets.ORACLE_SSH_KEY }}
         run: |
           set -euo pipefail
           if [ -z "${NOVA}" ] || [ -z "${KEY_NOVA}" ]; then
-            echo "Faltam os segredos ORACLE_HOST_NOVO / ORACLE_SSH_KEY_NOVO."; exit 1
+            echo "Falta o segredo ORACLE_HOST_NOVO (IP da VM nova)."; exit 1
           fi
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s\n' "$KEY_VELHA" > ~/.ssh/velha && chmod 600 ~/.ssh/velha
