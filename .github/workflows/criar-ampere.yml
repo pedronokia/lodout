@@ -48,15 +48,37 @@ jobs:
           fi
           pip install -q oci-cli
           mkdir -p ~/.oci && chmod 700 ~/.oci
-          printf '%s\n' "$OCI_KEY" > ~/.oci/key.pem && chmod 600 ~/.oci/key.pem
-          cat > ~/.oci/config <<EOF
-          [DEFAULT]
-          user=$OCI_USER
-          fingerprint=$OCI_FINGERPRINT
-          tenancy=$OCI_TENANCY
-          region=${OCI_REGION:-sa-saopaulo-1}
-          key_file=$HOME/.oci/key.pem
-          EOF
+          # Os valores podem ter sido colados com o "user=" na frente ou o
+          # bloco inteiro da Oracle num segredo só: pega cada um pelo formato.
+          python3 - <<'PY'
+          import os, re
+          tudo = "\n".join(os.environ.get(k, "") for k in
+                           ("OCI_USER", "OCI_FINGERPRINT", "OCI_TENANCY", "OCI_REGION"))
+          def acha(padrao, nome):
+              m = re.search(padrao, tudo)
+              if not m:
+                  raise SystemExit(f"Não achei {nome} nos segredos OCI_*.")
+              return m.group(0)
+          user = acha(r"ocid1\.user\.[A-Za-z0-9._-]+", "o OCID do usuário (ocid1.user...)")
+          tenancy = acha(r"ocid1\.tenancy\.[A-Za-z0-9._-]+", "o OCID da tenancy (ocid1.tenancy...)")
+          fp = acha(r"(?:[0-9a-fA-F]{2}:){15}[0-9a-fA-F]{2}", "a impressão digital (fingerprint)")
+          reg = re.search(r"\b[a-z]{2}-[a-z]+-\d\b", tudo)
+          region = reg.group(0) if reg else "sa-saopaulo-1"
+          chave = os.environ.get("OCI_KEY", "")
+          m = re.search(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----", chave, re.S)
+          if not m:
+              raise SystemExit("O segredo OCI_KEY não tem uma chave privada (BEGIN/END PRIVATE KEY).")
+          home = os.path.expanduser("~")
+          with open(f"{home}/.oci/key.pem", "w") as f:
+              f.write(m.group(0).strip() + "\n")
+          with open(f"{home}/.oci/config", "w") as f:
+              f.write(f"[DEFAULT]\nuser={user}\nfingerprint={fp}\ntenancy={tenancy}\n"
+                      f"region={region}\nkey_file={home}/.oci/key.pem\n")
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"TENANCY={tenancy}\n")
+          print("Configuração montada: região", region)
+          PY
+          chmod 600 ~/.oci/key.pem
           chmod 600 ~/.oci/config
           printf '%s\n' "$SSH_KEY" > /tmp/vm.key && chmod 600 /tmp/vm.key
           ssh-keygen -y -f /tmp/vm.key > /tmp/vm.pub && rm -f /tmp/vm.key
@@ -65,7 +87,6 @@ jobs:
       - name: Cria a VM (se ainda não existir)
         if: steps.cfg.outputs.pronto == '1'
         env:
-          TENANCY: ${{ secrets.OCI_TENANCY }}
           WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
         run: |
           set -euo pipefail
