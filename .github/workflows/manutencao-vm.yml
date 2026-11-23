@@ -1,12 +1,13 @@
 # Manutenção da VM de produção, rodada à mão.
 #
-#   swap   -> cria (uma vez) um arquivo de swap de 4 GB na VM e o deixa
+#   swap   -> se a VM tiver menos de 2 GB de swap, cria um arquivo de 4 GB e o deixa
 #             ligado nos reboots. A VM atual (E2.1.Micro) tem 1 GB de
 #             memória e travou em 23/11 com site + worker + catálogo +
 #             backtest juntos; com swap, falta de memória vira lentidão
 #             em vez de travamento. Não reinicia containers nem mexe em
 #             dados. Idempotente: se o swap já existe, só mostra o estado.
-#   estado -> mostra memória, swap, disco e os containers (só leitura).
+#   estado -> mostra memória, swap, disco, containers, processos e serviços
+#             (só leitura).
 name: manutencao-vm
 
 on:
@@ -43,8 +44,9 @@ jobs:
           script: |
             set -euo pipefail
             if [ "$ACAO" = "swap" ]; then
-              if sudo swapon --show=NAME --noheadings | grep -q '/swapfile'; then
-                echo "Swap /swapfile já está ligado."
+              swap_mb=$(free -m | awk '/^Swap:/ {print $2}')
+              if [ "${swap_mb:-0}" -ge 2048 ]; then
+                echo "Já há ${swap_mb} MB de swap ligados; não criei outro."
               else
                 livre_gb=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
                 if [ "$livre_gb" -lt 8 ]; then
@@ -67,3 +69,8 @@ jobs:
             echo "--- swap"; sudo swapon --show || true
             echo "--- disco"; df -h / | tail -1
             echo "--- containers"; sudo docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' || true
+            echo "--- processos que mais usam memória (RSS, MB)"
+            ps -eo rss=,comm= --sort=-rss | head -15 | awk '{printf "%6.0f  %s\n", $1/1024, $2}'
+            echo "--- serviços do sistema ligados"
+            systemctl list-units --type=service --state=running --no-legend --plain | awk '{print $1}' | tr '\n' ' '; echo
+            echo "--- carga"; uptime
