@@ -31,7 +31,7 @@
   </span>
 {% else %}
   <span class="entrar-cta">
-    <a class="conta-link-entrar" href="{{ url_for('account.login') }}">{{ icone("steam") }}Entrar com Steam</a>
+    <a class="conta-link-entrar" href="{{ url_for('account.login') }}" aria-label="Entrar com Steam">{{ icone("steam") }}<span>Entrar<span class="entrar-com-steam"> com Steam</span></span></a>
   </span>
 {% endif %}
 {# Navegação inferior fixa no celular (item #20 da lista de melhorias):

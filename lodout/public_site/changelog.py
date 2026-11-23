@@ -12,9 +12,10 @@ ENTRADAS = [
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
         "data": "2026-11-23",
-        "titulo": "Apresentação mais direta",
+        "titulo": "Logomarca nova e apresentação mais direta",
         "itens": [
             "Início: o selo acima do título agora diz de onde vêm os dados: “Dados públicos da Steam”.",
+            "O Lodout ganhou logomarca: as aspas laranja agora vêm com o nome “Lodout” escrito ao lado, no topo e no rodapé. No celular, para caber, o botão de filtros mostra só o ícone e “Entrar com Steam” virou “Entrar”.",
         ],
     },
     {

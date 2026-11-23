@@ -162,6 +162,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
 - **Laranja Aspas** (#f97316): a cor da marca (as aspas do topo e do ícone do site), links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
+- **Logomarca** (23/11, escolha do usuário): as aspas em Laranja Aspas + a escrita "Lodout" em Sora 700 (espaço entre letras -0,035em), branca, convertida em desenho (`partials/_logo_escrita.html`; o site não carrega a fonte). Aparece no topo (computador e celular) e no rodapé; no tablet (641-960px) o topo fica só com as aspas, por falta de espaço. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar".
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 
