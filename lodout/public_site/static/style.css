@@ -11056,37 +11056,37 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .home-tese-selo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 36px;
-  padding: 8px 18px 8px 14px;
-  margin-bottom: 16px;
+  gap: 7px;
+  min-height: 25px;
+  padding: 3px 12px 3px 9px;
+  margin-bottom: 14px;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--accent) 15%, rgba(20, 20, 20, 0.95));
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.16));
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 26%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.20);
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.84rem;
+  background: color-mix(in srgb, var(--accent) 12%, rgba(20, 20, 20, 0.95));
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, rgba(255, 255, 255, 0.14));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.75rem;
   letter-spacing: -0.01em;
   width: fit-content;
   max-width: 100%;
-  line-height: 1.4;
+  line-height: 1;
   transition: all 0.15s ease;
 }
 .home-tese-selo[hidden] { display: none; }
 
 .home-tese-selo:hover {
-  background: color-mix(in srgb, var(--accent) 20%, rgba(20, 20, 20, 0.95));
-  border-color: color-mix(in srgb, var(--accent) 80%, rgba(255, 255, 255, 0.3));
+  background: color-mix(in srgb, var(--accent) 18%, rgba(20, 20, 20, 0.95));
+  border-color: color-mix(in srgb, var(--accent) 70%, rgba(255, 255, 255, 0.25));
 }
 
 .home-tese-selo-ponto {
-  width: 9px;
-  height: 9px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent-bright);
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.95);
+  box-shadow: 0 0 6px var(--accent-bright);
   flex-shrink: 0;
 }
 
@@ -11095,13 +11095,13 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .home-tese-selo-sep {
-  opacity: 0.45;
-  padding: 0 4px;
+  opacity: 0.4;
+  padding: 0 3px;
 }
 
 .home-tese-selo strong {
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
@@ -12441,19 +12441,21 @@ button.confira { min-height: 24px; padding-block: 3px; }
    pílula. Altura livre, cantos menores e entrelinha normal. */
 @media (max-width: 640px) {
   .home-tese-selo {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     height: auto;
-    min-height: 34px;
-    padding: 8px 14px 8px 12px;
-    border-radius: 14px;
-    font-size: 0.8125rem;
-    line-height: 1.35;
-    width: 100%;
+    min-height: 24px;
+    padding: 3px 10px 3px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    width: fit-content;
+    max-width: 100%;
+    margin-bottom: 12px;
   }
   .home-tese-selo-ponto {
-    margin-top: 5px;
+    margin-top: 0;
   }
 }
 
