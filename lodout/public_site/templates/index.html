@@ -295,28 +295,6 @@
     </div>
   </header>
 
-  <div class="tarja-aviso-loja" role="region" aria-label="Aviso: Não somos loja e nem vendemos skins">
-    <div class="tarja-aviso-tape-track" aria-hidden="true">
-      <div class="tarja-aviso-tape-grupo">
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-      </div>
-      <div class="tarja-aviso-tape-grupo">
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-        <span class="tarja-aviso-tape-item">Não somos loja e nem vendemos skins</span>
-        <span class="tarja-aviso-tape-sep">•</span>
-      </div>
-    </div>
-    <span class="visualmente-oculto">Não somos loja e nem vendemos skins</span>
-  </div>
-
   <main id="conteudo" class="pagina-inicial">
     {# Mensagem de uma ação que termina aqui (ex.: conta excluída). #}
     {% include "partials/_mensagens.html" %}
@@ -327,7 +305,7 @@
     <header class="home-tese">
       <div class="home-tese-selo">
         <span class="home-tese-selo-ponto" aria-hidden="true"></span>
-        <span class="home-tese-selo-texto">Análise independente</span>
+        <span class="home-tese-selo-texto">Análise independente <span class="home-tese-selo-sep">·</span> <strong>Não somos loja nem vendemos skins</strong></span>
       </div>
       <h1 class="home-tese-titulo">Entenda o mercado de skins de Counter-Strike 2</h1>
       {% set ns_risco = namespace(tem=false) %}

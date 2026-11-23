@@ -11050,118 +11050,59 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 /* --- 1. Início (/): Hero Tese, Hero Destaque, Telemetria & Controles --- */
 
 .home-tese {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   margin: 0 0 var(--sp-5);
-}
-
-/* Faixa de aviso estilo fita caution (Não somos loja e nem vendemos skins) */
-.tarja-aviso-loja {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 30px;
-  overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--warn) 92%, #ffffff) 0%, var(--warn) 60%, color-mix(in srgb, var(--warn) 86%, #000000) 100%);
-  color: #000000;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
-  border-bottom: 1.5px solid rgba(0, 0, 0, 0.4);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  user-select: none;
-  cursor: default;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 36px, black calc(100% - 36px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 36px, black calc(100% - 36px), transparent 100%);
-}
-.tarja-aviso-loja[hidden] { display: none; }
-
-.tarja-aviso-tape-track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  animation: tarja-tape-scroll 32s linear infinite;
-  will-change: transform;
-}
-.tarja-aviso-tape-track[hidden] { display: none; }
-
-.tarja-aviso-loja:hover .tarja-aviso-tape-track {
-  animation-play-state: paused;
-}
-
-.tarja-aviso-tape-grupo {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  gap: 32px;
-  padding-right: 32px;
-}
-
-.tarja-aviso-tape-item {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #000000;
-  white-space: nowrap;
-}
-
-.tarja-aviso-tape-sep {
-  display: inline-flex;
-  align-items: center;
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 0.9375rem;
-  line-height: 1;
-  user-select: none;
-}
-
-@keyframes tarja-tape-scroll {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tarja-aviso-tape-track {
-    animation: none;
-  }
 }
 
 .home-tese-selo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 28px;
-  padding: 4px 14px 4px 11px;
-  margin-bottom: 14px;
+  gap: 10px;
+  min-height: 36px;
+  padding: 8px 18px 8px 14px;
+  margin-bottom: 16px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 15%, rgba(20, 20, 20, 0.95));
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, rgba(255, 255, 255, 0.16));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 26%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.84rem;
   letter-spacing: -0.01em;
   width: fit-content;
-  line-height: 1;
+  max-width: 100%;
+  line-height: 1.4;
+  transition: all 0.15s ease;
 }
 .home-tese-selo[hidden] { display: none; }
 
+.home-tese-selo:hover {
+  background: color-mix(in srgb, var(--accent) 20%, rgba(20, 20, 20, 0.95));
+  border-color: color-mix(in srgb, var(--accent) 80%, rgba(255, 255, 255, 0.3));
+}
+
 .home-tese-selo-ponto {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--accent-bright);
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.95);
   flex-shrink: 0;
+}
+
+.home-tese-selo-texto {
+  display: inline;
+}
+
+.home-tese-selo-sep {
+  opacity: 0.45;
+  padding: 0 4px;
+}
+
+.home-tese-selo strong {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .home-tese-titulo {
@@ -12499,25 +12440,20 @@ button.confira { min-height: 24px; padding-block: 3px; }
    fixa de 24px, a frase quebrava e "skins" ficava espremido fora da
    pílula. Altura livre, cantos menores e entrelinha normal. */
 @media (max-width: 640px) {
-  .tarja-aviso-loja {
-    height: 26px;
-    margin-bottom: 0;
-  }
-  .tarja-aviso-tape-item {
-    font-size: 0.6875rem;
-    letter-spacing: 0.11em;
-  }
-  .tarja-aviso-tape-grupo {
-    gap: 20px;
-    padding-right: 20px;
-  }
   .home-tese-selo {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     height: auto;
-    min-height: 26px;
-    padding: 3px 10px;
-    border-radius: var(--radius-pill);
-    font-size: 0.75rem;
-    margin-bottom: 12px;
+    min-height: 34px;
+    padding: 8px 14px 8px 12px;
+    border-radius: 14px;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    width: 100%;
+  }
+  .home-tese-selo-ponto {
+    margin-top: 5px;
   }
 }
 
