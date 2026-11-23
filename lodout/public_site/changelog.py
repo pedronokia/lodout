@@ -11,6 +11,13 @@ ENTRADAS = [
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.
     {
+        "data": "2026-11-23",
+        "titulo": "Apresentação mais direta",
+        "itens": [
+            "Início: o selo acima do título agora diz de onde vêm os dados: “Dados públicos da Steam”.",
+        ],
+    },
+    {
         "data": "2026-11-22",
         "titulo": "Acabamento no celular e na conta",
         "itens": [
