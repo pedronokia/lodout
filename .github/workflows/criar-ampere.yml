@@ -66,11 +66,27 @@ jobs:
           region = reg.group(0) if reg else "sa-saopaulo-1"
           chave = os.environ.get("OCI_KEY", "")
           m = re.search(r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----", chave, re.S)
-          if not m:
-              raise SystemExit("O segredo OCI_KEY não tem uma chave privada (BEGIN/END PRIVATE KEY).")
+          if m:
+              pem = m.group(0).strip()
+          else:
+              # Só o miolo da chave (sem as linhas BEGIN/END): remonta o PEM.
+              if "PUBLIC KEY" in chave:
+                  raise SystemExit("O segredo OCI_KEY tem a chave PÚBLICA; precisa da PRIVADA (arquivo .pem baixado).")
+              corpo = re.sub(r"\bOCI_API_KEY\b", "", chave)
+              corpo = re.sub(r"[^A-Za-z0-9+/=]", "", corpo)
+              if len(corpo) < 800:
+                  raise SystemExit(f"O segredo OCI_KEY não parece uma chave privada ({len(corpo)} caracteres úteis).")
+              linhas = [corpo[i:i + 64] for i in range(0, len(corpo), 64)]
+              pem = "-----BEGIN PRIVATE KEY-----\n" + "\n".join(linhas) + "\n-----END PRIVATE KEY-----"
+              print(f"OCI_KEY sem BEGIN/END: chave remontada ({len(corpo)} caracteres).")
           home = os.path.expanduser("~")
           with open(f"{home}/.oci/key.pem", "w") as f:
-              f.write(m.group(0).strip() + "\n")
+              f.write(pem + "\n")
+          import subprocess
+          ok = subprocess.run(["openssl", "pkey", "-in", f"{home}/.oci/key.pem", "-noout"],
+                              capture_output=True).returncode == 0
+          if not ok:
+              raise SystemExit("O segredo OCI_KEY não é uma chave privada válida.")
           with open(f"{home}/.oci/config", "w") as f:
               f.write(f"[DEFAULT]\nuser={user}\nfingerprint={fp}\ntenancy={tenancy}\n"
                       f"region={region}\nkey_file={home}/.oci/key.pem\n")
