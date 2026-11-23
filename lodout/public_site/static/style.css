@@ -581,19 +581,12 @@ header.topo h1 {
 
 .nav-principal a:hover { color: var(--chrome-texto-forte); }
 
-/* Página atual (pedido do usuário, 17/11): texto forte e um traço
-   laranja curto embaixo -- antes ficava igual aos demais e não dava
-   para saber onde se estava no computador (o celular já marcava). */
-.nav-principal a[aria-current="page"] { color: var(--chrome-texto-forte); }
-.nav-principal a[aria-current="page"]::after {
-  content: "";
-  position: absolute;
-  right: 8px;
-  bottom: 6px;
-  left: 8px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--marca);
+/* Página atual: texto aceso (branco forte, com um brilho leve). O traço
+   laranja embaixo saiu (pedido do usuário, 23/11); antes (17/11) o atual
+   ficava igual aos demais e não dava para saber onde se estava. */
+.nav-principal a[aria-current="page"] {
+  color: var(--chrome-texto-forte);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
 }
 
 .nav-principal a:focus-visible { outline-offset: -2px; }

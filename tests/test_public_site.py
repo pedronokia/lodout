@@ -6093,14 +6093,17 @@ def test_historico_da_nota_compacta_e_apaga_o_velho():
 
 def test_menu_do_topo_marca_a_pagina_atual(client):
     """Pedido 17/11: no computador, o menu do topo mostra em qual página
-    a pessoa está (o celular já marcava na barra de baixo)."""
+    a pessoa está (o celular já marcava na barra de baixo). Desde 23/11
+    (pedido do usuário) só com o texto aceso, sem o traço laranja."""
     body = client.get("/ranking").data.decode("utf-8")
     nav = body.split('class="nav-principal"', 1)[1].split("</nav>", 1)[0]
     assert '<a href="/ranking" aria-current="page">Ranking</a>' in nav
     assert nav.count('aria-current="page"') == 1
     from pathlib import Path
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "static" / "style.css").read_text(encoding="utf-8")
-    assert '.nav-principal a[aria-current="page"]::after' in css
+    bloco = css.split('.nav-principal a[aria-current="page"] {', 1)[1].split("}", 1)[0]
+    assert "color: var(--chrome-texto-forte)" in bloco and "text-shadow" in bloco
+    assert '.nav-principal a[aria-current="page"]::after' not in css
 
 
 def test_api_sugestoes_spotlight_retorna_metadados(client, monkeypatch, tmp_path):

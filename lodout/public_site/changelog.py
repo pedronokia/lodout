@@ -15,7 +15,8 @@ ENTRADAS = [
         "titulo": "Logomarca nova e apresentação mais direta",
         "itens": [
             "Início: o selo acima do título agora diz de onde vêm os dados: “Dados públicos da Steam”.",
-            "O Lodout ganhou logomarca: o nome com a barra de desgaste das skins embaixo, em tons de laranja, no topo e no rodapé. O ícone da aba, do celular e do app virou o L do logo sobre a mesma barra, e a imagem que aparece ao compartilhar o site também usa o logo novo. No celular, para caber, o botão de filtros mostra só o ícone e “Entrar com Steam” virou “Entrar”.",
+            "O Lodout ganhou logomarca: o nome, na mesma letra do site, com a barra de desgaste das skins embaixo, em tons de laranja, no topo e no rodapé. O ícone da aba, do celular e do app virou o L do logo sobre a mesma barra, e a imagem que aparece ao compartilhar o site também usa o logo novo. No celular, para caber, o botão de filtros mostra só o ícone e “Entrar com Steam” virou “Entrar”.",
+            "No menu do topo, a página em que você está aparece com as letras acesas, sem o traço laranja embaixo.",
         ],
     },
     {

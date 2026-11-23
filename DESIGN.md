@@ -260,7 +260,7 @@ Cantos suaves e consistentes por escala: 8px em controles pequenos e campos, 12p
 - **Error / Disabled:** mensagem em Vermelho Queda logo abaixo, dizendo o problema e como resolver.
 
 ### Navigation
-- **Desktop:** barra Moldura (#080808) com a marca à esquerda, links centrais em texto translúcido e "Entrar com Steam" à direita. A página atual fica em texto forte com um traço Laranja Aspas de 2px embaixo (sem negrito, para os vizinhos não mudarem de lugar); nos links da conta, o atual fica em texto forte.
+- **Desktop:** barra Moldura (#080808) com a marca à esquerda, links centrais em texto translúcido e "Entrar com Steam" à direita. A página atual fica com o texto aceso: branco forte e um brilho leve, sem traço embaixo (pedido do usuário, 23/11) e sem negrito, para os vizinhos não mudarem de lugar; nos links da conta, o atual fica em texto forte.
 - **Celular:** barra fixa no rodapé com cinco itens (ícone + texto), o atual em laranja.
 
 ### Segmented Control (seletor de período)
