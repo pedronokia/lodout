@@ -74,19 +74,21 @@ def _quebrar(texto: str, fonte, largura_max: int, linhas_max: int) -> "list[str]
     return linhas
 
 
-_MASCARA_ASPAS = Path(__file__).parent / "static" / "logo-aspas-mascara.png"
+_LOGO = Path(__file__).parent / "static" / "logo-lodout.png"
+_SIMBOLO = Path(__file__).parent / "static" / "logo-L.png"
 
 
-def _aspas(img: Image.Image, x: int, y: int, altura: int,
-           cor=_LARANJA) -> None:
-    """As aspas do logo, com o mesmo desenho do topo do site (revisão 20/11:
-    antes era o caractere “ da Inter, reto e inclinado, diferente do logo).
-    A máscara é o traço do partials/_logo_aspas.html em PNG; (x, y) é o
-    canto de cima à esquerda e `altura` a altura das aspas em pixels."""
-    mascara = Image.open(_MASCARA_ASPAS).convert("L")
-    largura = round(mascara.width * altura / mascara.height)
-    mascara = mascara.resize((largura, altura), Image.LANCZOS)
-    img.paste(Image.new("RGB", mascara.size, cor), (x, y), mascara)
+def _simbolo(img: Image.Image, x: int, y: int, altura: int,
+             opacidade: float = 1.0) -> None:
+    """O L do logo (23/11) sobre a barra de desgaste, o mesmo do ícone do
+    site (static/logo-L.svg em PNG transparente). (x, y) é o canto de cima
+    à esquerda e `altura` a altura em pixels."""
+    simbolo = Image.open(_SIMBOLO).convert("RGBA")
+    largura = round(simbolo.width * altura / simbolo.height)
+    simbolo = simbolo.resize((largura, altura), Image.LANCZOS)
+    if opacidade < 1:
+        simbolo.putalpha(simbolo.getchannel("A").point(lambda a: round(a * opacidade)))
+    img.paste(simbolo, (x, y), simbolo)
 
 
 def _estrela(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,
@@ -111,8 +113,11 @@ def cartao_padrao() -> bytes:
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
-    _aspas(img, 100, 96, 110)
-    d.text((96, 245), "Lodout", font=_fonte(150, 750), fill=_TEXTO)
+    # A logomarca (23/11): "Lodout" + barra de desgaste, em PNG transparente.
+    logo = Image.open(_LOGO).convert("RGBA")
+    larg = 560
+    logo = logo.resize((larg, round(logo.height * larg / logo.width)), Image.LANCZOS)
+    img.paste(logo, (100, 178), logo)
     frase = "Análise do mercado de skins\nde Counter-Strike 2."
     y = 430
     for linha in frase.split("\n"):
@@ -150,10 +155,11 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
         except Exception:
             icone = None
     if not icone:
-        alt = 130
-        larg = round(alt * 640 / 576)
-        _aspas(img, qx + (qt - larg) // 2, qy + (qt - alt) // 2, alt,
-               cor=(90, 90, 90))
+        # Sem ícone do item: o símbolo do logo, apagado, no lugar.
+        alt = 150
+        larg = round(alt * 441 / 500)
+        _simbolo(img, qx + (qt - larg) // 2, qy + (qt - alt) // 2, alt,
+                 opacidade=0.3)
 
     x = qx + qt + 60
     largura_txt = LARGURA - x - 70

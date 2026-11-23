@@ -12681,32 +12681,21 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
    da seção não precisa da margem cheia de 48px (somava ~70px de vão). */
 .subnav-conta + .secao-titulo { margin-top: var(--sp-4); }
 
-/* Logomarca (23/11): as aspas laranja + a escrita "Lodout" em Sora 700
-   (partials/_logo_escrita.html). A escrita fica branca; só as aspas
-   acendem ao passar o mouse. Altura = altura das maiúsculas. */
-.logo { gap: 8px; }
-.logo-escrita {
-  display: block;
-  height: 18px;
-  width: auto;
-  aspect-ratio: 3403 / 749;
-  flex-shrink: 0;
-  fill: var(--text-bright);
+/* Logomarca (23/11, escolha do usuário): "Lodout" + barra de desgaste
+   em tons de laranja (static/logo-lodout.svg), pequena. No tablet
+   (641-960px), onde o menu divide a linha, vai só o L (logo-L.svg). */
+.logo .logo-marca { display: block; height: 26px; width: auto; }
+.logo .logo-icone { display: none; width: auto; height: 26px; }
+@media (min-width: 641px) and (max-width: 960px) {
+  .logo .logo-marca { display: none; }
+  .logo .logo-icone { display: block; }
 }
 @media (max-width: 640px) {
-  .logo { gap: 6px; }
-  .logo-icone { width: 24px; height: 24px; }
-  .logo-escrita { height: 15px; }
+  .logo .logo-marca { height: 22px; }
 }
-footer.rodape .rodape-marca-nome { gap: 6px; }
-.rodape-marca-escrita {
-  display: block;
-  height: 14px;
-  width: auto;
-  aspect-ratio: 3403 / 749;
-  fill: var(--text-bright);
-}
-/* Para a escrita caber no topo do celular (escolha "B" do usuário, 23/11):
+footer.rodape .rodape-marca-nome { gap: 0; }
+.rodape-marca-logo { display: block; height: 24px; width: auto; }
+/* Para o logo caber no topo do celular (escolha "B" do usuário, 23/11):
    "Filtros" fica só com o ícone (o botão já se chama "Abrir filtros") e
    "Entrar com Steam" mostra só "Entrar" (o nome completo fica no
    aria-label e o ícone da Steam continua). */
@@ -12714,17 +12703,9 @@ footer.rodape .rodape-marca-nome { gap: 6px; }
   .filtro-topo-txt { display: none; }
   .entrar-com-steam { display: none; }
 }
-/* Tablet (641-960px): o menu central divide a linha com a busca e o
-   botão de entrar; a escrita quebraria o topo em duas linhas, então ali
-   ficam só as aspas, como antes. */
-@media (min-width: 641px) and (max-width: 960px) {
-  .logo .logo-escrita { display: none; }
-}
-/* Celulares estreitos (até 374px, ex.: 360px): espaços menores para a
-   escrita caber sem empurrar a conta para a segunda linha. */
+/* Celulares estreitos (até 374px, ex.: 360px): espaços menores para o
+   logo caber sem empurrar a conta para a segunda linha. */
 @media (max-width: 374px) {
   .topo-linha { column-gap: 8px; }
-  .logo { gap: 4px; }
-  .logo-icone { width: 22px; height: 22px; }
-  .logo-escrita { height: 14px; }
+  .logo .logo-marca { height: 20px; }
 }

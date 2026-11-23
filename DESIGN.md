@@ -162,7 +162,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
 - **Laranja Aspas** (#f97316): a cor da marca (as aspas do topo e do ícone do site), links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
-- **Logomarca** (23/11, escolha do usuário): as aspas em Laranja Aspas + a escrita "Lodout" em Sora 700 (espaço entre letras -0,035em), branca, convertida em desenho (`partials/_logo_escrita.html`; o site não carrega a fonte). Aparece no topo (computador e celular) e no rodapé; no tablet (641-960px) o topo fica só com as aspas, por falta de espaço. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar".
+- **Logomarca** (23/11, escolha do usuário): "Lodout" em branco com a barra de desgaste das skins embaixo, em 4 trechos que vão do laranja cheio ao marrom (`static/logo-lodout.svg`, vetorizado da arte escolhida). O ícone (aba, celular, app, `favicon*`, `icon-*`) é só o L sobre a mesma barra, num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai o logo completo pequeno (26px; 22px no celular); no tablet (641-960px), só o L. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa o mesmo logo (`og_cards`, `scripts/gerar_og_image.py`).
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 

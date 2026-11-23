@@ -1509,21 +1509,16 @@ def test_index_aba_todas_bate_com_total_mostrado(client, monkeypatch, tmp_path):
 
 
 def test_index_logo_no_topo(client, monkeypatch, tmp_path):
-    """Decisão de 2026-11-11: a marca escrita (208px) deu lugar a um
-    símbolo do tamanho de um ícone de barra e, depois, só às aspas
-    soltas (sem disco atrás) -- o nome completo continua no aria-label
-    do link."""
+    """Logomarca de 23/11 (escolha do usuário): "Lodout" com a barra de
+    desgaste em tons de laranja (logo-lodout.svg); no tablet vai só o L
+    (logo-L.svg). O nome completo fica no aria-label do link."""
     _salva_scan(tmp_path, monkeypatch, [])
     body = client.get("/").data.decode("utf-8")
-    assert 'class="logo"' in body
-    assert 'class="logo-icone"' in body
-    assert 'class="logo-aspas"' in body
-    assert 'aria-label="Lodout — página inicial"' in body
-    assert 'class="logo-cheia"' not in body
-    # A marca agora é só o desenho das aspas: nada de disco/círculo atrás.
     logo = body.split('class="logo"', 1)[1].split("</a>", 1)[0]
-    assert "<circle" not in logo
-
+    assert 'aria-label="Lodout — página inicial"' in body
+    assert 'class="logo-marca"' in logo and "/static/logo-lodout.svg" in logo
+    assert 'class="logo-icone"' in logo and "/static/logo-L.svg" in logo
+    assert 'class="logo-aspas"' not in body          # as aspas antigas saíram
 
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
@@ -3969,15 +3964,15 @@ def test_manifest_json_tem_icones_png(client):
         assert resp.mimetype == "image/png"
 
 
-def test_icones_do_site_usam_as_aspas_da_marca(client):
-    """17/11 (escolha do usuário): o ícone da aba são as aspas laranja do
-    topo do site, sem fundo (o "L" com degradê ficava borrado em 16 px);
-    o do celular, as mesmas aspas sobre fundo escuro."""
+def test_icones_do_site_usam_o_l_do_logo(client):
+    """23/11 (escolha do usuário): o ícone da aba, do celular e do app é o
+    L do logo sobre a barra de desgaste em tons de laranja, num fundo
+    escuro (antes, 17/11: as aspas laranja)."""
     import xml.dom.minidom
     svg = client.get("/static/favicon.svg").data.decode("utf-8")
     xml.dom.minidom.parseString(svg)           # SVG válido (sem "--" em comentário)
-    assert 'fill="#f97316"' in svg
-    assert 'id="fade"' not in svg and "<circle" not in svg
+    assert 'fill="#fe540c"' in svg and 'fill="#f5f5f5"' in svg
+    assert 'fill="#0b0b0b"' in svg
 
     from PIL import Image
     import io
@@ -3986,13 +3981,14 @@ def test_icones_do_site_usam_as_aspas_da_marca(client):
         img = Image.open(io.BytesIO(dados)).convert("RGB")
         assert img.size == (lado, lado)
         px = img.load()
-        escuros = sum(1 for y in range(lado) for x in range(lado)
-                      if sum(px[x, y]) < 200)
-        coloridos = sum(1 for y in range(lado) for x in range(lado)
-                        if max(px[x, y]) - min(px[x, y]) > 120)
-        assert escuros > lado * lado * 0.55   # fundo escuro
-        assert coloridos > lado * lado * 0.05  # aspas laranja
-
+        total = lado * lado
+        escuros = sum(1 for y in range(lado) for x in range(lado) if sum(px[x, y]) < 200)
+        brancos = sum(1 for y in range(lado) for x in range(lado) if min(px[x, y]) > 220)
+        laranjas = sum(1 for y in range(lado) for x in range(lado)
+                       if px[x, y][0] > 90 and px[x, y][0] - px[x, y][2] > 80)
+        assert escuros > total * 0.55    # fundo escuro
+        assert brancos > total * 0.03    # o L branco
+        assert laranjas > total * 0.015  # a barra laranja
 
 def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
     monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
@@ -6050,9 +6046,9 @@ def test_pessoas_no_site_agora_tem_limite_por_ip(client):
     rate_limit._hits.clear()
 
 
-def test_icone_da_aba_em_png_encaixado_nos_pixels(client):
-    """17/11 (escolha do usuário): na aba vão PNGs de 16 e 32 px desenhados
-    na grade de pixels (bordas retas nítidas); o SVG ficou só no manifesto."""
+def test_icone_da_aba_em_png_com_o_l_do_logo(client):
+    """Na aba vão PNGs de 16 e 32 px (17/11); desde 23/11 com o L do logo
+    sobre a barra laranja, num quadrado escuro de cantos arredondados."""
     import io
 
     from PIL import Image
@@ -6064,13 +6060,14 @@ def test_icone_da_aba_em_png_encaixado_nos_pixels(client):
         img = Image.open(io.BytesIO(client.get(f"/static/favicon-{lado}.png").data)).convert("RGBA")
         assert img.size == (lado, lado)
         px = img.load()
-        # Bordas: nenhum pixel desenhado encostado na borda (há respiro).
-        assert all(px[x, 0][3] == 0 and px[x, lado - 1][3] == 0 for x in range(lado))
-        assert all(px[0, y][3] == 0 and px[lado - 1, y][3] == 0 for y in range(lado))
-        # Nitidez: a maioria dos pixels desenhados é cheia, não meio-tom.
-        alfas = [px[x, y][3] for y in range(lado) for x in range(lado) if px[x, y][3]]
-        assert sum(1 for a in alfas if a > 230) / len(alfas) >= 0.55  # o antigo, sem encaixe: 0,51; este: 0,60
-
+        # Cantos arredondados: o pixel do canto é transparente.
+        for x, y in ((0, 0), (lado - 1, 0), (0, lado - 1), (lado - 1, lado - 1)):
+            assert px[x, y][3] < 128
+        # O centro é o quadrado escuro (opaco), com o L branco e a barra laranja.
+        assert px[lado // 2, lado // 2][3] == 255
+        cores = [px[x, y] for y in range(lado) for x in range(lado) if px[x, y][3] > 200]
+        assert any(min(c[:3]) > 200 for c in cores)                   # branco
+        assert any(c[0] > 150 and c[0] - c[2] > 90 for c in cores)    # laranja
 
 def test_historico_da_nota_compacta_e_apaga_o_velho():
     """notas_historico (17/11): 35 dias completos; mais velho, 1 foto por
@@ -6175,15 +6172,15 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
     assert client.get("/static/popover.js").status_code == 200
 
 
-def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
-    """A imagem do WhatsApp/Discord desenhava o “ da fonte Inter (reto e
-    inclinado), diferente do logo (revisão 20/11). Agora usa a máscara do
-    mesmo traço do topo do site, e o og-image.png publicado está em dia."""
+def test_previa_de_compartilhamento_usa_a_logomarca():
+    """A imagem do WhatsApp/Discord usa a logomarca do site (23/11: "Lodout"
+    + barra de desgaste, de static/logo-lodout.png), e o og-image.png
+    publicado está em dia com o og_cards."""
     import io as _io
     from pathlib import Path as _P
     from PIL import Image as _Img, ImageChops as _Ch
     from lodout.public_site import og_cards
-    assert og_cards._MASCARA_ASPAS.exists()
+    assert og_cards._LOGO.exists() and og_cards._SIMBOLO.exists()
     novo = _Img.open(_io.BytesIO(og_cards.cartao_padrao())).convert("RGB")
     publicado = _Img.open(_P(og_cards.__file__).parent / "static" / "og-image.png").convert("RGB")
     diff = _Ch.difference(novo, publicado)
@@ -6193,12 +6190,14 @@ def test_prevue_de_compartilhamento_usa_as_aspas_do_logo():
         pass  # No Windows, FreeType varia levemente o rendering da fonte variável
     else:
         assert bbox is None
-    # aspas laranja na área do logo, à esquerda e acima do nome
-    area = novo.crop((90, 90, 240, 215))
-    laranja = sum(1 for x in range(area.width) for y in range(area.height)
-                  if (lambda px: px[0] > 200 and 90 < px[1] < 140 and px[2] < 60)(area.getpixel((x, y))))
-    assert laranja > 3000
-
+    # O nome em branco e a barra laranja logo abaixo, à esquerda.
+    nome = novo.crop((100, 178, 660, 300))
+    barra = novo.crop((100, 300, 660, 350))
+    brancos = sum(1 for x in range(nome.width) for y in range(nome.height) if min(nome.getpixel((x, y))) > 220)
+    laranjas = sum(1 for x in range(barra.width) for y in range(barra.height)
+                   if (lambda px: px[0] > 90 and px[0] - px[2] > 80)(barra.getpixel((x, y))))
+    assert brancos > 8000
+    assert laranjas > 8000
 
 def test_queda_recente_usa_virgula_e_sinal_de_menos():
     """Variação percentual usa vírgula e sinal no index (revisão 20/11)."""

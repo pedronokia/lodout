@@ -1,4 +1,7 @@
+{# Logomarca (23/11, escolha do usuário): "Lodout" com a barra de desgaste
+   em tons de laranja embaixo (static/logo-lodout.svg). No tablet, onde o
+   menu divide a linha, vai só o L (static/logo-L.svg, o mesmo do ícone). #}
 <a class="logo" href="{{ url_for('index') }}" aria-label="Lodout — página inicial">
-  {% include "partials/_logo_aspas.html" %}
-  {% include "partials/_logo_escrita.html" %}
+  <img class="logo-marca" src="{{ static_v('logo-lodout.svg') }}" alt="" width="88" height="26" decoding="async">
+  <img class="logo-icone" src="{{ static_v('logo-L.svg') }}" alt="" width="23" height="26" decoding="async">
 </a>
