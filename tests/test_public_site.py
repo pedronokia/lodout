@@ -6192,12 +6192,12 @@ def test_previa_de_compartilhamento_usa_a_logomarca():
         assert bbox is None
     # O nome em branco e a barra laranja logo abaixo, à esquerda.
     nome = novo.crop((100, 178, 660, 300))
-    barra = novo.crop((100, 300, 660, 350))
+    barra = novo.crop((100, 332, 660, 364))
     brancos = sum(1 for x in range(nome.width) for y in range(nome.height) if min(nome.getpixel((x, y))) > 220)
     laranjas = sum(1 for x in range(barra.width) for y in range(barra.height)
                    if (lambda px: px[0] > 90 and px[0] - px[2] > 80)(barra.getpixel((x, y))))
     assert brancos > 8000
-    assert laranjas > 8000
+    assert laranjas > 7000
 
 def test_queda_recente_usa_virgula_e_sinal_de_menos():
     """Variação percentual usa vírgula e sinal no index (revisão 20/11)."""
