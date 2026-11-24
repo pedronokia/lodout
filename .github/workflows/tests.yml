@@ -61,14 +61,6 @@ jobs:
             echo "::notice title=Cobertura dos testes::${total} do código de lodout/ (mínimo 90%)"
           fi
           exit "$status"
-      - name: Gera og-image no Linux
-        if: always()
-        run: python scripts/gerar_og_image.py
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: og-image-linux
-          path: lodout/public_site/static/og-image.png
 
   # Regressão visual (2026-11-12): captura as telas principais com
   # Playwright num dataset fixo e compara com as imagens-base em
