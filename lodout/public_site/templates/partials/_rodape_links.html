@@ -7,7 +7,7 @@
      atraso também muda a frase, não só a bolinha. #}
   <p class="rodape-frescor{{ ' rodape-frescor-atrasada' if coleta_atrasada else '' }}">
     <span class="rodape-frescor-ponto" aria-hidden="true"></span>
-    {% if coleta_atrasada %}Preços atrasados: última atualização {{ coleta_quando }}{% else %}Preços atualizados {{ coleta_quando }}{% endif %}
+    {% if coleta_atrasada %}Dados atrasados: última atualização {{ coleta_quando }}{% else %}Dados atualizados {{ coleta_quando }}{% endif %}
     · <a href="{{ url_for('status') }}">Status</a>
   </p>
   {% endif %}

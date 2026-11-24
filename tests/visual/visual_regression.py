@@ -244,7 +244,7 @@ def _semear(data_dir: Path) -> None:
     }
     (data_dir / "scanner_last.json").write_text(
         json.dumps(scanner, ensure_ascii=False), encoding="utf-8")
-    # O rodapé ("Preços atualizados há 1 h") usa a data do ARQUIVO da
+    # O rodapé ("Dados atualizados há 1 h") usa a data do ARQUIVO da
     # coleta: sem fixá-la, dizia "Preços atrasados: há 47 dias" e mudava
     # a cada dia (achado 2026-11-17).
     os.utime(data_dir / "scanner_last.json",

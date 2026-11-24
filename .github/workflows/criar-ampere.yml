@@ -143,10 +143,10 @@ jobs:
               fi
               exit 0
             fi
-            if grep -qiE 'out of host capacity|capacidade insuficiente|InternalError' /tmp/erro.txt /tmp/saida.json 2>/dev/null; then
-              echo "Sem capacidade para $cfg agora."
+            if grep -qiE 'out of host capacity|capacidade insuficiente|InternalError|TooManyRequests|Too Many Requests|http status code: 429' /tmp/erro.txt /tmp/saida.json 2>/dev/null; then
+              echo "Sem capacidade ou limite de chamadas para $cfg agora."
               continue
             fi
             echo "Erro inesperado:"; tail -20 /tmp/erro.txt; exit 1
           done
-          echo "Sem capacidade A1 nesta rodada; tento de novo em 10 minutos."
+          echo "A OCI não permitiu criar a VM Ampere nesta rodada (capacidade ou limite de chamadas); tento de novo em 10 minutos."
