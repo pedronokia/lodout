@@ -5588,6 +5588,7 @@ def test_status_mostra_rodada_top(client, monkeypatch):
                                  "alvos": 20, "duracao_min": 3.1})
     body = client.get("/status").data.decode("utf-8")
     assert "o Top 20 é atualizado a cada 2 horas" in body and "há 10 min" in body
+    assert '<span class="card-label">Última atualização do Top 20</span>' in body
 
 
 # ── imagens de prévia ao compartilhar ───────────────────────────

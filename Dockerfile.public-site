@@ -93,4 +93,9 @@ RUN date -u +%Y%m%d-%H%M%S > BUILD_ID
 # crescimento lento de memória (ex. buffers do Pillow) sem derrubar os
 # dois processos ao mesmo tempo; --graceful-timeout casa com o
 # stop_grace_period do Compose no deploy.
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 60 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 100 lodout.public_site.wsgi:app
+# --control-socket (2026-11-24): o entrypoint usa `su ... lodout`, que
+# ajusta HOME para /home/lodout -- diretorio inexistente por causa do
+# --no-create-home acima. Sem caminho explicito, o gunicorn 27 tenta
+# criar /home/lodout/.gunicorn e falha ("Control server error: Permission
+# denied") a cada subida. /tmp e gravavel pelo usuario sem Privilegio.
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 60 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 100 --control-socket /tmp/gunicorn.ctl lodout.public_site.wsgi:app

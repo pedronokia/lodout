@@ -7,6 +7,13 @@ O QUE mudou -- esta página é sobre produto, não operação.
 from __future__ import annotations
 
 ENTRADAS = [
+    {
+        "data": "2026-11-24",
+        "titulo": "Status mais claro",
+        "itens": [
+            "Status: o cartão do topo agora diz “Última atualização do Top 20”. Antes dizia só “Última coleta” e parecia a mesma medição da coleta de preços da tabela abaixo.",
+        ],
+    },
     # Reorganizado em 2026-11-16: os itens de 15 e 16/11 tinham ido todos
     # para 15/11 (60 itens, alguns já substituídos no mesmo dia). Cada
     # entrada descreve como as coisas ficaram, na linguagem de quem usa.

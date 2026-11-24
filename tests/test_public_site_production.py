@@ -183,6 +183,7 @@ def test_dockerfile_gunicorn_tem_flags_de_estabilidade():
     assert "--graceful-timeout 30" in df
     assert "--max-requests 1000" in df
     assert "--max-requests-jitter 100" in df
+    assert "--control-socket /tmp/gunicorn.ctl" in df
 
 
 def test_compose_tem_healthcheck_limites_e_hardening():
