@@ -133,9 +133,11 @@ jobs:
             tests/visual/current/
             tests/visual/diff/
 
+  # CVE descoberta em dependência tem que travar o deploy, não virar
+  # check verde: até 24/11 este job tinha continue-on-error: true, então
+  # uma falha do pip-audit não impedia a publicação (achado 24/11).
   pip-audit:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
