@@ -364,10 +364,13 @@ def create_app() -> Flask:
 
     @app.context_processor
     def _inject_frescor_no_rodape():
-        """"Preços atualizados há 2 h" no rodapé de toda página. Só um
+        """"Dados atualizados há 2 h" no rodapé de toda página. Só um
         stat do arquivo da coleta (nada de decodificar o JSON por
-        página). Atrasada = mesmo critério do banner da home (2x o
-        intervalo configurado)."""
+        página). "Dados" e não "Preços": o arquivo também é gravado
+        pela rodada rápida do Top 20 (20 itens), então o horário vale
+        para os dados como um todo, não para a coleta completa.
+        Atrasada = mesmo critério do banner da home (2x o intervalo
+        configurado)."""
         ts = scan_store.ts_ultima_gravacao()
         if ts is None:
             return {}

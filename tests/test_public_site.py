@@ -5715,9 +5715,11 @@ def test_home_funciona_com_relogio_congelado_e_mede_etapas(client, monkeypatch):
                       "ranking", "pagina"]
 
 
-def test_rodape_mostra_frescor_dos_precos(client, monkeypatch, tmp_path):
-    """Toda página diz quando os preços foram atualizados (era só na
-    home); atrasada muda a frase, não só a cor."""
+def test_rodape_mostra_frescor_dos_dados(client, monkeypatch, tmp_path):
+    """Toda página diz quando os dados foram atualizados (era só na
+    home); atrasada muda a frase, não só a cor. O texto diz "dados" e
+    não "preços": a rodada rápida do Top 20 também grava o arquivo,
+    então o horário não é só da coleta completa de preços."""
     import os
     _salva_scan(tmp_path, monkeypatch, [
         {"name": "Item X", "score": 50, "price": 1.0, "case_label": "",
@@ -5726,13 +5728,15 @@ def test_rodape_mostra_frescor_dos_precos(client, monkeypatch, tmp_path):
     monkeypatch.setattr(scan_store, "ts_ultima_gravacao",
                         lambda path=None: time.time() - 2 * 3600)
     body = client.get("/faq").data.decode("utf-8")
-    assert "Preços atualizados há 2 h" in body
+    assert "Dados atualizados há 2 h" in body
+    assert "Preços atualizados" not in body
     assert "rodape-frescor-atrasada" not in body
 
     monkeypatch.setattr(scan_store, "ts_ultima_gravacao",
                         lambda path=None: time.time() - 20 * 3600)
     body = client.get("/faq").data.decode("utf-8")
-    assert "Preços atrasados: última atualização há 20 h" in body
+    assert "Dados atrasados: última atualização há 20 h" in body
+    assert "Preços atrasados:" not in body
     assert "rodape-frescor-atrasada" in body
 
 
