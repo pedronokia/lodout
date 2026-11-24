@@ -13,6 +13,7 @@ ENTRADAS = [
         "itens": [
             "Status: o cartão do topo agora diz “Última atualização do Top 20”. Antes dizia só “Última coleta” e parecia a mesma medição da coleta de preços da tabela abaixo.",
             "Rodapé: a linha de horário agora diz “Dados atualizados” em vez de “Preços atualizados”. A rodada do Top 20 também atualiza esse horário, então “preços” dava a entender que a coleta completa tinha acabado de rodar.",
+            "O Lodout ganhou uma marca nova: o nome em laranja com um furo de tiro prata no fim, sem a barra de desgaste de antes. O ícone da aba, do celular e do app e a imagem que aparece ao compartilhar o site usam a mesma marca.",
         ],
     },
     # Reorganizado em 2026-11-16: os itens de 15 e 16/11 tinham ido todos

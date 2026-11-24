@@ -1509,8 +1509,8 @@ def test_index_aba_todas_bate_com_total_mostrado(client, monkeypatch, tmp_path):
 
 
 def test_index_logo_no_topo(client, monkeypatch, tmp_path):
-    """Logomarca de 23/11 (escolha do usuário): "Lodout" com a barra de
-    desgaste em tons de laranja (logo-lodout.svg); no tablet vai só o L
+    """Marca plana de 24/11 (escolha do usuário): "Lodout" em laranja com o
+    furo de tiro prata (logo-lodout.svg); no tablet vai só o símbolo
     (logo-L.svg). O nome completo fica no aria-label do link."""
     _salva_scan(tmp_path, monkeypatch, [])
     body = client.get("/").data.decode("utf-8")
@@ -1519,6 +1519,13 @@ def test_index_logo_no_topo(client, monkeypatch, tmp_path):
     assert 'class="logo-marca"' in logo and "/static/logo-lodout.svg" in logo
     assert 'class="logo-icone"' in logo and "/static/logo-L.svg" in logo
     assert 'class="logo-aspas"' not in body          # as aspas antigas saíram
+
+    svg = client.get("/static/logo-lodout.svg").data.decode("utf-8").lower()
+    assert 'fill="#fe540c"' in svg                 # letras laranja
+    assert 'fill="#e4e7e9"' in svg and 'evenodd' in svg  # furo com centro recortado
+    assert 'fill="#f5f5f5"' not in svg              # saiu a marca branca antiga
+    assert 'stroke' not in svg                      # sem rachaduras
+
 
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
     """Decisão de 2026-11-11: nos títulos de página o nome é "Lodout"
@@ -3964,15 +3971,15 @@ def test_manifest_json_tem_icones_png(client):
         assert resp.mimetype == "image/png"
 
 
-def test_icones_do_site_usam_o_l_do_logo(client):
-    """23/11 (escolha do usuário): o ícone da aba, do celular e do app é o
-    L do logo sobre a barra de desgaste em tons de laranja, num fundo
-    escuro (antes, 17/11: as aspas laranja)."""
+def test_icones_do_site_usam_a_marca_plana(client):
+    """24/11 (escolha do usuário): o ícone da aba, do celular e do app é o
+    símbolo da marca plana — inicial L laranja com o furo de tiro prata,
+    num quadrado escuro arredondado (antes, 23/11: L sobre barra laranja)."""
     import xml.dom.minidom
-    svg = client.get("/static/favicon.svg").data.decode("utf-8")
+    svg = client.get("/static/favicon.svg").data.decode("utf-8").lower()
     xml.dom.minidom.parseString(svg)           # SVG válido (sem "--" em comentário)
-    assert 'fill="#fe540c"' in svg and 'fill="#f5f5f5"' in svg
-    assert 'fill="#0b0b0b"' in svg
+    assert 'fill="#fe540c"' in svg and 'fill="#e4e7e9"' in svg
+    assert 'fill="#0e0e10"' in svg
 
     from PIL import Image
     import io
@@ -3983,12 +3990,13 @@ def test_icones_do_site_usam_o_l_do_logo(client):
         px = img.load()
         total = lado * lado
         escuros = sum(1 for y in range(lado) for x in range(lado) if sum(px[x, y]) < 200)
-        brancos = sum(1 for y in range(lado) for x in range(lado) if min(px[x, y]) > 220)
+        prateados = sum(1 for y in range(lado) for x in range(lado)
+                         if min(px[x, y]) > 170 and max(px[x, y]) - min(px[x, y]) < 20)
         laranjas = sum(1 for y in range(lado) for x in range(lado)
                        if px[x, y][0] > 90 and px[x, y][0] - px[x, y][2] > 80)
         assert escuros > total * 0.55    # fundo escuro
-        assert brancos > total * 0.03    # o L branco
-        assert laranjas > total * 0.015  # a barra laranja
+        assert prateados > total * 0.01  # o furo prata
+        assert laranjas > total * 0.02   # a inicial laranja
 
 def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
     monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
@@ -6051,9 +6059,9 @@ def test_pessoas_no_site_agora_tem_limite_por_ip(client):
     rate_limit._hits.clear()
 
 
-def test_icone_da_aba_em_png_com_o_l_do_logo(client):
-    """Na aba vão PNGs de 16 e 32 px (17/11); desde 23/11 com o L do logo
-    sobre a barra laranja, num quadrado escuro de cantos arredondados."""
+def test_icone_da_aba_em_png_com_a_marca_plana(client):
+    """Na aba vão PNGs de 16 e 32 px (17/11); desde 24/11 com a inicial L
+    laranja e o furo prata da marca plana, em quadrado escuro arredondado."""
     import io
 
     from PIL import Image
@@ -6068,10 +6076,12 @@ def test_icone_da_aba_em_png_com_o_l_do_logo(client):
         # Cantos arredondados: o pixel do canto é transparente.
         for x, y in ((0, 0), (lado - 1, 0), (0, lado - 1), (lado - 1, lado - 1)):
             assert px[x, y][3] < 128
-        # O centro é o quadrado escuro (opaco), com o L branco e a barra laranja.
+        # O centro é o quadrado escuro (opaco), com o L laranja e o furo prata.
         assert px[lado // 2, lado // 2][3] == 255
         cores = [px[x, y] for y in range(lado) for x in range(lado) if px[x, y][3] > 200]
-        assert any(min(c[:3]) > 200 for c in cores)                   # branco
+        prateados = [c for c in cores
+                     if min(c[:3]) > 170 and max(c[:3]) - min(c[:3]) < 20]
+        assert len(prateados) >= 3                                   # furo prata
         assert any(c[0] > 150 and c[0] - c[2] > 90 for c in cores)    # laranja
 
 def test_historico_da_nota_compacta_e_apaga_o_velho():
@@ -6181,9 +6191,9 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
 
 
 def test_previa_de_compartilhamento_usa_a_logomarca():
-    """A imagem do WhatsApp/Discord usa a logomarca do site (23/11: "Lodout"
-    + barra de desgaste, de static/logo-lodout.png), e o og-image.png
-    publicado está em dia com o og_cards."""
+    """A imagem do WhatsApp/Discord usa a marca plana aprovada em 24/11
+    ("Lodout" em laranja com o furo prata, de static/logo-lodout.png), e o
+    og-image.png publicado está em dia com o og_cards."""
     import io as _io
     from pathlib import Path as _P
     from PIL import Image as _Img, ImageChops as _Ch
@@ -6198,14 +6208,14 @@ def test_previa_de_compartilhamento_usa_a_logomarca():
         pass  # No Windows, FreeType varia levemente o rendering da fonte variável
     else:
         assert bbox is None
-    # O nome em branco e a barra laranja logo abaixo, à esquerda.
-    nome = novo.crop((100, 178, 660, 300))
-    barra = novo.crop((100, 332, 660, 364))
-    brancos = sum(1 for x in range(nome.width) for y in range(nome.height) if min(nome.getpixel((x, y))) > 220)
-    laranjas = sum(1 for x in range(barra.width) for y in range(barra.height)
-                   if (lambda px: px[0] > 90 and px[0] - px[2] > 80)(barra.getpixel((x, y))))
-    assert brancos > 8000
-    assert laranjas > 7000
+    # As letras laranja e o furo prata, no lugar da antiga marca branca.
+    marca = novo.crop((100, 178, 660, 370))
+    laranjas = sum(1 for x in range(marca.width) for y in range(marca.height)
+                   if (lambda px: px[0] > 90 and px[0] - px[2] > 80)(marca.getpixel((x, y))))
+    prateados = sum(1 for x in range(marca.width) for y in range(marca.height)
+                    if (lambda px: min(px) > 170 and max(px) - min(px) < 20)(marca.getpixel((x, y))))
+    assert laranjas > 8000
+    assert prateados > 300
 
 def test_queda_recente_usa_virgula_e_sinal_de_menos():
     """Variação percentual usa vírgula e sinal no index (revisão 20/11)."""

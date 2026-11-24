@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="111 -1490 1895 2153"><path fill="#f5f5f5" d="M111.0 0.0V-1490.0H419.0V-264.0H1096.0V0.0Z"/><rect x="111.0" y="231" width="431.8" height="432" fill="#fe540c"/><rect x="598.8" y="231" width="431.8" height="432" fill="#da4909"/><rect x="1086.5" y="231" width="431.8" height="432" fill="#963406"/><rect x="1574.2" y="231" width="431.8" height="432" fill="#6e2504"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="t">
+  <title id="t">Lodout — símbolo</title>
+  <rect width="256" height="256" rx="56" fill="#0E0E10"/>
+  <rect x="8" y="8" width="240" height="240" rx="50" fill="#17171B" stroke="#2A2A30" stroke-width="2"/>
+  <path id="inicial" fill="#FE540C" transform="translate(76.65 268) scale(0.193638 -0.193638)" d="M64 0V723H203V0Z"/>
+  <path id="furo" fill="#E4E7E9" fill-rule="evenodd" d="M188,85.83L199.39,87.51L208.87,93.86L215.69,102.31L221.71,110.54L227.89,119.31L234.78,130L230.85,141.48L225.46,151.63L217.86,159.86L208.87,166.14L198.59,169.53L188,169.83L177.64,168.65L166.87,166.6L156.3,161.7L148.96,152.54L146.75,141.05L147.84,130L149.72,119.74L152.72,109.63L158.47,100.47L166.87,93.4L176.85,88.39Z M160.28,131.68a25.2,25.2 0 1,0 50.4,0a25.2,25.2 0 1,0 -50.4,0Z"/></svg>
