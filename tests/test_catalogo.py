@@ -149,10 +149,16 @@ def test_varrer_404_repetido_encerra_fatia_e_continua(monkeypatch, sem_pausa):
     estado = catalogo.varrer(ate_ts=1e12)
     assert [c for c in chamadas if c[0] == "R"] == [("R", 0)] * 3
     assert chamadas[-1] == ("S", 0)
-    assert estado["motivo"] == "completa"
+    # Uma fatia pulada por 404 nao é volta completa: o relógio antigo fica.
+    assert estado["motivo"] == "incompleta_404"
     assert estado["fatia"] is None and estado["itens_no_banco"] == 1
     assert estado["erros"] == 3 and estado["erros_404_fatias"] == 1
+    assert estado["erros_404_fatias_rodada"] == 1
     assert estado["erro_404_seguidos"] == 0
+    assert "ultima_completa_ts" not in estado
+    assert estado["fim_ultima_rodada_ts"]
+    assert catalogo.resumo()["motivo"] == "incompleta_404"
+    assert catalogo.resumo()["erros_404_fatias_rodada"] == 1
 
 
 def test_varrer_404_isolado_nao_encerra_fatia(monkeypatch, sem_pausa):
@@ -171,6 +177,42 @@ def test_varrer_404_isolado_nao_encerra_fatia(monkeypatch, sem_pausa):
     assert estado["motivo"] == "completa"
     assert estado["erros"] == 1 and estado["erros_404_fatias"] == 0
     assert estado["erro_404_seguidos"] == 0
+    assert estado["ultima_completa_ts"]
+
+
+def test_varrer_404_em_todas_as_fatias_nao_marca_completa_e_espara(
+        monkeypatch, sem_pausa):
+    """25/11: chuva de 404 em todas as categorias terminou marcada como
+    'completa' com 2960 itens. Rodada ruim nao renova o relogio e nao
+    tenta de novo no proximo ciclo do worker."""
+    monkeypatch.setattr(catalogo, "FATIAS",
+                        (("Rifles", "R"), ("Pistolas", "P"), ("Facas", "K")))
+    chamadas = []
+    monkeypatch.setattr(
+        steam_api, "search_market",
+        lambda facets=None, start=0, **_: (
+            chamadas.append((facets["type"], start))
+            or (steam_api.SEARCH_NOT_FOUND, [], 0)))
+
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 9  # 3 tentativas em cada fatia
+    assert estado["motivo"] == "incompleta_404"
+    assert estado["erros_404_fatias"] == 3
+    assert estado["erros_404_fatias_rodada"] == 3
+    assert estado["itens_ultima"] == 0
+    assert "ultima_completa_ts" not in estado
+    assert estado["fim_ultima_rodada_ts"]
+
+    # O worker chama de novo no ciclo seguinte: nada de requisição nova.
+    assert catalogo.varrer(ate_ts=1e12)["motivo"] == "esperando_apos_404"
+    assert len(chamadas) == 9
+
+    # Depois da espera, tenta de novo (aqui sem espera pra não dormir no teste).
+    monkeypatch.setattr(catalogo, "_ESPERA_APOS_404_S", 0.0)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 18
+    assert estado["motivo"] == "incompleta_404"
+    assert estado["erros_404_fatias_rodada"] == 3  # contador da rodada, não total
 
 
 def test_worker_so_varre_com_catalogo_ligado(monkeypatch):

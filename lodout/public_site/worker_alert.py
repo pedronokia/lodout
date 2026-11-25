@@ -46,6 +46,10 @@ _ESTADO_CATALOGO_PATH = DATA_DIR / "catalogo_alert_state.json"
 # bloqueio real da Steam não virarem alarme falso.
 _CATALOGO_IDADE_LIMITE_H = 72.0
 _DEDUP_CATALOGO_HORAS = 24.0
+# Rodada que termina com fatias puladas por 404 não renova o relógio da
+# volta completa. Com 3+ fatias perdidas, avisa na hora em vez de esperar
+# as 72h do alerta genérico (25/11: 10 fatias puladas e "completa" no ar).
+_CATALOGO_404_FATIAS_ALERTA = 3
 
 
 def verificar_e_alertar(historico_ciclos: list[dict],
@@ -249,34 +253,54 @@ def verificar_catalogo_e_alertar(now: "float | None" = None,
     """Alerta se o catálogo amplo está ligado (`LODOUT_CATALOGO=1`) mas
     não completa uma volta há mais de `_CATALOGO_IDADE_LIMITE_H` -- nunca
     antes da primeira volta completar (catálogo ligado agora mesmo não é
-    atraso). Dedup de 24h, mesmo princípio dos outros alertas deste
-    módulo."""
+    atraso). Também alerta na hora quando a rodada termina com 3+ fatias
+    puladas por 404, que não renovam `ultima_completa_ts`. Dedup de 24h,
+    mesmo princípio dos outros alertas deste módulo."""
     webhook = ambiente("ADMIN_DISCORD_WEBHOOK", "")
     if not webhook or not catalogo.ligado():
         return False
     resumo = catalogo.resumo()
-    ultima = resumo.get("ultima_completa_ts")
-    if not ultima:
-        return False
     agora = time.time() if now is None else now
-    idade_h = (agora - ultima) / 3600
-    if idade_h <= _CATALOGO_IDADE_LIMITE_H:
-        return False
+    puladas = int(resumo.get("erros_404_fatias_rodada") or 0)
+    fim_rodada = float(resumo.get("fim_ultima_rodada_ts") or 0)
+    falha_404 = (resumo.get("motivo") == "incompleta_404"
+                 and puladas >= _CATALOGO_404_FATIAS_ALERTA
+                 and fim_rodada > 0)
+    idade_h = 0.0
+    if not falha_404:
+        ultima = resumo.get("ultima_completa_ts")
+        if not ultima:
+            return False
+        idade_h = (agora - float(ultima)) / 3600
+        if idade_h <= _CATALOGO_IDADE_LIMITE_H:
+            return False
 
     p = Path(path) if path is not None else _ESTADO_CATALOGO_PATH
     estado = load_json_record(p, {})
     if not isinstance(estado, dict):
         estado = {}
-    if agora - estado.get("ultimo_alerta_ts", 0) < _DEDUP_CATALOGO_HORAS * 3600:
+    ultimo_alerta = float(estado.get("ultimo_alerta_ts") or 0)
+    if agora - ultimo_alerta < _DEDUP_CATALOGO_HORAS * 3600:
+        return False
+    # A mesma rodada já alertada não dispara de novo só porque o worker
+    # conferiu outra vez no mesmo dia.
+    if falha_404 and fim_rodada <= ultimo_alerta:
         return False
 
-    motivo = resumo.get("motivo") or "desconhecido"
-    bloqueios = resumo.get("bloqueios") or 0
-    enviado = discord_notify.enviar(
-        webhook,
-        f"⚠️ Lodout: catálogo amplo sem completar uma volta há "
-        f"{idade_h:.0f}h (motivo: {motivo}, {bloqueios} bloqueio(s)). "
-        "Ver /api/health -> catalogo.")
+    if falha_404:
+        texto = (
+            f"⚠️ Lodout: catálogo amplo terminou uma rodada com "
+            f"{puladas} categoria(s) sem acesso (404) e só "
+            f"{resumo.get('itens_ultima')} itens. Isso não conta como "
+            "volta completa. Ver /api/health -> catalogo.")
+    else:
+        motivo = resumo.get("motivo") or "desconhecido"
+        bloqueios = resumo.get("bloqueios") or 0
+        texto = (
+            f"⚠️ Lodout: catálogo amplo sem completar uma volta há "
+            f"{idade_h:.0f}h (motivo: {motivo}, {bloqueios} bloqueio(s)). "
+            "Ver /api/health -> catalogo.")
+    enviado = discord_notify.enviar(webhook, texto)
     if enviado:
         try:
             atomic_write_text(p, json.dumps({"ultimo_alerta_ts": agora}))

@@ -3285,6 +3285,50 @@ def test_worker_alert_catalogo_dedup_nao_manda_de_novo(monkeypatch, tmp_path):
     assert len(chamadas) == 1
 
 
+def test_worker_alert_catalogo_404_em_varias_fatias_alerta_antes_das_72h(
+        monkeypatch, tmp_path):
+    agora = time.time()
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(worker_alert.catalogo, "resumo", lambda: {
+        "ultima_completa_ts": agora - 5 * 3600,  # volta real ainda fresca
+        "fim_ultima_rodada_ts": agora - 60,
+        "motivo": "incompleta_404",
+        "erros_404_fatias_rodada": 10,
+        "itens_ultima": 2960,
+    })
+    chamadas = []
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: chamadas.append(msg) or True)
+    p = tmp_path / "estado.json"
+    assert worker_alert.verificar_catalogo_e_alertar(now=agora, path=p) is True
+    assert "10 categoria(s)" in chamadas[0] and "2960" in chamadas[0]
+    # Mesma rodada não gera alerta novo na checagem seguinte.
+    assert worker_alert.verificar_catalogo_e_alertar(
+        now=agora + 60, path=p) is False
+    assert len(chamadas) == 1
+
+
+def test_worker_alert_catalogo_404_isolado_nao_antecipa_alerta(
+        monkeypatch, tmp_path):
+    agora = time.time()
+    monkeypatch.setenv("LODOUT_ADMIN_DISCORD_WEBHOOK", "https://discord/x")
+    monkeypatch.setattr(worker_alert.catalogo, "ligado", lambda: True)
+    monkeypatch.setattr(worker_alert.catalogo, "resumo", lambda: {
+        "ultima_completa_ts": agora - 5 * 3600,
+        "fim_ultima_rodada_ts": agora - 60,
+        "motivo": "incompleta_404",
+        "erros_404_fatias_rodada": 1,
+        "itens_ultima": 30000,
+    })
+    monkeypatch.setattr(
+        worker_alert.discord_notify, "enviar",
+        lambda url, msg: (_ for _ in ()).throw(AssertionError("nao devia alertar")))
+    assert worker_alert.verificar_catalogo_e_alertar(
+        now=agora, path=tmp_path / "estado.json") is False
+
+
 # ── worker: ordenação por nota anterior + progresso ─────────
 
 def test_ordenar_por_nota_anterior_prioriza_nota_alta(monkeypatch, tmp_path):

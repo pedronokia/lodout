@@ -109,6 +109,10 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   a varredura): `steam_api` devolve `SEARCH_NOT_FOUND` e loga um trecho da
   resposta; `catalogo` conta 3 falhas no MESMO `start` e encerra a fatia para
   liberar as próximas, registrando `erros_404_fatias` no `/api/health`.
+  Rodada com fatia pulada por 404 NÃO é completa (25/11: 10 fatias, só 2960
+  itens e `motivo="completa"` no ar): não renova `ultima_completa_ts`, expõe
+  `erros_404_fatias_rodada` e `fim_ultima_rodada_ts`, espera 24 h antes de
+  tentar de novo e avisa o Discord com 3+ fatias puladas.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela

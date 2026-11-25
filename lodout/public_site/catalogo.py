@@ -248,6 +248,11 @@ _SOBREPOSICAO = 1
 # sempre travava a rodada (25/11: start=2664 em Rifles). Depois destas
 # tentativas no MESMO start, a fatia e' encerrada e as proximas andam.
 _MAX_404_MESMO_START = 3
+# Uma rodada em que fatias foram puladas por 404 NAO e' completa (25/11:
+# 10 fatias puladas e o estado marcava "completa" com 2960 itens). Nao renova
+# ultima_completa_ts e só tenta de novo depois desta espera, pra nao queimar
+# requisicoes a cada ciclo do worker enquanto a Steam devolver 404.
+_ESPERA_APOS_404_S = 24 * 3600
 
 
 def ligado() -> bool:
@@ -282,15 +287,37 @@ def _proxima_fatia(estado: dict) -> bool:
     estado["erro_404_start"] = -1
     if estado["fatia"] < len(FATIAS):
         return False
+    estado["fatia"] = None
+    return True
+
+
+def _finalizar_rodada(estado: dict) -> str:
+    """Fecha a rodada sem fingir que foi completa quando houve 404.
+
+    `ultima_completa_ts` continua com a última volta REAL: é o que o alerta
+    de 72h usa. Uma rodada pulada por 404 registra `fim_ultima_rodada_ts`
+    e `itens_ultima`, mas não renova o relógio da volta completa.
+    """
     fim = time.time()
+    puladas = int(estado.get("erros_404_fatias_rodada") or 0)
     estado.update({
-        "fatia": None, "ultima_completa_ts": fim,
+        "fatia": None,
+        "fim_ultima_rodada_ts": fim,
         "duracao_ultima_min": round(
             (fim - float(estado.get("inicio_ts") or fim)) / 60, 1),
         "itens_ultima": estado.get("itens_rodada"),
         "paginas_ultima": estado.get("paginas_rodada"),
     })
-    return True
+    if puladas:
+        _logger.warning(
+            "Catálogo: rodada terminou com %s fatia(s) pulada(s) por 404 "
+            "(%s itens); não conta como volta completa",
+            puladas, estado["itens_ultima"])
+        return "incompleta_404"
+    estado["ultima_completa_ts"] = fim
+    _logger.info("Catálogo completo: %s itens em %s páginas",
+                 estado["itens_ultima"], estado["paginas_ultima"])
+    return "completa"
 
 
 def _dormir(segundos: float, ate_ts: float, deve_parar) -> bool:
@@ -310,7 +337,9 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
     `data/catalogo_estado.json`). Uma rodada nova só começa quando a
     última completa tem mais de `CATALOGO_INTERVALO_HORAS` (padrão 24 h).
     Para no primeiro bloqueio (429), em erro, em página vazia antes do
-    fim (pode ser bloqueio silencioso) e quando a janela acaba."""
+    fim (pode ser bloqueio silencioso) e quando a janela acaba. Fatias
+    encerradas por 404 não contam como volta completa (nem renovam o
+    relógio dela) e só são tentadas de novo após `_ESPERA_APOS_404_S`."""
     from lodout import steam_api
 
     estado = ler_estado()
@@ -327,11 +356,17 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
         if agora - ultima < _intervalo_rodada_s():
             estado["motivo"] = "em_dia"
             return estado
+        if (estado.get("motivo") == "incompleta_404"
+                and agora - float(estado.get("fim_ultima_rodada_ts") or 0)
+                < _ESPERA_APOS_404_S):
+            estado["motivo"] = "esperando_apos_404"
+            return estado
         estado.update({
             "fatia": 0, "start": 0, "inicio_ts": agora,
             "paginas_rodada": 0, "itens_rodada": 0, "totais": {},
             "erro_404_seguidos": 0, "erro_404_start": -1,
             "erros_404_fatias": int(estado.get("erros_404_fatias") or 0),
+            "erros_404_fatias_rodada": 0,
         })
 
     conn = conectar()
@@ -370,11 +405,10 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                         seguidos, nome_fatia, atual)
                     estado["erros_404_fatias"] = (
                         int(estado.get("erros_404_fatias") or 0) + 1)
+                    estado["erros_404_fatias_rodada"] = (
+                        int(estado.get("erros_404_fatias_rodada") or 0) + 1)
                     if _proxima_fatia(estado):
-                        motivo = "completa"
-                        _logger.info(
-                            "Catálogo completo: %s itens em %s páginas",
-                            estado["itens_ultima"], estado["paginas_ultima"])
+                        motivo = _finalizar_rodada(estado)
                         break
                 else:
                     _logger.warning(
@@ -411,10 +445,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 estado["start"] = int(estado["start"]) + avanco
                 if not pagina or estado["start"] >= total:
                     if _proxima_fatia(estado):
-                        motivo = "completa"
-                        _logger.info(
-                            "Catálogo completo: %s itens em %s páginas",
-                            estado["itens_ultima"], estado["paginas_ultima"])
+                        motivo = _finalizar_rodada(estado)
                         break
             _salvar_estado(estado)
             pausa = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
@@ -436,7 +467,8 @@ def resumo() -> dict:
               "paginas_ultima", "tamanho_pagina", "bloqueios",
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
-              "erro_404_start", "erros_404_fatias")
+              "erro_404_start", "erros_404_fatias",
+               "erros_404_fatias_rodada", "fim_ultima_rodada_ts")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Cotação usada para converter os preços (dólar → reais), com quantos
     # itens a mediram -- pra acompanhar se ela sair do normal (2026-11-15).

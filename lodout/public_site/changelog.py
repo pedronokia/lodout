@@ -13,6 +13,7 @@ ENTRADAS = [
         "itens": [
             "A coleta de preços voltou a acompanhar menos itens extras (cerca de 283 no total, antes 383). Nos últimos dias a Steam pediu pausa em várias coletas: alguns preços ficaram da coleta anterior e uma rodada do Top 20 ficou incompleta. Vamos acompanhar se a coleta completa passa a terminar mais vezes.",
             "Quando a busca do catálogo não encontra mais itens numa posição, o site para de insistir nela e segue com as outras categorias. Antes, essa posição podia travar a atualização do catálogo inteiro.",
+            "Se várias categorias ficam sem acesso na mesma atualização, o site não conta essa rodada como concluída e avisa quem cuida do Lodout. Antes, uma rodada em que quase nada foi coletado aparecia como se tivesse dado certo.",
         ],
     },
     {
