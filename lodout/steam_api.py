@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import logging
 import re
 import time
 import urllib.parse
@@ -37,6 +38,8 @@ import httpx
 # caso, 4 threads presas pra sempre, nunca mais que isso.
 _EXECUTOR = concurrent.futures.ThreadPoolExecutor(
     max_workers=4, thread_name_prefix="steam_api_http")
+
+_logger = logging.getLogger(__name__)
 
 _APP_CS2 = 730
 _CONTEXT = 2
@@ -468,6 +471,9 @@ def _parse_volume(text: str | None) -> int | None:
 SEARCH_OK = "ok"
 SEARCH_RATE_LIMITED = "rate_limited"
 SEARCH_ERROR = "error"
+# 404 nao e' 429: nao aciona o disjuntor, mas precisa ser contado a parte
+# (2026-11-25: a busca do catalogo devolveu 404 em start=2664 e travou).
+SEARCH_NOT_FOUND = "not_found"
 
 # Nome legivel -> chave de URL da faceta (confirmado em /market/appfilters/730).
 #
@@ -628,6 +634,12 @@ def search_market(query: str = "", facets: dict | None = None,
     if code == 429:
         _registrar_rate_limit("search")
         return SEARCH_RATE_LIMITED, [], 0
+    if code == 404:
+        # Guarda um trecho da resposta pra diagnosticar sem fazer uma
+        # consulta nova so' pra investigar (decisao de 25/11).
+        _logger.warning("Steam search 404 em start=%s: %.300s", start,
+                        (body or "").replace("\n", " "))
+        return SEARCH_NOT_FOUND, [], 0
     if code != 200 or body is None:
         return SEARCH_ERROR, [], 0
     _limpar_rate_limit("search")

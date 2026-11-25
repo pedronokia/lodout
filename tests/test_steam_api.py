@@ -1098,6 +1098,16 @@ def test_search_market_rate_limited(monkeypatch):
     assert items == [] and total == 0
 
 
+def test_search_market_404_vira_erro_especifico_e_loga_resposta(monkeypatch, caplog):
+    monkeypatch.setattr("lodout.steam_api._http_get",
+                        lambda url: (404, "<html>not found</html>"))
+    with caplog.at_level("WARNING", logger="lodout.steam_api"):
+        status, items, total = steam_api.search_market(start=2664)
+    assert status == steam_api.SEARCH_NOT_FOUND
+    assert items == [] and total == 0
+    assert "not found" in caplog.text and "2664" in caplog.text
+
+
 def test_search_market_success_false_vira_erro(monkeypatch):
     monkeypatch.setattr("lodout.steam_api._http_get",
                         lambda url: (200, _search_body([], success=False)))

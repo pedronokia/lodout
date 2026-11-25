@@ -135,6 +135,44 @@ def test_varrer_pagina_vazia_antes_do_fim_nao_avanca(monkeypatch, sem_pausa):
     assert estado["start"] == 0 and estado["vazias"] == 1
 
 
+def test_varrer_404_repetido_encerra_fatia_e_continua(monkeypatch, sem_pausa):
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"), ("Adesivos", "S")))
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append((facets["type"], start))
+        if facets["type"] == "R":
+            return steam_api.SEARCH_NOT_FOUND, [], 0
+        return steam_api.SEARCH_OK, [_linha("Adesivo | X")], 1
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert [c for c in chamadas if c[0] == "R"] == [("R", 0)] * 3
+    assert chamadas[-1] == ("S", 0)
+    assert estado["motivo"] == "completa"
+    assert estado["fatia"] is None and estado["itens_no_banco"] == 1
+    assert estado["erros"] == 3 and estado["erros_404_fatias"] == 1
+    assert estado["erro_404_seguidos"] == 0
+
+
+def test_varrer_404_isolado_nao_encerra_fatia(monkeypatch, sem_pausa):
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append(start)
+        if len(chamadas) == 1:
+            return steam_api.SEARCH_NOT_FOUND, [], 0
+        return steam_api.SEARCH_OK, [_linha("Rifle | A")], 1
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert chamadas == [0, 0]
+    assert estado["motivo"] == "completa"
+    assert estado["erros"] == 1 and estado["erros_404_fatias"] == 0
+    assert estado["erro_404_seguidos"] == 0
+
+
 def test_worker_so_varre_com_catalogo_ligado(monkeypatch):
     chamadas = []
     monkeypatch.setattr(catalogo, "varrer",

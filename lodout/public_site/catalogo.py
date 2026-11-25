@@ -244,6 +244,10 @@ _ESPERA_APOS_BLOQUEIO_S = 2 * 3600
 # seguidas). A cada 6 h não cabe.
 _INTERVALO_RODADA_H_PADRAO = 24.0
 _SOBREPOSICAO = 1
+# 404 na busca nao e' bloqueio (429), mas repetir a mesma posicao para
+# sempre travava a rodada (25/11: start=2664 em Rifles). Depois destas
+# tentativas no MESMO start, a fatia e' encerrada e as proximas andam.
+_MAX_404_MESMO_START = 3
 
 
 def ligado() -> bool:
@@ -268,6 +272,25 @@ def _intervalo_rodada_s() -> float:
     except (TypeError, ValueError):
         horas = _INTERVALO_RODADA_H_PADRAO
     return max(1.0, horas) * 3600
+
+
+def _proxima_fatia(estado: dict) -> bool:
+    """Passa para a proxima fatia. True se a rodada terminou."""
+    estado["fatia"] = int(estado["fatia"]) + 1
+    estado["start"] = 0
+    estado["erro_404_seguidos"] = 0
+    estado["erro_404_start"] = -1
+    if estado["fatia"] < len(FATIAS):
+        return False
+    fim = time.time()
+    estado.update({
+        "fatia": None, "ultima_completa_ts": fim,
+        "duracao_ultima_min": round(
+            (fim - float(estado.get("inicio_ts") or fim)) / 60, 1),
+        "itens_ultima": estado.get("itens_rodada"),
+        "paginas_ultima": estado.get("paginas_rodada"),
+    })
+    return True
 
 
 def _dormir(segundos: float, ate_ts: float, deve_parar) -> bool:
@@ -307,6 +330,8 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
         estado.update({
             "fatia": 0, "start": 0, "inicio_ts": agora,
             "paginas_rodada": 0, "itens_rodada": 0, "totais": {},
+            "erro_404_seguidos": 0, "erro_404_start": -1,
+            "erros_404_fatias": int(estado.get("erros_404_fatias") or 0),
         })
 
     conn = conectar()
@@ -329,46 +354,68 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 _logger.warning("Catálogo: bloqueio (429) em %s, posição %s",
                                 nome_fatia, estado["start"])
                 break
-            if status != steam_api.SEARCH_OK:
+            if status == steam_api.SEARCH_NOT_FOUND:
+                atual = int(estado["start"])
+                seguidos = (int(estado.get("erro_404_seguidos") or 0) + 1
+                            if int(estado.get("erro_404_start", -1)) == atual
+                            else 1)
+                estado["erro_404_seguidos"] = seguidos
+                estado["erro_404_start"] = atual
+                estado["erros"] = int(estado.get("erros") or 0) + 1
+                motivo = "erro_404"
+                if seguidos >= _MAX_404_MESMO_START:
+                    _logger.warning(
+                        "Catálogo: %s 404 seguidos em %s na posição %s; "
+                        "encerrando a fatia para não travar as próximas",
+                        seguidos, nome_fatia, atual)
+                    estado["erros_404_fatias"] = (
+                        int(estado.get("erros_404_fatias") or 0) + 1)
+                    if _proxima_fatia(estado):
+                        motivo = "completa"
+                        _logger.info(
+                            "Catálogo completo: %s itens em %s páginas",
+                            estado["itens_ultima"], estado["paginas_ultima"])
+                        break
+                else:
+                    _logger.warning(
+                        "Catálogo: 404 em %s na posição %s (%s/%s)",
+                        nome_fatia, atual, seguidos, _MAX_404_MESMO_START)
+                # Não para aqui: depois da pausa tenta de novo (ou já segue
+                # com a próxima fatia se o limite de 404 foi atingido).
+            elif status != steam_api.SEARCH_OK:
                 estado["erros"] = int(estado.get("erros") or 0) + 1
                 motivo = "erro"
                 break
-            estado.setdefault("totais", {})[nome_fatia] = total
-            if not pagina and int(estado["start"]) < total:
-                # Página vazia antes do fim: pode ser bloqueio silencioso
-                # (AGENTS.md). Não avança; tenta de novo na próxima janela.
-                estado["vazias"] = int(estado.get("vazias") or 0) + 1
-                motivo = "pagina_vazia"
-                break
-            estado["itens_rodada"] = (int(estado.get("itens_rodada") or 0)
-                                      + gravar(conn, nome_fatia, pagina))
-            if pagina:
-                estado["tamanho_pagina"] = len(pagina)
-            # Sobreposição de 1 item entre páginas (2026-11-15): itens entram
-            # e saem do Mercado durante a varredura e a lista "escorrega"; na
-            # 1a volta vieram 642 repetidos e um tanto parecido foi pulado
-            # (~3,5%, a AWP | Dragon Lore entre eles). Repetido é inofensivo
-            # (grava por cima); pulado só voltava numa próxima volta.
-            ultima = int(estado["start"]) + len(pagina) >= total
-            avanco = (len(pagina) if ultima or len(pagina) <= _SOBREPOSICAO
-                      else len(pagina) - _SOBREPOSICAO)
-            estado["start"] = int(estado["start"]) + avanco
-            if not pagina or estado["start"] >= total:
-                estado["fatia"] = int(estado["fatia"]) + 1
-                estado["start"] = 0
-                if estado["fatia"] >= len(FATIAS):
-                    fim = time.time()
-                    estado.update({
-                        "fatia": None, "ultima_completa_ts": fim,
-                        "duracao_ultima_min": round(
-                            (fim - float(estado.get("inicio_ts") or fim)) / 60, 1),
-                        "itens_ultima": estado.get("itens_rodada"),
-                        "paginas_ultima": estado.get("paginas_rodada"),
-                    })
-                    motivo = "completa"
-                    _logger.info("Catálogo completo: %s itens em %s páginas",
-                                 estado["itens_ultima"], estado["paginas_ultima"])
+            else:
+                estado["erro_404_seguidos"] = 0
+                estado["erro_404_start"] = -1
+                estado.setdefault("totais", {})[nome_fatia] = total
+                if not pagina and int(estado["start"]) < total:
+                    # Página vazia antes do fim: pode ser bloqueio silencioso
+                    # (AGENTS.md). Não avança; tenta de novo na próxima janela.
+                    estado["vazias"] = int(estado.get("vazias") or 0) + 1
+                    motivo = "pagina_vazia"
                     break
+                estado["itens_rodada"] = (int(estado.get("itens_rodada") or 0)
+                                          + gravar(conn, nome_fatia, pagina))
+                if pagina:
+                    estado["tamanho_pagina"] = len(pagina)
+                # Sobreposição de 1 item entre páginas (2026-11-15): itens entram
+                # e saem do Mercado durante a varredura e a lista "escorrega"; na
+                # 1a volta vieram 642 repetidos e um tanto parecido foi pulado
+                # (~3,5%, a AWP | Dragon Lore entre eles). Repetido é inofensivo
+                # (grava por cima); pulado só voltava numa próxima volta.
+                ultima = int(estado["start"]) + len(pagina) >= total
+                avanco = (len(pagina) if ultima or len(pagina) <= _SOBREPOSICAO
+                          else len(pagina) - _SOBREPOSICAO)
+                estado["start"] = int(estado["start"]) + avanco
+                if not pagina or estado["start"] >= total:
+                    if _proxima_fatia(estado):
+                        motivo = "completa"
+                        _logger.info(
+                            "Catálogo completo: %s itens em %s páginas",
+                            estado["itens_ultima"], estado["paginas_ultima"])
+                        break
             _salvar_estado(estado)
             pausa = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
             if not _dormir(pausa, ate_ts, deve_parar):
@@ -388,7 +435,8 @@ def resumo() -> dict:
               "ultima_completa_ts", "duracao_ultima_min", "itens_ultima",
               "paginas_ultima", "tamanho_pagina", "bloqueios",
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
-              "totais", "motivo", "ultima_pagina_ts")
+              "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
+              "erro_404_start", "erros_404_fatias")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Cotação usada para converter os preços (dólar → reais), com quantos
     # itens a mediram -- pra acompanhar se ela sair do normal (2026-11-15).

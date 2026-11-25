@@ -105,6 +105,10 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   `/api/health` → `catalogo`. Liga com `LODOUT_CATALOGO=1` (só produção).
   Medido em 15/11: a busca sem login devolve 10 itens por página (não 100);
   o mercado inteiro leva ~15 h, então a rodada completa é 1x por dia.
+  404 não é 429 e não aciona o disjuntor (25/11: `start=2664` em Rifles travou
+  a varredura): `steam_api` devolve `SEARCH_NOT_FOUND` e loga um trecho da
+  resposta; `catalogo` conta 3 falhas no MESMO `start` e encerra a fatia para
+  liberar as próximas, registrando `erros_404_fatias` no `/api/health`.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
