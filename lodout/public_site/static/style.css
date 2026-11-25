@@ -12674,9 +12674,9 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
    da seção não precisa da margem cheia de 48px (somava ~70px de vão). */
 .subnav-conta + .secao-titulo { margin-top: var(--sp-4); }
 
-/* Logomarca (23/11, escolha do usuário): "Lodout" + barra de desgaste
-   em tons de laranja (static/logo-lodout.svg), pequena. No tablet
-   (641-960px), onde o menu divide a linha, vai só o L (logo-L.svg). */
+/* Marca plana (24/11, escolha do usuário): "Lodout" em laranja com o furo
+   de tiro prata (static/logo-lodout.svg), pequena. No tablet
+   (641-960px), onde o menu divide a linha, vai só o símbolo (logo-L.svg). */
 .logo .logo-marca { display: block; height: 26px; width: auto; }
 .logo .logo-icone { display: none; width: auto; height: 26px; }
 @media (min-width: 641px) and (max-width: 960px) {

@@ -2,7 +2,9 @@
 name: Lodout
 description: Notas de 0 a 100 explicadas para skins de CS2, num caderno escuro e calmo.
 colors:
-  laranja-aspas: "#f97316"
+  laranja-marca: "#fe540c"
+  prata-marca: "#e4e7e9"
+  laranja-interface: "#f97316"
   laranja-acao: "rgba(249, 115, 22, 0.7)"
   laranja-pressionado: "#b8480a"
   azul-steam: "#66c0f4"
@@ -161,8 +163,10 @@ A tipografia é uma só família (Inter variável) em pesos levemente acima do c
 Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
-- **Laranja Aspas** (#f97316): a cor da marca (as aspas do topo e do ícone do site), links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
-- **Logomarca** (23/11, escolha do usuário): "Lodout" em branco, na Inter 700 (a mesma letra dos títulos do site), com a barra de desgaste das skins embaixo, em 4 trechos que vão do laranja cheio ao marrom (`static/logo-lodout.svg`; proporções da arte escolhida: barra = 0,29 da altura das maiúsculas, vão de 0,155). O ícone (aba, celular, app, `favicon*`, `icon-*`) é só o L sobre a mesma barra, num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai o logo completo pequeno (26px; 22px no celular); no tablet (641-960px), só o L. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa o mesmo logo (`og_cards`, `scripts/gerar_og_image.py`).
+- **Laranja da marca** (#fe540c): a cor das letras da logomarca. É um tom próprio, diferente do laranja da interface; não aparece em texto corrido.
+- **Prata da marca** (#e4e7e9): o furo de tiro no fim da palavra e no símbolo. Só aí — não é cor de interface.
+- **Laranja da interface** (#f97316): links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
+- **Logomarca** (24/11, escolha do usuário; substitui a de 23/11): "Lodout" em Archivo Bold convertida em curvas, toda em laranja, com um único furo de tiro prata no fim (`static/logo-lodout.svg`). O furo é um anel irregular com o centro recortado; as rachaduras da versão anterior saíram porque viravam ruído em 16 px. O ícone (aba, celular, app, `favicon*`, `icon-*`) é a inicial L laranja com o mesmo furo, num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai a marca completa pequena (26px; 22px no celular); no tablet (641-960px), só o símbolo. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa a mesma marca (`og_cards`, `scripts/gerar_og_image.py`). Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 
@@ -240,7 +244,7 @@ Cantos suaves e consistentes por escala: 8px em controles pequenos e campos, 12p
 ### Buttons
 - **Shape:** pílula (980px).
 - **Primary:** Laranja de Ação com texto branco, 44px de altura, 8px 20px; hover em Laranja Pressionado. Um por área de decisão ("Ver no Steam Market", "Devolver com o valor pago").
-- **Hover / Focus:** transição de cor em 200ms (cubic-bezier(0.4, 0, 0.2, 1)); foco com anel Laranja Aspas de 2px.
+- **Hover / Focus:** transição de cor em 200ms (cubic-bezier(0.4, 0, 0.2, 1)); foco com anel laranja da interface de 2px.
 - **Ghost:** texto apagado sem fundo, borda fina em pílula ("Cores da borda"); ações de texto sublinhadas para ações secundárias ("Ver mais", "apagar").
 
 ### Chips
@@ -256,7 +260,7 @@ Cantos suaves e consistentes por escala: 8px em controles pequenos e campos, 12p
 
 ### Inputs / Fields
 - **Style:** fundo do caderno, borda 1px Linha, cantos de 8px, texto em 1.0625rem para não dar zoom no celular.
-- **Focus:** anel Laranja Aspas visível.
+- **Focus:** anel laranja da interface visível.
 - **Error / Disabled:** mensagem em Vermelho Queda logo abaixo, dizendo o problema e como resolver.
 
 ### Navigation
