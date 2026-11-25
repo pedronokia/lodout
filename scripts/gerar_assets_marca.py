@@ -54,7 +54,7 @@ def main() -> None:
 
         # Marca e símbolo em alta resolução, com fundo transparente: o
         # cartão de compartilhamento cola os dois sobre o fundo do cartão.
-        _salvar_png(_render(pagina, marca, 1100, 367), "logo-lodout.png")
+        _salvar_png(_render(pagina, marca, 1100, 267), "logo-lodout.png")
         _salvar_png(_render(pagina, simbolo, 440, 440), "logo-L.png")
 
         # Aba do navegador: transparência nos cantos arredondados.

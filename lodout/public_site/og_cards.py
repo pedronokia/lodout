@@ -80,10 +80,9 @@ _SIMBOLO = Path(__file__).parent / "static" / "logo-L.png"
 
 def _simbolo(img: Image.Image, x: int, y: int, altura: int,
              opacidade: float = 1.0) -> None:
-    """O símbolo da identidade plana (24/11): inicial L laranja com o furo
-    de tiro prata, o mesmo do ícone do site (static/logo-L.svg em PNG
-    transparente). (x, y) é o canto de cima à esquerda e `altura` a altura
-    em pixels."""
+    """O símbolo da marca de 25/11: inicial l branca do novo desenho, o
+    mesmo do ícone do site (static/logo-L.svg em PNG transparente).
+    (x, y) é o canto de cima à esquerda e `altura` a altura em pixels."""
     simbolo = Image.open(_SIMBOLO).convert("RGBA")
     largura = round(simbolo.width * altura / simbolo.height)
     simbolo = simbolo.resize((largura, altura), Image.LANCZOS)
@@ -114,8 +113,8 @@ def cartao_padrao() -> bytes:
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
     d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
-    # A logomarca plana (24/11): "Lodout" em laranja com o furo prata, em
-    # PNG transparente.
+    # A logomarca de 25/11: "lodout" em branco sobre bloco escuro, em PNG
+    # transparente.
     logo = Image.open(_LOGO).convert("RGBA")
     larg = 560
     logo = logo.resize((larg, round(logo.height * larg / logo.width)), Image.LANCZOS)

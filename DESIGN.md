@@ -2,8 +2,8 @@
 name: Lodout
 description: Notas de 0 a 100 explicadas para skins de CS2, num caderno escuro e calmo.
 colors:
-  laranja-marca: "#fe540c"
-  prata-marca: "#e4e7e9"
+  preto-marca: "#000000"
+  branco-marca: "#ffffff"
   laranja-interface: "#f97316"
   laranja-acao: "rgba(249, 115, 22, 0.7)"
   laranja-pressionado: "#b8480a"
@@ -163,10 +163,10 @@ A tipografia é uma só família (Inter variável) em pesos levemente acima do c
 Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
-- **Laranja da marca** (#fe540c): a cor das letras da logomarca. É um tom próprio, diferente do laranja da interface; não aparece em texto corrido.
-- **Prata da marca** (#e4e7e9): o furo de tiro no fim da palavra e no símbolo. Só aí — não é cor de interface.
+- **Preto da marca** (#000000): o fundo do bloco da logomarca. Só nela — o fundo das páginas continua #161616.
+- **Branco da marca** (#ffffff): as letras da logomarca e a inicial do símbolo. Não é cor de interface.
 - **Laranja da interface** (#f97316): links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
-- **Logomarca** (24/11, escolha do usuário; substitui a de 23/11): "Lodout" em Archivo Bold convertida em curvas, toda em laranja, com um único furo de tiro prata no fim (`static/logo-lodout.svg`). O furo é um anel irregular com o centro recortado; as rachaduras da versão anterior saíram porque viravam ruído em 16 px. O ícone (aba, celular, app, `favicon*`, `icon-*`) é a inicial L laranja com o mesmo furo, num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai a marca completa pequena (26px; 22px no celular); no tablet (641-960px), só o símbolo. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa a mesma marca (`og_cards`, `scripts/gerar_og_image.py`). Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
+- **Logomarca** (25/11, escolha do usuário; substitui a de 24/11): "lodout" minúsculo em branco, recortado de um bloco escuro inclinado, com o ® no fim (`static/logo-lodout.svg`). O desenho veio de uma imagem do usuário e foi convertido em curvas; o arquivo SVG é a fonte, os PNGs são gerados por `scripts/gerar_assets_marca.py`. O ícone (aba, celular, app, `favicon*`, `icon-*`) é a inicial l branca num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai a marca completa pequena (26px; 22px no celular); no tablet (641-960px), só o símbolo. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa a mesma marca (`og_cards`, `scripts/gerar_og_image.py`). Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 
@@ -188,7 +188,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Texto** (#e8e8e8), **Texto Forte** (#ffffff) e **Texto Apagado** (#b3b3b3, 4,5:1 sobre #252525): corpo, títulos/números e legendas/rótulos.
 
 ### Named Rules
-**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é a marca nem um medidor, troque a cor.
+**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é um medidor, troque a cor — a marca de 25/11 é preto e branco.
 
 **The Meaning Colors Rule.** Verde, amarelo e vermelho só aparecem quando dizem alto/médio/baixo, subiu/caiu ou deu certo/errado. Nunca como decoração.
 
@@ -280,7 +280,7 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 
 ### Do:
 - **Do** usar o anel colorido sempre que mostrar a nota do Lodout, do mesmo jeito em todas as páginas.
-- **Do** manter um único laranja (#f97316) como voz de ação e marca, e o laranja translúcido (rgba(249, 115, 22, 0.7)) como fundo de botão principal.
+- **Do** manter um único laranja (#f97316) como voz de ação, e o laranja translúcido (rgba(249, 115, 22, 0.7)) como fundo de botão principal; a marca é preto e branco.
 - **Do** separar quadros com borda fina (#4a4a4a) e tom (#1e1e1e sobre #161616).
 - **Do** usar algarismos tabulares em preços, notas e porcentagens.
 - **Do** transformar tabelas em cartões no celular, com rótulo em caixa alta acima de cada valor.
