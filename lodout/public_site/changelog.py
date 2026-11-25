@@ -8,6 +8,13 @@ from __future__ import annotations
 
 ENTRADAS = [
     {
+        "data": "2026-11-25",
+        "titulo": "Coleta com menos itens extras",
+        "itens": [
+            "A coleta de preços voltou a acompanhar menos itens extras (cerca de 283 no total, antes 383). Nos últimos dias a Steam pediu pausa em várias coletas: alguns preços ficaram da coleta anterior e uma rodada do Top 20 ficou incompleta. Vamos acompanhar se a coleta completa passa a terminar mais vezes.",
+        ],
+    },
+    {
         "data": "2026-11-24",
         "titulo": "Status mais claro",
         "itens": [

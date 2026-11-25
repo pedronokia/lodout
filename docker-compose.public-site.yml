@@ -73,11 +73,12 @@ services:
       start_period: 15s
     environment:
       - LODOUT_WORKER_INTERVAL_HORAS=6
-      # 200 itens extras (~383 alvos no total). Em 19/11 subiu para 350
+      # 100 itens extras (~283 alvos no total). Em 19/11 subiu para 350
       # (~533) e cerca de metade das coletas passou a parar por limite da
-      # Steam (429), ficando com preço velho. Suba de 100 em 100, e só com
+      # Steam (429); em 25/11 voltou de 200 (~383) para 100 depois de 4 dos
+      # últimos 5 ciclos ficarem incompletos. Suba de 100 em 100, e só com
       # /api/health -> ultimo_ciclo_worker.pausas_429 limpo por 2-3 dias.
-      - LODOUT_ITENS_EXTRAS=200
+      - LODOUT_ITENS_EXTRAS=100
       # Alertas do dono (worker_alert.py). Vem do secret
       # ADMIN_DISCORD_WEBHOOK do GitHub via deploy.yml -- nunca escrito
       # aqui. Vazio = sem alerta.
