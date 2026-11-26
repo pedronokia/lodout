@@ -4004,53 +4004,68 @@ def test_manifest_json_acessivel(client):
 
 def test_manifest_json_tem_icones_png(client):
     """iOS Safari historicamente não aceita SVG em apple-touch-icon, e o
-    manifest do Android quer pelo menos um PNG 192x192/512x512 pra não
-    cair num ícone genérico ao instalar -- antes só tinha o SVG (achado
-    2026-11-01)."""
+    manifest do Android quer PNG 192/512 pra não cair num ícone genérico
+    (achado 2026-11-01). Desde 26/11 há também o 180x180 do iOS, todos
+    com `?v=` pra furar o cache de 1 ano do /static."""
     data = client.get("/static/manifest.json").get_json()
     tamanhos = {icone["sizes"] for icone in data["icons"]}
-    assert "192x192" in tamanhos
-    assert "512x512" in tamanhos
+    assert {"180x180", "192x192", "512x512"} <= tamanhos
     assert all(icone["type"] == "image/png" for icone in data["icons"]
                if icone["sizes"] != "any")
+    assert all("?v=" in icone["src"] for icone in data["icons"])
 
-    for nome in ("icon-192.png", "icon-512.png"):
+    for nome in ("apple-touch-icon.png", "icon-192.png", "icon-512.png"):
         resp = client.get(f"/static/{nome}")
         assert resp.status_code == 200
         assert resp.mimetype == "image/png"
 
 
-def test_icones_do_site_usam_a_marca_de_25_11(client):
-    """25/11 (escolha do usuário): o ícone da aba, do celular e do app é a
-    inicial l branca da nova logomarca, num quadrado escuro arredondado."""
+def test_icones_do_site_usam_a_marca_oficial(client):
+    """26/11: a mesma silhueta chanfrada #1A1D24 com contorno branco 45%
+    e Outfit 800, sem TM. No SVG pequeno vai o monograma `l`; nos PNGs
+    grandes vai `lodout` dentro da margem de segurança do quadrado."""
     import xml.dom.minidom
     svg = client.get("/static/favicon.svg").data.decode("utf-8").lower()
     xml.dom.minidom.parseString(svg)           # SVG válido (sem "--" em comentário)
-    assert 'fill="#ffffff"' in svg
-    assert 'fill="#0e0e10"' in svg
-    assert 'fill="#fe540c"' not in svg
+    for trecho in ('fill="#1a1d24"', 'stroke="rgba(255,255,255,0.45)"',
+                   'font-family="outfit, sans-serif"', 'font-weight="800"',
+                   ">l</text>"):
+        assert trecho in svg
+    for proibido in ('™', 'tm', '#0e0e10', '#17171b', '#fe540c'):
+        assert proibido not in svg
 
     from PIL import Image
     import io
-    for nome, lado in (("icon-192.png", 192), ("icon-512.png", 512)):
-        dados = client.get(f"/static/{nome}").data
-        img = Image.open(io.BytesIO(dados)).convert("RGB")
+    for nome, lado in (("apple-touch-icon.png", 180),
+                       ("icon-192.png", 192), ("icon-512.png", 512)):
+        img = Image.open(io.BytesIO(client.get(f"/static/{nome}").data)).convert("RGB")
         assert img.size == (lado, lado)
         px = img.load()
         total = lado * lado
-        escuros = sum(1 for y in range(lado) for x in range(lado) if sum(px[x, y]) < 200)
+        # Fundo #080808 (theme-color), bloco #1A1D24 e letras brancas.
+        diferentes = [(x, y) for y in range(lado) for x in range(lado)
+                      if px[x, y] != (8, 8, 8)]
         brancos = sum(1 for y in range(lado) for x in range(lado)
                       if min(px[x, y]) > 200)
         laranjas = sum(1 for y in range(lado) for x in range(lado)
                        if px[x, y][0] > 90 and px[x, y][0] - px[x, y][2] > 80)
-        assert escuros > total * 0.55    # fundo escuro
-        assert brancos > total * 0.02   # a inicial branca
-        assert laranjas == 0            # sem laranja na marca
+        assert len(diferentes) > total * 0.10   # bloco chanfrado presente
+        assert brancos > total * 0.015          # "lodout" em branco
+        assert laranjas == 0                    # sem laranja na marca
+        # Safe zone: a marca não encosta na borda da máscara arredondada.
+        esq = min(x for x, _ in diferentes)
+        dir_ = max(x for x, _ in diferentes)
+        topo = min(y for _, y in diferentes)
+        assert esq >= lado * 0.07 and dir_ <= lado * 0.93
+        assert topo >= lado * 0.25
 
-def test_apple_touch_icon_usa_png_nao_svg(client, monkeypatch):
+
+def test_apple_touch_icon_usa_png_180(client, monkeypatch):
     monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
     body = client.get("/").data.decode("utf-8")
-    assert 'rel="apple-touch-icon" href="/static/icon-192.png' in body
+    assert ('rel="apple-touch-icon" sizes="180x180" '
+            'href="/static/apple-touch-icon.png?v=') in body
+    assert 'rel="apple-touch-icon" href="/static/icon-192.png' not in body
 
 
 def test_sem_preload_de_fonte_custom(client, monkeypatch):
@@ -6116,28 +6131,31 @@ def test_pessoas_no_site_agora_tem_limite_por_ip(client):
     rate_limit._hits.clear()
 
 
-def test_icone_da_aba_em_png_com_a_marca_de_25_11(client):
-    """Na aba vão PNGs de 16 e 32 px (17/11); desde 25/11 com a inicial l
-    branca da nova marca, em quadrado escuro arredondado."""
+def test_icone_da_aba_em_png_com_a_marca_oficial(client):
+    """26/11: 16/32/48 px saem do monograma chanfrado oficial. O canto
+    transparente e o `l` branco centrado valem também no favicon.ico."""
     import io
 
     from PIL import Image
     body = client.get("/faq").data.decode("utf-8")
-    assert 'rel="icon" type="image/png" sizes="16x16"' in body
-    assert 'rel="icon" type="image/png" sizes="32x32"' in body
+    for lado in (16, 32, 48):
+        assert f'rel="icon" type="image/png" sizes="{lado}x{lado}"' in body
     assert 'rel="icon" href="/static/favicon.svg' not in body
-    for lado in (16, 32):
+    for lado in (16, 32, 48):
         img = Image.open(io.BytesIO(client.get(f"/static/favicon-{lado}.png").data)).convert("RGBA")
         assert img.size == (lado, lado)
         px = img.load()
-        # Cantos arredondados: o pixel do canto é transparente.
+        # A silhueta chanfrada não preenche os cantos do quadrado.
         for x, y in ((0, 0), (lado - 1, 0), (0, lado - 1), (lado - 1, lado - 1)):
             assert px[x, y][3] < 128
-        # O centro é o quadrado escuro (opaco), com a inicial branca.
-        assert px[lado // 2, lado // 2][3] == 255
-        cores = [px[x, y] for y in range(lado) for x in range(lado) if px[x, y][3] > 200]
-        brancos = [c for c in cores if min(c[:3]) > 200]
-        assert len(brancos) >= 3                                     # inicial branca
+        cores = [px[x, y] for y in range(lado) for x in range(lado)
+                 if px[x, y][3] > 200]
+        brancos = [(x, y) for y in range(lado) for x in range(lado)
+                   if px[x, y][3] > 200 and min(px[x, y][:3]) > 200]
+        assert len(cores) >= 3 and len(brancos) >= 3   # bloco e monograma
+        # O monograma fica no meio, não colado numa borda.
+        meio = sum(x for x, _ in brancos) / len(brancos)
+        assert abs(meio - lado / 2) <= lado * 0.2
         assert not any(c[0] > 150 and c[0] - c[2] > 90 for c in cores)  # sem laranja
 
 def test_historico_da_nota_compacta_e_apaga_o_velho():

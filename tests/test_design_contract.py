@@ -167,6 +167,43 @@ def test_dados_em_geist_mono():
         assert seletor in regra
 
 
+def test_svgs_dos_icones_sao_a_marca_oficial():
+    """26/11: os ícones saem dos mesmos SVG da marca chanfrada usada no
+    topo/rodapé -- #1A1D24, contorno branco 45%, Outfit 800 e sem TM.
+    Pequeno leva o monograma; grande leva `lodout` em quadrado seguro."""
+    static = STYLE.parent
+    caminho = static / "favicon.svg"
+    svg = caminho.read_text(encoding="utf-8")
+    app = (static / "logo-escura-app.svg").read_text(encoding="utf-8")
+
+    silhueta = (
+        'd="M84 14H242C247.523 14 252 18.4772 252 24V64.3431'
+        'C252 66.9953 250.946 69.5389 249.071 71.4142'
+        'L217.414 103.071C215.539 104.946 212.995 106 210.343 106'
+        'H18C12.4772 106 8 101.523 8 96V58.6569'
+        'C8 56.0047 9.05357 53.4611 10.9289 51.5858'
+        'L76.9289 16.9289C78.8043 15.0536 81.3478 14 84 14Z"'
+    )
+    for fonte in (svg, app):
+        assert silhueta in fonte
+        assert 'fill="#1A1D24"' in fonte
+        assert 'stroke="rgba(255,255,255,0.45)"' in fonte
+        assert 'font-family="Outfit, sans-serif"' in fonte
+        assert 'font-weight="800"' in fonte
+        assert "TM" not in fonte and "™" not in fonte
+
+    assert 'viewBox="0 0 256 256"' in svg and ">l</text>" in svg
+    assert 'viewBox="0 0 512 512"' in app and ">lodout</text>" in app
+    # Fundo escuro do sistema e margem de segurança no quadrado do app.
+    assert '<rect width="512" height="512" fill="#080808"/>' in app
+    assert 'scale(1.64) translate(-130 -60)' in app
+
+    gerador = (Path(__file__).resolve().parents[1] / "scripts"
+               / "gerar_assets_marca.py").read_text(encoding="utf-8")
+    assert "favicon.svg" in gerador and "logo-escura-app.svg" in gerador
+    assert "apple-touch-icon.png" in gerador and "favicon.ico" in gerador
+
+
 def test_rodape_cinza_claro_12px():
     css = _css()
     rodape = _bloco(css, "footer.rodape")

@@ -1,7 +1,7 @@
-<!-- Marca de 25/11: inicial l branca da nova logomarca, no quadrado escuro arredondado. Gerado de static/logo-L.svg. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="t">
-  <title id="t">Lodout — símbolo</title>
-  <rect width="256" height="256" rx="56" fill="#0e0e10"/>
-  <rect x="8" y="8" width="240" height="240" rx="50" fill="#17171b" stroke="#2a2a30" stroke-width="2"/>
-  <path fill="#ffffff" transform="translate(-339.35 -944.91) scale(0.900474)" d="M495.0 1086.0 L495.0 1295.0 L542.0 1295.0 L542.0 1086.0 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="titulo">
+  <title id="titulo">Lodout — símbolo da marca oficial</title>
+  <g transform="translate(128 128) scale(0.82 1.576) translate(-130 -60)">
+    <path d="M84 14H242C247.523 14 252 18.4772 252 24V64.3431C252 66.9953 250.946 69.5389 249.071 71.4142L217.414 103.071C215.539 104.946 212.995 106 210.343 106H18C12.4772 106 8 101.523 8 96V58.6569C8 56.0047 9.05357 53.4611 10.9289 51.5858L76.9289 16.9289C78.8043 15.0536 81.3478 14 84 14Z" fill="#1A1D24" stroke="rgba(255,255,255,0.45)" stroke-width="10" stroke-linejoin="round"/>
+  </g>
+  <text x="128" y="180" fill="#FFFFFF" font-family="Outfit, sans-serif" font-size="150" font-weight="800" text-anchor="middle" letter-spacing="-6">l</text>
 </svg>

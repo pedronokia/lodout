@@ -562,6 +562,13 @@ def test_busca_conta_o_catalogo_uma_vez_so(client, monkeypatch):
 
 
 def test_favicon_ico(client):
+    """26/11: o ICO da marca oficial traz 16, 32 e 48 px, os três
+    tamanhos usados por abas e marcadores no Windows."""
+    import io
+    from PIL import Image
+
     r = client.get("/favicon.ico")
     assert r.status_code == 200 and r.mimetype == "image/x-icon"
     assert "max-age=86400" in r.headers["Cache-Control"]
+    ico = Image.open(io.BytesIO(r.data))
+    assert sorted(ico.ico.sizes()) == [(16, 16), (32, 32), (48, 48)]

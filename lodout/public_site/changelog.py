@@ -17,6 +17,7 @@ ENTRADAS = [
             "O Lodout ganhou outra logomarca: o nome em branco, em letras minúsculas, sobre um bloco preto inclinado, com o ® no fim. O ícone da aba, do celular e do app e a imagem que aparece ao compartilhar o site usam o mesmo desenho.",
             "Os títulos passaram a usar Outfit, o texto corrido usa Geist e os números (preços, variações, desgaste e nota) usam Geist Mono, com algarismos alinhados. As três fontes são servidas pelo próprio site, sem depender de outro serviço.",
             "A logomarca do topo e do rodapé foi trocada pela versão oficial escura de alto contraste: o nome em branco sobre um bloco escuro chanfrado, com contorno claro e sem o símbolo de marca registrada. O layout das páginas, as cores e a lógica dos dados não mudaram.",
+            "O ícone da aba e do app também usa a nova marca: nas abas e marcadores vai o monograma em um bloco chanfrado, e no celular vai o nome completo com uma margem para não ser cortado. As imagens do site e a coleta de dados ficaram como estavam.",
         ],
     },
     {
