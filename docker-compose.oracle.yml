@@ -16,7 +16,13 @@ services:
   # desligar, troque por 0 e faça deploy com [restart-worker].
   worker:
     environment:
-      - LODOUT_CATALOGO=1
+      # DESLIGADO de 26/11 a ~29/11 (teste pedido pelo usuário): desde 23/11
+      # a busca dava 404 em todas as categorias (até start=0) e só 3 de 20
+      # coletas fecharam sem pausa 429. Mede se, sem as buscas, a coleta volta
+      # a fechar completa e sem pausa (/api/health -> ultimo_ciclo_worker:
+      # ciclo_completo e ciclo_sem_pausa). Os itens extras continuam: saem do
+      # banco do catálogo já guardado, não da varredura. Ver AGENTS.md.
+      - LODOUT_CATALOGO=0
       # Inventário das contas 1x por dia (plans/archive/conta-inventario.md).
       - LODOUT_INVENTARIO_DIARIO=1
       # Backtest diário da nota (só cálculo, sem consulta à Steam).

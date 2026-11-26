@@ -122,6 +122,17 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   trecho curto do body do 404 (`steam_api.ultimo_404_busca()`); sem isso, depois
   de um restart do worker, só a posição da falha sobrevivia e não dava para
   distinguir manutenção/WAF de 404 legítimo.
+  **Teste de 26/11 (pedido do usuário): catálogo DESLIGADO por ~3 dias**
+  (`LODOUT_CATALOGO=0` em `docker-compose.oracle.yml`). Diagnóstico: desde
+  23/11 a busca deu 404 nas 10 fatias, inclusive em `start=0` (sinal de
+  recusa da busca, não de posição errada), e só 3 das 20 últimas coletas
+  fecharam sem pausa 429, mesmo depois de os extras caírem para 100; a rodada
+  de 26/11 começou no mesmo minuto em que a coleta terminou por 429 (404 não
+  aciona o disjuntor). Se a coleta voltar a fechar completa e sem pausa, o
+  catálogo era o gasto que marcava o IP: religar mais devagar e com freio
+  também para 404 em `start=0`. Se não voltar, o problema é o IP da VM
+  (a mudança para a Ampere, `migrar-vm.yml`, troca o IP). Os extras não
+  dependem do catálogo ligado (`itens_extras` lê o banco já guardado).
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
