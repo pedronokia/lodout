@@ -12233,10 +12233,12 @@ button.confira { min-height: 24px; padding-block: 3px; }
 
 /* Letra ampliada no celular (revisão 20/11): com a fonte do sistema no
    dobro, duas colunas ficavam estreitas demais e o preço da encomenda
-   sumia do cartão. A coluna mínima em rem cresce junto com a letra:
-   no tamanho normal continuam 2 colunas; com letra grande, vira 1. */
+   sumia do cartão. A coluna mínima em rem cresce junto com a letra.
+   Revisão 26/11: 8.5rem permitia QUATRO colunas de 146px em 640px e o
+   preço em Geist Mono não cabia ao lado do botão; 11rem mantém duas
+   colunas no celular e três nessa largura intermediária. */
 @media (max-width: 640px) {
-  .grade-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); }
+  .grade-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); }
 }
 .cartao-item-encomenda { flex-wrap: wrap; max-width: 100%; }
 
@@ -12851,4 +12853,61 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   background: rgba(249, 115, 22, 0.22);
   border-color: rgba(249, 115, 22, 0.75);
   color: #ffffff;
+}
+
+/* ── Vitrine: mesma régua vertical em todos os cartões (26/11) ───
+   Imagem, nome/desgaste, motivo/liquidez, preço e rodapé agora usam o
+   mesmo intervalo de 8px. O preço e a variação quebram como blocos
+   inteiros (nunca no meio de "R$ 1.234,56"), e a etiqueta de baixo não
+   ultrapassa a borda do cartão. Escopo só na grade da home: o hero e
+   a tabela continuam com as regras próprias. */
+.grade-cards > .cartao-item .cartao-item-corpo {
+  gap: 8px;
+  padding: 12px 12px 10px;
+}
+.grade-cards > .cartao-item .cartao-item-nome {
+  margin: 0;
+  min-height: 2.6em;
+}
+.grade-cards > .cartao-item .detalhe-motivo-cartao {
+  margin: 0;
+  min-height: 2.7em;
+}
+.grade-cards > .cartao-item .cartao-item-alertas {
+  margin: 0;
+}
+.grade-cards > .cartao-item .cartao-item-rodape {
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 0;
+}
+.grade-cards > .cartao-item .cartao-item-preco {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  column-gap: 6px;
+  row-gap: 2px;
+  flex-wrap: wrap;
+}
+.grade-cards > .cartao-item .cartao-item-preco > * {
+  flex: none;
+  white-space: nowrap;
+}
+.grade-cards > .cartao-item .cartao-item-selos {
+  min-height: 28px;
+  margin-top: 0;
+  padding-top: 6px;
+  line-height: 1.3;
+}
+.grade-cards > .cartao-item .cartao-item-steam {
+  padding-block: 6px;
+  margin-block: 0;
+}
+@media (max-width: 640px) {
+  .grade-cards > .cartao-item .cartao-item-corpo {
+    padding: 10px 11px 12px;
+  }
+  .grade-cards > .cartao-item .cartao-item-selos {
+    min-height: 28px;
+  }
 }

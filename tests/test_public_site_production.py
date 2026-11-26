@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -64,6 +65,10 @@ def test_build_id_prefere_variavel_de_ambiente(monkeypatch, tmp_path):
     assert server._build_id() == "20261120-163000-abc1234"
 
 
+@pytest.mark.skipif(
+    shutil.which("sh") is None,
+    reason="entrypoint.sh é validado com `sh -n`; sem sh (Windows) não há como rodar a checagem. A CI Linux continua executando.",
+)
 def test_entrypoint_sintaxe_valida_e_sem_chown_incondicional():
     ep = _REPO_ROOT / "entrypoint.sh"
     res = subprocess.run(["sh", "-n", str(ep)], capture_output=True, text=True)
@@ -448,6 +453,10 @@ def test_max_content_length_rejeita_post_gigante_com_413(monkeypatch):
     assert r_html.status_code == 413
 
 
+@pytest.mark.skipif(
+    importlib.util.find_spec("fcntl") is None,
+    reason="worker._lock_instancia usa fcntl, inexistente no Windows; a CI Linux continua executando.",
+)
 def test_worker_lock_instancia_bloqueia_segunda_instancia(tmp_path):
     from lodout.public_site import worker
 

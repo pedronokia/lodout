@@ -196,7 +196,7 @@
       {% endif %}
       <div class="cartao-item-rodape">
         <span class="cartao-item-preco">
-          {{ c.price_fmt }}
+          <span class="cartao-item-preco-valor">{{ c.price_fmt }}</span>
           {% if c.tendencia in ("alta", "baixa") %}
           {% set pct_txt = ("%.1f"|format(c.variacao_pct|abs))|replace(".", ",") ~ "%" if c.variacao_pct is number else "" %}
           {% set verbo = "subiu" if c.tendencia == "alta" else "caiu" %}
@@ -235,9 +235,9 @@
     </div>
     <div class="cartao-item-corpo">
       <a class="cartao-item-nome" href="{{ url_for('item_detail', name=c.name) }}" translate="no">{{ c.name_fmt }}</a>
-      <p class="cartao-item-a-venda">{{ c.a_venda }} à venda na Steam</p>
+      <p class="detalhe-motivo-cartao cartao-item-a-venda">{{ c.a_venda }} à venda na Steam</p>
       <div class="cartao-item-rodape">
-        <span class="cartao-item-preco">{{ c.price_fmt }}</span>
+        <span class="cartao-item-preco"><span class="cartao-item-preco-valor">{{ c.price_fmt }}</span></span>
       </div>
       <div class="cartao-item-selos">
         <span class="cartao-item-caixa">Preço do dia</span>

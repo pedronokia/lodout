@@ -6448,13 +6448,14 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
 
 
 def test_previa_de_compartilhamento_usa_a_logomarca():
-    """A imagem do WhatsApp/Discord usa a marca de 25/11 ("lodout" em branco
-    sobre bloco escuro, de static/logo-lodout.png), e o og-image.png
-    publicado está em dia com o og_cards."""
+    """A imagem do WhatsApp/Discord usa a marca oficial "Escura Alto
+    Contraste" (chanfrada, branca, sem TM) sobre o fundo do site, e o
+    og-image.png publicado está em dia com o og_cards."""
     import io as _io
     from pathlib import Path as _P
     from PIL import Image as _Img, ImageChops as _Ch
     from lodout.public_site import og_cards
+    assert og_cards._LOGO.name == "logo-escura-og.png"
     assert og_cards._LOGO.exists() and og_cards._SIMBOLO.exists()
     novo = _Img.open(_io.BytesIO(og_cards.cartao_padrao())).convert("RGB")
     publicado = _Img.open(_P(og_cards.__file__).parent / "static" / "og-image.png").convert("RGB")
@@ -6465,8 +6466,12 @@ def test_previa_de_compartilhamento_usa_a_logomarca():
         pass  # No Windows, FreeType varia levemente o rendering da fonte variável
     else:
         assert bbox is None
-    # As letras brancas no bloco escuro, no lugar da antiga marca laranja.
-    marca = novo.crop((100, 178, 660, 370))
+    # Fundo do tema em toda a faixa de cima: nada de barra decorativa.
+    assert novo.getpixel((0, 0)) == (22, 22, 22)
+    assert all(novo.getpixel((x, 4)) == (22, 22, 22)
+               for x in range(0, og_cards.LARGURA, 25))
+    # Letras brancas da marca no bloco chanfrado, sem o laranja antigo.
+    marca = novo.crop((100, 100, 610, 320))
     brancos = sum(1 for x in range(marca.width) for y in range(marca.height)
                   if min(marca.getpixel((x, y))) > 200)
     laranjas = sum(1 for x in range(marca.width) for y in range(marca.height)

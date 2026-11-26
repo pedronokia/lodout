@@ -1,14 +1,17 @@
 """Imagens de prévia (Open Graph, 1200x630) pra quando um link do Lodout
 é colado no Discord, WhatsApp, X etc.
 
-- `cartao_padrao()`: marca + frase do site. Gera o `static/og-image.png`
-  (via scripts/gerar_og_image.py) usado pelas páginas sem imagem própria.
+- `cartao_padrao()`: marca oficial "Escura Alto Contraste" (sem TM),
+  fundo do tema e texto curto em Outfit / Geist / Geist Mono. Gera o
+  `static/og-image.png` (via scripts/gerar_og_image.py) usado pelas
+  páginas sem imagem própria.
 - `cartao_item(...)`: um por item, com ícone, nome, nota, preço e a cor
   da raridade. Feito só com dado já guardado (scan + ícone já em cache
   local): gerar a prévia nunca consulta a Steam nem o CDN dela.
 
-Pillow já é dependência do site (icon_cache.py); a fonte é a mesma Inter
-variável que o site serve (static/fonts), com eixo de peso.
+Pillow já é dependência do site (icon_cache.py); as fontes são as mesmas
+que o site serve (static/fonts): Outfit no título, Geist no texto e
+Geist Mono nos números.
 """
 from __future__ import annotations
 
@@ -22,7 +25,11 @@ from lodout import _paths
 from lodout._paths import atomic_write_bytes
 
 LARGURA, ALTURA = 1200, 630
-_FONTE = Path(__file__).parent / "static" / "fonts" / "inter-latin-opsz-normal.woff2"
+_FONTES = {
+    "outfit": Path(__file__).parent / "static" / "fonts" / "outfit-latin.woff2",
+    "geist": Path(__file__).parent / "static" / "fonts" / "geist-latin.woff2",
+    "mono": Path(__file__).parent / "static" / "fonts" / "geist-mono-latin.woff2",
+}
 
 # Mesmas cores do tema (style.css :root e .raridade-*, .nota-*).
 _FUNDO = (22, 22, 22)          # --bg #161616
@@ -43,10 +50,13 @@ _CORES_RARIDADE = {
 _CACHE_MAX_ARQUIVOS = 800
 
 
-def _fonte(tamanho: int, peso: int = 400) -> ImageFont.FreeTypeFont:
-    f = ImageFont.truetype(str(_FONTE), tamanho)
+def _fonte(tamanho: int, peso: int = 400,
+           familia: str = "geist") -> ImageFont.FreeTypeFont:
+    """Fonte do cartão. `mono` é monoespaçada, então os algarismos já
+    ficam tabulares sem depender de feature OpenType."""
+    f = ImageFont.truetype(str(_FONTES[familia]), tamanho)
     try:
-        f.set_variation_by_axes([32 if tamanho >= 32 else 14, peso])
+        f.set_variation_by_axes([peso])
     except (OSError, ValueError):
         pass
     return f
@@ -74,14 +84,14 @@ def _quebrar(texto: str, fonte, largura_max: int, linhas_max: int) -> "list[str]
     return linhas
 
 
-_LOGO = Path(__file__).parent / "static" / "logo-lodout.png"
+_LOGO = Path(__file__).parent / "static" / "logo-escura-og.png"
 _SIMBOLO = Path(__file__).parent / "static" / "logo-L.png"
 
 
 def _simbolo(img: Image.Image, x: int, y: int, altura: int,
              opacidade: float = 1.0) -> None:
-    """O símbolo da marca de 25/11: inicial l branca do novo desenho, o
-    mesmo do ícone do site (static/logo-L.svg em PNG transparente).
+    """Símbolo de reserva: inicial l do monograma do site (static/logo-L.svg
+    em PNG transparente), usada só quando o item não tem ícone em cache.
     (x, y) é o canto de cima à esquerda e `altura` a altura em pixels."""
     simbolo = Image.open(_SIMBOLO).convert("RGBA")
     largura = round(simbolo.width * altura / simbolo.height)
@@ -93,7 +103,7 @@ def _simbolo(img: Image.Image, x: int, y: int, altura: int,
 
 def _estrela(d: ImageDraw.ImageDraw, cx: float, cy: float, r: float,
              cor) -> None:
-    """★ desenhada (a Inter servida pelo site não tem o glifo)."""
+    """★ desenhada (as fontes servidas pelo site não têm o glifo)."""
     import math
     pontos = []
     for i in range(10):
@@ -110,21 +120,22 @@ def _png(img: Image.Image) -> bytes:
 
 
 def cartao_padrao() -> bytes:
+    """Cartão padrão: fundo #161616, marca oficial sem TM, título curto
+    em Outfit e uma linha de dados em Geist / Geist Mono. Sem faixas ou
+    brilhos: o texto e a marca são os únicos elementos."""
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, LARGURA, 10], fill=_LARANJA)
-    # A logomarca de 25/11: "lodout" em branco sobre bloco escuro, em PNG
-    # transparente.
     logo = Image.open(_LOGO).convert("RGBA")
-    larg = 560
+    larg = 500
     logo = logo.resize((larg, round(logo.height * larg / logo.width)), Image.LANCZOS)
-    img.paste(logo, (100, 178), logo)
-    frase = "Análise do mercado de skins\nde Counter-Strike 2."
-    y = 430
-    for linha in frase.split("\n"):
-        d.text((100, y), linha, font=_fonte(42, 450), fill=_TEXTO_FRACO)
-        y += 56
-    d.text((100, ALTURA - 70), "lodout.com", font=_fonte(30, 600),
+    img.paste(logo, (100, 100), logo)
+    d.text((100, 350), "Entenda o mercado de skins",
+           font=_fonte(64, 800, "outfit"), fill=_TEXTO)
+    d.text((100, 445), "Notas, preços e histórico com dados públicos da Steam.",
+           font=_fonte(30, 400), fill=_TEXTO_FRACO)
+    d.text((100, 500), "Top 20  ·  7d / 30d / 90d  ·  histórico",
+           font=_fonte(26, 500, "mono"), fill=_TEXTO)
+    d.text((100, ALTURA - 70), "lodout.com", font=_fonte(28, 600, "mono"),
            fill=_LARANJA)
     return _png(img)
 
@@ -166,7 +177,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
     x = qx + qt + 60
     largura_txt = LARGURA - x - 70
     y = 110
-    f_nome = _fonte(54, 700)
+    f_nome = _fonte(54, 700, "outfit")
     estrela = nome_fmt.startswith("★")
     nome = nome_fmt.lstrip("★ ").strip() if estrela else nome_fmt
     recuo = 50 if estrela else 0
@@ -180,27 +191,37 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
 
     y = max(y + 24, 330)
     if nota is not None:
+        f_nota = _fonte(120, 800, "mono")
         d.text((x, y), "Nota", font=_fonte(30, 500), fill=_TEXTO_FRACO)
-        d.text((x, y + 34), f"{int(nota)}", font=_fonte(120, 800),
+        d.text((x, y + 34), f"{int(nota)}", font=f_nota,
                fill=_CORES_NOTA[_nota_classe(nota)])
     if preco_fmt:
         # Depois da nota de verdade: nota 100 tem 3 dígitos. Sem "/100"
         # desde 20/11 (pedido do usuário: a escala fica implícita).
         fim_nota = x
         if nota is not None:
-            fim_nota = x + _fonte(120, 800).getlength(f"{int(nota)}")
+            fim_nota = x + f_nota.getlength(f"{int(nota)}")
         px = max(x + 300, int(fim_nota) + 50)
         tam = 56
-        while tam > 34 and _fonte(tam, 700).getlength(preco_fmt) > LARGURA - 60 - px:
+        while tam > 34 and _fonte(tam, 700, "mono").getlength(preco_fmt) > LARGURA - 60 - px:
             tam -= 2
         d.text((px, y), "Preço", font=_fonte(30, 500), fill=_TEXTO_FRACO)
         d.text((px, y + 62 + (56 - tam) // 2), preco_fmt,
-               font=_fonte(tam, 700), fill=_TEXTO)
+               font=_fonte(tam, 700, "mono"), fill=_TEXTO)
 
-    f_rod = _fonte(30, 600)
-    d.text((x, ALTURA - 70), "lodout.com", font=f_rod, fill=_LARANJA)
-    d.text((x + f_rod.getlength("lodout.com") + 12, ALTURA - 70),
-           "· dados públicos da Steam", font=_fonte(30, 400),
+    # Rodapé com a mesma marca do cartão padrão, sem TM.
+    marca = Image.open(_LOGO).convert("RGBA")
+    larg_marca = 150
+    marca = marca.resize((larg_marca,
+                          round(marca.height * larg_marca / marca.width)),
+                         Image.LANCZOS)
+    y_rod = ALTURA - 96
+    img.paste(marca, (x, y_rod), marca)
+    tx = x + larg_marca + 16
+    f_dominio = _fonte(26, 600, "mono")
+    d.text((tx, ALTURA - 70), "lodout.com", font=f_dominio, fill=_LARANJA)
+    d.text((tx + f_dominio.getlength("lodout.com") + 12, ALTURA - 70),
+           "· dados públicos da Steam", font=_fonte(26, 400),
            fill=_TEXTO_FRACO)
     return _png(img)
 
@@ -217,7 +238,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v5"]).encode("utf-8")).hexdigest()  # v5: sem "/100" (20/11)
+        "v6"]).encode("utf-8")).hexdigest()  # v6: marca/oficina de fontes (26/11)
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:

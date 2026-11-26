@@ -9,6 +9,7 @@ identidade visual (valores conferidos com opencode.ai/brand em 2026-11-12).
 """
 from __future__ import annotations
 
+import io
 import re
 from pathlib import Path
 
@@ -124,7 +125,8 @@ def test_sem_import_do_google_fonts():
 def test_arquivos_da_fonte_comitados():
     """WOFF2 e licenças SIL OFL 1.1 no repositório -- sem eles o site
     cai no fallback do sistema e volta a divergir entre computadores.
-    A Inter fica só porque og_cards.py compõe o cartão com ela."""
+    A Inter segue como fonte antiga; o cartão de compartilhamento usa
+    as três fontes atuais do site (teste abaixo)."""
     pasta = STYLE.parent / "fonts"
     for nome in ("outfit-latin.woff2", "geist-latin.woff2",
                  "geist-mono-latin.woff2",
@@ -136,6 +138,32 @@ def test_arquivos_da_fonte_comitados():
                  "OFL.txt"):
         licenca = (pasta / nome).read_text(encoding="utf-8")
         assert "SIL OPEN FONT LICENSE" in licenca
+
+
+def test_cartao_de_compartilhamento_usa_a_identidade_atual():
+    """26/11: o og-image sai da marca oficial chanfrada, sem TM, com
+    título em Outfit e números monoespaçados, sobre o fundo do site."""
+    from PIL import Image as _Img
+    from lodout.public_site import og_cards
+
+    origem = (STYLE.parent.parent / "og_cards.py").read_text(encoding="utf-8")
+    for familia in ("outfit-latin.woff2", "geist-latin.woff2",
+                    "geist-mono-latin.woff2"):
+        assert familia in origem
+    assert og_cards._LOGO.name == "logo-escura-og.png"
+    assert og_cards._LOGO.is_file()
+    # A marca do cartão vem do mesmo partial do topo/rodapé (sem TM).
+    gerador = (Path(__file__).resolve().parents[1] / "scripts"
+               / "gerar_assets_marca.py").read_text(encoding="utf-8")
+    assert "_logo_svg.html" in gerador and "logo-escura-og.png" in gerador
+
+    img = _Img.open(io.BytesIO(og_cards.cartao_padrao())).convert("RGB")
+    assert img.size == (og_cards.LARGURA, og_cards.ALTURA)
+    assert img.getpixel((0, 0)) == (22, 22, 22)
+    assert all(img.getpixel((x, 4)) == (22, 22, 22)
+               for x in range(0, og_cards.LARGURA, 50))
+    f_mono = og_cards._fonte(40, 500, "mono")
+    assert f_mono.getlength("1111") == f_mono.getlength("8888")
 
 
 def test_titulos_outfit_700_e_escala_32_48_64():
@@ -165,6 +193,29 @@ def test_dados_em_geist_mono():
     for seletor in (".cartao-item-preco", ".icone-tendencia",
                     ".item-exterior", ".nota-numero", ".nota-margem"):
         assert seletor in regra
+
+
+def test_vitrine_tem_regua_vertical_unica():
+    """26/11: imagem, nome, motivo, preço e rodapé da vitrine usam o
+    mesmo intervalo de 8px. O preço é um bloco só, para a variação não
+    partir o valor ao meio em larguras intermediárias."""
+    css = _css()
+    corpo = _bloco(css, ".grade-cards > .cartao-item .cartao-item-corpo")
+    assert "gap: 8px;" in corpo
+    rodape = _bloco(css, ".grade-cards > .cartao-item .cartao-item-rodape")
+    assert "gap: 8px;" in rodape
+    assert "margin-top: auto;" in rodape
+    preco = _bloco(css, ".grade-cards > .cartao-item .cartao-item-preco")
+    assert "font-family: var(--font-mono);" in preco
+    assert "flex-wrap: wrap;" in preco
+    filhos = _bloco(css, ".grade-cards > .cartao-item .cartao-item-preco > *")
+    assert "white-space: nowrap;" in filhos
+    # Coluna mínima no celular (11rem) evita quatro cartões estreitos em
+    # 640px, onde o preço em mono não cabia ao lado do botão.
+    assert "minmax(min(100%, 11rem), 1fr)" in css
+
+    html = (STYLE.parent.parent / "templates" / "index.html").read_text(encoding="utf-8")
+    assert 'class="cartao-item-preco-valor"' in html
 
 
 def test_svgs_dos_icones_sao_a_marca_oficial():

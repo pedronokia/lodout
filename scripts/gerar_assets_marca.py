@@ -3,11 +3,16 @@
 Uso: python scripts/gerar_assets_marca.py
 
 Fontes:
-- `logo-lodout.svg` + `logo-L.svg`: marca de 25/11, usada só no cartão
-  de compartilhamento (`og_cards.py`). Não muda com os ícones.
+- `templates/partials/_logo_svg.html`: marca oficial "Escura Alto
+  Contraste", sem TM, a mesma do topo/rodapé. Vira `logo-escura-og.png`,
+  usado pelo cartão de compartilhamento (`og_cards.py`).
+- `logo-L.svg`: símbolo da marca de 25/11, usado quando um item do
+  cartão não tem ícone em cache.
 - `favicon.svg`: monograma oficial chanfrado (aba e marcadores).
 - `logo-escura-app.svg`: marca oficial completa em quadrado seguro
   (apple-touch-icon e ícones do manifest).
+- `logo-lodout.svg`: marca de 25/11, mantida só como histórico; não
+  é mais usada no cartão de compartilhamento.
 
 Nenhum PNG/ICO da marca deve ser editado à mão. O Outfit é embutido
 no HTML de renderização para que o texto dos SVGs não caia no fallback.
@@ -16,6 +21,7 @@ from __future__ import annotations
 
 import base64
 import io
+import re
 from pathlib import Path
 
 from PIL import Image
@@ -25,6 +31,18 @@ RAIZ = Path(__file__).resolve().parent.parent
 STATIC = RAIZ / "lodout" / "public_site" / "static"
 FONTE_OUTFIT = STATIC / "fonts" / "outfit-latin.woff2"
 LANCZOS = getattr(Image, "Resampling", Image).LANCZOS
+_MARCA_OFICIAL = (RAIZ / "lodout" / "public_site" / "templates"
+                  / "partials" / "_logo_svg.html")
+
+
+def _marca_oficial_svg() -> str:
+    """O SVG exato da marca do topo/rodapé, sem TM, sem comentário Jinja.
+
+    Um único desenho para site e cartão de compartilhamento: se a marca
+    mudar, basta mudar o partial e regerar os rasterizados.
+    """
+    texto = _MARCA_OFICIAL.read_text(encoding="utf-8")
+    return re.sub(r"\{#.*?#\}", "", texto, flags=re.S).strip()
 
 
 def _html(svg: str, fundo: str | None) -> str:
@@ -66,9 +84,9 @@ def _salvar_png(img: Image.Image, nome: str, modo: str = "RGBA") -> None:
     img.save(STATIC / nome, "PNG", optimize=True)
 
 
-def main() -> None:
-    """Os quatro SVGs abaixo são a fonte; nada de PNG editado à mão."""
-    marca_og = (STATIC / "logo-lodout.svg").read_text(encoding="utf-8")
+def main(apenas_marca_og: bool = False) -> None:
+    """Os SVGs abaixo são a fonte; nada de PNG editado à mão."""
+    marca_oficial = _marca_oficial_svg()
     simbolo_og = (STATIC / "logo-L.svg").read_text(encoding="utf-8")
     simbolo = (STATIC / "favicon.svg").read_text(encoding="utf-8")
     aplicativo = (STATIC / "logo-escura-app.svg").read_text(encoding="utf-8")
@@ -77,10 +95,16 @@ def main() -> None:
         navegador = p.chromium.launch()
         pagina = navegador.new_page(device_scale_factor=1)
 
-        # Cartão de compartilhamento: continua com a marca de 25/11.
-        # fator=1 preserva os bytes que o og_cards já usa.
-        _salvar_png(_render(pagina, marca_og, 1100, 267, fator=1),
-                    "logo-lodout.png")
+        # Cartão de compartilhamento: a marca oficial "Escura Alto
+        # Contraste", com o mesmo SVG chanfrado e sem TM do site.
+        _salvar_png(_render(pagina, marca_oficial, 1040, 448, fator=1),
+                    "logo-escura-og.png")
+        if apenas_marca_og:
+            navegador.close()
+            print("marca do cartão regenerada em", STATIC)
+            return
+
+        # Símbolo de reserva dos cartões de item sem ícone em cache.
         _salvar_png(_render(pagina, simbolo_og, 440, 440, fator=1),
                     "logo-L.png")
 
@@ -115,4 +139,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    # `--apenas-marca-og` regera só o PNG usado pelo cartão de
+    # compartilhamento, sem tocar nos ícones já publicados.
+    main(apenas_marca_og="--apenas-marca-og" in sys.argv)

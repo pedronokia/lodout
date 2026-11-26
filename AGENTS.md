@@ -283,7 +283,8 @@ desatualizadas. Regras para toda sessão:
 3. **Arquivos gerados não se editam à mão.** `static/og-image.png` sai de
    `scripts/gerar_og_image.py`, e um teste compara os dois. Os PNGs e o ICO
    da marca saem de `scripts/gerar_assets_marca.py`: o cartão usa
-   `static/logo-lodout.svg` e `static/logo-L.svg`; os ícones oficiais usam
+   a marca oficial de `templates/partials/_logo_svg.html` (via
+   `logo-escura-og.png`) e `static/logo-L.svg` como reserva; os ícones oficiais usam
    `static/favicon.svg` (monograma) e `static/logo-escura-app.svg` (marca
    completa). Não recompiler raster à mão.
 4. **Teste falhou?** Não apague nem afrouxe o teste para passar. Se ele
