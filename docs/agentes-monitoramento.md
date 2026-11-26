@@ -23,7 +23,11 @@ agente faz requisição direta de diagnóstico à Steam.
    Aplica **sozinho** um item por execução do plano em
    `docs/plano-aprimoramento-busca.md` marcado como `AUTORIZADO`, e registra
    em `scratch/aprimoramentos/aplicados/<slug>.md`. Itens `VETADOS` nunca são
-   aplicados sem autorização nova.
+   aplicados sem autorização nova. Antes de publicar, consulta `/api/health`:
+   com `catalogo.fatia` preenchido ou rodada iniciada há menos de 2 h com
+   páginas > 0, pula a execução para não reiniciar o worker no meio da volta.
+   O `[restart-worker]` vale também para mudanças em `catalogo.py`, que o
+   worker executa ao gravar itens.
 
 ## Fontes permitidas (todas locais ou do próprio site)
 
