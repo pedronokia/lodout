@@ -22,8 +22,10 @@ agente faz requisição direta de diagnóstico à Steam.
 5. **Aprimoramento** — agente `general` disparado no minuto 20 de cada hora.
    Aplica **sozinho** um item por execução do plano em
    `docs/plano-aprimoramento-busca.md` marcado como `AUTORIZADO`, e registra
-   em `scratch/aprimoramentos/aplicados/<slug>.md`. Itens `VETADOS` nunca são
-   aplicados sem autorização nova. Antes de publicar, consulta `/api/health`:
+   em `scratch/aprimoramentos/aplicados/<slug>.md`. Itens `LIBERADO EM 26/11`
+   (ritmo/limite/cobertura) também podem ser aplicados. Ainda fora: segredos,
+   config/deploy, `data/`, `LODOUT_ITENS_EXTRAS` e o valor base de
+   `steam_api.RATE_LIMIT_DELAY_S`. Antes de publicar, consulta `/api/health`:
    com `catalogo.fatia` preenchido ou rodada iniciada há menos de 2 h com
    páginas > 0, pula a execução para não reiniciar o worker no meio da volta.
    O `[restart-worker]` vale também para mudanças em `catalogo.py`, que o
@@ -54,11 +56,12 @@ confirar `/api/health` no ar.
 
 ## Fora da lista — SEMPRE pedir aprovação
 
-- Mudança de limites ou ritmo: `_MAX_404_MESMO_START`, `_ESPERA_APOS_404_S`,
-  `_CATALOGO_FOLGA_S`, `steam_api.RATE_LIMIT_DELAY_S`,
-  `LODOUT_ITENS_EXTRAS`, `LODOUT_TOP_RAPIDO_HORAS`, janelas e timeouts.
+- Mudança de limites ou ritmo **fora do plano**: `_CATALOGO_FOLGA_S`,
+  `LODOUT_TOP_RAPIDO_HORAS`, `LODOUT_ITENS_EXTRAS` e o valor base de
+  `steam_api.RATE_LIMIT_DELAY_S`. Os itens do plano marcados
+  `LIBERADO EM 26/11` são exceção para o Agente de Aprimoramento.
 - Novas tags/facetas, alteração em `FATIAS`, exclusão ou reordenação de
-  categorias do catálogo.
+  categorias do catálogo — exceção: ampliação medida prevista no item 12.
 - Mudanças de relevância da busca do site (`/?q=`, `/api/sugestoes`,
   `texto_busca`, `nome_para_busca`, normalização, sinônimos, peso de
   resultados) — **exceção desde 26/11**: o Agente de Aprimoramento pode
