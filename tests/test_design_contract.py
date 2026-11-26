@@ -33,17 +33,34 @@ def _bloco(css: str, seletor: str) -> str:
     return css[início:fim]
 
 
+def _bloco_final(css: str, seletor: str) -> str:
+    """A ÚLTIMA regra de um seletor repetido (a que vale no cascade)."""
+    início = css.rfind(f"{seletor} {{")
+    assert início >= 0, f"regra não encontrada: {seletor}"
+    fim = css.find("}", início)
+    return css[início:fim]
+
+
+def _bloco_apos(css: str, trecho: str) -> str:
+    """Primeiro bloco `{ ... }` depois da última ocorrência de `trecho`
+    (útil para seletores agrupados por vírgula)."""
+    início = css.rindex(trecho)
+    abertura = css.index("{", início)
+    fim = css.index("}", abertura)
+    return css[abertura:fim]
+
+
 def test_tokens_de_superficie_opencode():
     css = _css()
-    # PRETO #080808 (cabeçalho) + CINZA ESCURO #161616 (site): fundo #161616,
-    # tiles #1e1e1e, texto #e8e8e8, texto secundário #b3b3b3 (contraste
-    # 4.5:1 no hover #252525), bordas #333333.
-    assert "--bg: #161616" in css
+    # PRETO #080808 (cabeçalho) + #0F1012 no conteúdo (pedido 26/11):
+    # folha #1e1e1e, hover #252525, texto #e8e8e8, secundário #b3b3b3
+    # (4,5:1 no hover), bordas #4a4a4a.
+    assert "--bg: #0F1012" in css
     assert "--bg-elevated: #1e1e1e" in css
     assert "--surface: #1e1e1e" in css
     assert "--surface-strong: #0a0a0a" in css
     assert "--surface-sunken: #131313" in css
-    assert "--surface-escura: #161616" in css
+    assert "--surface-escura: #0F1012" in css
     assert "--text: #e8e8e8" in css
     assert "--text-muted: #b3b3b3" in css
     assert "--border: #4a4a4a" in css
@@ -443,6 +460,55 @@ def test_rotulos_de_venda_por_nao_quebram_no_computador():
     assert "@media (min-width: 641px) and (max-width: 64em)" in css
 
 
+def test_ajuste_fino_da_conta():
+    """Ajuste 26/11: linhas de apoio com respiro lateral, célula do item
+    mais baixa no computador e os quatro valores numéricos na mesma régua
+    Geist Mono/tabular, alinhados à direita."""
+    css = _css()
+    # Cartões: as linhas abaixo do valor não encostam na borda interna.
+    assert "padding-inline: 6px;" in _bloco_final(css, ".resumo-cards-conta .card-sub")
+    # Item: título em uma linha, com ellipsis e nome completo no title.
+    link = _bloco_final(css, ".tabela-conta .celula-item-conta-texto > .link-item")
+    assert "text-overflow: ellipsis;" in link
+    assert "white-space: nowrap;" in link
+    html = (STYLE.parent.parent / "templates" / "conta.html").read_text(encoding="utf-8")
+    assert 'title="{{ row.name_fmt }}"' in html
+    # Computador: menos vão vertical dentro da célula do item.
+    item = _bloco_final(css, '.tabela-conta td[data-label="Item"]')
+    assert "padding-top: 6px;" in item and "padding-bottom: 6px;" in item
+    texto = _bloco_final(css, ".tabela-conta .celula-item-conta-texto")
+    assert "gap: 1px;" in texto
+    extra = _bloco_final(css, ".tabela-conta .celula-item-conta-extra")
+    assert "margin-top: 1px;" in extra and "line-height: 1.15;" in extra
+    # Quatro colunas: custo, valor de hoje, lucro/prejuízo e venda.
+    pago = _bloco_final(css, '.tabela-conta td[data-label="Você pagou"]')
+    assert "text-align: right;" in pago
+    assert "justify-content: flex-end;" in _bloco_final(
+        css, '.tabela-conta td[data-label="Você pagou"] .form-custo'
+    )
+    alinhados = _bloco_apos(
+        css,
+        ".tabela-conta .celula-numero,\n.tabela-conta .celula-venda-por {",
+    )
+    assert "text-align: right;" in alinhados
+    numeros = _bloco_apos(
+        css, '.tabela-conta td[data-label="Você pagou"] .input-custo,'
+    )
+    assert "font-family: var(--font-mono);" in numeros
+    assert "font-variant-numeric: tabular-nums;" in numeros
+    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in numeros
+    for seletor in (
+        '.tabela-conta td[data-label="Você pagou"] .input-custo',
+        ".tabela-conta .celula-numero",
+        ".tabela-conta .celula-numero .valor-unidade",
+        ".tabela-conta .celula-numero .valor-total",
+        ".tabela-conta .celula-numero .lucro-pct",
+        '.tabela-conta .celula-venda-por [data-campo="empate"]',
+        '.tabela-conta .celula-venda-por [data-campo="alvo"]',
+    ):
+        assert seletor in css, seletor
+
+
 def test_superficies_sem_tom_azulado():
     """Fundos ficaram azul-marinho em 19/11 (rgba(18, 24, 38)); o DESIGN.md
     pede cinza neutro. Revisão 20/11: só o botão da Steam pode ser azul."""
@@ -451,6 +517,73 @@ def test_superficies_sem_tom_azulado():
     assert "rgba(18, 24, 38" not in css
     for cor in ("#0d121c", "#111827"):
         assert cor not in css.lower()
+
+
+def _secao_consistencia() -> str:
+    css = _css()
+    return css[css.index("Consistência de interface — 26/11"):]
+
+
+def test_consistencia_de_interface_26_11():
+    """Rodada das 20 melhorias: cards, régua numérica, tabelas, anéis,
+    rodapé e estados interativos. A seção fica no fim da folha para valer
+    sobre as regras antigas sem mudar regra de negócio."""
+    secao = _secao_consistencia()
+    # Fundo pedido pelo usuário e a mesma rampa de tokens em toda a folha.
+    assert "--bg: #0F1012" in _css()
+    assert "--surface-escura: #0F1012" in _css()
+    # Cards: altura cheia e respiro lateral (há uma variante só no celular).
+    assert "height: 100%;\n  padding-inline: 22px;" in secao
+    sub = _bloco_apos(secao, ".resumo-cards-conta .card-sub {")
+    assert "padding-inline: 6px;" in sub
+    # Montantes e percentuais na mesma régua Geist Mono/tabular.
+    numeros = _bloco_apos(secao, ".movimento-linha-numeros {")
+    assert "font-family: var(--font-mono);" in numeros
+    assert "font-variant-numeric: tabular-nums;" in numeros
+    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in numeros
+    for seletor in (".card-valor", ".cartao-item-preco", ".frequencia strong",
+                    ".encomenda-preco-hoje", ".ranking-pos-num"):
+        assert seletor in secao, seletor
+    # Ranking: coluna ITEM protegida e nome com ellipsis.
+    assert ".tabela-top20 { table-layout: fixed; }" in secao
+    for n, pct in enumerate(("4%", "34%", "15%", "13%", "11%", "23%"), 1):
+        assert f".tabela-top20 thead th:nth-child({n}) {{ width: {pct}; }}" in secao
+    item = _bloco_apos(secao, ".tabela-top20 .celula-item-ranking > .link-item {")
+    assert "text-overflow: ellipsis;" in item and "white-space: nowrap;" in item
+    # Anel de nota centrado também no celular.
+    anel = _bloco_apos(secao, ".nota,\n.nota-mini {")
+    assert "place-items: center;" in anel and "text-align: center;" in anel
+    # Foco de teclado reforçado sem anel duplo.
+    assert (":focus-visible { outline: 2px solid var(--focus); "
+            "outline-offset: 3px; }") in secao
+    # Rodapé alinhado, com a marca intacta (teste próprio mais acima).
+    assert ".rodape-nav-grupo { gap: 2px; }" in secao
+    assert ".rodape-marca p { max-width: 62ch; }" in secao
+    # Vitrine: nenhum filho soma margem vertical à régua de 8px.
+    vitrine = _bloco_apos(
+        secao, ".grade-cards > .cartao-item .cartao-item-corpo > *,"
+    )
+    assert "margin-block: 0;" in vitrine
+
+
+def test_conta_compacta_sem_overflow_no_celular():
+    """Chips mais discretos, colunas sem quebra e 390–640px sem rolagem
+    horizontal: os seletores e valores precisam continuar na seção final."""
+    import re as _re
+    css = _css()
+    secao = _secao_consistencia()
+    chip = _bloco_apos(
+        secao, ".tabela-conta .celula-item-conta-extra .item-exterior,"
+    )
+    assert "color: var(--text-muted);" in chip
+    assert "font-weight: 400;" in chip
+    assert "line-height: 1.2;" in chip
+    quebras = _bloco_apos(secao, ".tabela-conta .encomenda-preco-hoje {")
+    assert "white-space: nowrap;" in quebras
+    assert ".conta-ferramentas .conta-filtro[aria-pressed=\"false\"]:hover" in secao
+    movel = secao[secao.rindex("@media (max-width: 640px) {"):]
+    assert "min-width: 0; max-width: 100%;" in movel
+    assert ".conta-ferramentas .conta-filtro { white-space: nowrap; }" in movel
     azuladas = []
     for m in _re.finditer(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)", css):
         r, g, b = map(int, m.groups())

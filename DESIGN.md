@@ -11,7 +11,7 @@ colors:
   verde-alta: "#39c266"
   amarelo-media: "#f2bb25"
   vermelho-queda: "#ff6e70"
-  fundo-caderno: "#161616"
+  fundo-caderno: "#0F1012"
   folha: "#1e1e1e"
   folha-hover: "#252525"
   rebaixo: "#131313"
@@ -163,10 +163,10 @@ A tipografia usa três famílias auto-hospedadas (escolha do usuário em 26/11):
 Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Primary
-- **Preto da marca** (#000000): o fundo do bloco da logomarca. Só nela — o fundo das páginas continua #161616.
+- **Preto da marca** (#000000): o fundo do bloco da logomarca. Só nela — o fundo das páginas é #0F1012 (26/11).
 - **Branco da marca** (#ffffff): as letras da logomarca e a inicial do símbolo. Não é cor de interface.
 - **Laranja da interface** (#f97316): links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
-- **Logomarca oficial "Escura Alto Contraste"** (26/11, escolha do usuário): "lodout" minúsculo em branco (Outfit 800), sobre bloco #1A1D24 chanfrado com contorno branco 45%, sem TM. O SVG exato está em `templates/partials/_logo_svg.html` e vai inline no topo (`_logo.html`, 32px; 28px no celular) e no rodapé (`_rodape_links.html`, 34px). O mesmo desenho vale para o cartão de compartilhamento: `logo-escura-og.png` sai do partial via `scripts/gerar_assets_marca.py` e é usado por `og_cards.py`. A marca antiga de 25/11 segue em `static/logo-lodout.svg` só como histórico. O cartão usa fundo #161616, título em Outfit e dados em Geist / Geist Mono. Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
+- **Logomarca oficial "Escura Alto Contraste"** (26/11, escolha do usuário): "lodout" minúsculo em branco (Outfit 800), sobre bloco #1A1D24 chanfrado com contorno branco 45%, sem TM. O SVG exato está em `templates/partials/_logo_svg.html` e vai inline no topo (`_logo.html`, 32px; 28px no celular) e no rodapé (`_rodape_links.html`, 34px). O mesmo desenho vale para o cartão de compartilhamento: `logo-escura-og.png` sai do partial via `scripts/gerar_assets_marca.py` e é usado por `og_cards.py`. A marca antiga de 25/11 segue em `static/logo-lodout.svg` só como histórico. O cartão de compartilhamento segue com fundo #161616 (asset gerado na CI, fora da rampa da página), título em Outfit e dados em Geist / Geist Mono. Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
 - **Ícones da aba e do app** (26/11): a mesma silhueta chanfrada sai de dois SVGs em `static/`. `favicon.svg` traz o monograma `l` em Outfit 800, bem centrado, e gera `favicon.ico` (16/32/48 px) e `favicon-16/32/48.png` com fundo transparente — é o que vale em abas e marcadores. `logo-escura-app.svg` traz `lodout` centralizado em um quadrado #080808 com margem de segurança, e gera `apple-touch-icon.png` (180 px), `icon-192.png` e `icon-512.png`. Todos os rasterizados vêm de `scripts/gerar_assets_marca.py`; nenhum PNG/ICO é editado à mão. No manifest, o ícone `any` usa a marca completa (`logo-escura-app.svg`) e os tamanhos fixos usam os PNGs gerados; no `<head>`, o monograma vale para abas e o PNG de 180 px para o iOS. Todos com `?v=` no manifest para furar o cache de 1 ano do `/static`. O CSP continua `default-src 'self'` e o service worker não foi alterado.
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
@@ -181,7 +181,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ### Neutral
 - **Moldura** (#080808): barra do topo e navegação do celular.
-- **Fundo do Caderno** (#161616): fundo da página e de campos de texto.
+- **Fundo do Caderno** (#0F1012): fundo da página e de campos de texto (26/11).
 - **Folha** (#1e1e1e): cartões, quadros e a tabela.
 - **Folha em Foco** (#252525): hover de linhas e botões discretos; trilho de barras.
 - **Rebaixo** (#131313): cabeçalho de tabela, fundo do seletor de período e do rodapé.
@@ -277,12 +277,47 @@ A nota de 0 a 100 é sempre um anel: trilho cinza e arco de progresso na cor de 
 ### Preço Copiável (signature)
 Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem ponto de milhar; um ícone de copiar discreto fica sempre à vista, e a confirmação "copiado" aparece em um selo verde por 2s. Ao lado, o ícone da Steam abre o item no Mercado.
 
+### Ajustes de consistência (26/11)
+
+Rodada de polimento aplicada só em `style.css` e nos templates, sem tocar em
+dados, cálculo, workers, chamadas à Steam, CSP ou Caddyfile:
+
+- **Fundo e superfícies:** `#0F1012` é o fundo da página; a folha segue em
+  `#1e1e1e`, o hover em `#252525` e o rebaixo em `#131313`. Nenhum cinza
+  avulso: cartões, tabelas e campos usam os mesmos tokens de borda (`#4a4a4a`),
+  raio (`--radius-md` nos cartões, `--radius-xs` nos campos) e fundo.
+- **Cartões de resumo (`/conta`):** os quatro cartões esticam para a mesma
+  altura; o valor e as linhas de apoio ganham respiro lateral (`padding-inline`)
+  e intervalo vertical igual no desktop e no celular.
+- **Tabelas:** o nome do item fica em uma linha só com reticências e o nome
+  completo no `title` (inventário e Ranking). As colunas de Custo, Valor,
+  Lucro/Prejuízo e Venda usam Geist Mono com `tabular-nums` e `zero` 1, com
+  o marcador "—" e as ações na mesma régua; valores compostos (R$ + %) não
+  quebram no meio. No Ranking, a coluna ITEM tem largura fixa no computador
+  para que nomes longos não mudem a altura da linha.
+- **Anéis de nota:** número centrado por `place-items: center`, `line-height: 1`
+  e `text-align: center`, mono e tabular em desktop e celular.
+- **Vitrine:** régua vertical de 8 px entre imagem, nome, motivo, preço e
+  rodapé; nenhum filho acrescenta margem vertical a essa régua.
+- **Filtros da conta:** busca, pílulas e ordenação alinhados na mesma faixa;
+  só a pílula ativa recebe o laranja de ação.
+- **Telas estreitas (390–640 px):** largura mínima zero e truncamento
+  controlado em títulos, rótulos e contadores, sem rolagem horizontal.
+- **Interação:** `:focus-visible` com contorno de 2 px em `#f97316` e
+  deslocamento de 3 px; `:hover` discreto em botões, links, abas e linhas,
+  sem mudar a cor dos números.
+- **Rodapé:** três colunas com o mesmo intervalo, marca oficial chanfrada sem
+  TM e notas de dados públicos em largura de leitura.
+
+A imagem de compartilhamento (`og-image.png`) continua gerada na CI a partir
+da marca oficial, com fundo `#161616`; ela não faz parte da rampa da página.
+
 ## Do's and Don'ts
 
 ### Do:
 - **Do** usar o anel colorido sempre que mostrar a nota do Lodout, do mesmo jeito em todas as páginas.
 - **Do** manter um único laranja (#f97316) como voz de ação, e o laranja translúcido (rgba(249, 115, 22, 0.7)) como fundo de botão principal; a marca é preto e branco.
-- **Do** separar quadros com borda fina (#4a4a4a) e tom (#1e1e1e sobre #161616).
+- **Do** separar quadros com borda fina (#4a4a4a) e tom (#1e1e1e sobre #0F1012).
 - **Do** usar algarismos tabulares em preços, notas e porcentagens.
 - **Do** transformar tabelas em cartões no celular, com rótulo em caixa alta acima de cada valor.
 - **Do** mostrar a idade dos dados perto de qualquer número que dependa da coleta.
@@ -293,12 +328,12 @@ Valor em texto forte e tabular que, ao clique, copia o número sem "R$" e sem po
 - **Don't** pôr etiqueta ou sobretítulo em cima de um título; informação extra vai abaixo dele.
 - **Don't** juntar borda e sombra larga no mesmo quadro.
 - **Don't** escrever explicação com mais de ~75 letras por linha.
-- **Don't** usar fonte monoespaçada em preços e números (use a Inter com algarismos tabulares); monoespaçada só em código e teclas ("Ctrl K").
+- **Don't** usar a fonte de corpo em preços e números (use Geist Mono com algarismos tabulares); Geist proporcional é só para texto corrido e rótulos.
 - **Don't** usar cores fora do sistema para texto (ex.: cinza-azulado #64748b, que reprova contraste); texto apagado é #b3b3b3.
 - **Don't** escrever jargão ("pontuação algorítmica", "giro", "retorno líquido"): o público é iniciante, ver PRODUCT.md.
-- **Don't** usar brilho colorido em volta de botões, ícones ou números (sombra laranja sem deslocamento); sombra é sempre escura e com deslocamento. O anel de foco (0 0 0 3px) é a única exceção.
+- **Don't** usar brilho colorido em volta de botões, ícones ou números (sombra laranja sem deslocamento); sombra é sempre escura e com deslocamento. O anel de foco (`outline` de 2px em `#f97316`, deslocado 3px) é a única exceção.
 - **Don't** usar texto em degradê; destaque vem do peso e do tamanho.
 - **Don't** pôr faixa colorida grossa (mais de 1px) na lateral de quadros, avisos ou itens de lista.
 - **Don't** pôr um cartão dentro de outro; dentro de um quadro, separe partes com um fio de 1px.
 - **Don't** justificar texto nem partir palavras com hífen automático; texto corrido é alinhado à esquerda.
-- **Don't** usar fundo azulado (azul-marinho, ardósia) em quadros, cartões ou tabelas; superfícies são cinza neutro (#1e1e1e, #161616, #121212). O único azul é o do botão "Entrar com Steam", que é a cor da Steam. Selos, etiquetas e medidores também não usam azul: neutro (cinza claro) ou laranja.
+- **Don't** usar fundo azulado (azul-marinho, ardósia) em quadros, cartões ou tabelas; superfícies são #0F1012, #1e1e1e, #252525 e #131313. O único azul é o do botão "Entrar com Steam", que é a cor da Steam. Selos, etiquetas e medidores também não usam azul: neutro (cinza claro) ou laranja.

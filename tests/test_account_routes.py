@@ -990,3 +990,18 @@ def test_conta_filtro_meta_e_atingiu_meta(client, monkeypatch):
     pagina = client.get("/conta").data.decode("utf-8")
     assert 'data-conta-filtro="meta"' in pagina
     assert 'data-meta-atingida=' in pagina
+
+
+def test_conta_link_do_item_tem_o_nome_completo_no_title(client, monkeypatch):
+    """Ajuste 26/11: o nome na tabela do inventário fica em uma linha só,
+    cortada com reticências; o nome completo continua no title do link.
+    As regras de corte vivem no CSS (test_design_contract.py)."""
+    from lodout.public_site import user_portfolio
+    _login(client, monkeypatch)
+    user_portfolio.add_position("76561198000000000", "Faca Cara", 1.0)
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'data-item="Faca Cara"' in pagina
+    assert 'class="celula-item-conta"' in pagina
+    assert 'class="celula-item-conta-texto"' in pagina
+    assert 'class="link-item"' in pagina
+    assert 'title="Faca Cara"' in pagina

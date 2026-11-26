@@ -1683,6 +1683,8 @@ def test_ranking_sugere_encomenda_da_frente_da_fila(client, monkeypatch, tmp_pat
     assert "data-copiar-preco" not in sem_fila and ">sem dado<" in sem_fila
     assert "copiar_preco.js" in body and "data-copiado" in body
     assert 'aria-label="Nota de hoje 90 de 100"' in body
+    # Nome longo corta com reticências no ranking, mas o completo fica no title.
+    assert 'title="Faca Cara">Faca Cara</a>' in body
     # Não promete lucro, e a barra de meta não fica no Ranking.
     assert "Não é previsão de lucro" in body
     assert "data-meta-lucro" not in body and 'type="range"' not in body
@@ -5527,7 +5529,7 @@ def test_theme_color_e_do_tema_escuro(client):
     manifest = _json.loads((_P(server.__file__).parent / "static"
                             / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["theme_color"] == "#080808"
-    assert manifest["background_color"] == "#161616"
+    assert manifest["background_color"] == "#0F1012"
 
 
 def test_nome_do_item_nao_e_traduzido_pelo_navegador(client, monkeypatch, tmp_path):

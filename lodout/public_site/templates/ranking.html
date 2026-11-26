@@ -136,7 +136,7 @@
                 <img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
               {% endif %}
               </span>
-              {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no">{{ it.name_fmt }}</span>{% endif %}
+              {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</span>{% endif %}
             </div></td>
             <td class="celula-valor-ranking" data-label="{{ 'Nota média' if modo == 'media' else 'Frequência' }}">{% if modo == "media" %}{{ nota_figurinha(it.media_int, rotulo="Nota média") }}{% else %}<span class="frequencia"><strong>{{ it.presenca_pct }}%</strong><span class="visualmente-oculto"> das coletas no Top 20</span><svg class="frequencia-barra" width="72" height="6" viewBox="0 0 72 6" aria-hidden="true" focusable="false"><rect class="frequencia-fundo" width="72" height="6" rx="3"/>{% if it.presenca_pct %}<rect class="frequencia-cheio" width="{{ [it.presenca_pct * 0.72, 6]|max|round(1) }}" height="6" rx="3"/>{% endif %}</svg></span>{% endif %}</td>
             <td class="celula-hoje" data-label="Nota hoje">{% if it.nota_hoje is not none %}{{ nota_figurinha(it.nota_hoje, rotulo="Nota de hoje") }}{% else %}<span class="status-muted">—</span>{% endif %}</td>

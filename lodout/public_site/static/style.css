@@ -51,16 +51,17 @@
 :root {
   color-scheme: dark;
 
-  /* Superfícies -- PRETO PURO (#080808) no cabeçalho + CINZA ESCURO
-     (#161616) no conteúdo. As tiles ficam um degrau acima (#1e1e1e).
-     Contraste suave, sem salto brusco -- a borda #333 faz a separação. */
-  --bg: #161616;
+  /* Superfícies -- PRETO PURO (#080808) no cabeçalho + #0F1012 no
+     conteúdo (pedido do usuário, 26/11). A folha fica um degrau acima
+     (#1e1e1e) e o hover outro (#252525): uma rampa neutra só, sem
+     camadas azuladas soltas. A borda #4a4a4a faz a separação. */
+  --bg: #0F1012;
   --bg-elevated: #1e1e1e;
   --surface: #1e1e1e;
   --surface-hover: #252525;
   --surface-strong: #0a0a0a;
   --surface-sunken: #131313;
-  --surface-escura: #161616;
+  --surface-escura: #0F1012;
   --surface-escura-2: #1e1e1e;
 
   /* Traços -- fio cinza #4a4a4a sobre o cinza escuro (3:1 mínimo UI). */
@@ -118,7 +119,7 @@
   --marca: #f97316;
 
   /* Barra de navegação -- PRETO PURO #080808, opaco, bem
-     separado do cinza escuro #161616 do conteúdo. */
+     separado do #0F1012 do conteúdo. */
   --chrome-fundo: #080808;
   --chrome-fundo-forte: #080808;
   --chrome-texto: rgba(255, 255, 255, 0.82);
@@ -2946,7 +2947,7 @@ a.paginacao-passo:hover {
   list-style: none;
 }
 
-/* Card: raio 18px, sem fio, superfície #1e1e1e sobre o fundo #161616.
+/* Card: raio 18px, sem fio, superfície #1e1e1e sobre o fundo #0F1012.
    Hover/foque: elevação sutil + brilho diagonal animado (70% opacidade
    do laranja). Respeita prefers-reduced-motion. */
 .cartao-item {
@@ -12911,3 +12912,239 @@ footer.rodape .rodape-marca-nome { gap: 0; }
     min-height: 28px;
   }
 }
+
+/* ==========================================================================
+   Minha conta — ajuste fino 26/11 (só aparência)
+   As linhas de apoio dos cartões ganham respiro lateral; no computador a
+   célula do item perde vão vertical (nome, chips e ações ficam mais
+   juntos) e os quatro valores da tabela passam a usar a mesma régua
+   Geist Mono/tabular, com a casa decimal na mesma coluna.
+   ========================================================================== */
+@media (min-width: 641px) {
+  .tabela-conta td[data-label="Item"] {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .tabela-conta .celula-item-conta-texto {
+    gap: 1px;
+  }
+  .tabela-conta td[data-label="Você pagou"] {
+    text-align: right;
+  }
+  .tabela-conta td[data-label="Você pagou"] .form-custo {
+    justify-content: flex-end;
+  }
+}
+.tabela-conta td[data-label="Você pagou"] .input-custo,
+.tabela-conta .celula-numero,
+.tabela-conta .celula-numero .valor-unidade,
+.tabela-conta .celula-numero .valor-total,
+.tabela-conta .celula-numero .lucro-pct,
+.tabela-conta .celula-venda-por [data-campo="empate"],
+.tabela-conta .celula-venda-por [data-campo="alvo"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+/* ==========================================================================
+   Consistência de interface — 26/11 (só aparência)
+   Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou
+   na marca oficial. Toda cor aqui vem de token: #0F1012 é o fundo da página,
+   #1e1e1e a folha, #252525 o hover e #4a4a4a a linha.
+   ========================================================================== */
+
+/* 1–2. Cards de resumo da conta: mesma altura na linha, respiro lateral
+   no valor e nas linhas de apoio, ritmo vertical igual no celular. */
+.resumo-cards-conta {
+  align-items: stretch;
+  align-content: start;
+}
+.resumo-cards-conta .card {
+  box-sizing: border-box;
+  height: 100%;
+  padding-inline: 22px;
+}
+.resumo-cards-conta .card-sub {
+  max-width: 100%;
+  padding-inline: 6px;
+}
+@media (max-width: 640px) {
+  .resumo-cards-conta { grid-auto-rows: 1fr; }
+  .resumo-cards-conta .card { padding-inline: 18px; }
+}
+
+/* 3. Régua Geist Mono/tabular para todo montante em R$ e percentual que
+   aparece como dado: a casa decimal e o sinal ficam na mesma coluna. */
+.card-valor,
+.tabular-num,
+.cartao-item-preco,
+.valor-unidade,
+.valor-total,
+.lucro-pct,
+[data-campo="lucro-valor"],
+.frequencia strong,
+.encomenda-preco-hoje,
+.ranking-pos-num,
+.movimento-linha-numeros {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* 4–8. Inventário: nome em uma linha (o completo já está no title), chips
+   discretos, linha baixa, marcador "—" e ações na mesma régua dos valores,
+   e valores compostos que não quebram no meio. */
+.tabela-conta .celula-item-conta-extra {
+  gap: 2px 6px;
+  margin-top: 1px;
+  line-height: 1.15;
+}
+.tabela-conta .celula-item-conta-extra .item-exterior,
+.tabela-conta .celula-item-conta-extra .item-quantidade,
+.tabela-conta .celula-item-conta-extra .item-lote,
+.tabela-conta .celula-item-conta-extra .item-etiqueta-fora {
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.tabela-conta .celula-item-conta-extra .item-quantidade {
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--bg);
+}
+.tabela-conta [data-campo="lucro-valor"],
+.tabela-conta .celula-numero .lucro-pct,
+.tabela-conta .celula-numero .sem-quebra,
+.tabela-conta .celula-venda-por .venda-por-linha,
+.tabela-conta .celula-venda-por .venda-por-linha > *,
+.tabela-conta .encomenda-preco-hoje {
+  white-space: nowrap;
+}
+@media (min-width: 641px) {
+  .tabela-conta .celula-item-conta-texto > .link-item {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tabela-conta .celula-sem-valor,
+  .tabela-conta [data-campo="lucro-valor"],
+  .tabela-conta .venda-por-falta { text-align: right; }
+  .tabela-conta .venda-por-falta { justify-content: flex-end; }
+}
+
+/* 9. Filtros e ordenação: busca, pílulas e select alinhados na mesma faixa;
+   só a pílula ativa ganha fundo/contorno de ação. */
+@media (min-width: 641px) {
+  .conta-ferramentas { gap: 8px 12px; }
+  .conta-ferramentas .conta-busca { flex: 1 1 200px; min-width: 0; }
+  .conta-ferramentas .conta-filtros { flex-wrap: wrap; gap: 5px; }
+  .conta-ferramentas .conta-ordem { flex: 0 0 auto; margin-left: 0; }
+}
+.conta-ferramentas .conta-filtro[aria-pressed="false"]:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+/* 10. Bordas, raios e fundos: cartões, tabela e campos usam os mesmos
+   tokens, sem cinzas avulsos criados só para um canto da tela. */
+.resumo-cards-conta .card,
+.tabela-conta,
+.conta-ferramentas,
+.conta-ferramentas input,
+.conta-ferramentas select {
+  border-color: var(--border);
+}
+.resumo-cards-conta .card,
+.conta-ferramentas { border-radius: var(--radius-md); }
+.conta-ferramentas input,
+.conta-ferramentas select { border-radius: var(--radius-xs); }
+
+/* 11–12. Ranking: coluna ITEM com espaço para o nome (cortado com
+   reticências e título completo), anéis e valores sem quebrar. Larguras
+   fixas só no computador; no celular a tabela continua cartão flexível. */
+@media (min-width: 641px) {
+  .tabela-top20 { table-layout: fixed; }
+  .tabela-top20 thead th:nth-child(1) { width: 4%; }
+  .tabela-top20 thead th:nth-child(2) { width: 34%; }
+  .tabela-top20 thead th:nth-child(3) { width: 15%; }
+  .tabela-top20 thead th:nth-child(4) { width: 13%; }
+  .tabela-top20 thead th:nth-child(5) { width: 11%; }
+  .tabela-top20 thead th:nth-child(6) { width: 23%; }
+}
+.tabela-top20 .celula-item-top,
+.tabela-top20 .celula-item-ranking { min-width: 0; }
+.tabela-top20 .celula-item-ranking > .link-item {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabela-top20 .celula-valor-ranking,
+.tabela-top20 .celula-hoje,
+.tabela-top20 .encomenda-preco-hoje { white-space: nowrap; }
+
+/* 13. Anéis de nota: número centrado de verdade, com a mesma régua
+   mono/tabular em desktop e celular. */
+.nota,
+.nota-mini {
+  display: inline-grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1;
+}
+.nota .nota-numero,
+.nota-mini .nota-numero {
+  display: block;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 14. Vitrine: nada acrescenta margem vertical aos blocos da régua de 8px. */
+.grade-cards > .cartao-item .cartao-item-corpo > *,
+.grade-cards > .cartao-item .cartao-item-rodape > * { margin-block: 0; }
+
+/* 15. 390–640px: nada vaza para o lado. Títulos, rótulos e contadores
+   recebem largura mínima zero e corte/quebra controlados. */
+@media (max-width: 640px) {
+  .resumo-cards-conta,
+  .conta-ferramentas,
+  .grade-cards,
+  .tabela-wrap { min-width: 0; max-width: 100%; }
+  .resumo-cards-conta .card,
+  .conta-ferramentas .conta-filtros,
+  .rodape-nav-grupo,
+  .rodape-marca { min-width: 0; }
+  .resumo-cards-conta .card-sub,
+  .conta-mostrando,
+  .rodape-marca p,
+  .rodape-base .versao { max-width: 100%; overflow-wrap: anywhere; }
+  .conta-ferramentas .conta-filtro { white-space: nowrap; }
+  .conta-ferramentas .conta-filtros { overflow-x: auto; }
+}
+
+/* 16. Teclado e mouse: o mesmo laranja de foco, sem anel duplo e sem
+   hover que mude a cor do número. */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.link-item:focus-visible { border-radius: var(--radius-xs); }
+.conta-ferramentas .conta-filtro:focus-visible,
+.conta-ferramentas .conta-busca input:focus-visible,
+.conta-ferramentas .conta-ordem select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.tabela-top20 tbody tr:hover { background-color: rgba(255, 255, 255, 0.04); }
+
+/* 17. Rodapé: três colunas alinhadas, marca chanfrada intacta e notas de
+   dados públicos em largura de leitura, sem ruído visual. */
+.rodape-nav-grupo { gap: 2px; }
+.rodape-nav-grupo h2 { margin-bottom: 6px; }
+.rodape-marca p { max-width: 62ch; }
+.rodape-marca p + p { margin-top: 6px; }
+.rodape-base { align-items: center; }
+.rodape-base .versao { line-height: 1.5; }
