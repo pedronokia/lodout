@@ -247,6 +247,8 @@ def test_varrer_guarda_fatia_pulada_e_retoma_no_proximo_start(monkeypatch,
     assert pulada["detalhe_404"]["body"] == "<html>maintenance</html>"
     assert catalogo.resumo()["retomar"]["start"] == 2
     assert catalogo.resumo()["fatias_puladas"][0]["detalhe_404"]["start"] == 2
+    # O monitor do scan detecta rodada nova por este campo no /api/health.
+    assert catalogo.resumo()["inicio_ts"] == estado["inicio_ts"]
 
     chamadas.clear()
     catalogo.varrer(ate_ts=1e12)

@@ -556,7 +556,7 @@ def resumo() -> dict:
               "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
               "erro_404_start", "erros_404_fatias",
                "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
-                "retomar", "fatias_puladas")
+                "inicio_ts", "retomar", "fatias_puladas")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Estado de 25/11 não tem estes campos: mostra desde já o ponto que a
     # próxima rodada vai usar, sem precisar esperar ela começar (26/11).
