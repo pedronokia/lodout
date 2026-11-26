@@ -913,6 +913,16 @@ def create_app() -> Flask:
         scan = scan_store.load_last_scan()
         ciclos = scan_store.load_historico_ciclos()
         ultimo_ciclo = ciclos[-1] if ciclos else None
+        if ultimo_ciclo is not None:
+            ultimo_ciclo = dict(ultimo_ciclo)
+            ultimo_ciclo.update({
+                "pausas_429": int(ultimo_ciclo.get("pausas_429") or 0),
+                "encerrou_por_429": bool(
+                    ultimo_ciclo.get("encerrou_por_429")),
+                "ciclo_completo": scan_store.ciclo_completo(ultimo_ciclo),
+                "ciclo_sem_pausa": scan_store.ciclo_sem_pausa(ultimo_ciclo),
+            })
+        rodadas_top = scan_store.resumo_rodadas_top()
         intervalo_horas = float(ambiente("WORKER_INTERVAL_HORAS", _INTERVALO_HORAS_DEFAULT))
         return jsonify({
             "ok": True,
@@ -930,6 +940,11 @@ def create_app() -> Flask:
             # "A nota acertou no passado?" (backtest_diario.py): só leitura.
             "backtest": backtest_diario.ler(),
             "ultima_rodada_top": scan_store.load_rodada_top(),
+            # 26/11: última boa acima; aqui o histórico recente, incluindo
+            # rodadas cortadas por 429, pra medir "falha recorrente" sem SSH.
+            "ultimas_rodadas_top": rodadas_top["rodadas"],
+            "top20_total_recentes": rodadas_top["total"],
+            "top20_falhas_recentes": rodadas_top["falhas"],
             # Idade em horas do backup mais recente de cada grupo
             # (banco/notas/json), ou None se nunca houve um. Mesmo dado
             # que alimenta o alerta de backup atrasado (worker_alert.py).
@@ -1559,6 +1574,11 @@ def create_app() -> Flask:
             f"nos últimos {len(valores_visitas)} dias."
             if len(valores_visitas) >= 2 else None)
         ciclos_ok = sum(1 for c in ciclos if c.get("sucesso"))
+        ciclos_completos = sum(
+            1 for c in ciclos
+            if scan_store.ciclo_completo(c)
+            and scan_store.ciclo_sem_pausa(c))
+        resumo_top = scan_store.resumo_rodadas_top()
         rodada_top = scan_store.load_rodada_top()
         if rodada_top:
             rodada_top = dict(rodada_top,
@@ -1577,6 +1597,13 @@ def create_app() -> Flask:
             ciclos_sucesso_txt=(
                 f"{ciclos_ok} de {len(ciclos)} coletas com sucesso"
                 if ciclos else None),
+            ciclos_completos_txt=(
+                f"Dessas, {ciclos_completos} "
+                f"{'terminou' if ciclos_completos == 1 else 'terminaram'} "
+                "com todos os itens e sem pausa da Steam."
+                if ciclos else None),
+            top20_falhas_recentes=resumo_top["falhas"],
+            top20_total_recentes=resumo_top["total"],
             grafico_visitas=grafico_visitas,
             grafico_visitas_legenda=grafico_visitas_legenda,
             mais_buscados=_buscas_com_resultado(

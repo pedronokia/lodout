@@ -66,6 +66,9 @@
     {% if rodada_top %}
     <p class="status-muted">Entre as coletas completas, o Top 20 é atualizado a cada 2 horas. Última atualização {{ rodada_top.quando }}: {{ rodada_top.itens }} de {{ rodada_top.alvos }} itens.</p>
     {% endif %}
+    {% if top20_falhas_recentes %}
+    <p class="status-muted">Nas últimas {{ top20_total_recentes }} rodadas do Top 20, {{ top20_falhas_recentes }} {{ 'não completou' if top20_falhas_recentes == 1 else 'não completaram' }}.</p>
+    {% endif %}
     <p>A cada 6 horas, os preços são atualizados. Se a Steam pede pausa, a
     coleta espera; após 45 minutos, termina e os itens restantes mantêm o
     preço anterior. Sem resposta da Steam, tenta de novo em 1 hora.</p>
@@ -77,6 +80,9 @@
       {% endfor %}
     </div>
     <p class="status-muted">{{ ciclos_sucesso_txt }} (mais antigo à esquerda, mais recente à direita)</p>
+    {% if ciclos_completos_txt %}
+    <p class="status-muted">{{ ciclos_completos_txt }}</p>
+    {% endif %}
     {% set ultimo = ciclos[0] %}
     {% if ultimo.alvos %}
     <p class="cobertura-ciclo">Na última coleta, <strong>{{ ultimo.itens }} de {{ ultimo.alvos }}</strong> itens vieram com preço novo{% if ultimo.mantidos %}; {{ ultimo.mantidos }} {{ "mantém" if ultimo.mantidos == 1 else "mantêm" }} o preço anterior, com aviso{% endif %}.</p>

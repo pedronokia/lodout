@@ -74,7 +74,10 @@ def registrar_ciclo(itens: int, duracao_min: float,
 
     `alvos`/`mantidos`/`falhas` (2026-11-13): quantos itens o ciclo
     tentou, quantos ficaram com o dado do ciclo anterior e quais não
-    voltaram -- pra /status mostrar cobertura, não só "deu certo"."""
+    voltaram -- pra /status mostrar cobertura, não só "deu certo".
+    `extras` carrega o relatório do worker; desde 26/11 inclui
+    `encerrou_por_429`, pra separar "terminou com pausas" de "foi cortado
+    pelo bloqueio"."""
     p = Path(path) if path is not None else _HISTORICO_PATH
     historico = load_historico_ciclos(p)
     entrada = {
@@ -112,6 +115,33 @@ def load_historico_ciclos(path: "Path | str | None" = None) -> list[dict]:
     if not isinstance(data, list):
         return []
     return [c for c in data if isinstance(c, dict) and "ts" in c]
+
+
+def ciclo_completo(ciclo: "dict | None") -> bool:
+    """Ciclo cobriu todos os alvos e não foi cortado por bloqueio.
+
+    26/11: `/status` contava só `sucesso` (houve preço novo), então um
+    ciclo de 269 de 283 com pausas aparecia como igual a um 283 de 283
+    sem pausa. Ciclos antigos sem `alvos` (ou sem o campo novo
+    `encerrou_por_429`) continuam classificados pelo que têm, sem inventar
+    metadado.
+    """
+    if not isinstance(ciclo, dict):
+        return False
+    if ciclo.get("abortado") or ciclo.get("encerrou_por_429"):
+        return False
+    alvos = ciclo.get("alvos")
+    if isinstance(alvos, (int, float)) and alvos > 0:
+        return (ciclo.get("itens") or 0) >= alvos
+    return bool(ciclo.get("sucesso"))
+
+
+def ciclo_sem_pausa(ciclo: "dict | None") -> bool:
+    """Ciclo sem 429 e sem throttle silencioso -- condição do degrau de itens."""
+    if not isinstance(ciclo, dict):
+        return False
+    return not (ciclo.get("pausas_429") or ciclo.get("throttle_silencioso")
+                or ciclo.get("encerrou_por_429"))
 
 
 def idade_txt(ts: float, now: float | None = None) -> str:
@@ -159,13 +189,17 @@ def proxima_txt(ts: float, intervalo_horas: float,
 # ── Rodada rápida do Top 20 (2026-11-13) ─────────────────────────────
 
 _RODADA_TOP_PATH = DATA_DIR / "rodada_top.json"
+_RODADA_TOP_HISTORICO_PATH = DATA_DIR / "rodada_top_historico.json"
+_RODADA_TOP_HISTORICO_MAX = 12
 
 
 def registrar_rodada_top(itens: int, alvos: int, duracao_min: float,
                          path: "Path | str | None" = None,
                          now: "float | None" = None) -> None:
-    """Grava a última rodada rápida do Top 20 (só a mais recente: é
-    estado pro /status, não histórico)."""
+    """Grava a última rodada rápida do Top 20 que COMPLETOU (só a mais
+    recente: é estado pro /status, não histórico). Rodadas cortadas por
+    429 ficam só em `rodada_top_historico.json`, via
+    `registrar_resultado_rodada_top`."""
     p = Path(path) if path is not None else _RODADA_TOP_PATH
     try:
         atomic_write_text(p, json.dumps({
@@ -183,3 +217,73 @@ def load_rodada_top(path: "Path | str | None" = None) -> "dict | None":
     except (OSError, ValueError):
         return None
     return dados if isinstance(dados, dict) and "ts" in dados else None
+
+
+def load_historico_rodadas_top(
+        path: "Path | str | None" = None) -> list[dict]:
+    """Últimas rodadas do Top 20, incluindo as que não completaram."""
+    p = Path(path) if path is not None else _RODADA_TOP_HISTORICO_PATH
+    try:
+        dados = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    if not isinstance(dados, list):
+        return []
+    return [r for r in dados if isinstance(r, dict) and "ts" in r]
+
+
+def registrar_resultado_rodada_top(
+        itens: int, alvos: int, duracao_min: float, *, sucesso: bool,
+        pausas_429: int = 0, abortado: bool = False,
+        encerrou_por_429: bool = False, motivo: str = "",
+        path: "Path | str | None" = None,
+        historico_path: "Path | str | None" = None,
+        now: "float | None" = None) -> None:
+    """Registra TODA rodada do Top 20 que chegou a consultar a Steam.
+
+    `rodada_top.json` continua só com a última boa (o /status mostra a
+    idade dela); as falhas recentes ficam no histórico e alimentam
+    `top20_falhas_recentes` no /api/health. Parada manual do worker não
+    entra: não é falha da coleta.
+    """
+    hp = (Path(historico_path) if historico_path is not None
+          else _RODADA_TOP_HISTORICO_PATH)
+    entrada = {
+        "ts": time.time() if now is None else now,
+        "itens": itens, "alvos": alvos,
+        "duracao_min": round(duracao_min, 1),
+        "sucesso": bool(sucesso),
+        "pausas_429": int(pausas_429 or 0),
+        "abortado": bool(abortado),
+        "encerrou_por_429": bool(encerrou_por_429),
+    }
+    if motivo:
+        entrada["motivo"] = str(motivo)
+    historico = load_historico_rodadas_top(hp)
+    historico.append(entrada)
+    try:
+        atomic_write_text(hp, json.dumps(
+            historico[-_RODADA_TOP_HISTORICO_MAX:], ensure_ascii=False))
+    except OSError:
+        pass
+    if sucesso:
+        # Chamada sem kwargs quando o chamador não redirecionou o arquivo:
+        # há testes que substituem `registrar_rodada_top` por uma função
+        # de 3 argumentos só (contrato antigo, mantido de propósito).
+        if path is None and now is None:
+            registrar_rodada_top(itens, alvos, duracao_min)
+        else:
+            registrar_rodada_top(itens, alvos, duracao_min,
+                                 path=path, now=now)
+
+
+def resumo_rodadas_top(
+        historico: "list[dict] | None" = None) -> dict:
+    """{total, falhas, rodadas} das últimas `_RODADA_TOP_HISTORICO_MAX`."""
+    dados = (load_historico_rodadas_top() if historico is None
+             else historico)
+    return {
+        "total": len(dados),
+        "falhas": sum(1 for r in dados if not r.get("sucesso")),
+        "rodadas": list(dados[-_RODADA_TOP_HISTORICO_MAX:]),
+    }

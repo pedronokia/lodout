@@ -390,6 +390,23 @@ def test_run_full_scan_bloqueio_longo_encerra_ciclo(monkeypatch):
     assert any("ciclo encerrado" in m for m in progresso)
 
 
+def test_run_full_scan_relatorio_marca_encerrou_por_429(monkeypatch):
+    monkeypatch.setattr(scan_engine, "_cooldown_scan_s",
+                        lambda: scan_engine._ESPERA_DISJUNTOR_MAX_S + 1)
+    monkeypatch.setattr(
+        scan_engine, "scan_item",
+        lambda name, category=None, price_cache=None:
+            {"name": name, "score": 1})
+    monkeypatch.setattr(scan_engine.time, "sleep",
+                        lambda s: (_ for _ in ()).throw(
+                            AssertionError("não devia dormir o bloqueio")))
+    rel = {}
+    assert scan_engine.run_full_scan({"Facas": ["A", "B"]},
+                                     relatorio=rel) == []
+    assert rel["encerrou_por_429"] is True
+    assert rel["pausas_429"] == 1
+
+
 def test_scan_item_marca_momento_da_coleta(monkeypatch):
     _mock_steam_ok(monkeypatch)
     r = scan_engine.scan_item("X")

@@ -4020,6 +4020,17 @@ def test_manifest_json_tem_icones_png(client):
         assert resp.mimetype == "image/png"
 
 
+def test_manifest_any_usa_a_marca_completa(client):
+    """26/11: o ícone `any` antes era o monograma das abas; no app vale
+    a mesma marca completa dos PNGs, com o cache quebrado por `?v=`."""
+    data = client.get("/static/manifest.json").get_json()
+    any_icon = next(i for i in data["icons"] if i["sizes"] == "any")
+    assert any_icon["src"] == "/static/logo-escura-app.svg?v=2"
+    resp = client.get(any_icon["src"])
+    assert resp.status_code == 200
+    assert resp.mimetype == "image/svg+xml"
+
+
 def test_icones_do_site_usam_a_marca_oficial(client):
     """26/11: a mesma silhueta chanfrada #1A1D24 com contorno branco 45%
     e Outfit 800, sem TM. No SVG pequeno vai o monograma `l`; nos PNGs
@@ -4991,6 +5002,26 @@ def test_run_once_registra_itens_sem_miniatura(monkeypatch, caplog):
     assert "Itens sem miniatura: 1 de 2" in caplog.text
 
 
+def test_run_once_guarda_encerrou_por_429_no_historico(monkeypatch):
+    resultados = [{"name": "A", "score": 60, "icon": "h"}]
+
+    def _fake(categories, on_progress=None, **kw):
+        relatorio = kw.get("relatorio")
+        if relatorio is not None:
+            relatorio.update(pausas_429=3, encerrou_por_429=True)
+        return resultados
+
+    monkeypatch.setattr(worker.scan_engine, "run_full_scan", _fake)
+    monkeypatch.setattr(worker.scan_store, "save_last_scan", lambda *a: None)
+    registro = {}
+    monkeypatch.setattr(worker.scan_store, "registrar_ciclo",
+                        lambda *a, **kw: registro.update(kw))
+    monkeypatch.setattr(worker.ranking, "save_snapshot", lambda res: None)
+    worker.run_once({"Rifles": ["A"]})
+    assert registro["extras"]["pausas_429"] == 3
+    assert registro["extras"]["encerrou_por_429"] is True
+
+
 def test_espera_ate_proximo_ciclo_conta_do_ultimo_ciclo(monkeypatch):
     agora = 1_800_000_000.0
     monkeypatch.setattr(worker.scan_store, "load_historico_ciclos", lambda: [
@@ -5168,6 +5199,43 @@ def test_api_health_expoe_diagnostico_do_ultimo_ciclo(client, monkeypatch):
     dados = client.get("/api/health").get_json()
     assert dados["ultimo_ciclo_worker"]["pausas_429"] == 2
     assert dados["ultimo_ciclo_worker"]["comparacao_fontes"]["razao_preco"] == 0.01
+
+
+def test_health_expoe_completude_e_pausas_do_ultimo_ciclo(client, monkeypatch):
+    monkeypatch.setattr(
+        scan_store, "load_historico_ciclos",
+        lambda: [{"ts": 1.0, "itens": 269, "alvos": 283, "sucesso": True,
+                  "pausas_429": 6, "encerrou_por_429": True,
+                  "abortado": False}])
+    ciclo = client.get("/api/health").get_json()["ultimo_ciclo_worker"]
+    assert ciclo["pausas_429"] == 6
+    assert ciclo["encerrou_por_429"] is True
+    assert ciclo["ciclo_completo"] is False
+    assert ciclo["ciclo_sem_pausa"] is False
+
+
+def test_health_expoe_ciclo_completo_sem_pausa(client, monkeypatch):
+    monkeypatch.setattr(
+        scan_store, "load_historico_ciclos",
+        lambda: [{"ts": 1.0, "itens": 283, "alvos": 283, "sucesso": True,
+                  "pausas_429": 0, "encerrou_por_429": False}])
+    ciclo = client.get("/api/health").get_json()["ultimo_ciclo_worker"]
+    assert ciclo["ciclo_completo"] is True
+    assert ciclo["ciclo_sem_pausa"] is True
+
+
+def test_health_expoe_falhas_recentes_do_top20(client, monkeypatch):
+    monkeypatch.setattr(scan_store, "resumo_rodadas_top", lambda: {
+        "total": 3, "falhas": 1,
+        "rodadas": [
+            {"ts": 1.0, "itens": 20, "alvos": 20, "sucesso": True},
+            {"ts": 2.0, "itens": 0, "alvos": 20, "sucesso": False,
+             "encerrou_por_429": True},
+        ]})
+    dados = client.get("/api/health").get_json()
+    assert dados["top20_total_recentes"] == 3
+    assert dados["top20_falhas_recentes"] == 1
+    assert len(dados["ultimas_rodadas_top"]) == 2
 
 
 def test_item_sem_variantes_nao_mostra_secao(client, monkeypatch, tmp_path):
@@ -5663,6 +5731,73 @@ def test_status_mostra_rodada_top(client, monkeypatch):
     body = client.get("/status").data.decode("utf-8")
     assert "o Top 20 é atualizado a cada 2 horas" in body and "há 10 min" in body
     assert '<span class="card-label">Última atualização do Top 20</span>' in body
+
+
+def test_status_separa_coletas_completas_e_falhas_do_top(client, monkeypatch):
+    from lodout.public_site import uptime, visits
+    monkeypatch.setattr(scan_store, "load_historico_ciclos", lambda: [
+        {"ts": 1000.0, "itens": 269, "alvos": 283, "duracao_min": 93.1,
+         "sucesso": True, "pausas_429": 6, "encerrou_por_429": True},
+        {"ts": 2000.0, "itens": 280, "alvos": 283, "duracao_min": 69.1,
+         "sucesso": True, "pausas_429": 3},
+        {"ts": 3000.0, "itens": 283, "alvos": 283, "duracao_min": 61.0,
+         "sucesso": True, "pausas_429": 0},
+    ])
+    monkeypatch.setattr(scan_store, "load_rodada_top", lambda: None)
+    monkeypatch.setattr(scan_store, "resumo_rodadas_top", lambda: {
+        "total": 4, "falhas": 1, "rodadas": []})
+    monkeypatch.setattr(uptime, "no_ar_desde", lambda: 0.0)
+    monkeypatch.setattr(visits, "total", lambda: 7)
+    body = client.get("/status").data.decode("utf-8")
+    assert "3 de 3 coletas com sucesso" in body
+    assert ("Dessas, 1 terminou com todos os itens e sem pausa da Steam."
+            in body)
+    assert "Nas últimas 4 rodadas do Top 20, 1 não completou." in body
+
+
+def test_rodada_top_registra_falha_quando_bloqueia(monkeypatch, tmp_path):
+    original_save = scan_store.save_last_scan
+    original_load = scan_store.load_last_scan
+    scan_path = tmp_path / "scan.json"
+    original_save("Todas", [
+        {"name": "A", "score": 90, "price": 10.0, "category": "Facas",
+         "data_quality": {"n": 30}},
+        {"name": "B", "score": 80, "price": 9.0, "category": "Facas",
+         "data_quality": {"n": 30}},
+    ], path=scan_path, now=1000.0)
+    monkeypatch.setattr(worker.scan_store, "load_last_scan",
+                        lambda: original_load(path=scan_path))
+    monkeypatch.setattr(
+        worker.scan_store, "save_last_scan",
+        lambda cat, res, now=None: original_save(cat, res, path=scan_path,
+                                                  now=now))
+    monkeypatch.setattr(worker.ranking, "load_snapshots", lambda: [
+        {"ts": 1, "items": [{"name": "A", "score": 90},
+                            {"name": "B", "score": 80}]}])
+
+    def _fake(categories, tinham_historico=None, **kw):
+        relatorio = kw.get("relatorio")
+        if relatorio is not None:
+            relatorio.update(pausas_429=1, encerrou_por_429=True)
+        return []
+
+    monkeypatch.setattr(worker.scan_engine, "run_full_scan", _fake)
+    registro = {}
+    boas = []
+    def _registra(itens, alvos, duracao_min, **kw):
+        registro.update(itens=itens, alvos=alvos, duracao_min=duracao_min,
+                        **kw)
+
+    monkeypatch.setattr(worker.scan_store, "registrar_resultado_rodada_top",
+                        _registra)
+    monkeypatch.setattr(worker.scan_store, "registrar_rodada_top",
+                        lambda *a, **kw: boas.append(1))
+    assert worker.rodada_top() == []
+    assert registro["sucesso"] is False
+    assert registro["encerrou_por_429"] is True
+    assert registro["pausas_429"] == 1
+    assert registro["alvos"] == 2
+    assert not boas
 
 
 # ── imagens de prévia ao compartilhar ───────────────────────────

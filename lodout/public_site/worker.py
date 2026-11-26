@@ -550,6 +550,7 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
             "pausas_429": relatorio.get("pausas_429", 0),
             "throttle_silencioso": relatorio.get("throttle_silencioso", 0),
             "abortado": bool(relatorio.get("abortado")),
+            "encerrou_por_429": bool(relatorio.get("encerrou_por_429")),
             "fonte": fonte,
             "em_espera": em_espera,
             "comparacao_fontes": relatorio.get("comparacao_fontes"),
@@ -760,16 +761,33 @@ def rodada_top() -> "list[dict]":
         if ((por_nome[n].get("data_quality") or {}).get("n") or 0) > 0}
     inicio = time.time()
     _logger.info("Rodada rápida do Top 20: %d itens", len(nomes))
+    relatorio: dict = {}
     _escaneando = True
     try:
         novos = scan_engine.run_full_scan(
             categorias, on_progress=_logger.info,
             ritmo=_ritmo_do_ciclo(scan_store.load_historico_ciclos()),
-            relatorio={}, tinham_historico=tinham_historico,
+            relatorio=relatorio, tinham_historico=tinham_historico,
             cancelled=lambda: _parar)
     finally:
         _escaneando = False
-    if _parar or not novos:
+    duracao = (time.time() - inicio) / 60
+    if _parar:
+        return []  # parada para deploy não é falha da coleta
+    bloqueou = bool(relatorio.get("encerrou_por_429"))
+    abortou = bool(relatorio.get("abortado"))
+    completou = (len(novos) == len(nomes) and not bloqueou and not abortou)
+    pausas = relatorio.get("pausas_429", 0)
+    if not novos:
+        # Sem nada novo, o scan anterior segue valendo (como antes), mas
+        # a rodada entra no histórico pra /api/health contar falhas.
+        motivo = ("bloqueio da Steam" if bloqueou else
+                  "sem resultado" if abortou else "sem preço novo")
+        scan_store.registrar_resultado_rodada_top(
+            0, len(nomes), duracao, sucesso=False, pausas_429=pausas,
+            abortado=abortou, encerrou_por_429=bloqueou, motivo=motivo)
+        _logger.info("Rodada rápida do Top 20 não completou: 0 de %d "
+                     "em %.1fmin (%s)", len(nomes), duracao, motivo)
         return []
     # Relê: entre o início e agora nada mais escreve o scan_store (o
     # worker é um processo só), mas reler deixa claro que é merge.
@@ -777,10 +795,23 @@ def rodada_top() -> "list[dict]":
     frescos = {r["name"]: r for r in novos}
     resultados = [frescos.get(r["name"], r) for r in scan["results"]]
     scan_store.save_last_scan(scan["category"], resultados, now=scan["ts"])
-    duracao = (time.time() - inicio) / 60
-    scan_store.registrar_rodada_top(len(novos), len(nomes), duracao)
-    _logger.info("Rodada rápida concluída: %d de %d em %.1fmin",
-                 len(novos), len(nomes), duracao)
+    if completou:
+        scan_store.registrar_resultado_rodada_top(
+            len(novos), len(nomes), duracao, sucesso=True,
+            pausas_429=pausas, abortado=abortou,
+            encerrou_por_429=bloqueou)
+        _logger.info("Rodada rápida concluída: %d de %d em %.1fmin",
+                     len(novos), len(nomes), duracao)
+    else:
+        motivo = ("bloqueio da Steam" if bloqueou else
+                  "incompleta" if abortou else "faltaram itens")
+        scan_store.registrar_resultado_rodada_top(
+            len(novos), len(nomes), duracao, sucesso=False,
+            pausas_429=pausas, abortado=abortou,
+            encerrou_por_429=bloqueou, motivo=motivo)
+        _logger.info("Rodada rápida do Top 20 não completou: %d de %d "
+                     "em %.1fmin (%s)", len(novos), len(nomes), duracao,
+                     motivo)
     return novos
 
 

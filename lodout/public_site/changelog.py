@@ -8,6 +8,15 @@ from __future__ import annotations
 
 ENTRADAS = [
     {
+        "data": "2026-11-26",
+        "titulo": "Coleta mais transparente",
+        "itens": [
+            "Status: agora diz quantas coletas terminaram com todos os itens e sem pausa da Steam, além da contagem de coletas que trouxeram preço novo. Antes as duas situações apareciam juntas.",
+            "Status e dados de saúde do site: passam a mostrar quando uma coleta foi interrompida por bloqueio da Steam e quantas das últimas rodadas do Top 20 não completaram.",
+            "O ícone do aplicativo passa a usar a logomarca completa em todos os tamanhos; o ícone da aba continua com a letra inicial.",
+        ],
+    },
+    {
         "data": "2026-11-25",
         "titulo": "Coleta com menos itens extras",
         "itens": [

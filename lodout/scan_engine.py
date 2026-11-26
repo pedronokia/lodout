@@ -616,9 +616,10 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
     `ritmo` (>= 1) multiplica a pausa ENTRE itens -- o worker sobe quando
     o ciclo anterior levou 429 (lido de `steam_api.RATE_LIMIT_DELAY_S` na
     hora, nunca copiado). `relatorio`, se passado, recebe `pausas_429`
-    (quantas vezes o laço esperou o disjuntor) e `sem_preco` (itens que
-    falharam sem bloqueio nenhum -- candidatos a "sem anúncio") e
-    `throttle_silencioso` (quantas vezes a regra abaixo disparou).
+    (quantas vezes o laço esperou o disjuntor), `sem_preco` (itens que
+    falharam sem bloqueio nenhum -- candidatos a "sem anúncio"),
+    `throttle_silencioso` (quantas vezes a regra abaixo disparou) e
+    `encerrou_por_429` (o teto de espera estourou e o ciclo foi cortado).
 
     Throttle silencioso (AGENTS.md): a Steam às vezes responde 200 com a
     página sem histórico. Um item assim entrava com nota calculada sem
@@ -669,15 +670,17 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
 
     esperado = 0.0
     pausas = 0
+    encerrou_por_429 = False
 
     def _espera_disjuntor() -> bool:
         """Dorme até o disjuntor fechar. False = estourou o teto do ciclo."""
-        nonlocal esperado, pausas
+        nonlocal esperado, pausas, encerrou_por_429
         espera = _cooldown_scan_s()
         if espera <= 0:
             return True
         pausas += 1
         if esperado + espera > _ESPERA_DISJUNTOR_MAX_S:
+            encerrou_por_429 = True
             _avisa("Steam segue bloqueando; ciclo encerrado antes do fim")
             return False
         _avisa(f"Steam pediu pausa (429): esperando {espera / 60:.1f} min")
@@ -787,4 +790,7 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
         relatorio["comparacao_fontes"] = comparar_fontes(sombras)
         relatorio["throttle_silencioso"] = throttle
         relatorio["abortado"] = abortado
+        # 26/11: "encerrou antes do fim" por 429 precisa ser distinguido
+        # de uma coleta que terminou com todos os itens depois de pausas.
+        relatorio["encerrou_por_429"] = encerrou_por_429
     return results
