@@ -215,6 +215,63 @@ def test_varrer_404_em_todas_as_fatias_nao_marca_completa_e_espara(
     assert estado["erros_404_fatias_rodada"] == 3  # contador da rodada, não total
 
 
+def test_varrer_guarda_fatia_pulada_e_retoma_no_proximo_start(monkeypatch,
+                                                              sem_pausa):
+    """26/11: sem o start da falha, a volta seguinte refazia Rifles por 22 h."""
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"), ("Adesivos", "S")))
+    monkeypatch.setattr(catalogo, "_ESPERA_APOS_404_S", 0.0)
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        tag = facets["type"]
+        chamadas.append((tag, start))
+        if tag == "R":
+            if start == 0:
+                return steam_api.SEARCH_OK, [_linha("Rifle | A"),
+                                             _linha("Rifle | B")], 3
+            return steam_api.SEARCH_NOT_FOUND, [], 0
+        return steam_api.SEARCH_OK, [_linha("Adesivo | X")], 1
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert estado["motivo"] == "incompleta_404"
+    assert estado["retomar"]["fatia"] == 0
+    assert estado["retomar"]["tag"] == "R"
+    assert estado["retomar"]["start"] == 2
+    assert [p["tag"] for p in estado["fatias_puladas"]] == ["R"]
+    assert catalogo.resumo()["retomar"]["start"] == 2
+
+    chamadas.clear()
+    catalogo.varrer(ate_ts=1e12)
+    assert chamadas[0] == ("R", 2)  # não volta ao start 0
+
+
+def test_retomar_legado_pula_fatia_ja_coletada(monkeypatch, sem_pausa):
+    """Estado de 25/11 não tinha `retomar`: usa `totais` como ponto inicial."""
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"), ("Adesivos", "S")))
+    catalogo._salvar_estado({
+        "fatia": None, "start": 0, "motivo": "incompleta_404",
+        "erros_404_fatias": 10, "erros_404_fatias_rodada": 10,
+        "totais": {"Rifles": 2960}, "itens_rodada": 2960,
+        "ultima_completa_ts": 1.0, "fim_ultima_rodada_ts": 2.0,
+    })
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        tag = facets["type"]
+        chamadas.append((tag, start))
+        if tag == "R":
+            return steam_api.SEARCH_OK, [], 2960
+        return steam_api.SEARCH_OK, [_linha("Adesivo | X")], 1
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert chamadas == [("R", 2960), ("S", 0)]
+    assert estado["motivo"] == "completa"
+    assert estado["retomar"] is None
+    assert estado["fatias_puladas"] == []
+
+
 def test_worker_so_varre_com_catalogo_ligado(monkeypatch):
     chamadas = []
     monkeypatch.setattr(catalogo, "varrer",

@@ -112,7 +112,12 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   Rodada com fatia pulada por 404 NÃO é completa (25/11: 10 fatias, só 2960
   itens e `motivo="completa"` no ar): não renova `ultima_completa_ts`, expõe
   `erros_404_fatias_rodada` e `fim_ultima_rodada_ts`, espera 24 h antes de
-  tentar de novo e avisa o Discord com 3+ fatias puladas.
+  tentar de novo e avisa o Discord com 3+ fatias puladas. Desde 26/11 o estado
+  guarda `fatias_puladas` (fatia/tag/start/hora, até 20) e `retomar`: a rodada
+  seguinte começa na PRIMEIRA fatia pulada, no `start` em que ela falhou, em vez
+  de refazer a fatia já coletada (24-25/11 foram 22 h só em Rifles e as outras
+  9 fatias nunca eram alcançadas). Estados antigos sem `retomar` são migrados
+  usando o `total` da primeira fatia em `totais`. Ambos aparecem no `/api/health`.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela

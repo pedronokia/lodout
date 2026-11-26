@@ -14,6 +14,7 @@ ENTRADAS = [
             "Status: agora diz quantas coletas terminaram com todos os itens e sem pausa da Steam, além da contagem de coletas que trouxeram preço novo. Antes as duas situações apareciam juntas.",
             "Status e dados de saúde do site: passam a mostrar quando uma coleta foi interrompida por bloqueio da Steam e quantas das últimas rodadas do Top 20 não completaram.",
             "Se o site precisar reiniciar no meio de uma coleta, as pausas da Steam já contadas continuam valendo na contagem daquela coleta.",
+            "Quando uma atualização do catálogo pula categorias por falha na busca, a próxima recomeça justamente onde parou, em vez de refazer as categorias que já tinham sido coletadas.",
             "O ícone do aplicativo passa a usar a logomarca completa em todos os tamanhos; o ícone da aba continua com a letra inicial.",
         ],
     },

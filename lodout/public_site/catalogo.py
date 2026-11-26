@@ -253,6 +253,10 @@ _MAX_404_MESMO_START = 3
 # ultima_completa_ts e só tenta de novo depois desta espera, pra nao queimar
 # requisicoes a cada ciclo do worker enquanto a Steam devolver 404.
 _ESPERA_APOS_404_S = 24 * 3600
+# A rodada seguinte recomeça na PRIMEIRA fatia pulada, no start em que ela
+# falhou (26/11): refazer Rifles inteiro custava ~22 h e deixava as outras
+# fatias sem volta. `fatias_puladas` guarda as 20 últimas só pra diagnóstico.
+_MAX_FATIAS_PULADAS = 20
 
 
 def ligado() -> bool:
@@ -313,7 +317,17 @@ def _finalizar_rodada(estado: dict) -> str:
             "Catálogo: rodada terminou com %s fatia(s) pulada(s) por 404 "
             "(%s itens); não conta como volta completa",
             puladas, estado["itens_ultima"])
+        # `retomar` aponta a PRIMEIRA fatia pulada desta rodada. Ela fica
+        # no estado até uma rodada sem puladas (26/11): sem isso a volta
+        # seguinte recomeçava em Rifles e gastava ~22 h antes de chegar
+        # nas categorias que realmente faltaram.
+        puladas_info = estado.get("fatias_puladas")
+        estado["retomar"] = (puladas_info[0]
+                             if isinstance(puladas_info, list) and puladas_info
+                             else None)
         return "incompleta_404"
+    estado["retomar"] = None
+    estado["fatias_puladas"] = []
     estado["ultima_completa_ts"] = fim
     _logger.info("Catálogo completo: %s itens em %s páginas",
                  estado["itens_ultima"], estado["paginas_ultima"])
@@ -330,6 +344,35 @@ def _dormir(segundos: float, ate_ts: float, deve_parar) -> bool:
     return time.time() < ate_ts and not deve_parar()
 
 
+def _retomar_legado(estado: dict) -> "dict | None":
+    """Recupera um ponto de retomada de estados gravados antes de 26/11.
+
+    Na rodada de 24-25/11 as 10 fatias foram puladas por 404 e o estado
+    antigo não guardava qual era o `start` da falha. `totais` diz quais
+    fatias chegaram a responder: recomeçar no `total` da primeira delas
+    pula as páginas já coletadas sem refazer a varredura inteira. Se a
+    Steam devolver 200 vazio (ou 404) nessa posição, o laço normal já
+    avança para a próxima fatia.
+    """
+    if (estado.get("motivo") != "incompleta_404"
+            or not int(estado.get("erros_404_fatias_rodada") or 0)):
+        return None
+    totais = estado.get("totais")
+    if not isinstance(totais, dict):
+        return None
+    for indice, (nome, tag) in enumerate(FATIAS):
+        if nome not in totais:
+            continue
+        try:
+            start = max(0, int(totais[nome]))
+        except (TypeError, ValueError):
+            continue
+        return {"fatia": indice, "nome": nome, "tag": tag, "start": start,
+                "ts": float(estado.get("fim_ultima_rodada_ts") or 0),
+                "origem": "legado"}
+    return None
+
+
 def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
     """Avança a varredura do catálogo até `ate_ts` e devolve o estado.
 
@@ -339,7 +382,9 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
     Para no primeiro bloqueio (429), em erro, em página vazia antes do
     fim (pode ser bloqueio silencioso) e quando a janela acaba. Fatias
     encerradas por 404 não contam como volta completa (nem renovam o
-    relógio dela) e só são tentadas de novo após `_ESPERA_APOS_404_S`."""
+    relógio dela) e só são tentadas de novo após `_ESPERA_APOS_404_S`.
+    A rodada seguinte retoma na primeira fatia pulada, no `start` da falha,
+    em vez de recomeçar do zero (`retomar`/`fatias_puladas` no estado)."""
     from lodout import steam_api
 
     estado = ler_estado()
@@ -361,13 +406,32 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 < _ESPERA_APOS_404_S):
             estado["motivo"] = "esperando_apos_404"
             return estado
+        retomar = estado.get("retomar")
+        if not isinstance(retomar, dict):
+            retomar = _retomar_legado(estado)
+            if retomar is not None:
+                estado["retomar"] = retomar
+        indice = 0
+        inicio = 0
+        if isinstance(retomar, dict):
+            try:
+                candidato = int(retomar.get("fatia"))
+                if 0 <= candidato < len(FATIAS):
+                    indice = candidato
+                    inicio = max(0, int(retomar.get("start") or 0))
+            except (TypeError, ValueError):
+                pass
         estado.update({
-            "fatia": 0, "start": 0, "inicio_ts": agora,
+            "fatia": indice, "start": inicio, "inicio_ts": agora,
             "paginas_rodada": 0, "itens_rodada": 0, "totais": {},
             "erro_404_seguidos": 0, "erro_404_start": -1,
             "erros_404_fatias": int(estado.get("erros_404_fatias") or 0),
             "erros_404_fatias_rodada": 0,
+            "fatias_puladas": [],
         })
+        if indice or inicio:
+            _logger.info("Catálogo: retomando na fatia %s (%s) a partir de %s",
+                         indice, FATIAS[indice][0], inicio)
 
     conn = conectar()
     motivo = "janela"
@@ -407,6 +471,19 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                         int(estado.get("erros_404_fatias") or 0) + 1)
                     estado["erros_404_fatias_rodada"] = (
                         int(estado.get("erros_404_fatias_rodada") or 0) + 1)
+                    # Guarda QUAL fatia/tag/start falhou, não só quantas:
+                    # sem isso a próxima rodada não sabe onde retomar (26/11).
+                    pulada = {"fatia": int(estado["fatia"]), "nome": nome_fatia,
+                              "tag": tag, "start": atual,
+                              "ts": round(time.time(), 3)}
+                    historico = estado.setdefault("fatias_puladas", [])
+                    if not isinstance(historico, list):
+                        historico = estado["fatias_puladas"] = []
+                    historico.append(pulada)
+                    if len(historico) > _MAX_FATIAS_PULADAS:
+                        del historico[:-_MAX_FATIAS_PULADAS]
+                    if len(historico) == 1:
+                        estado["retomar"] = dict(pulada)
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break
@@ -468,7 +545,8 @@ def resumo() -> dict:
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
               "erro_404_start", "erros_404_fatias",
-               "erros_404_fatias_rodada", "fim_ultima_rodada_ts")
+               "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
+                "retomar", "fatias_puladas")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Cotação usada para converter os preços (dólar → reais), com quantos
     # itens a mediram -- pra acompanhar se ela sair do normal (2026-11-15).
