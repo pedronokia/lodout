@@ -255,6 +255,10 @@ def test_retomar_legado_pula_fatia_ja_coletada(monkeypatch, sem_pausa):
         "totais": {"Rifles": 2960}, "itens_rodada": 2960,
         "ultima_completa_ts": 1.0, "fim_ultima_rodada_ts": 2.0,
     })
+    previa = catalogo.resumo()
+    assert previa["retomar"]["start"] == 2960
+    assert previa["retomar"]["origem"] == "legado"
+    assert previa["fatias_puladas"] == []
     chamadas = []
 
     def fake(facets=None, start=0, **_):

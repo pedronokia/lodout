@@ -548,6 +548,14 @@ def resumo() -> dict:
                "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
                 "retomar", "fatias_puladas")
     saida = {k: estado.get(k) for k in chaves if k in estado}
+    # Estado de 25/11 não tem estes campos: mostra desde já o ponto que a
+    # próxima rodada vai usar, sem precisar esperar ela começar (26/11).
+    if not isinstance(estado.get("retomar"), dict):
+        legado = _retomar_legado(estado)
+        if legado is not None:
+            saida["retomar"] = legado
+    saida.setdefault("retomar", None)
+    saida.setdefault("fatias_puladas", [])
     # Cotação usada para converter os preços (dólar → reais), com quantos
     # itens a mediram -- pra acompanhar se ela sair do normal (2026-11-15).
     taxa = cambio() if saida else None  # sem catálogo, sem cotação
