@@ -18,7 +18,12 @@ agente faz requisição direta de diagnóstico à Steam.
    Só atua em casos da lista abaixo e no máximo 1 caso por execução.
    Escreve `scratch/correcoes/<mesmo nome>.md` com o resultado.
 4. **Relatório** — automação no minuto 12 resume nesta sessão os arquivos
-   novos de diagnóstico/correção.
+   novos de diagnóstico/correção/aprimoramento.
+5. **Aprimoramento** — agente `general` disparado no minuto 20 de cada hora.
+   Aplica **sozinho** um item por execução do plano em
+   `docs/plano-aprimoramento-busca.md` marcado como `AUTORIZADO`, e registra
+   em `scratch/aprimoramentos/aplicados/<slug>.md`. Itens `VETADOS` nunca são
+   aplicados sem autorização nova.
 
 ## Fontes permitidas (todas locais ou do próprio site)
 
@@ -52,7 +57,9 @@ confirar `/api/health` no ar.
   categorias do catálogo.
 - Mudanças de relevância da busca do site (`/?q=`, `/api/sugestoes`,
   `texto_busca`, `nome_para_busca`, normalização, sinônimos, peso de
-  resultados) — mesmo que pareçam pequenas.
+  resultados) — **exceção desde 26/11**: o Agente de Aprimoramento pode
+  aplicar os itens marcados `AUTORIZADO` em `docs/plano-aprimoramento-busca.md`.
+  Os demais agentes continuam pedindo aprovação.
 - Config/deploy, segredos, dados persistidos, limpeza de `data/`, chamadas
   de rede à Steam, force-push/amend, reinício manual de container.
 - Qualquer caso novo ou evidência insuficiente.
