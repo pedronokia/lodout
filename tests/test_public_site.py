@@ -1509,23 +1509,24 @@ def test_index_aba_todas_bate_com_total_mostrado(client, monkeypatch, tmp_path):
 
 
 def test_index_logo_no_topo(client, monkeypatch, tmp_path):
-    """Marca de 25/11 (escolha do usuário): "lodout" em branco sobre bloco
-    escuro (logo-lodout.svg); no tablet vai só o símbolo (logo-L.svg).
-    O nome completo fica no aria-label do link."""
+    """Marca oficial "Escura Alto Contraste" (26/11, escolha do usuário):
+    o SVG exato, inline, no topo e no rodapé. Sem TM e sem imagem solta;
+    o nome completo fica no aria-label do link."""
     _salva_scan(tmp_path, monkeypatch, [])
     body = client.get("/").data.decode("utf-8")
-    logo = body.split('class="logo"', 1)[1].split("</a>", 1)[0]
+    topo = body.split('class="logo"', 1)[1].split("</a>", 1)[0]
+    rodape = body.split('class="rodape-marca-nome"', 1)[1].split("</a>", 1)[0]
     assert 'aria-label="Lodout — página inicial"' in body
-    assert 'class="logo-marca"' in logo and "/static/logo-lodout.svg" in logo
-    assert 'class="logo-icone"' in logo and "/static/logo-L.svg" in logo
-    assert 'class="logo-aspas"' not in body          # as aspas antigas saíram
-
-    svg = client.get("/static/logo-lodout.svg").data.decode("utf-8").lower()
-    assert 'fill="#000000"' in svg                 # bloco escuro da marca
-    assert 'fill="#ffffff"' in svg and 'evenodd' in svg  # letras com recortes
-    assert 'fill="#fe540c"' not in svg              # saiu a marca laranja
-    assert 'fill="#e4e7e9"' not in svg              # saiu o furo prata
-    assert 'stroke' not in svg                      # sem rachaduras
+    for bloco in (topo, rodape):
+        assert '<svg' in bloco and 'viewBox="0 0 260 112"' in bloco
+        assert 'fill="#1A1D24"' in bloco
+        assert 'stroke="rgba(255,255,255,0.45)"' in bloco
+        assert 'font-weight="800"' in bloco and '>lodout</text>' in bloco
+        assert '™' not in bloco and 'TM' not in bloco
+    assert 'class="logo-marca"' in topo
+    assert 'class="rodape-marca-logo"' in rodape
+    assert 'class="logo-icone"' not in body          # símbolo antigo saiu
+    assert 'class="logo-aspas"' not in body          # aspas antigas saíram
 
 
 def test_titulos_das_paginas_usam_o_nome_lodout(client):
@@ -3984,8 +3985,9 @@ def test_fontes_servem_com_mime_de_fonte(client):
     """As webfonts saem como font/woff2 (a stdlib não conhece .woff2 e o
     server.py registra o tipo) -- application/octet-stream acende
     aviso no console de alguns navegadores."""
-    for nome in ("inter-latin-opsz-normal.woff2",
-                 "space-grotesk-latin.woff2"):
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
+                 "geist-mono-latin.woff2"):
+
         resp = client.get(f"/static/fonts/{nome}?v=1")
         assert resp.status_code == 200
         assert resp.mimetype == "font/woff2"
@@ -4060,11 +4062,13 @@ def test_sem_preload_de_fonte_custom(client, monkeypatch):
     monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
     body = client.get("/").data.decode("utf-8")
     assert "Poppins" not in body
-    # O preload da fonte Inter (referenciada pelo @font-face do CSS) é
-    # intencional: acelera o LCP. O que não pode mais existir é preload
-    # de fonte custom não usada (Poppins).
+    # Os preloads das três fontes oficiais (referenciadas pelo @font-face
+    # do CSS) são intencionais: aceleram o LCP. O que não pode existir é
+    # preload de fonte não usada (Poppins).
     assert 'Poppins' not in body
-    assert 'inter-latin-opsz-normal.woff2' in body
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
+                 "geist-mono-latin.woff2"):
+        assert nome in body
     # Não deve haver preload de arquivo de fonte Poppins.
     assert not any(
         'rel="preload"' in linha and 'Poppins' in linha
@@ -5740,9 +5744,9 @@ def test_pagina_alem_do_fim_mostra_a_ultima(client, monkeypatch, tmp_path):
 
 def test_preload_das_fontes_tem_o_mesmo_endereco_do_css(client):
     """Preload e @font-face com URLs diferentes = a fonte baixada duas
-    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita). Corpo e
-    títulos usam fontes diferentes desde 25/11; os dois endereços
-    precisam bater exatamente."""
+    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita). Desde 26/11
+    são três fontes (títulos, corpo e dados); os três endereços precisam
+    bater exatamente."""
     import re
     from pathlib import Path
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site"
@@ -5750,8 +5754,8 @@ def test_preload_das_fontes_tem_o_mesmo_endereco_do_css(client):
     corpo = client.get("/").data.decode("utf-8")
     preloads = re.findall(
         r'rel="preload" as="font"[^>]*href="([^"]+)"', corpo)
-    for nome in ("inter-latin-opsz-normal.woff2",
-                 "space-grotesk-latin.woff2"):
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
+                 "geist-mono-latin.woff2"):
         no_css = re.search(
             r'url\("(fonts/' + re.escape(nome) + r'[^"]*)"\)', css).group(1)
         assert "/static/" + no_css in preloads

@@ -1,7 +1,6 @@
-{# Marca de 25/11 (escolha do usuário): "lodout" em branco sobre bloco escuro
-   (static/logo-lodout.svg). No tablet, onde o menu divide a linha, vai só o
-   símbolo (static/logo-L.svg, a inicial l do mesmo desenho). #}
+{# Marca oficial "Escura Alto Contraste" (26/11, escolha do usuário):
+   o mesmo SVG do rodapé, inline. Altura 32px no desktop e 28px no
+   celular (CSS). O nome completo fica no aria-label do link. #}
 <a class="logo" href="{{ url_for('index') }}" aria-label="Lodout — página inicial">
-  <img class="logo-marca" src="{{ static_v('logo-lodout.svg') }}" alt="" width="110" height="26" decoding="async">
-  <img class="logo-icone" src="{{ static_v('logo-L.svg') }}" alt="" width="23" height="26" decoding="async">
+  <span class="logo-marca">{% include "partials/_logo_svg.html" %}</span>
 </a>

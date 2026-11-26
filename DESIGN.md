@@ -23,51 +23,51 @@ colors:
   texto-apagado: "#b3b3b3"
 typography:
   display:
-    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Outfit, sans-serif"
     fontSize: "4rem"
     fontWeight: 700
-    lineHeight: 1.05
-    letterSpacing: "-0.03em"
+    lineHeight: 1.15
+    letterSpacing: "-0.025em"
   headline:
-    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Outfit, sans-serif"
     fontSize: "2rem"
     fontWeight: 700
-    lineHeight: 1.1
-    letterSpacing: "-0.03em"
+    lineHeight: 1.15
+    letterSpacing: "-0.025em"
   title:
-    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Outfit, sans-serif"
     fontSize: "clamp(1.6rem, 4.2vw, 2.4rem)"
     fontWeight: 700
-    lineHeight: 1.08
-    letterSpacing: "-0.03em"
+    lineHeight: 1.15
+    letterSpacing: "-0.025em"
   lead:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Geist, sans-serif"
     fontSize: "1.3125rem"
     fontWeight: 450
     lineHeight: 1.43
   body:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Geist, sans-serif"
     fontSize: "1.0625rem"
     fontWeight: 450
     lineHeight: 1.47
   small:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Geist, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 450
     lineHeight: 1.47
   label:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Geist, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 700
     lineHeight: 1.47
     letterSpacing: "0.06em"
   numero:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Geist Mono, monospace"
     fontSize: "2rem"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.025em"
-    fontFeature: "tnum"
+    fontFeature: "tnum, zero"
 rounded:
   xs: "8px"
   sm: "12px"
@@ -149,7 +149,7 @@ O Lodout é um caderno escuro e calmo aberto sobre o Mercado da Steam: cada pág
 
 O clima é escuro, calmo e confiável. O fundo quase preto e as folhas cinza-escuras deixam o conteúdo em primeiro plano; a cor aparece pouco e sempre com significado: um único laranja para ação e marca, e verde, amarelo e vermelho só para dizer se uma nota ou um movimento é alto, médio ou de queda. Nada pisca sem motivo, e a idade dos dados fica à vista. A densidade é média: tabelas que viram cartões no celular, números grandes com tabulação alinhada e texto explicativo em medida de leitura.
 
-A tipografia usa duas famílias auto-hospedadas (escolha do usuário em 25/11, opção 2 do comparador): Space Grotesk nos títulos, em peso 700 e tracking -0,03em, e Inter variável no corpo (450) e nos números com algarismos tabulares. Os títulos são grandes e firmes; os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
+A tipografia usa três famílias auto-hospedadas (escolha do usuário em 26/11): Outfit nos títulos, em peso 700, tracking -0,025em e entrelinha 1,15; Geist no corpo (450); Geist Mono nos preços, variações, desgastes e notas, com algarismos tabulares e zero com barra. Nada vem do Google Fonts em runtime: o CSP de produção só aceita `self`. Os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
 
 **Key Characteristics:**
 - Fundo quase preto em camadas tonais (moldura, caderno, folha, rebaixo), com borda fina em vez de sombra.
@@ -166,7 +166,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Preto da marca** (#000000): o fundo do bloco da logomarca. Só nela — o fundo das páginas continua #161616.
 - **Branco da marca** (#ffffff): as letras da logomarca e a inicial do símbolo. Não é cor de interface.
 - **Laranja da interface** (#f97316): links de destaque, anel de foco e o trecho preenchido de barras e medidores. Nunca para texto corrido.
-- **Logomarca** (25/11, escolha do usuário; substitui a de 24/11): "lodout" minúsculo em branco, recortado de um bloco escuro inclinado, com o ® no fim (`static/logo-lodout.svg`). O desenho veio de uma imagem do usuário e foi convertido em curvas; o arquivo SVG é a fonte, os PNGs são gerados por `scripts/gerar_assets_marca.py`. O ícone (aba, celular, app, `favicon*`, `icon-*`) é a inicial l branca num quadrado escuro arredondado (`static/logo-L.svg`). No topo vai a marca completa pequena (26px; 22px no celular); no tablet (641-960px), só o símbolo. Para caber no celular, "Filtros" vira só ícone e "Entrar com Steam" mostra "Entrar". A imagem de compartilhamento usa a mesma marca (`og_cards`, `scripts/gerar_og_image.py`). Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
+- **Logomarca oficial "Escura Alto Contraste"** (26/11, escolha do usuário): "lodout" minúsculo em branco (Outfit 800), sobre bloco #1A1D24 chanfrado com contorno branco 45%, sem TM. O SVG exato está em `templates/partials/_logo_svg.html` e vai inline no topo (`_logo.html`, 32px; 28px no celular) e no rodapé (`_rodape_links.html`, 34px). A marca antiga de 25/11 segue em `static/logo-lodout.svg` só para os PNGs e o cartão de compartilhamento (`og_cards`, `scripts/gerar_og_image.py`); o ícone da aba/celular/app continua `static/logo-L.svg`. Não há versão 3D da marca: relevo, sombra, brilho e extrusão são usos proibidos.
 - **Laranja de Ação** (rgba(249, 115, 22, 0.7)): fundo do botão principal e do item escolhido no seletor de período; o laranja translúcido sobre o preto dá contraste com texto branco sem gritar.
 - **Laranja Pressionado** (#b8480a): hover do botão principal.
 
@@ -188,27 +188,27 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Texto** (#e8e8e8), **Texto Forte** (#ffffff) e **Texto Apagado** (#b3b3b3, 4,5:1 sobre #252525): corpo, títulos/números e legendas/rótulos.
 
 ### Named Rules
-**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é um medidor, troque a cor — a marca de 25/11 é preto e branco.
+**The One Orange Rule.** O laranja é a única cor de ação. Se algo laranja não é clicável, não é um medidor, troque a cor — a marca oficial é alto contraste, sem laranja.
 
 **The Meaning Colors Rule.** Verde, amarelo e vermelho só aparecem quando dizem alto/médio/baixo, subiu/caiu ou deu certo/errado. Nunca como decoração.
 
 ## Typography
 
-**Display Font:** Space Grotesk (com Inter Variable, Inter, -apple-system, system-ui) — h1/h2/h3 e títulos de página.
-**Body Font:** Inter Variable (com Inter, -apple-system, system-ui)
-**Label/Mono Font:** Inter em caixa alta para rótulos e algarismos tabulares nos dados; monoespaçada do sistema só para código e na API.
+**Display Font:** Outfit (600/700/800) — h1/h2/h3 e títulos de página.
+**Body Font:** Geist (400/500/600/700) — texto corrido, rótulos e botões.
+**Mono Font:** Geist Mono (500/600/700) — preços, variações, faixas de desgaste, notas e código.
 
-**Character:** duas famílias auto-hospedadas, ambas em pesos levemente encorpados sobre o escuro; a hierarquia vem de tamanho, peso e da troca controlada entre título e corpo.
+**Character:** três famílias auto-hospedadas; a hierarquia vem de tamanho, peso e da troca controlada entre título, corpo e número.
 
 ### Hierarchy
-- **Display** (700, 4rem, 1.05, -0.03em): o título de página ("Ranking"), um por página.
-- **Headline** (700, 2rem, 1.1, -0.03em): títulos de seção ("O que mudou no Top 20 desde ontem").
-- **Title** (700, clamp(1.6rem, 4.2vw, 2.4rem), 1.08, -0.03em): nome do item na página do item.
+- **Display** (Outfit 700, 4rem, 1.15, -0.025em): o título de página ("Ranking"), um por página.
+- **Headline** (Outfit 700, 2rem, 1.15, -0.025em): títulos de seção ("O que mudou no Top 20 desde ontem").
+- **Title** (Outfit 700, clamp(1.6rem, 4.2vw, 2.4rem), 1.15, -0.025em): nome do item na página do item.
 - **Lead** (450, 1.3125rem): a frase-guia logo abaixo do título de página, em Texto Apagado.
 - **Body** (450, 1.0625rem, 1.47): texto corrido e explicações, em até ~75 letras por linha.
 - **Small** (450, 0.875rem): células de tabela, botões, metadados ("Última coleta completa há 2 h").
 - **Label** (700, 0.75rem, 0.06em, caixa alta): rótulos de dado ("NOTA", "FREQUÊNCIA") e cabeçalhos de cartão.
-- **Número** (700, 2rem, tabular): o valor em destaque onde se decide (encomenda sugerida, preço do item).
+- **Número** (Geist Mono 700, 2rem, `tnum` + `zero`): o valor em destaque onde se decide (encomenda sugerida, preço do item).
 
 ### Named Rules
 **The Tabular Numbers Rule.** Todo preço, nota, porcentagem e contagem usa algarismos tabulares, para que colunas se alinhem e números que mudam não pulem.

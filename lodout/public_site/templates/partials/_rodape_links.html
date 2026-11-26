@@ -1,5 +1,5 @@
 <div class="rodape-marca">
-  <a class="rodape-marca-nome" href="{{ url_for('index') }}"><img class="rodape-marca-logo" src="{{ static_v('logo-lodout.svg') }}" alt="Lodout" width="71" height="24" decoding="async"></a>
+  <a class="rodape-marca-nome" href="{{ url_for('index') }}" aria-label="Lodout — página inicial"><span class="rodape-marca-logo">{% include "partials/_logo_svg.html" %}</span></a>
   <p>Análise do mercado de skins de Counter-Strike 2, com dados públicos do
   Mercado da Steam. Não é afiliado à Valve nem recomendação de investimento.</p>
   {% if coleta_quando %}

@@ -15,7 +15,8 @@ ENTRADAS = [
             "Quando a busca do catálogo não encontra mais itens numa posição, o site para de insistir nela e segue com as outras categorias. Antes, essa posição podia travar a atualização do catálogo inteiro.",
             "Se várias categorias ficam sem acesso na mesma atualização, o site não conta essa rodada como concluída e avisa quem cuida do Lodout. Antes, uma rodada em que quase nada foi coletado aparecia como se tivesse dado certo.",
             "O Lodout ganhou outra logomarca: o nome em branco, em letras minúsculas, sobre um bloco preto inclinado, com o ® no fim. O ícone da aba, do celular e do app e a imagem que aparece ao compartilhar o site usam o mesmo desenho.",
-            "Os títulos agora usam Space Grotesk, com letras um pouco mais fechadas; o texto corrido e os números continuam em Inter, com algarismos alinhados. A fonte nova é servida pelo próprio site, sem depender de outro serviço.",
+            "Os títulos passaram a usar Outfit, o texto corrido usa Geist e os números (preços, variações, desgaste e nota) usam Geist Mono, com algarismos alinhados. As três fontes são servidas pelo próprio site, sem depender de outro serviço.",
+            "A logomarca do topo e do rodapé foi trocada pela versão oficial escura de alto contraste: o nome em branco sobre um bloco escuro chanfrado, com contorno claro e sem o símbolo de marca registrada. O layout das páginas, as cores e a lógica dos dados não mudaram.",
         ],
     },
     {

@@ -3,10 +3,10 @@
    ------------------------------------------------------------
    Sistema visual: tema claro no espírito da Apple — branco e
    cinza-claro, texto quase preto, azul de interação e bastante
-   espaço. Duas famílias tipográficas auto-hospedadas: Inter no
-   corpo e Space Grotesk nos títulos (escolha 25/11), com
-   hierarquia também por tamanho e peso, formas simples e
-   movimento discreto. A marca é preto e branco, sem ponto.
+   espaço. Três famílias tipográficas auto-hospedadas (26/11):
+   Outfit nos títulos, Geist no corpo e Geist Mono nos dados,
+   com hierarquia também por tamanho e peso, formas simples e
+   movimento discreto. A marca oficial é alto contraste, sem TM.
 
    Regras que valem para toda a folha:
    - nada de estilo inline nos templates (o CSP bloqueia);
@@ -15,34 +15,34 @@
    - todo token usado com var() precisa estar definido em :root.
    ============================================================ */
 
-/* Fonte -- Inter Variable (eixos opsz + wght, subset latin), a fonte
-   open source que mais se aproxima da SF Pro da Apple. Auto-hospedada
-   de propósito: o endpoint de webfont da Apple só responde com
-   Referer do próprio apple.com (testado 2026-11-12 -- 404 fora dele)
-   e a licença da SF Pro não permite hospedar os arquivos fora de
-   produto Apple; a Inter sai com SIL OFL 1.1 (fonts/OFL.txt) e deixa
-   o site IGUAL em qualquer computador, sem pedido externo.
-   Build @fontsource-variable/inter 5.3.0 (rsms/inter 4.x). O "v=1"
-   no src é manual: permite trocar o arquivo de fonte no futuro sem
-   depender do cache de 1 ano do /static. */
+/* Tipografia oficial (26/11, escolha do usuário): Outfit nos títulos,
+   Geist no corpo e Geist Mono nos dados. Auto-hospedadas de propósito
+   -- o CSP de produção é `default-src 'self'`, sem font-src externo,
+   então um @import do Google Fonts seria bloqueado no navegador. Os
+   WOFF2 latinos vêm do Google Fonts e saem com SIL OFL 1.1 (arquivos
+   OFL-*.txt em fonts/). Cada arquivo é variável e cobre a faixa de
+   pesos pedida, então são três downloads, não doze. O "?v=1" no src
+   é manual: permite trocar o arquivo no futuro sem depender do cache
+   de 1 ano do /static. */
 @font-face {
-  font-family: "Inter Variable";
-  src: url("fonts/inter-latin-opsz-normal.woff2?v=1")
-    format("woff2-variations");
-  font-weight: 100 900;
+  font-family: "Outfit";
+  src: url("fonts/outfit-latin.woff2?v=1") format("woff2");
+  font-weight: 600 800;
   font-style: normal;
   font-display: swap;
 }
 
-/* Space Grotesk (25/11, escolha do usuário no comparador: opção 2):
-   só os títulos (h1/h2/h3) trocam de família; o corpo segue em Inter,
-   com algarismos tabulares. Auto-hospedada pelo mesmo motivo da Inter,
-   com LICENSE em fonts/OFL-Space-Grotesk.txt (SIL OFL 1.1). O arquivo
-   é variável (500-700), então serve um único download. */
 @font-face {
-  font-family: "Space Grotesk";
-  src: url("fonts/space-grotesk-latin.woff2?v=1")
-    format("woff2-variations");
+  font-family: "Geist";
+  src: url("fonts/geist-latin.woff2?v=1") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("fonts/geist-mono-latin.woff2?v=1") format("woff2");
   font-weight: 500 700;
   font-style: normal;
   font-display: swap;
@@ -170,19 +170,14 @@
   --delay-stagger-sm: 20ms;
   --delay-stagger-md: 30ms;
 
-  /* Tipografia -- Inter Variable auto-hospedada no corpo e nos dados;
-     Space Grotesk auto-hospedada nos títulos (opção 2 do comparador,
-     25/11). As webfonts carregam em qualquer sistema e o site fica
-     igual no Windows, Mac e celular. O resto é só degrau de fallback
-     (fonte offline/indisponível): primeiro a pilha do sistema da Apple
-     (-apple-system resolve SF Pro no Mac), depois a do Windows. */
-  --font-sans: "Inter Variable", "Inter", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial,
-    sans-serif;
-  --font-display: "Space Grotesk", "Inter Variable", "Inter",
-    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas,
-    monospace;
+  /* Tipografia -- Outfit nos títulos, Geist no corpo e Geist Mono nos
+     dados (escolha 26/11). As três são auto-hospedadas: o site fica
+     igual no Windows, Mac e celular e não depende do Google Fonts no
+     runtime. `sans-serif`/`monospace` no fim são o degrau de fallback
+     se o arquivo local falhar. */
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
 
   /* Escala tipográfica -- os tamanhos da Apple: 12, 13, 14, 17, 18, 21,
      24, 32, 48 e 64px. */
@@ -235,7 +230,7 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  /* 450 em vez de 400: a Inter variável aceita o meio-termo, e o texto
+  /* 450 em vez de 400: a Geist variável aceita o meio-termo, e o texto
      claro sobre fundo escuro afinava demais (impressão do usuário,
      2026-11-15: "a fonte que é ruim"). */
   font-weight: 450;
@@ -259,28 +254,56 @@ h1, h2, h3 {
   color: var(--text-bright);
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   line-height: 1.15;
 }
 
-/* Refinamento por tamanho -- a Space Grotesk pede tracking mais fechado
-   que a Inter, inclusive nos títulos menores (opção 2 do comparador). */
+/* Regras oficiais de 26/11: os cabeçalhos mantêm o mesmo tracking e a
+   mesma entrelinha em qualquer tamanho (antes cada nível tinha um
+   valor próprio). Só a escala muda. */
 h1, .titulo-pagina {
   font-size: clamp(2rem, 5.4vw, var(--fs-display));
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
 h2, .secao-titulo {
   font-size: var(--fs-xl);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
 }
 
 h3, .card-valor {
   font-size: var(--fs-2xl);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+/* Dados em Geist Mono (26/11): preços, variações, faixas de desgaste e
+   notas. `tnum` alinha as colunas e `zero` distingue 0 de O. Regra
+   única para não espalhar font-feature-settings pela folha. */
+.tabular-num,
+[data-price],
+[data-score],
+.cartao-item-preco,
+.icone-tendencia,
+.celula-preco,
+.hero-destaque-preco,
+.movimento-variacao,
+.movimento-delta,
+.variacao-nota,
+.nota-numero,
+.cartao-item-nota-numero,
+.hero-destaque-nota-num,
+.nota-texto,
+.nota-margem,
+.item-exterior,
+.preco-alvo,
+.valor-unidade,
+.valor-total,
+.celula-numero,
+.meta-lucro-valor,
+.lista-parecidos-404-preco {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
 }
 
 p { margin: 0 0 1em; }
@@ -12693,20 +12716,17 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
    da seção não precisa da margem cheia de 48px (somava ~70px de vão). */
 .subnav-conta + .secao-titulo { margin-top: var(--sp-4); }
 
-/* Marca plana (24/11, escolha do usuário): "Lodout" em laranja com o furo
-   de tiro prata (static/logo-lodout.svg), pequena. No tablet
-   (641-960px), onde o menu divide a linha, vai só o símbolo (logo-L.svg). */
-.logo .logo-marca { display: block; height: 26px; width: auto; }
-.logo .logo-icone { display: none; width: auto; height: 26px; }
-@media (min-width: 641px) and (max-width: 960px) {
-  .logo .logo-marca { display: none; }
-  .logo .logo-icone { display: block; }
-}
+/* Marca oficial "Escura Alto Contraste" (26/11): o mesmo SVG inline no
+   topo e no rodapé, sem TM. viewBox 260x112 -> ~74px de largura aos
+   32px de altura, então cabe no topo do celular sem empurrar a conta. */
+.logo .logo-marca,
+.rodape-marca-logo { display: inline-flex; align-items: center; }
+.logo .logo-marca svg { display: block; width: auto; height: 32px; }
+.rodape-marca-logo svg { display: block; width: auto; height: 34px; }
 @media (max-width: 640px) {
-  .logo .logo-marca { height: 22px; }
+  .logo .logo-marca svg { height: 28px; }
 }
 footer.rodape .rodape-marca-nome { gap: 0; }
-.rodape-marca-logo { display: block; height: 24px; width: auto; }
 /* Para o logo caber no topo do celular (escolha "B" do usuário, 23/11):
    "Filtros" fica só com o ícone (o botão já se chama "Abrir filtros") e
    "Entrar com Steam" mostra só "Entrar" (o nome completo fica no
@@ -12719,5 +12739,5 @@ footer.rodape .rodape-marca-nome { gap: 0; }
    logo caber sem empurrar a conta para a segunda linha. */
 @media (max-width: 374px) {
   .topo-linha { column-gap: 8px; }
-  .logo .logo-marca { height: 20px; }
+  .logo .logo-marca svg { height: 28px; }
 }

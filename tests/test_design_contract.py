@@ -85,68 +85,86 @@ def test_corpo_tipografico_17px():
     assert "font-size: var(--fs-base);" in corpo
     # 25/17 ≈ 1.47 (25px de entrelinha em corpo de 17px).
     assert "line-height: 1.47;" in corpo
-    # Espaçamento entre letras pelo tamanho de cada elemento (dynamic
-    # metrics da Inter), não um valor fixo no body herdado por todo texto
+    # Espaçamento entre letras pelo tamanho de cada elemento, não um
+    # valor fixo no body herdado por todo texto
     # menor -- isso espremia os rótulos de 12px (2026-11-15).
     assert "letter-spacing" not in corpo
     assert "letter-spacing: calc((1em - 12px) * -0.04);" in css
     assert "font-weight: 450;" in corpo
 
 
-def test_fonte_inter_autohospedada():
-    """A pilha começa pela Inter Variable auto-hospedada (webfont) --
-    o site fica IGUAL em qualquer sistema. Contexto (2026-11-12): o
-    endpoint de webfont da Apple só atende com Referer do próprio
-    apple.com (hotlink testado: 404 fora dele) e a licença da SF Pro
-    não permite self-host; Inter é a open source mais próxima."""
+def test_fontes_oficiais_autohospedadas():
+    """26/11, escolha do usuário: Outfit (títulos), Geist (corpo) e
+    Geist Mono (dados). Auto-hospedadas porque o CSP de produção é
+    `default-src 'self'` -- um @import do Google Fonts seria bloqueado
+    e o visitante cairia no fallback do sistema."""
     css = _css()
-    assert 'font-family: "Inter Variable";' in css
-    assert "fonts/inter-latin-opsz-normal.woff2?v=1" in css
-    assert 'format("woff2-variations");' in css
-    assert "font-weight: 100 900;" in css
-    assert "font-display: swap;" in css
-    assert '--font-sans: "Inter Variable", "Inter", -apple-system,' in css
+    for familia, arquivo, pesos in (
+        ("Outfit", "outfit-latin.woff2", "600 800"),
+        ("Geist", "geist-latin.woff2", "400 700"),
+        ("Geist Mono", "geist-mono-latin.woff2", "500 700"),
+    ):
+        assert f'font-family: "{familia}";' in css
+        assert f'src: url("fonts/{arquivo}?v=1") format("woff2");' in css
+        assert f"font-weight: {pesos};" in css
+    assert css.count("font-display: swap;") >= 3
+    assert "--font-display: 'Outfit', sans-serif;" in css
+    assert "--font-sans: 'Geist', sans-serif;" in css
+    assert "--font-mono: 'Geist Mono', monospace;" in css
 
 
-def test_fonte_space_grotesk_autohospedada():
-    """Títulos em Space Grotesk (opção 2 do comparador, 25/11), também
-    auto-hospedada: o visitante não depende do Google Fonts e o site
-    renderiza igual em qualquer sistema."""
+def test_sem_import_do_google_fonts():
+    """A URL oficial do Google Fonts serve de referência, mas o arquivo
+    local é que conta. Nada de @import ou link externo em runtime."""
     css = _css()
-    assert 'font-family: "Space Grotesk";' in css
-    assert 'src: url("fonts/space-grotesk-latin.woff2?v=1")' in css
-    assert "font-weight: 500 700;" in css
-    assert "font-display: swap;" in css
-    assert 'font-family: var(--font-display);' in _bloco(css, "h1, h2, h3")
+    assert "fonts.googleapis.com" not in css
+    assert "fonts.gstatic.com" not in css
 
 
 def test_arquivos_da_fonte_comitados():
-    """Fonte e licença (SIL OFL 1.1) existem no repositório -- sem eles
-    o site cai no fallback do sistema e volta a divergir entre
-    computadores."""
+    """WOFF2 e licenças SIL OFL 1.1 no repositório -- sem eles o site
+    cai no fallback do sistema e volta a divergir entre computadores.
+    A Inter fica só porque og_cards.py compõe o cartão com ela."""
     pasta = STYLE.parent / "fonts"
-    for nome in ("inter-latin-opsz-normal.woff2",
-                 "space-grotesk-latin.woff2"):
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
+                 "geist-mono-latin.woff2",
+                 "inter-latin-opsz-normal.woff2"):
         fonte = pasta / nome
         assert fonte.is_file() and fonte.stat().st_size > 20_000
         assert fonte.read_bytes()[:4] == b"wOF2"
-    for nome in ("OFL.txt", "OFL-Space-Grotesk.txt"):
+    for nome in ("OFL-Outfit.txt", "OFL-Geist.txt", "OFL-Geist-Mono.txt",
+                 "OFL.txt"):
         licenca = (pasta / nome).read_text(encoding="utf-8")
         assert "SIL OPEN FONT LICENSE" in licenca
 
 
-def test_titulos_700_space_grotesk_e_escala_32_48_64():
-    """25/11, escolha do usuário no comparador: opção 2 (Space Grotesk
-    nos títulos, Inter no corpo). Antes os títulos eram Inter 600."""
+def test_titulos_outfit_700_e_escala_32_48_64():
+    """26/11, escolha do usuário: Outfit 700 nos cabeçalhos, tracking
+    -0,025em e entrelinha 1,15 em todos os tamanhos."""
     css = _css()
     titulos = _bloco(css, "h1, h2, h3")
     assert "font-family: var(--font-display);" in titulos
-    assert '--font-display: "Space Grotesk",' in css
+    assert "--font-display: 'Outfit', sans-serif;" in css
     assert "font-weight: 700;" in titulos
-    assert "letter-spacing: -0.03em;" in titulos
+    assert "letter-spacing: -0.025em;" in titulos
+    assert "line-height: 1.15;" in titulos
     assert "--fs-xl: 2rem" in css      # 32px
     assert "--fs-2xl: 3rem" in css     # 48px
     assert "--fs-display: 4rem" in css  # 64px
+
+
+def test_dados_em_geist_mono():
+    """Preços, variações, desgastes e notas usam a mesma regra: Geist
+    Mono com algarismos tabulares e zero com barra (`zero` 1)."""
+    css = _css()
+    inicio = css.index(".tabular-num,")
+    regra = css[inicio:css.index("\n}", inicio)]
+    assert "font-family: var(--font-mono);" in regra
+    assert "font-variant-numeric: tabular-nums;" in regra
+    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in regra
+    for seletor in (".cartao-item-preco", ".icone-tendencia",
+                    ".item-exterior", ".nota-numero", ".nota-margem"):
+        assert seletor in regra
 
 
 def test_rodape_cinza_claro_12px():
