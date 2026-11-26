@@ -129,6 +129,9 @@ def test_fontes_oficiais_autohospedadas():
     assert "--font-display: 'Outfit', sans-serif;" in css
     assert "--font-sans: 'Geist', sans-serif;" in css
     assert "--font-mono: 'Geist Mono', monospace;" in css
+    # Revisão 26/11 (pedido do usuário): números na Geist tabular; a
+    # Geist Mono fica só para código.
+    assert "--font-num: 'Geist', sans-serif;" in css
 
 
 def test_sem_import_do_google_fonts():
@@ -198,15 +201,16 @@ def test_titulos_outfit_700_e_escala_32_48_64():
     assert "--fs-display: 4rem" in css  # 64px
 
 
-def test_dados_em_geist_mono():
-    """Preços, variações, desgastes e notas usam a mesma regra: Geist
-    Mono com algarismos tabulares e zero com barra (`zero` 1)."""
+def test_dados_em_geist_tabular():
+    """Revisão 26/11 (pedido do usuário: a Geist Mono nos números tinha
+    "cara de IA genérica"): preços, variações, desgastes e notas usam a
+    mesma regra, Geist com algarismos tabulares, sem zero cortado."""
     css = _css()
     inicio = css.index(".tabular-num,")
     regra = css[inicio:css.index("\n}", inicio)]
-    assert "font-family: var(--font-mono);" in regra
+    assert "font-family: var(--font-num);" in regra
     assert "font-variant-numeric: tabular-nums;" in regra
-    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in regra
+    assert 'font-feature-settings: "tnum" 1;' in regra
     for seletor in (".cartao-item-preco", ".icone-tendencia",
                     ".item-exterior", ".nota-numero", ".nota-margem"):
         assert seletor in regra
@@ -223,7 +227,7 @@ def test_vitrine_tem_regua_vertical_unica():
     assert "gap: 8px;" in rodape
     assert "margin-top: auto;" in rodape
     preco = _bloco(css, ".grade-cards > .cartao-item .cartao-item-preco")
-    assert "font-family: var(--font-mono);" in preco
+    assert "font-family: var(--font-num);" in preco
     assert "flex-wrap: wrap;" in preco
     filhos = _bloco(css, ".grade-cards > .cartao-item .cartao-item-preco > *")
     assert "white-space: nowrap;" in filhos
@@ -463,7 +467,7 @@ def test_rotulos_de_venda_por_nao_quebram_no_computador():
 def test_ajuste_fino_da_conta():
     """Ajuste 26/11: linhas de apoio com respiro lateral, célula do item
     mais baixa no computador e os quatro valores numéricos na mesma régua
-    Geist Mono/tabular, alinhados à direita."""
+    Geist tabular, alinhados à direita."""
     css = _css()
     # Cartões: as linhas abaixo do valor não encostam na borda interna.
     assert "padding-inline: 6px;" in _bloco_final(css, ".resumo-cards-conta .card-sub")
@@ -494,9 +498,9 @@ def test_ajuste_fino_da_conta():
     numeros = _bloco_apos(
         css, '.tabela-conta td[data-label="Você pagou"] .input-custo,'
     )
-    assert "font-family: var(--font-mono);" in numeros
+    assert "font-family: var(--font-num);" in numeros
     assert "font-variant-numeric: tabular-nums;" in numeros
-    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in numeros
+    assert 'font-feature-settings: "tnum" 1;' in numeros
     for seletor in (
         '.tabela-conta td[data-label="Você pagou"] .input-custo',
         ".tabela-conta .celula-numero",
@@ -536,11 +540,11 @@ def test_consistencia_de_interface_26_11():
     assert "height: 100%;\n  padding-inline: 22px;" in secao
     sub = _bloco_apos(secao, ".resumo-cards-conta .card-sub {")
     assert "padding-inline: 6px;" in sub
-    # Montantes e percentuais na mesma régua Geist Mono/tabular.
+    # Montantes e percentuais na mesma régua Geist tabular.
     numeros = _bloco_apos(secao, ".movimento-linha-numeros {")
-    assert "font-family: var(--font-mono);" in numeros
+    assert "font-family: var(--font-num);" in numeros
     assert "font-variant-numeric: tabular-nums;" in numeros
-    assert 'font-feature-settings: "tnum" 1, "zero" 1;' in numeros
+    assert 'font-feature-settings: "tnum" 1;' in numeros
     for seletor in (".card-valor", ".cartao-item-preco", ".frequencia strong",
                     ".encomenda-preco-hoje", ".ranking-pos-num"):
         assert seletor in secao, seletor

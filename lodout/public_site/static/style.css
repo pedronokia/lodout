@@ -179,6 +179,12 @@
   --font-display: 'Outfit', sans-serif;
   --font-sans: 'Geist', sans-serif;
   --font-mono: 'Geist Mono', monospace;
+  /* Números (revisão 26/11, pedido do usuário: a Geist Mono nos preços
+     e notas dava "cara de IA genérica" e vazava para textos como o nome
+     da caixa). Preços, notas e variações usam a própria Geist com
+     algarismos tabulares: alinham em coluna sem parecer terminal. A
+     Geist Mono fica só para código (API, exemplos). */
+  --font-num: 'Geist', sans-serif;
 
   /* Escala tipográfica -- os tamanhos da Apple: 12, 13, 14, 17, 18, 21,
      24, 32, 48 e 64px. */
@@ -277,9 +283,10 @@ h3, .card-valor {
   letter-spacing: -0.025em;
 }
 
-/* Dados em Geist Mono (26/11): preços, variações, faixas de desgaste e
-   notas. `tnum` alinha as colunas e `zero` distingue 0 de O. Regra
-   única para não espalhar font-feature-settings pela folha. */
+/* Dados em Geist tabular (revisão 26/11): preços, variações, faixas de
+   desgaste e notas. `tnum` alinha as colunas; sem zero cortado nem
+   fonte monoespaçada. Regra única para não espalhar
+   font-feature-settings pela folha. */
 .tabular-num,
 [data-price],
 [data-score],
@@ -302,9 +309,9 @@ h3, .card-valor {
 .celula-numero,
 .meta-lucro-valor,
 .lista-parecidos-404-preco {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
 }
 
 p { margin: 0 0 1em; }
@@ -8371,7 +8378,6 @@ h3,
 }
 
 /* Micro-etiquetas, selos e cápsulas informativas */
-.aba-contagem,
 .selo-descontinuada,
 .selo-risco,
 .selo-novo {
@@ -12760,11 +12766,11 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   min-width: 0;
 }
 .resumo-cards-conta .card-valor {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
   font-size: 1.5rem;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 .resumo-cards-conta .card-sub {
@@ -12826,9 +12832,9 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .tabela-conta .celula-numero [data-campo="lucro-valor"],
 .tabela-conta .celula-venda-por [data-campo="empate"],
 .tabela-conta .celula-venda-por [data-campo="alvo"] {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
 }
 .tabela-conta .celula-numero .valor-total,
 .tabela-conta .celula-numero .lucro-pct,
@@ -12883,9 +12889,9 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   padding-top: 0;
 }
 .grade-cards > .cartao-item .cartao-item-preco {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
   column-gap: 6px;
   row-gap: 2px;
   flex-wrap: wrap;
@@ -12942,9 +12948,9 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .tabela-conta .celula-numero .lucro-pct,
 .tabela-conta .celula-venda-por [data-campo="empate"],
 .tabela-conta .celula-venda-por [data-campo="alvo"] {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
 }
 /* Como usar o Lodout (26/11): passos numerados num trilho vertical. O
    número fica num círculo à esquerda e o título alinha com ele; o texto
@@ -13076,9 +13082,9 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .encomenda-preco-hoje,
 .ranking-pos-num,
 .movimento-linha-numeros {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "zero" 1;
+  font-feature-settings: "tnum" 1;
 }
 
 /* 4–8. Inventário: nome em uma linha (o completo já está no title), chips
@@ -13238,3 +13244,16 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .rodape-marca p + p { margin-top: 6px; }
 .rodape-base { align-items: center; }
 .rodape-base .versao { line-height: 1.5; }
+
+/* Números dos anéis de nota (revisão 26/11): um valor sozinho no
+   círculo não precisa de coluna alinhada. Algarismos proporcionais
+   deixam o "1" estreito e o "100" cabe no anel pequeno sem encostar
+   na borda. */
+.nota .nota-numero,
+.cartao-item-nota .cartao-item-nota-numero,
+.hero-destaque-nota .hero-destaque-nota-num {
+  font-variant-numeric: proportional-nums;
+  font-feature-settings: "pnum" 1;
+  letter-spacing: -0.02em;
+}
+.nota.nota-tres-digitos:not(.nota-mini) .nota-numero { font-size: 0.8125rem; }

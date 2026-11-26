@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-26",
         "titulo": "Coleta mais transparente",
         "itens": [
+            "Números mais fáceis de ler: preços, notas e variações saíram da fonte de código (de letras todas da mesma largura) e passaram para a fonte do texto, com os algarismos alinhados em coluna. Textos como o nome da caixa, o risco e a liquidez também voltaram para a fonte normal.",
             "Nova página Como usar o Lodout: em 4 passos, como achar um item, ler a nota e o porquê, usar a encomenda sugerida e acompanhar o seu inventário. Ela aparece no topo da página inicial (“Novo aqui? Veja como usar o Lodout”) e no rodapé, em Entenda.",
             "Status: agora diz quantas coletas terminaram com todos os itens e sem pausa da Steam, além da contagem de coletas que trouxeram preço novo. Antes as duas situações apareciam juntas.",
             "Status e dados de saúde do site: passam a mostrar quando uma coleta foi interrompida por bloqueio da Steam e quantas das últimas rodadas do Top 20 não completaram.",

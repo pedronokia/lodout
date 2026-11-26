@@ -62,12 +62,12 @@ typography:
     lineHeight: 1.47
     letterSpacing: "0.06em"
   numero:
-    fontFamily: "Geist Mono, monospace"
+    fontFamily: "Geist, sans-serif"
     fontSize: "2rem"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.025em"
-    fontFeature: "tnum, zero"
+    fontFeature: "tnum"
 rounded:
   xs: "8px"
   sm: "12px"
@@ -149,7 +149,7 @@ O Lodout é um caderno escuro e calmo aberto sobre o Mercado da Steam: cada pág
 
 O clima é escuro, calmo e confiável. O fundo quase preto e as folhas cinza-escuras deixam o conteúdo em primeiro plano; a cor aparece pouco e sempre com significado: um único laranja para ação e marca, e verde, amarelo e vermelho só para dizer se uma nota ou um movimento é alto, médio ou de queda. Nada pisca sem motivo, e a idade dos dados fica à vista. A densidade é média: tabelas que viram cartões no celular, números grandes com tabulação alinhada e texto explicativo em medida de leitura.
 
-A tipografia usa três famílias auto-hospedadas (escolha do usuário em 26/11): Outfit nos títulos, em peso 700, tracking -0,025em e entrelinha 1,15; Geist no corpo (450); Geist Mono nos preços, variações, desgastes e notas, com algarismos tabulares e zero com barra. Nada vem do Google Fonts em runtime: o CSP de produção só aceita `self`. Os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
+A tipografia usa três famílias auto-hospedadas (escolha do usuário em 26/11): Outfit nos títulos, em peso 700, tracking -0,025em e entrelinha 1,15; Geist no corpo (450); nos preços, variações, desgastes e notas, a própria Geist com algarismos tabulares (revisão de 26/11, pedido do usuário: a Geist Mono nos números dava "cara de IA genérica" e vazava para textos como o nome da caixa); a Geist Mono ficou só para código. Nada vem do Google Fonts em runtime: o CSP de produção só aceita `self`. Os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
 
 **Key Characteristics:**
 - Fundo quase preto em camadas tonais (moldura, caderno, folha, rebaixo), com borda fina em vez de sombra.
@@ -197,7 +197,8 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 **Display Font:** Outfit (600/700/800) — h1/h2/h3 e títulos de página.
 **Body Font:** Geist (400/500/600/700) — texto corrido, rótulos e botões.
-**Mono Font:** Geist Mono (500/600/700) — preços, variações, faixas de desgaste, notas e código.
+**Number Font:** Geist com `tnum` (token `--font-num`) — preços, variações, faixas de desgaste e notas. Nos anéis de nota, algarismos proporcionais (o "100" cabe no anel pequeno).
+**Mono Font:** Geist Mono (500/600/700) — só código (API, exemplos).
 
 **Character:** três famílias auto-hospedadas; a hierarquia vem de tamanho, peso e da troca controlada entre título, corpo e número.
 
@@ -209,7 +210,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Body** (450, 1.0625rem, 1.47): texto corrido e explicações, em até ~75 letras por linha.
 - **Small** (450, 0.875rem): células de tabela, botões, metadados ("Última coleta completa há 2 h").
 - **Label** (700, 0.75rem, 0.06em, caixa alta): rótulos de dado ("NOTA", "FREQUÊNCIA") e cabeçalhos de cartão.
-- **Número** (Geist Mono 700, 2rem, `tnum` + `zero`): o valor em destaque onde se decide (encomenda sugerida, preço do item).
+- **Número** (Geist 700, 2rem, `tnum`): o valor em destaque onde se decide (encomenda sugerida, preço do item).
 
 ### Named Rules
 **The Tabular Numbers Rule.** Todo preço, nota, porcentagem e contagem usa algarismos tabulares, para que colunas se alinhem e números que mudam não pulem.
@@ -291,7 +292,7 @@ dados, cálculo, workers, chamadas à Steam, CSP ou Caddyfile:
   e intervalo vertical igual no desktop e no celular.
 - **Tabelas:** o nome do item fica em uma linha só com reticências e o nome
   completo no `title` (inventário e Ranking). As colunas de Custo, Valor,
-  Lucro/Prejuízo e Venda usam Geist Mono com `tabular-nums` e `zero` 1, com
+  Lucro/Prejuízo e Venda usam Geist com `tabular-nums`, com
   o marcador "—" e as ações na mesma régua; valores compostos (R$ + %) não
   quebram no meio. No Ranking, a coluna ITEM tem largura fixa no computador
   para que nomes longos não mudem a altura da linha.
@@ -328,7 +329,7 @@ da marca oficial, com fundo `#161616`; ela não faz parte da rampa da página.
 - **Don't** pôr etiqueta ou sobretítulo em cima de um título; informação extra vai abaixo dele.
 - **Don't** juntar borda e sombra larga no mesmo quadro.
 - **Don't** escrever explicação com mais de ~75 letras por linha.
-- **Don't** usar a fonte de corpo em preços e números (use Geist Mono com algarismos tabulares); Geist proporcional é só para texto corrido e rótulos.
+- **Don't** usar fonte monoespaçada em preços, notas ou textos de dado (dá cara de terminal/IA genérica); números usam Geist com algarismos tabulares (`--font-num`), e a Geist Mono fica só para código.
 - **Don't** usar cores fora do sistema para texto (ex.: cinza-azulado #64748b, que reprova contraste); texto apagado é #b3b3b3.
 - **Don't** escrever jargão ("pontuação algorítmica", "giro", "retorno líquido"): o público é iniciante, ver PRODUCT.md.
 - **Don't** usar brilho colorido em volta de botões, ícones ou números (sombra laranja sem deslocamento); sombra é sempre escura e com deslocamento. O anel de foco (`outline` de 2px em `#f97316`, deslocado 3px) é a única exceção.
