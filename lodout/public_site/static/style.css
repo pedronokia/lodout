@@ -13016,6 +13016,26 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   border-radius: 5px;
 }
 
+/* Home: "Novo aqui? Veja como usar o Lodout" (26/11), logo abaixo da
+   frase da tese, no mesmo tamanho e cor dela. */
+.pagina-inicial .home-tese-guia {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.pagina-inicial .home-tese-guia .link-com-seta {
+  white-space: nowrap;
+  min-height: 0;
+  margin-bottom: 0;
+}
+/* No celular o link mantém 44px de área de toque; a linha sobe um pouco
+   para não abrir um vão debaixo da frase. */
+@media (max-width: 640px) {
+  .pagina-inicial .home-tese-guia { margin-top: -4px; }
+  .pagina-inicial .home-tese-guia .link-com-seta { min-height: 44px; }
+}
+
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
    Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou

@@ -4254,6 +4254,9 @@ def test_como_usar_page(client):
     rodape = body.split('class="rodape-nav"', 1)[1]
     assert 'href="/como-usar" aria-current="page">Como usar</a>' in rodape
     assert "/como-usar</loc>" in client.get("/sitemap.xml").data.decode("utf-8")
+    home = client.get("/").data.decode("utf-8")
+    tese = home.split('class="home-tese"', 1)[1].split("</header>", 1)[0]
+    assert 'class="home-tese-guia">Novo aqui? <a class="link-com-seta" href="/como-usar">' in tese
 
 
 def test_glossario_page(client):

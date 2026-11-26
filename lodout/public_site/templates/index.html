@@ -311,6 +311,8 @@
       {% set ns_risco = namespace(tem=false) %}
       {% for c in candidatos if c.pump_risk|risco_nivel != "low" %}{% set ns_risco.tem = true %}{% endfor %}
       <p class="home-tese-texto">O Lodout é uma plataforma independente de análise: <strong>não vendemos, compramos nem intermediamos skins</strong>. Reunimos notas de mercado, preços e encomendas com dados públicos da Steam, e o motivo de cada nota para você entender o mercado antes de negociar. A nota não é previsão nem promessa de lucro.{% if ns_risco.tem %} O selo de risco indica possível alta artificial.{% endif %} <a class="link-com-seta" href="{{ url_for('metodo') }}">Como funciona {{ icone("seta-direita") }}</a></p>
+      {# Guia para quem chega pela primeira vez (pedido do usuário, 26/11). #}
+      <p class="home-tese-guia">Novo aqui? <a class="link-com-seta" href="{{ url_for('como_usar') }}">Veja como usar o Lodout {{ icone("seta-direita") }}</a></p>
     </header>
 
     {% if destaque_hero %}
