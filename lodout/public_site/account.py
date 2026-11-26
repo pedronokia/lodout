@@ -267,7 +267,7 @@ def _textos_totais(t: dict) -> dict:
         no_lucro = t.get("itens_no_lucro", t.get("pnl_positions", com))
         sem_preco = max(0, com - no_lucro)
         if (sem or sem_preco) and pct is not None:
-            quantos = "de 1 item" if no_lucro == 1 else f"dos {no_lucro} itens"
+            quantos = "1 item" if no_lucro == 1 else f"{no_lucro} itens"
             lucro_sub = (f"{sinal}{fmt.pct(abs(pct))}% · só {quantos} com valor pago"
                          + (" e preço hoje" if sem_preco else ""))
         else:
@@ -283,7 +283,7 @@ def _textos_totais(t: dict) -> dict:
         "valor": t.get("market_fmt") or fmt.brl(t.get("market")),
         "valor_sub": f"{n} {'item' if n == 1 else 'itens'}",
         "liquido": t.get("net_if_sold_fmt") or fmt.brl(t.get("net_if_sold")),
-        "liquido_sub": "você recebe " + (t.get('net_if_sold_fmt') or fmt.brl(t.get('net_if_sold'))).replace(" ", "\u00a0") + " depois da taxa",
+        "liquido_sub": "recebe " + (t.get('net_if_sold_fmt') or fmt.brl(t.get('net_if_sold'))).replace(" ", "\u00a0") + " depois da taxa",
         "falta_texto": f"{sem} {'item' if sem == 1 else 'itens'}" if sem else "",
         "falta_sub": (f"valem {fmt.brl(falta_valor)} hoje" if sem and falta_valor else ""),
         "pago": t.get("cost_known_fmt") or fmt.brl(t.get("cost_known")),

@@ -606,7 +606,7 @@ def test_liquido_diz_que_e_depois_da_taxa():
     tx = account._textos_totais({"positions": 2, "known_cost": 0, "unknown_cost": 2,
                                  "net_if_sold": 86.96, "market_value": 100.0})
     # "sem a taxa" dava para ler como "sem contar a taxa" (o bruto).
-    assert tx["liquido_sub"] == "você recebe R$\u00a086,96 depois da taxa"
+    assert tx["liquido_sub"] == "recebe R$\u00a086,96 depois da taxa"
 
 
 def test_adicionar_a_mao_aceita_virgula(client, monkeypatch):
@@ -823,7 +823,7 @@ def test_lucro_diz_de_quantos_itens_e():
          "pnl_pct": -50.3, "market": 1118.11, "net_if_sold": 972.27,
          "cost_known": 130.49, "market_sem_custo": 1050.0}
     tx = account._textos_totais(t)
-    assert tx["lucro_sub"] == "−50,3% · só dos 9 itens com valor pago"
+    assert tx["lucro_sub"] == "−50,3% · só 9 itens com valor pago"
     assert tx["falta_texto"] == "8 itens" and tx["falta_sub"] == "valem R$ 1.050,00 hoje"
     t.update(unknown_cost=0, known_cost=17, market_sem_custo=0)
     assert account._textos_totais(t)["lucro_sub"] == "−50,3% do que você pagou"
@@ -885,7 +885,7 @@ def test_lucro_conta_so_os_itens_que_entraram_na_conta():
     precos = {"A": 11.5, "C": 3.0}
     t = portfolio.evaluate_portfolio(pos, precos.get)["totals"]
     assert t["known_cost"] == 2 and t["pnl_positions"] == 1
-    assert account._textos_totais(t)["lucro_sub"].endswith("só de 1 item com valor pago e preço hoje")
+    assert account._textos_totais(t)["lucro_sub"].endswith("só 1 item com valor pago e preço hoje")
 
 
 def test_preencher_rapido_nao_esbarra_no_limite(client, monkeypatch):

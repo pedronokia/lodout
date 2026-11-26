@@ -18,6 +18,8 @@ ENTRADAS = [
             "As falhas de busca no catálogo agora guardam um trecho da resposta da Steam e a quantidade de itens esperada na categoria, para diagnosticar o problema mesmo depois de reiniciar o site.",
             "Os dados de saúde do site passam a informar quando começou a última atualização do catálogo, para acompanhar a volta em andamento sem confundir com a anterior.",
             "O ícone do aplicativo passa a usar a logomarca completa em todos os tamanhos; o ícone da aba continua com a letra inicial.",
+            "Na “Minha conta”, os quatro cartões do topo ficam com a mesma altura, os valores passam a usar a mesma fonte de números dos preços e as linhas de apoio ficam mais curtas.",
+            "A lista do inventário ficou mais compacta: o nome do item vai numa linha só (o nome completo aparece ao passar o mouse), os detalhes ficam juntos e os números não quebram. Os filtros ganharam pílulas mais enxutas, com destaque só para o filtro escolhido.",
         ],
     },
     {

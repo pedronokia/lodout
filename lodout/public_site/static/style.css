@@ -12741,3 +12741,114 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   .topo-linha { column-gap: 8px; }
   .logo .logo-marca svg { height: 28px; }
 }
+
+/* ==========================================================================
+   Minha conta — polimento 26/11 (só aparência)
+   Cards com a mesma altura e número principal na régua Geist Mono/tabular
+   dos preços; a linha de apoio fica em no máximo duas linhas curtas. Na
+   tabela, o nome do item vai numa linha só (ellipsis, título completo) e
+   os chips/ações ficam agrupados sem aumentar a altura da linha; os
+   números continuam alinhados à direita e os detalhes não quebram.
+   ========================================================================== */
+.resumo-cards-conta {
+  align-items: stretch;
+}
+.resumo-cards-conta .card {
+  min-width: 0;
+}
+.resumo-cards-conta .card-valor {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-size: 1.5rem;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+.resumo-cards-conta .card-sub {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: 1.45em;
+}
+@media (max-width: 640px) {
+  .resumo-cards.resumo-cards-conta {
+    grid-auto-rows: 1fr;
+  }
+  .resumo-cards.resumo-cards-conta .card {
+    min-height: 140px;
+  }
+  .resumo-cards.resumo-cards-conta .card-valor {
+    font-size: 1.25rem;
+  }
+}
+
+/* Item: uma linha só, com ellipsis. O nome completo já está no title. */
+.tabela-conta .celula-item-conta { min-width: 0; }
+.tabela-conta .celula-item-conta-texto { flex: 1 1 auto; min-width: 0; max-width: 240px; }
+.tabela-conta .celula-item-conta-texto > .link-item {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabela-conta .celula-item-conta-extra {
+  gap: 3px 6px;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+.tabela-conta .celula-item-conta-extra > * {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+.tabela-conta .celula-item-conta-extra .item-exterior,
+.tabela-conta .celula-item-conta-extra .item-lote {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabela-conta .celula-item-conta-extra .separar-lote > summary,
+.tabela-conta .celula-item-conta-extra .form-inline .botao-link {
+  white-space: nowrap;
+}
+
+/* Números: mesma fonte dos preços, alinhados à direita, sem quebrar os
+   valores secundários ("cada", "no total", percentual e etiqueta). */
+.tabela-conta .celula-numero,
+.tabela-conta .celula-venda-por { text-align: right; }
+.tabela-conta .celula-numero .valor-unidade,
+.tabela-conta .celula-numero .valor-total,
+.tabela-conta .celula-numero [data-campo="lucro-valor"],
+.tabela-conta .celula-venda-por [data-campo="empate"],
+.tabela-conta .celula-venda-por [data-campo="alvo"] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+.tabela-conta .celula-numero .valor-total,
+.tabela-conta .celula-numero .lucro-pct,
+.tabela-conta .celula-numero .selo-meta-atingida,
+.tabela-conta .celula-venda-por .venda-por-linha {
+  white-space: nowrap;
+}
+
+/* Filtros: pílulas mais baixas e grupos enxutos; só a aba escolhida
+   ganha fundo e contorno em laranja. */
+.conta-ferramentas .conta-filtros {
+  gap: 5px;
+}
+.conta-ferramentas .conta-filtro {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.68);
+}
+.conta-ferramentas .conta-filtro[aria-pressed="true"] {
+  background: rgba(249, 115, 22, 0.22);
+  border-color: rgba(249, 115, 22, 0.75);
+  color: #ffffff;
+}
