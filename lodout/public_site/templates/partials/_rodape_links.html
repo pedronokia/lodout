@@ -23,6 +23,7 @@
   </div>
   <div class="rodape-nav-grupo">
     <h2>Entenda</h2>
+    <a href="{{ url_for('como_usar') }}"{% if request.endpoint == 'como_usar' %} aria-current="page"{% endif %}>Como usar</a>
     <a href="{{ url_for('metodo') }}"{% if request.endpoint == 'metodo' %} aria-current="page"{% endif %}>Método</a>
     <a href="{{ url_for('faq') }}"{% if request.endpoint == 'faq' %} aria-current="page"{% endif %}>FAQ</a>
     <a href="{{ url_for('glossario') }}"{% if request.endpoint == 'glossario' %} aria-current="page"{% endif %}>Glossário</a>

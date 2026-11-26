@@ -4235,6 +4235,27 @@ def test_faq_menciona_instalacao_pwa(client):
     assert body.count('"@type": "Question"') == body.count("<h2 class=\"secao-titulo\">")
 
 
+def test_como_usar_page(client):
+    """Guia para iniciantes (pedido do usuário, 26/11): 4 passos com o
+    HowTo para buscadores, links para Método e Glossário (fonte completa),
+    sem a escala da nota e sem prometer lucro; listado no rodapé e no
+    sitemap."""
+    import re as _re
+    resp = client.get("/como-usar")
+    assert resp.status_code == 200
+    body = resp.data.decode("utf-8")
+    assert "<h1 class=\"titulo-pagina\">Como usar o Lodout</h1>" in body
+    assert body.count('class="passo-uso"') == 4
+    assert body.count('"@type": "HowToStep"') == 4
+    assert 'href="/metodo"' in body and 'href="/glossario"' in body
+    visivel = _re.sub(r"<script.*?</script>|<!--.*?-->", "", body, flags=_re.S)
+    assert "/100" not in visivel and "0 a 100" not in visivel
+    assert "não prevê" in visivel and "nem garante lucro" in visivel
+    rodape = body.split('class="rodape-nav"', 1)[1]
+    assert 'href="/como-usar" aria-current="page">Como usar</a>' in rodape
+    assert "/como-usar</loc>" in client.get("/sitemap.xml").data.decode("utf-8")
+
+
 def test_glossario_page(client):
     resp = client.get("/glossario")
     assert resp.status_code == 200
@@ -6493,7 +6514,7 @@ def test_nome_do_jogo_por_extenso(client):
     (pedido do usuário, 20/11)."""
     import re as _re
     for url in ("/", "/ranking", "/metodo", "/faq", "/glossario", "/sobre",
-                "/status", "/privacidade"):
+                "/status", "/privacidade", "/como-usar"):
         body = client.get(url).data.decode("utf-8")
         visivel = _re.sub(r"<script.*?</script>|<!--.*?-->", "", body, flags=_re.S)
         assert not _re.search(r"(?<![\w:])CS2\b", visivel), url

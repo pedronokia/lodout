@@ -25,6 +25,7 @@ _ROTAS: list[tuple[str, int]] = [
     ("/metodo", 200),
     ("/faq", 200),
     ("/glossario", 200),
+    ("/como-usar", 200),
     ("/changelog", 200),
     ("/novidades", 200),
     ("/comparar", 200),

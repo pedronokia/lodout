@@ -1121,7 +1121,7 @@ def create_app() -> Flask:
         base = request.url_root.rstrip("/")
         paginas = ["/", "/privacidade", "/status", "/changelog", "/api",
                   "/ranking", "/novidades", "/metodo", "/sobre", "/faq",
-                  "/glossario"]
+                  "/glossario", "/como-usar"]
         urls_xml = "\n".join(
             f"  <url><loc>{_xml_escape(base + p)}</loc></url>" for p in paginas)
         # Páginas de item -- cada uma já tem título/descrição/JSON-LD
@@ -1274,6 +1274,12 @@ def create_app() -> Flask:
     @app.route("/glossario")
     def glossario():
         return render_template("glossario.html")
+
+    # Guia para iniciantes (pedido do usuário, 26/11): resume e linka o
+    # Método e o Glossário, que continuam sendo a fonte completa.
+    @app.route("/como-usar")
+    def como_usar():
+        return render_template("como_usar.html")
 
     @app.route("/sobre")
     def sobre():

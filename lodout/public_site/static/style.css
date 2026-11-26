@@ -12946,6 +12946,76 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
 }
+/* Como usar o Lodout (26/11): passos numerados num trilho vertical. O
+   número fica num círculo à esquerda e o título alinha com ele; o texto
+   do passo segue alinhado ao título. Mesmas cores e tipos do site. */
+.pagina-como-usar .passos-uso {
+  list-style: none;
+  counter-reset: passo-uso;
+  margin: 0 0 40px;
+  padding: 0;
+}
+.pagina-como-usar .passo-uso {
+  counter-increment: passo-uso;
+  position: relative;
+  padding: 0 0 28px 56px;
+}
+.pagina-como-usar .passo-uso::before {
+  content: counter(passo-uso);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* Fio que liga um número ao próximo; some no último passo. */
+.pagina-como-usar .passo-uso:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 44px;
+  bottom: 8px;
+  left: 17.5px;
+  width: 1px;
+  background: color-mix(in srgb, var(--text-muted) 30%, transparent);
+}
+.pagina-como-usar .passo-uso-titulo {
+  margin: 4px 0 var(--sp-3, 12px);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.pagina-como-usar .passo-uso-opcional {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+}
+.pagina-como-usar .passo-uso p,
+.pagina-como-usar .passo-uso ul { margin: 0 0 var(--sp-3, 12px); }
+.pagina-como-usar .passo-uso ul { padding-left: 20px; }
+.pagina-como-usar .passo-uso li + li { margin-top: 6px; }
+.pagina-como-usar .como-usar-limites ul { padding-left: 20px; }
+.pagina-como-usar .como-usar-limites li + li { margin-top: 6px; }
+@media (max-width: 640px) {
+  .pagina-como-usar .passo-uso { padding-left: 46px; }
+  .pagina-como-usar .passo-uso::before { width: 32px; height: 32px; }
+  .pagina-como-usar .passo-uso:not(:last-child)::after { left: 15.5px; top: 40px; }
+  .pagina-como-usar .passo-uso-titulo { font-size: 1.125rem; }
+}
+.pagina-como-usar kbd {
+  font: inherit;
+  font-size: 0.875em;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
+  border-radius: 5px;
+}
+
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
    Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou

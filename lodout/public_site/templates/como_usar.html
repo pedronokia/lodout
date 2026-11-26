@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Como usar o Lodout</title>
+  <meta name="description" content="Guia rápido para quem está começando: como achar uma skin de Counter-Strike 2, ler a nota, usar a encomenda sugerida e acompanhar o seu inventário no Lodout.">
+  <meta property="og:locale" content="pt_BR">
+  <link rel="canonical" href="{{ request.url }}">
+  {% include "partials/_head_pwa.html" %}
+  <link rel="alternate" type="application/rss+xml" title="Lodout — Preços e notas" href="{{ url_for('feed') }}">
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Como usar o Lodout",
+    "description": "Achar uma skin, ler a nota, ver preço e encomenda e acompanhar o que é seu.",
+    "step": [
+      {"@type": "HowToStep", "position": 1, "name": "Encontre um item", "text": "No Início estão as notas de hoje. Use Buscar para achar pelo nome e Filtros para refinar por nota, preço, desgaste, raridade e versão."},
+      {"@type": "HowToStep", "position": 2, "name": "Leia a nota e o porquê", "text": "Na página do item, a seção Por quê mostra o que somou e o que tirou pontos da nota. A nota descreve o mercado de hoje; não é previsão."},
+      {"@type": "HowToStep", "position": 3, "name": "Veja preço e encomenda", "text": "Em Simular compra, a sugestão é R$ 0,01 acima da maior encomenda. Copie o valor e crie a encomenda no Mercado da Steam."},
+      {"@type": "HowToStep", "position": 4, "name": "Acompanhe o que é seu", "text": "Entre com Steam para ver seu inventário, digitar quanto pagou e saber por quanto vender sem prejuízo, já com a taxa da Steam."}
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="link-pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <header class="topo">
+    <div class="topo-linha">
+      <p class="titulo-logo">{% include "partials/_logo.html" %}</p>
+      {% include "partials/_conta_link.html" %}
+    </div>
+  </header>
+
+  {# Guia para iniciantes (pedido do usuário, 26/11). Resume e linka: a
+     explicação completa da nota continua só no Método (AGENTS.md). Sem a
+     escala da nota no texto e sem promessa de lucro. #}
+  <main id="conteudo" class="pagina-texto pagina-como-usar">
+    <header class="cabecalho-pagina">
+      <h1 class="titulo-pagina">Como usar o Lodout</h1>
+      <p class="descricao-pagina">Quatro passos, do primeiro item até acompanhar o que é seu.</p>
+    </header>
+
+    <ol class="passos-uso">
+      <li class="passo-uso" id="passo-encontrar">
+        <h2 class="passo-uso-titulo">Encontre um item</h2>
+        <p>No <a href="{{ url_for('index') }}">Início</a> estão as notas de hoje das skins, caixas e cápsulas de <span class="sem-quebra">Counter-Strike 2</span> que o Lodout acompanha.</p>
+        <ul>
+          <li><strong>Buscar</strong>, no topo, acha um item pelo nome. No computador, o atalho é <kbd class="sem-quebra">Ctrl K</kbd>.</li>
+          <li>As abas da lista separam por tipo de item, e <strong>Filtros</strong> refinam por nota mínima, preço máximo, desgaste, raridade e versão (como StatTrak™).</li>
+          <li>O <a href="{{ url_for('ranking_page') }}">Ranking</a> mostra quem teve nota boa de forma constante: na semana, no mês, em 90 dias e no ano.</li>
+        </ul>
+      </li>
+
+      <li class="passo-uso" id="passo-nota">
+        <h2 class="passo-uso-titulo">Leia a nota e o porquê</h2>
+        <p>Cada item tem uma nota que resume os dados do mercado dele: quanto mais alta, mais fatores positivos hoje. Na página do item, a seção <strong>Por quê</strong> mostra cada fator, com o que somou e o que tirou pontos. Por exemplo, “Fácil de comprar e vender” soma, e “Preço caindo nos últimos 7 dias” tira.</p>
+        <p>A nota descreve o que já aconteceu no mercado. Ela não prevê o preço de amanhã nem garante lucro. A explicação completa está em <a href="{{ url_for('metodo') }}">Como a nota é calculada</a>, e os termos, no <a href="{{ url_for('glossario') }}">Glossário</a>.</p>
+      </li>
+
+      <li class="passo-uso" id="passo-preco">
+        <h2 class="passo-uso-titulo">Veja o preço e a encomenda</h2>
+        <p>O preço é o menor anúncio no Mercado da Steam na última coleta. Comprar por ele é imediato. Outra opção é fazer uma <strong>encomenda</strong>: você diz quanto quer pagar e espera alguém vender.</p>
+        <ul>
+          <li>Em <strong>Simular compra</strong>, a sugestão é <span class="sem-quebra">R$ 0,01</span> acima da maior encomenda que já existe, para a sua ficar na frente da fila. O botão <strong>Copiar</strong> leva o valor para você colar no Mercado da Steam.</li>
+          <li><strong>Venda mínima</strong> é o preço para vender depois sem prejuízo, já descontando a taxa da Steam (15% sobre o que você recebe).</li>
+        </ul>
+        <p>O Lodout não compra nem vende: a encomenda é feita por você, direto na Steam.</p>
+      </li>
+
+      <li class="passo-uso" id="passo-conta">
+        <h2 class="passo-uso-titulo">Acompanhe o que é seu <span class="passo-uso-opcional">(opcional)</span></h2>
+        <p>Com <strong>Entrar com Steam</strong>, o Lodout lê o seu inventário público. Ele não pede senha, código nem chave da Steam.</p>
+        <ul>
+          <li>Em <strong>Inventário</strong>, digite quanto pagou em cada item. O site mostra o lucro de hoje e o preço para vender: <strong>Sem prejuízo</strong> ou com a meta que você escolher em <strong>Quero lucrar</strong>.</li>
+          <li>Em <strong>Favoritos</strong>, acompanhe itens que você ainda não tem, com aviso quando o preço cair abaixo do valor que você definir. O aviso pode chegar no seu Discord.</li>
+          <li>Em <strong>Histórico</strong> ficam as vendas que você marcou, com o lucro de cada uma.</li>
+        </ul>
+      </li>
+    </ol>
+
+    <section class="como-usar-limites" aria-labelledby="titulo-limites">
+      <h2 class="secao-titulo" id="titulo-limites">Bom saber</h2>
+      <ul>
+        <li>Os preços vêm do Mercado da Steam a cada 6 horas, e os das 20 melhores notas, a cada 2 horas. A página <a href="{{ url_for('status') }}">Status</a> mostra quando foi a última coleta.</li>
+        <li>O Lodout não é loja, não é afiliado à Valve e não faz recomendação de investimento.</li>
+        <li>Ficou alguma dúvida? Veja as <a href="{{ url_for('faq') }}">perguntas frequentes</a>.</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="rodape">
+    {% include "partials/_rodape_links.html" %}
+  </footer>
+</body>
+</html>

@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-26",
         "titulo": "Coleta mais transparente",
         "itens": [
+            "Nova página Como usar o Lodout: em 4 passos, como achar um item, ler a nota e o porquê, usar a encomenda sugerida e acompanhar o seu inventário. O link está no rodapé, em Entenda.",
             "Status: agora diz quantas coletas terminaram com todos os itens e sem pausa da Steam, além da contagem de coletas que trouxeram preço novo. Antes as duas situações apareciam juntas.",
             "Status e dados de saúde do site: passam a mostrar quando uma coleta foi interrompida por bloqueio da Steam e quantas das últimas rodadas do Top 20 não completaram.",
             "Se o site precisar reiniciar no meio de uma coleta, as pausas da Steam já contadas continuam valendo na contagem daquela coleta.",
