@@ -233,13 +233,20 @@ def test_varrer_guarda_fatia_pulada_e_retoma_no_proximo_start(monkeypatch,
         return steam_api.SEARCH_OK, [_linha("Adesivo | X")], 1
 
     monkeypatch.setattr(steam_api, "search_market", fake)
+    monkeypatch.setattr(steam_api, "ultimo_404_busca",
+                        lambda: {"start": 2, "body": "<html>maintenance</html>",
+                                 "ts": 1.0, "url": "u"})
     estado = catalogo.varrer(ate_ts=1e12)
     assert estado["motivo"] == "incompleta_404"
     assert estado["retomar"]["fatia"] == 0
     assert estado["retomar"]["tag"] == "R"
     assert estado["retomar"]["start"] == 2
     assert [p["tag"] for p in estado["fatias_puladas"]] == ["R"]
+    pulada = estado["fatias_puladas"][0]
+    assert pulada["total"] == 3  # total da fatia não se perde no 404
+    assert pulada["detalhe_404"]["body"] == "<html>maintenance</html>"
     assert catalogo.resumo()["retomar"]["start"] == 2
+    assert catalogo.resumo()["fatias_puladas"][0]["detalhe_404"]["start"] == 2
 
     chamadas.clear()
     catalogo.varrer(ate_ts=1e12)

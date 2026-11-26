@@ -475,6 +475,16 @@ SEARCH_ERROR = "error"
 # (2026-11-25: a busca do catalogo devolveu 404 em start=2664 e travou).
 SEARCH_NOT_FOUND = "not_found"
 
+# Trecho do último 404 da busca, preservado em memória até o catálogo gravar
+# no estado (26/11): o log do container some no restart e sem isso não dá
+# para distinguir manutenção/WAF de um 404 legítimo depois de reiniciar.
+_ULTIMO_404_BUSCA: dict = {}
+
+
+def ultimo_404_busca() -> dict:
+    """Cópia dos dados do último 404 de `search_market` (start/url/body)."""
+    return dict(_ULTIMO_404_BUSCA)
+
 # Nome legivel -> chave de URL da faceta (confirmado em /market/appfilters/730).
 #
 # CUIDADO com o par invertido: a faceta que a Steam ROTULA "Category"
@@ -636,7 +646,12 @@ def search_market(query: str = "", facets: dict | None = None,
         return SEARCH_RATE_LIMITED, [], 0
     if code == 404:
         # Guarda um trecho da resposta pra diagnosticar sem fazer uma
-        # consulta nova so' pra investigar (decisao de 25/11).
+        # consulta nova so' pra investigar (decisao de 25/11). O log do
+        # container se perde no restart; o catalogo copia isto pro estado.
+        global _ULTIMO_404_BUSCA
+        resumo = " ".join((body or "").split())[:200]
+        _ULTIMO_404_BUSCA = {"start": start, "url": url,
+                             "body": resumo, "ts": time.time()}
         _logger.warning("Steam search 404 em start=%s: %.300s", start,
                         (body or "").replace("\n", " "))
         return SEARCH_NOT_FOUND, [], 0

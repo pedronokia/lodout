@@ -15,6 +15,7 @@ ENTRADAS = [
             "Status e dados de saúde do site: passam a mostrar quando uma coleta foi interrompida por bloqueio da Steam e quantas das últimas rodadas do Top 20 não completaram.",
             "Se o site precisar reiniciar no meio de uma coleta, as pausas da Steam já contadas continuam valendo na contagem daquela coleta.",
             "Quando uma atualização do catálogo pula categorias por falha na busca, a próxima recomeça justamente onde parou, em vez de refazer as categorias que já tinham sido coletadas.",
+            "As falhas de busca no catálogo agora guardam um trecho da resposta da Steam e a quantidade de itens esperada na categoria, para diagnosticar o problema mesmo depois de reiniciar o site.",
             "O ícone do aplicativo passa a usar a logomarca completa em todos os tamanhos; o ícone da aba continua com a letra inicial.",
         ],
     },

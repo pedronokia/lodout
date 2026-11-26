@@ -1106,6 +1106,9 @@ def test_search_market_404_vira_erro_especifico_e_loga_resposta(monkeypatch, cap
     assert status == steam_api.SEARCH_NOT_FOUND
     assert items == [] and total == 0
     assert "not found" in caplog.text and "2664" in caplog.text
+    detalhe = steam_api.ultimo_404_busca()
+    assert detalhe["start"] == 2664
+    assert detalhe["body"] == "<html>not found</html>"
 
 
 def test_search_market_success_false_vira_erro(monkeypatch):

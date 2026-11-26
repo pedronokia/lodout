@@ -118,6 +118,10 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   de refazer a fatia já coletada (24-25/11 foram 22 h só em Rifles e as outras
   9 fatias nunca eram alcançadas). Estados antigos sem `retomar` são migrados
   usando o `total` da primeira fatia em `totais`. Ambos aparecem no `/api/health`.
+  Desde 26/11 `fatias_puladas` também guarda o `total` conhecido da fatia e um
+  trecho curto do body do 404 (`steam_api.ultimo_404_busca()`); sem isso, depois
+  de um restart do worker, só a posição da falha sobrevivia e não dava para
+  distinguir manutenção/WAF de 404 legítimo.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela

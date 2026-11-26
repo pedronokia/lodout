@@ -473,8 +473,12 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                         int(estado.get("erros_404_fatias_rodada") or 0) + 1)
                     # Guarda QUAL fatia/tag/start falhou, não só quantas:
                     # sem isso a próxima rodada não sabe onde retomar (26/11).
+                    totais = estado.get("totais")
+                    total_fatia = (int(totais.get(nome_fatia) or 0)
+                                   if isinstance(totais, dict) else 0)
                     pulada = {"fatia": int(estado["fatia"]), "nome": nome_fatia,
-                              "tag": tag, "start": atual,
+                              "tag": tag, "start": atual, "total": total_fatia,
+                              "detalhe_404": steam_api.ultimo_404_busca(),
                               "ts": round(time.time(), 3)}
                     historico = estado.setdefault("fatias_puladas", [])
                     if not isinstance(historico, list):
@@ -500,7 +504,13 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
             else:
                 estado["erro_404_seguidos"] = 0
                 estado["erro_404_start"] = -1
-                estado.setdefault("totais", {})[nome_fatia] = total
+                # Preserva o total conhecido mesmo se a página vier vazia:
+                # é o que permite retomar a fatia sem refazê-la (26/11).
+                totais = estado.setdefault("totais", {})
+                if total:
+                    totais[nome_fatia] = total
+                else:
+                    totais.setdefault(nome_fatia, 0)
                 if not pagina and int(estado["start"]) < total:
                     # Página vazia antes do fim: pode ser bloqueio silencioso
                     # (AGENTS.md). Não avança; tenta de novo na próxima janela.
