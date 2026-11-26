@@ -3980,14 +3980,16 @@ def test_csp_report_tem_rate_limit(monkeypatch):
 
 # ── PWA: manifest + service worker ──────────────────────────
 
-def test_fonte_inter_serve_com_mime_de_fonte(client):
-    """A webfont sai como font/woff2 (a stdlib não conhece .woff2 e o
+def test_fontes_servem_com_mime_de_fonte(client):
+    """As webfonts saem como font/woff2 (a stdlib não conhece .woff2 e o
     server.py registra o tipo) -- application/octet-stream acende
     aviso no console de alguns navegadores."""
-    resp = client.get("/static/fonts/inter-latin-opsz-normal.woff2?v=1")
-    assert resp.status_code == 200
-    assert resp.mimetype == "font/woff2"
-    assert resp.data[:4] == b"wOF2"
+    for nome in ("inter-latin-opsz-normal.woff2",
+                 "space-grotesk-latin.woff2"):
+        resp = client.get(f"/static/fonts/{nome}?v=1")
+        assert resp.status_code == 200
+        assert resp.mimetype == "font/woff2"
+        assert resp.data[:4] == b"wOF2"
 
 
 def test_manifest_json_acessivel(client):
@@ -5736,17 +5738,23 @@ def test_pagina_alem_do_fim_mostra_a_ultima(client, monkeypatch, tmp_path):
     assert "Mostrando 1–12" in client.get("/?pagina=0").data.decode("utf-8")
 
 
-def test_preload_da_fonte_tem_o_mesmo_endereco_do_css(client):
+def test_preload_das_fontes_tem_o_mesmo_endereco_do_css(client):
     """Preload e @font-face com URLs diferentes = a fonte baixada duas
-    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita)."""
+    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita). Corpo e
+    títulos usam fontes diferentes desde 25/11; os dois endereços
+    precisam bater exatamente."""
     import re
     from pathlib import Path
     css = (Path(__file__).resolve().parents[1] / "lodout" / "public_site"
            / "static" / "style.css").read_text(encoding="utf-8")
-    no_css = re.search(r'url\("(fonts/inter-latin-opsz-normal\.woff2[^"]*)"\)', css).group(1)
-    body = client.get("/").data.decode("utf-8")
-    preload = re.search(r'rel="preload" as="font"[^>]*href="([^"]+)"', body).group(1)
-    assert preload == "/static/" + no_css
+    corpo = client.get("/").data.decode("utf-8")
+    preloads = re.findall(
+        r'rel="preload" as="font"[^>]*href="([^"]+)"', corpo)
+    for nome in ("inter-latin-opsz-normal.woff2",
+                 "space-grotesk-latin.woff2"):
+        no_css = re.search(
+            r'url\("(fonts/' + re.escape(nome) + r'[^"]*)"\)', css).group(1)
+        assert "/static/" + no_css in preloads
 
 
 def test_home_funciona_com_relogio_congelado_e_mede_etapas(client, monkeypatch):

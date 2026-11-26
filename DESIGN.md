@@ -23,19 +23,19 @@ colors:
   texto-apagado: "#b3b3b3"
 typography:
   display:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
     fontSize: "4rem"
-    fontWeight: 600
+    fontWeight: 700
     lineHeight: 1.05
-    letterSpacing: "-0.006em"
+    letterSpacing: "-0.03em"
   headline:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
     fontSize: "2rem"
-    fontWeight: 600
+    fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.008em"
+    letterSpacing: "-0.03em"
   title:
-    fontFamily: "Inter Variable, Inter, -apple-system, system-ui, sans-serif"
+    fontFamily: "Space Grotesk, Inter Variable, Inter, -apple-system, system-ui, sans-serif"
     fontSize: "clamp(1.6rem, 4.2vw, 2.4rem)"
     fontWeight: 700
     lineHeight: 1.08
@@ -149,7 +149,7 @@ O Lodout é um caderno escuro e calmo aberto sobre o Mercado da Steam: cada pág
 
 O clima é escuro, calmo e confiável. O fundo quase preto e as folhas cinza-escuras deixam o conteúdo em primeiro plano; a cor aparece pouco e sempre com significado: um único laranja para ação e marca, e verde, amarelo e vermelho só para dizer se uma nota ou um movimento é alto, médio ou de queda. Nada pisca sem motivo, e a idade dos dados fica à vista. A densidade é média: tabelas que viram cartões no celular, números grandes com tabulação alinhada e texto explicativo em medida de leitura.
 
-A tipografia é uma só família (Inter variável) em pesos levemente acima do comum (450 no corpo), para que o texto claro sobre fundo escuro não afine. Os títulos são grandes e firmes; os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
+A tipografia usa duas famílias auto-hospedadas (escolha do usuário em 25/11, opção 2 do comparador): Space Grotesk nos títulos, em peso 700 e tracking -0,03em, e Inter variável no corpo (450) e nos números com algarismos tabulares. Os títulos são grandes e firmes; os rótulos de dado são pequenos, em caixa alta e espaçados, como cabeçalhos de coluna de um caderno.
 
 **Key Characteristics:**
 - Fundo quase preto em camadas tonais (moldura, caderno, folha, rebaixo), com borda fina em vez de sombra.
@@ -194,15 +194,15 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 
 ## Typography
 
-**Display Font:** Inter Variable (com Inter, -apple-system, system-ui)
-**Body Font:** Inter Variable
-**Label/Mono Font:** Inter em caixa alta para rótulos; monoespaçada do sistema só para código e na API.
+**Display Font:** Space Grotesk (com Inter Variable, Inter, -apple-system, system-ui) — h1/h2/h3 e títulos de página.
+**Body Font:** Inter Variable (com Inter, -apple-system, system-ui)
+**Label/Mono Font:** Inter em caixa alta para rótulos e algarismos tabulares nos dados; monoespaçada do sistema só para código e na API.
 
-**Character:** uma família só, em pesos levemente encorpados sobre o escuro; a hierarquia vem de tamanho e peso, não de troca de fonte.
+**Character:** duas famílias auto-hospedadas, ambas em pesos levemente encorpados sobre o escuro; a hierarquia vem de tamanho, peso e da troca controlada entre título e corpo.
 
 ### Hierarchy
-- **Display** (600, 4rem, 1.05): o título de página ("Ranking"), um por página.
-- **Headline** (600, 2rem, 1.1): títulos de seção ("O que mudou no Top 20 desde ontem").
+- **Display** (700, 4rem, 1.05, -0.03em): o título de página ("Ranking"), um por página.
+- **Headline** (700, 2rem, 1.1, -0.03em): títulos de seção ("O que mudou no Top 20 desde ontem").
 - **Title** (700, clamp(1.6rem, 4.2vw, 2.4rem), 1.08, -0.03em): nome do item na página do item.
 - **Lead** (450, 1.3125rem): a frase-guia logo abaixo do título de página, em Texto Apagado.
 - **Body** (450, 1.0625rem, 1.47): texto corrido e explicações, em até ~75 letras por linha.

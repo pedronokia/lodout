@@ -108,22 +108,42 @@ def test_fonte_inter_autohospedada():
     assert '--font-sans: "Inter Variable", "Inter", -apple-system,' in css
 
 
+def test_fonte_space_grotesk_autohospedada():
+    """Títulos em Space Grotesk (opção 2 do comparador, 25/11), também
+    auto-hospedada: o visitante não depende do Google Fonts e o site
+    renderiza igual em qualquer sistema."""
+    css = _css()
+    assert 'font-family: "Space Grotesk";' in css
+    assert 'src: url("fonts/space-grotesk-latin.woff2?v=1")' in css
+    assert "font-weight: 500 700;" in css
+    assert "font-display: swap;" in css
+    assert 'font-family: var(--font-display);' in _bloco(css, "h1, h2, h3")
+
+
 def test_arquivos_da_fonte_comitados():
     """Fonte e licença (SIL OFL 1.1) existem no repositório -- sem eles
     o site cai no fallback do sistema e volta a divergir entre
     computadores."""
     pasta = STYLE.parent / "fonts"
-    fonte = pasta / "inter-latin-opsz-normal.woff2"
-    assert fonte.is_file() and fonte.stat().st_size > 20_000
-    assert fonte.read_bytes()[:4] == b"wOF2"
-    licenca = (pasta / "OFL.txt").read_text(encoding="utf-8")
-    assert "SIL OPEN FONT LICENSE" in licenca
+    for nome in ("inter-latin-opsz-normal.woff2",
+                 "space-grotesk-latin.woff2"):
+        fonte = pasta / nome
+        assert fonte.is_file() and fonte.stat().st_size > 20_000
+        assert fonte.read_bytes()[:4] == b"wOF2"
+    for nome in ("OFL.txt", "OFL-Space-Grotesk.txt"):
+        licenca = (pasta / nome).read_text(encoding="utf-8")
+        assert "SIL OPEN FONT LICENSE" in licenca
 
 
-def test_titulos_600_e_escala_32_48_64():
+def test_titulos_700_space_grotesk_e_escala_32_48_64():
+    """25/11, escolha do usuário no comparador: opção 2 (Space Grotesk
+    nos títulos, Inter no corpo). Antes os títulos eram Inter 600."""
     css = _css()
     titulos = _bloco(css, "h1, h2, h3")
-    assert "font-weight: 600;" in titulos
+    assert "font-family: var(--font-display);" in titulos
+    assert '--font-display: "Space Grotesk",' in css
+    assert "font-weight: 700;" in titulos
+    assert "letter-spacing: -0.03em;" in titulos
     assert "--fs-xl: 2rem" in css      # 32px
     assert "--fs-2xl: 3rem" in css     # 48px
     assert "--fs-display: 4rem" in css  # 64px

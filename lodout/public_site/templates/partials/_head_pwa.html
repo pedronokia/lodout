@@ -16,8 +16,10 @@
   {# O endereço precisa ser IDÊNTICO ao do @font-face no style.css
      ("fonts/...woff2?v=1"): com a versão do build aqui, o navegador
      baixava a fonte duas vezes (73 KB a mais por visita, Lighthouse
-     2026-11-14). Trocou a fonte? Suba o ?v= nos dois lugares. #}
+     2026-11-14). São duas fontes (corpo e títulos): trocou alguma?
+     Suba o ?v= no @font-face e no preload dela. #}
   <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/inter-latin-opsz-normal.woff2') }}?v=1" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/space-grotesk-latin.woff2') }}?v=1" crossorigin>
   {# Ícones de item caem no CDN da Steam quando o cache local não tem o
      hash -- preconnect abre a conexão TCP/TLS antecipadamente, sem
      bloquear nada (só uma dica de conexão). #}

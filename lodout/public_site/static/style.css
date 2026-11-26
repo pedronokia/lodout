@@ -3,9 +3,10 @@
    ------------------------------------------------------------
    Sistema visual: tema claro no espírito da Apple — branco e
    cinza-claro, texto quase preto, azul de interação e bastante
-   espaço. Uma só família tipográfica (stack de sistema),
-   hierarquia por tamanho e peso, formas simples e movimento
-   discreto. O laranja da marca fica só no ponto do logo.
+   espaço. Duas famílias tipográficas auto-hospedadas: Inter no
+   corpo e Space Grotesk nos títulos (escolha 25/11), com
+   hierarquia também por tamanho e peso, formas simples e
+   movimento discreto. A marca é preto e branco, sem ponto.
 
    Regras que valem para toda a folha:
    - nada de estilo inline nos templates (o CSP bloqueia);
@@ -29,6 +30,20 @@
   src: url("fonts/inter-latin-opsz-normal.woff2?v=1")
     format("woff2-variations");
   font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Space Grotesk (25/11, escolha do usuário no comparador: opção 2):
+   só os títulos (h1/h2/h3) trocam de família; o corpo segue em Inter,
+   com algarismos tabulares. Auto-hospedada pelo mesmo motivo da Inter,
+   com LICENSE em fonts/OFL-Space-Grotesk.txt (SIL OFL 1.1). O arquivo
+   é variável (500-700), então serve um único download. */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("fonts/space-grotesk-latin.woff2?v=1")
+    format("woff2-variations");
+  font-weight: 500 700;
   font-style: normal;
   font-display: swap;
 }
@@ -155,14 +170,17 @@
   --delay-stagger-sm: 20ms;
   --delay-stagger-md: 30ms;
 
-  /* Tipografia -- Inter Variable auto-hospedada em primeiro lugar: a
-     webfont carrega em qualquer sistema e o site fica igual no
-     Windows, Mac e celular. O resto é só degrau de fallback (fonte
-     offline/indisponível): primeiro a pilha do sistema da Apple
+  /* Tipografia -- Inter Variable auto-hospedada no corpo e nos dados;
+     Space Grotesk auto-hospedada nos títulos (opção 2 do comparador,
+     25/11). As webfonts carregam em qualquer sistema e o site fica
+     igual no Windows, Mac e celular. O resto é só degrau de fallback
+     (fonte offline/indisponível): primeiro a pilha do sistema da Apple
      (-apple-system resolve SF Pro no Mac), depois a do Windows. */
   --font-sans: "Inter Variable", "Inter", -apple-system,
     BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
+  --font-display: "Space Grotesk", "Inter Variable", "Inter",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas,
     monospace;
 
@@ -239,28 +257,29 @@ body {
 
 h1, h2, h3 {
   color: var(--text-bright);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.15;
 }
 
-/* Refinamento por tamanho -- Apple usa tracking mais fechado nos
-   tamanhos maiores. */
+/* Refinamento por tamanho -- a Space Grotesk pede tracking mais fechado
+   que a Inter, inclusive nos títulos menores (opção 2 do comparador). */
 h1, .titulo-pagina {
   font-size: clamp(2rem, 5.4vw, var(--fs-display));
-  letter-spacing: -0.006em;
+  letter-spacing: -0.03em;
   line-height: 1.05;
 }
 
 h2, .secao-titulo {
   font-size: var(--fs-xl);
-  letter-spacing: -0.008em;
+  letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
 h3, .card-valor {
   font-size: var(--fs-2xl);
-  letter-spacing: -0.008em;
+  letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
