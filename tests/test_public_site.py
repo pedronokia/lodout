@@ -5022,6 +5022,54 @@ def test_run_once_guarda_encerrou_por_429_no_historico(monkeypatch):
     assert registro["extras"]["encerrou_por_429"] is True
 
 
+def test_checkpoint_guarda_e_soma_pausas_entre_reinicios(
+        monkeypatch, tmp_path):
+    caminho = tmp_path / "scan_parcial.json"
+    monkeypatch.setattr(worker, "_caminho_checkpoint", lambda: caminho)
+    worker._gravar_checkpoint(
+        time.time() - 60, [{"name": "A", "score": 60}],
+        {"pausas_429": 2, "throttle_silencioso": 1,
+         "encerrou_por_429": True})
+    retomado = worker._carregar_checkpoint(time.time())
+    assert retomado["relatorio"]["pausas_429"] == 2
+    assert retomado["relatorio"]["encerrou_por_429"] is True
+    somado = worker._mesclar_relatorios(
+        retomado["relatorio"],
+        {"pausas_429": 1, "throttle_silencioso": 1,
+         "encerrou_por_429": False})
+    assert somado["pausas_429"] == 3
+    assert somado["throttle_silencioso"] == 2
+    assert somado["encerrou_por_429"] is True
+
+
+def test_run_once_soma_pausas_do_checkpoint_ao_retomar(monkeypatch, tmp_path):
+    caminho = tmp_path / "scan_parcial.json"
+    monkeypatch.setattr(worker, "_caminho_checkpoint", lambda: caminho)
+    worker._gravar_checkpoint(
+        time.time() - 60, [{"name": "A", "score": 60, "icon": "h"}],
+        {"pausas_429": 3, "throttle_silencioso": 1})
+
+    def _fake(categories, on_progress=None, **kw):
+        relatorio = kw.get("relatorio")
+        if relatorio is not None:
+            relatorio.update(pausas_429=2, throttle_silencioso=1,
+                             encerrou_por_429=True)
+        return [{"name": "B", "score": 50, "icon": "h"}]
+
+    monkeypatch.setattr(worker.scan_engine, "run_full_scan", _fake)
+    monkeypatch.setattr(worker.scan_store, "save_last_scan", lambda *a: None)
+    registro = {}
+    monkeypatch.setattr(worker.scan_store, "registrar_ciclo",
+                        lambda *a, **kw: registro.update(kw))
+    monkeypatch.setattr(worker.ranking, "save_snapshot", lambda res: None)
+    worker.run_once({"Rifles": ["A", "B"]})
+    extras = registro["extras"]
+    assert extras["pausas_429"] == 5
+    assert extras["throttle_silencioso"] == 2
+    assert extras["encerrou_por_429"] is True
+    assert not caminho.exists()  # ciclo fechado apaga o checkpoint
+
+
 def test_espera_ate_proximo_ciclo_conta_do_ultimo_ciclo(monkeypatch):
     agora = 1_800_000_000.0
     monkeypatch.setattr(worker.scan_store, "load_historico_ciclos", lambda: [

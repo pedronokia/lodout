@@ -330,9 +330,54 @@ def _caminho_checkpoint() -> Path:
     return Path(_paths.DATA_DIR) / "scan_parcial.json"
 
 
+def _int_seguro(valor: object) -> int:
+    try:
+        return max(0, int(valor or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _resumo_relatorio(relatorio: "dict | None") -> dict:
+    """Metadados do ciclo que precisam sobreviver ao checkpoint.
+
+    `sem_preco` fica de fora de propósito: um item sem preço na parte
+    interrompida é repetido na retomada, então o resultado da parte atual
+    é o que vale (26/11)."""
+    relatorio = relatorio if isinstance(relatorio, dict) else {}
+    return {
+        "pausas_429": _int_seguro(relatorio.get("pausas_429")),
+        "throttle_silencioso": _int_seguro(
+            relatorio.get("throttle_silencioso")),
+        "abortado": bool(relatorio.get("abortado")),
+        "encerrou_por_429": bool(relatorio.get("encerrou_por_429")),
+        "comparacao_fontes": (relatorio.get("comparacao_fontes")
+                              if isinstance(relatorio.get("comparacao_fontes"),
+                                            dict) else None),
+    }
+
+
+def _mesclar_relatorios(anterior: "dict | None",
+                        atual: "dict | None") -> dict:
+    """Soma os trechos do MESMO ciclo retomado do checkpoint."""
+    antes = _resumo_relatorio(anterior)
+    agora = _resumo_relatorio(atual)
+    return {
+        "pausas_429": antes["pausas_429"] + agora["pausas_429"],
+        "throttle_silencioso": (antes["throttle_silencioso"]
+                                + agora["throttle_silencioso"]),
+        "abortado": antes["abortado"] or agora["abortado"],
+        "encerrou_por_429": (antes["encerrou_por_429"]
+                             or agora["encerrou_por_429"]),
+        "comparacao_fontes": (agora["comparacao_fontes"]
+                              or antes["comparacao_fontes"]),
+        # Só a parte atual: itens sem preço antes do restart são repetidos.
+        "sem_preco": list((atual or {}).get("sem_preco") or []),
+    }
+
+
 def _carregar_checkpoint(agora: float) -> "dict | None":
-    """{"inicio", "results"} do ciclo interrompido, ou None se não há,
-    está ilegível ou é velho demais pra ainda ser "este" ciclo."""
+    """{"inicio", "results", "relatorio"} do ciclo interrompido, ou None
+    se não há, está ilegível ou é velho demais pra ainda ser "este" ciclo."""
     try:
         dados = json.loads(_caminho_checkpoint().read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -346,14 +391,17 @@ def _carregar_checkpoint(agora: float) -> "dict | None":
         return None
     results = [r for r in results
                if isinstance(r, dict) and "name" in r and "score" in r]
-    return {"inicio": float(inicio), "results": results}
+    return {"inicio": float(inicio), "results": results,
+            "relatorio": _resumo_relatorio(dados.get("relatorio"))}
 
 
-def _gravar_checkpoint(inicio: float, results: "list[dict]") -> None:
+def _gravar_checkpoint(inicio: float, results: "list[dict]",
+                       relatorio: "dict | None" = None) -> None:
     try:
         atomic_write_text(_caminho_checkpoint(), json.dumps(
-            {"inicio": inicio, "results": results}, ensure_ascii=False,
-            default=str))
+            {"inicio": inicio, "results": results,
+             "relatorio": _resumo_relatorio(relatorio)},
+            ensure_ascii=False, default=str))
     except OSError:
         _logger.warning("não gravou o checkpoint do scan", exc_info=True)
 
@@ -436,18 +484,21 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
     checkpoint = _carregar_checkpoint(inicio)
     ja_coletados: "list[dict]" = list(checkpoint["results"]) if checkpoint else []
     inicio_ciclo = checkpoint["inicio"] if checkpoint else inicio
+    relatorio_anterior = checkpoint["relatorio"] if checkpoint else {}
     if ja_coletados:
         _logger.info("Retomando ciclo interrompido: %d itens já coletados",
                      len(ja_coletados))
     acumulados = list(ja_coletados)
 
+    falhas: "list[str]" = []
+    relatorio: dict = {}
+
     def _on_resultado(r: dict) -> None:
         acumulados.append(r)
         if len(acumulados) % _CHECKPOINT_A_CADA == 0:
-            _gravar_checkpoint(inicio_ciclo, acumulados)
-
-    falhas: "list[str]" = []
-    relatorio: dict = {}
+            _gravar_checkpoint(
+                inicio_ciclo, acumulados,
+                _mesclar_relatorios(relatorio_anterior, relatorio))
     # Quem tinha histórico no ciclo anterior: página sem histórico agora,
     # em sequência, é suspeita de throttle silencioso (scan_engine).
     tinham_historico = {
@@ -467,10 +518,11 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
             cancelled=lambda: _parar)
     finally:
         _escaneando = False
+    relatorio = _mesclar_relatorios(relatorio_anterior, relatorio)
     if _parar:
         # Parada pedida no meio: guarda o que veio e deixa o ciclo pra
         # ser retomado no próximo start, sem gravar scan/ranking parcial.
-        _gravar_checkpoint(inicio_ciclo, acumulados)
+        _gravar_checkpoint(inicio_ciclo, acumulados, relatorio)
         _logger.info("Scan interrompido com %d itens no checkpoint",
                      len(acumulados))
         return []

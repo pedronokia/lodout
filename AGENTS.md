@@ -129,9 +129,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   desde 26/11 o mesmo objeto traz `ciclo_completo`, `ciclo_sem_pausa` e
   `encerrou_por_429` (use `ciclo_completo and ciclo_sem_pausa`), e o health
   traz `top20_falhas_recentes`/`ultimas_rodadas_top` (12 rodadas) pra medir
-  falha recorrente do Top 20 sem SSH. Acima de ~500 a volta do catálogo passa
-  de 1,5 dia. O rodízio (histórico 1x/dia) foi medido e descartado: a nota muda
-  demais com cópia velha.
+  falha recorrente do Top 20 sem SSH. Pausas/flags também sobrevivem a
+  restart no meio do ciclo: `scan_parcial.json` guarda o relatório e o worker
+  soma os trechos ao retomar (`_mesclar_relatorios`). Acima de ~500 a volta
+  do catálogo passa de 1,5 dia. O rodízio (histórico 1x/dia) foi medido e
+  descartado: a nota muda demais com cópia velha.
 - Cache de variantes SSR (2026-11-19, Pilar 1): cada página de listagem traz o
   SSR de até 10 variantes irmãs do mesmo skin (wears x Normal/StatTrak/Souvenir).
   O worker semeia `_PAGE_CACHE` em `steam_api` (TTL 2 h, limpo no início de cada

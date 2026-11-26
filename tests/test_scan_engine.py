@@ -443,6 +443,30 @@ def test_run_full_scan_relatorio_e_ritmo(monkeypatch):
     assert 3.0 in dormidas
 
 
+def test_run_full_scan_relatorio_atualiza_pausas_durante_o_laco(monkeypatch):
+    from lodout import steam_api
+    dormidas = []
+    _sleep_que_fecha_disjuntor(monkeypatch, dormidas)
+    rel = {}
+    vistos = []
+
+    def _fake(name, category=None, price_cache=None):
+        if name == "Bloq":
+            steam_api._registrar_rate_limit("priceoverview")
+            return None
+        return {"name": name, "score": 1}
+
+    def _progresso(msg):
+        vistos.append((msg, rel.get("pausas_429")))
+
+    monkeypatch.setattr(scan_engine, "scan_item", _fake)
+    scan_engine.run_full_scan({"C": ["A", "Bloq", "B"]},
+                              on_progress=_progresso, relatorio=rel)
+    assert any(m.startswith("Steam pediu pausa") and p == 1
+               for m, p in vistos)
+    assert rel["pausas_429"] == 1
+
+
 def test_comparar_fontes_mede_discordancia():
     sombras = [
         {"best_ask": 100, "lowest_overview": 1.00},

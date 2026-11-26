@@ -620,6 +620,8 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
     falharam sem bloqueio nenhum -- candidatos a "sem anúncio"),
     `throttle_silencioso` (quantas vezes a regra abaixo disparou) e
     `encerrou_por_429` (o teto de espera estourou e o ciclo foi cortado).
+    Contadores e flags são escritos DURANTE o laço, não só no fim, pra
+    sobreviver a checkpoint/reinício no meio do ciclo.
 
     Throttle silencioso (AGENTS.md): a Steam às vezes responde 200 com a
     página sem histórico. Um item assim entrava com nota calculada sem
@@ -679,8 +681,14 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
         if espera <= 0:
             return True
         pausas += 1
+        # Escreve durante o laço (não só no fim) pra sobreviver a um
+        # checkpoint do worker no meio do ciclo (26/11).
+        if relatorio is not None:
+            relatorio["pausas_429"] = pausas
         if esperado + espera > _ESPERA_DISJUNTOR_MAX_S:
             encerrou_por_429 = True
+            if relatorio is not None:
+                relatorio["encerrou_por_429"] = True
             _avisa("Steam segue bloqueando; ciclo encerrado antes do fim")
             return False
         _avisa(f"Steam pediu pausa (429): esperando {espera / 60:.1f} min")
@@ -719,6 +727,8 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
             suspeitos.append((name, cat, result))
             if len(suspeitos) >= _SEM_HIST_SEGUIDOS:
                 throttle += 1
+                if relatorio is not None:
+                    relatorio["throttle_silencioso"] = throttle
                 _avisa(f"{len(suspeitos)} páginas seguidas sem histórico: "
                        "tratando como bloqueio silencioso")
                 steam_api._registrar_rate_limit("market_listings")
@@ -762,6 +772,8 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
                 _avisa(f"{len(sem_preco)} primeiros itens sem nenhuma "
                        "resposta: Steam fora do ar? Ciclo encerrado")
                 interrompido = abortado = True
+                if relatorio is not None:
+                    relatorio["abortado"] = True
                 sem_resultado.extend(n for n, _c in items[i + 1:])
                 break
         time.sleep(steam_api.RATE_LIMIT_DELAY_S * ritmo)
