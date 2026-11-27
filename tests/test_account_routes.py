@@ -1026,3 +1026,50 @@ def test_conta_tabela_cabeca_e_coluna_pago_alinhada(client, monkeypatch):
     assert "valores diferentes?" in pagina
     assert "juntar lotes" in pagina
 
+
+def test_atualizar_custo_json_avalia_carteira_em_uma_passada_e_usa_meta_da_conta(
+        client, monkeypatch):
+    from lodout.public_site import account, user_portfolio, user_store
+
+    _login(client, monkeypatch)
+    steamid = "76561198000000000"
+    user_portfolio.add_position(steamid, "Skin A", 10.0, 1)
+    user_portfolio.add_position(steamid, "Skin B", 10.0, 1)
+    user_store.save_user_json(steamid, "preferencias", {"meta_lucro": 20})
+    token = _csrf_token(client)
+
+    leituras_posicoes = 0
+    chamadas_preco = 0
+    real_load = user_portfolio.load_positions
+
+    def espia_load(*args, **kwargs):
+        nonlocal leituras_posicoes
+        leituras_posicoes += 1
+        return real_load(*args, **kwargs)
+
+    def fake_preco_do_dia(posicoes):
+        nonlocal chamadas_preco
+        chamadas_preco += 1
+        fn = lambda _nome: 100.0
+        fn.data = lambda _nome: None
+        return fn
+
+    monkeypatch.setattr(user_portfolio, "load_positions", espia_load)
+    monkeypatch.setattr(account, "_preco_do_dia", fake_preco_do_dia)
+
+    resp = client.post(
+        "/conta/posicoes/Skin A/custo",
+        data={"cost": "20,00", "csrf_token": token},
+        headers={"Accept": "application/json"},
+    )
+    assert resp.status_code == 200
+    dados = resp.get_json()
+    assert dados["ok"] is True
+    assert dados["atingiu_meta"] is True
+    assert dados["totais"]["com_valor"] == 2
+    assert dados["totais"]["pago"] == "R$ 30,00"
+    # 1 leitura em update_position_cost + 1 leitura para responder (não 2 na resposta).
+    assert leituras_posicoes == 2
+    assert chamadas_preco == 1
+
+

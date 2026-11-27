@@ -178,6 +178,13 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         # inventário (hash do CDN da Steam), em vez de ficar sem foto.
         row.update(raridade.icone_raridade(
             raw or do_catalogo.get(row["name"]) or {"icon": row.get("icon")}))
+    avaliacao["textos"] = _formatar_totais(avaliacao, meta_pct)
+    return avaliacao
+
+
+def _formatar_totais(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dict:
+    """Preenche os campos *_fmt e contadores de `avaliacao['totals']` e devolve
+    os textos dos cartões do topo, sem precisar formatar cada linha da tabela."""
     t = avaliacao["totals"]
     # Quanto valem hoje os itens sem valor pago: o lucro em destaque não
     # os inclui, e o cartão "Sem valor pago" diz isso (crítica de 15/11).
@@ -189,9 +196,11 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["market_fmt"] = fmt.brl(t.get("market"))
     t["net_if_sold_fmt"] = fmt.brl(t.get("net_if_sold"))
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
-    t["atingiu_meta_n"] = sum(1 for r in avaliacao["rows"] if r.get("atingiu_meta"))
-    avaliacao["textos"] = _textos_totais(t)
-    return avaliacao
+    t["atingiu_meta_n"] = sum(
+        1 for r in avaliacao["rows"]
+        if r.get("has_cost") and (r.get("cost") or 0) > 0
+        and r.get("pnl_pct") is not None and r["pnl_pct"] >= meta_pct)
+    return _textos_totais(t)
 
 
 # Palavras em português para a busca da conta achar o tipo do item cujo
@@ -754,21 +763,26 @@ def editar_custo(name: str):
     if quer_json:
         if erro:
             return jsonify({"ok": False, "erro": erro}), 400
-        linhas = [p for p in user_portfolio.load_positions(steamid)
-                  if p.get("name") == name and (not lote or p.get("lote") == lote)]
-        if not linhas:
+        todas = user_portfolio.load_positions(steamid)
+        alvo_idx = next(
+            (i for i, p in enumerate(todas)
+             if p.get("name") == name and (not lote or p.get("lote") == lote)),
+            None,
+        )
+        if alvo_idx is None:
             # Tirado da lista em outra aba (ou pela sincronização) depois
             # que esta página abriu (revisão 2026-11-16).
             return jsonify({"ok": False, "recarregar": True, "erro":
                             "Este item não está mais na sua lista. "}), 404
-        avaliacao = _formatar_linhas(
-            portfolio.evaluate_portfolio(linhas, _preco_do_dia(linhas)),
-            _meta_lucro(steamid))
-        row = avaliacao["rows"][0]
+        meta_pct = _meta_lucro(steamid)
+        av_todas = portfolio.evaluate_portfolio(todas, _preco_do_dia(todas))
+        totais = _formatar_totais(av_todas, meta_pct)
+        row = _formatar_linhas(
+            {"rows": [dict(av_todas["rows"][alvo_idx])],
+             "totals": dict(av_todas["totals"])},
+            meta_pct,
+        )["rows"][0]
         pnl = row.get("pnl") if row.get("has_cost") else None
-        todas = user_portfolio.load_positions(steamid)
-        totais = _textos_totais(_formatar_linhas(
-            portfolio.evaluate_portfolio(todas, _preco_do_dia(todas)))["totals"])
         return jsonify({
             "ok": True,
             "totais": totais,
