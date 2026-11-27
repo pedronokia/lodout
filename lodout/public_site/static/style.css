@@ -13257,3 +13257,15 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   letter-spacing: -0.02em;
 }
 .nota.nota-tres-digitos:not(.nota-mini) .nota-numero { font-size: 0.8125rem; }
+
+/* Números um degrau menores (pedido do usuário, 27/11): na Geist os
+   algarismos parecem maiores que na mono antiga, então o preço da
+   vitrine, os cartões da conta e as colunas das tabelas descem um
+   pouco. O texto ao redor não muda. */
+.grade-cards > .cartao-item .cartao-item-preco .cartao-item-preco-valor { font-size: 1rem; }
+.resumo-cards-conta .card .card-valor { font-size: 1.5rem; }
+.tabela-conta-lista td.celula-numero,
+.tabela-conta .celula-numero .valor-unidade,
+.tabela-conta .celula-numero [data-campo="lucro-valor"] { font-size: 0.8125rem; }
+.tabela-conta .celula-numero .valor-total,
+.tabela-conta .celula-numero .lucro-pct { font-size: 0.75rem; }
