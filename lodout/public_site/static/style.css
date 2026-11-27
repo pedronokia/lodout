@@ -6675,7 +6675,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   table.tabela-top20 tbody td.celula-item-top .celula-item-ranking { gap: var(--sp-2); }
   /* 27/11: o bloco do nome ocupava a largura do nome inteiro numa linha
      (até 390 px) e saía do cartão. Agora fica na largura da célula e o
-     nome quebra em até duas linhas; o nome completo segue no title. */
+     nome corta com reticências (DESIGN.md); o completo segue no title. */
   table.tabela-top20 tbody td.celula-item-top .celula-item-ranking { align-self: stretch; max-width: 100%; }
   table.tabela-top20 tbody td.celula-item-top::before { display: none; }
   .ranking-pos-celular { display: inline; min-width: 2.2em; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -13278,15 +13278,3 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .tabela-conta .celula-numero [data-campo="lucro-valor"] { font-size: 0.8125rem; }
 .tabela-conta .celula-numero .valor-total,
 .tabela-conta .celula-numero .lucro-pct { font-size: 0.75rem; }
-
-/* Ranking no celular (27/11): nome em até duas linhas dentro do cartão,
-   em vez de uma linha só cortada fora da tela. */
-@media (max-width: 640px) {
-  .tabela-top20 .celula-item-ranking > .link-item {
-    display: -webkit-box;
-    min-width: 0;
-    white-space: normal;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-}
