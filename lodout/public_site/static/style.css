@@ -6990,6 +6990,9 @@ display: none;
 }
 .spotlight-input {
 flex: 1;
+/* Sem isso o campo não encolhia e empurrava Filtros e Fechar para fora
+   da janela no celular (27/11). */
+min-width: 0;
 background: transparent;
 border: none;
 outline: none;
@@ -9846,7 +9849,8 @@ h3,
 
 .resumo-cards-conta .card-sub[data-total="liquido_sub"] {
   font-size: var(--fs-2xs);
-  color: rgba(255, 255, 255, 0.40);
+  /* 0.40 dava 3,8:1; o cinza apagado do site passa de 4,5:1 (27/11). */
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -13067,6 +13071,47 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .pagina-texto code { overflow-wrap: anywhere; }
 .rodape-nav-grupo a { min-width: 44px; }
 
+/* Busca no celular (27/11). O "×" aparece no lugar do Esc em telas de
+   toque; Filtros vira só o ícone; os atalhos de teclado do rodapé somem
+   onde não há teclado; o nome do item usa até duas linhas e o preço e a
+   nota ficam empilhados à direita, para o nome não virar "AK-47 | Red...". */
+.spotlight-fechar .icone-ui { display: none; width: 20px; height: 20px; }
+@media (hover: none), (max-width: 640px) {
+  .spotlight-fechar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-right: -10px;
+    color: var(--text-bright);
+  }
+  .spotlight-fechar kbd { display: none; }
+  .spotlight-fechar .icone-ui { display: block; }
+  .spotlight-rodape { display: none; }
+}
+@media (max-width: 640px) {
+  .spotlight-topo { gap: var(--sp-2); padding: var(--sp-2) var(--sp-3); }
+  .spotlight-filtro-btn { min-height: 44px; margin-right: 0; padding: 0 12px; }
+  .spotlight-filtro-btn span { display: none; }
+  .spotlight-item { align-items: flex-start; }
+  .spotlight-item-nome {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .spotlight-item-lado { flex-direction: column; align-items: flex-end; gap: 4px; }
+}
+
+/* Contraste (revisão de acessibilidade, 27/11): branco sobre o laranja
+   vivo dava 2,8:1 na página atual da paginação e na aba de categoria
+   ativa; o laranja de ação (o mesmo do botão "Ver no Mercado da
+   Steam") passa de 4,5:1. As reticências da paginação também clareiam. */
+.paginacao-numero[aria-current="page"] { background: var(--accent-acao); }
+.abas-categoria .aba-categoria[aria-current="page"] { background: var(--accent-acao); }
+.paginacao-reticencias { color: rgba(255, 255, 255, 0.6); }
+
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
    Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou
@@ -13791,13 +13836,13 @@ table.tabela-conta .input-custo {
 }
 table.tabela-conta .campo-reais-prefixo {
   left: 10px;
-  color: rgba(255, 255, 255, 0.44);
+  color: rgba(255, 255, 255, 0.58); /* 0.44 dava 4,3:1 (27/11) */
   font-size: var(--fs-2xs);
   font-weight: 500;
 }
 table.tabela-conta .campo-reais-sufixo {
   right: 9px;
-  color: rgba(255, 255, 255, 0.44);
+  color: rgba(255, 255, 255, 0.58);
   font-size: var(--fs-2xs);
   font-weight: 500;
 }

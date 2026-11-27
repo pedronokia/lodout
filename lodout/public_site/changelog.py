@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
+            "Busca no celular: os botões de fechar (agora um “×”) e de Filtros não ficam mais fora da tela, o nome do item aparece em até duas linhas e os atalhos de teclado só aparecem no computador. No teclado, o Tab fica dentro da busca aberta. Textos claros demais sobre fundo laranja ou escuro (página atual da lista, aba ativa, “recebe R$ … depois da taxa”) ficaram mais legíveis.",
             "Celular: a página da API não arrasta mais para o lado em telas pequenas, o link “API” do rodapé ficou mais fácil de tocar e as barras de arrastar (oferta no Simular compra e “Quero lucrar” na conta) ganharam uma área de toque maior.",
             "Os últimos textos pequenos que sobravam (rótulos dos Filtros, título da Minha conta, aviso “informe quanto pagou” no celular) também entraram na escala, e o site agora confere sozinho que nenhum tamanho novo fuja dela.",
             "Minha conta na mesma escala de letras: botões das linhas, etiquetas, cabeçalhos da tabela e contadores dos filtros ficaram um pouco maiores e mais fáceis de ler (nada ficou abaixo de 12px).",

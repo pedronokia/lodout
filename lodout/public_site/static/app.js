@@ -613,7 +613,12 @@ if ("serviceWorker" in navigator) {
   if (!overlay || !input || !resultados) return;
   var debounceTimer = null;
   var indiceAtivo = -1;
+  // Dica curta em tela estreita: a longa ("Buscar entre 33.000 skins e
+  // caixas...") era cortada no meio em 320px (27/11).
+  var dicaLonga = input.getAttribute("placeholder");
   function abrirSpotlight() {
+    var estreita = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+    input.setAttribute("placeholder", estreita ? "Buscar skin ou caixa" : dicaLonga);
     overlay.hidden = false;
     overlay.removeAttribute("aria-hidden");
     input.value = "";
@@ -635,8 +640,10 @@ if ("serviceWorker" in navigator) {
   if (fecharBtn) {
     fecharBtn.addEventListener("click", fecharSpotlight);
   }
+  // Toque fora da janela fecha (27/11: antes só o fundo exato contava,
+  // e no celular não havia como sair sem o botão, que ficava fora da tela).
   overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) fecharSpotlight();
+    if (!e.target.closest(".spotlight-modal")) fecharSpotlight();
   });
   document.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === "k") {
@@ -649,6 +656,23 @@ if ("serviceWorker" in navigator) {
     if (e.key === "Escape") {
       e.preventDefault();
       fecharSpotlight();
+      return;
+    }
+    // Tab fica dentro da busca aberta (janela modal): do último item volta
+    // para o primeiro, e Shift+Tab faz o caminho inverso (27/11).
+    if (e.key === "Tab") {
+      var focaveis = Array.prototype.filter.call(
+        overlay.querySelectorAll("input, button, a[href]"),
+        function (el) { return el.offsetParent !== null && !el.disabled; });
+      if (focaveis.length) {
+        var primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
+        var dentro = overlay.contains(document.activeElement);
+        if (e.shiftKey && (document.activeElement === primeiro || !dentro)) {
+          e.preventDefault(); ultimo.focus();
+        } else if (!e.shiftKey && (document.activeElement === ultimo || !dentro)) {
+          e.preventDefault(); primeiro.focus();
+        }
+      }
       return;
     }
     var itens = resultados.querySelectorAll(".spotlight-item");
