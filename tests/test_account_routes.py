@@ -1005,3 +1005,24 @@ def test_conta_link_do_item_tem_o_nome_completo_no_title(client, monkeypatch):
     assert 'class="celula-item-conta-texto"' in pagina
     assert 'class="link-item"' in pagina
     assert 'title="Faca Cara"' in pagina
+
+
+def test_conta_tabela_cabeca_e_coluna_pago_alinhada(client, monkeypatch):
+    """Polimento 26/11: cabeçalho 'Você pagou' alinhado à direita como os
+    campos, título e nota agrupados em .celula-item-conta-cabeca, e ações
+    de lotes separados em .celula-item-conta-acoes."""
+    from lodout.public_site import user_store
+    _login(client, monkeypatch)
+    user_store.save_user_json("76561198000000000", "portfolio", [
+        {"name": "AK-47 | Redline (Field-Tested)", "cost": 38.90, "quantity": 2,
+         "source": "steam", "lote": "a"},
+        {"name": "AK-47 | Redline (Field-Tested)", "cost": 31.50, "quantity": 1,
+         "source": "steam", "lote": "b"},
+    ])
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert '<th role="columnheader" class="col-num" title="Digite quanto pagou' in pagina
+    assert 'class="celula-item-conta-cabeca"' in pagina
+    assert 'class="celula-item-conta-acoes"' in pagina
+    assert "valores diferentes?" in pagina
+    assert "juntar lotes" in pagina
+

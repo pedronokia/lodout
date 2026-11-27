@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-26",
         "titulo": "Coleta mais transparente",
         "itens": [
+            "Tabela de “Minha conta” mais limpa: a nota agora fica ao lado do nome do item, os botões de cada linha (Está anunciado, mudar preço, Vendi, juntar lotes e remover) seguem o mesmo desenho e altura, os campos de “Você pagou” têm a mesma largura e “Venda por” destaca o preço da meta mantendo o preço sem prejuízo mais discreto.",
             "Ranking no celular: a lista cabia mal na tela e os cartões cortavam na direita (a nota de hoje ficava escondida). Agora cada cartão cabe inteiro na tela, com a nota de hoje à vista, e o que não cabe desce de linha.",
             "Números mais fáceis de ler: preços, notas e variações saíram da fonte de código (de letras todas da mesma largura) e passaram para a fonte do texto, com os algarismos alinhados em coluna. Textos como o nome da caixa, o risco e a liquidez também voltaram para a fonte normal.",
             "Nova página Como usar o Lodout: em 4 passos, como achar um item, ler a nota e o porquê, usar a encomenda sugerida e acompanhar o seu inventário. Ela aparece no topo da página inicial (“Novo aqui? Veja como usar o Lodout”) e no rodapé, em Entenda.",

@@ -199,7 +199,7 @@
           {# data-ordenar-coluna: conta.js transforma o título num botão
              que ordena a lista (só com as ferramentas, 8+ itens). #}
           <th role="columnheader" data-ordenar-coluna="nome">Item</th>
-          <th role="columnheader" title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
+          <th role="columnheader" class="col-num" title="Digite quanto pagou e aperte Enter ou saia do campo para salvar">Você pagou</th>
           <th role="columnheader" class="col-num" data-ordenar-coluna="valor">Vale hoje</th>
           <th role="columnheader" class="col-num" data-ordenar-coluna="lucro" title="Se vender hoje, já descontados os {{ taxa_steam_pct }}% da Steam">Lucro hoje</th>
           <th role="columnheader" class="col-num" title="O que o comprador paga, já com a taxa da Steam: na Steam, cole em “O comprador paga”">Venda por <span class="th-sub">o comprador paga</span></th>
@@ -217,16 +217,43 @@
             {% endif %}
             </span>
             <span class="celula-item-conta-texto">
-              <a class="link-item" href="{{ url_for('item_detail', name=row.name) }}" translate="no" title="{{ row.name_fmt }}">{{ row.nome_curto }}</a>
+              <span class="celula-item-conta-cabeca">
+                <a class="link-item" href="{{ url_for('item_detail', name=row.name) }}" translate="no" title="{{ row.name_fmt }}">{{ row.nome_curto }}</a>
+                {% if row.score is not none %}<span class="nota nota-mini nota-{{ row.score|nota_classe }}" role="img" title="Nota do Lodout: {{ row.score }} de 100" aria-label="Nota {{ row.score }} de 100">{{ row.score|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ row.score }}</span></span>{% endif %}
+              </span>
+              {% set tem_acao_lote = row.mostra_juntar %}
               <span class="celula-item-conta-extra">
                 {% if row.exterior_fmt %}<span class="item-exterior">{{ row.exterior_fmt }}</span>{% endif %}
                 {% if row.quantity and row.quantity > 1 %}<span class="item-quantidade" title="Quantidade">×{{ row.quantity }}</span>{% endif %}
                 {% if row.lotes_total and row.lotes_total > 1 %}<span class="item-lote" title="Unidades deste item separadas por valor pago">lote {{ row.lote_numero }} de {{ row.lotes_total }}</span>{% endif %}
                 {% if row.anunciado %}<span class="item-etiqueta-fora item-etiqueta-anunciado" title="Fora do seu inventário da Steam desde {{ row.fora_quando }}">anunciado{% if row.anuncio_preco_fmt %} por {{ row.anuncio_preco_fmt }}{% endif %}</span>{% elif row.fora_desde %}<span class="item-etiqueta-fora" title="Não aparece no seu inventário público da Steam: anunciado no Mercado ou vendido">fora do inventário desde {{ row.fora_quando }}</span>{% endif %}
-                {% if row.score is not none %}<span class="nota nota-mini nota-{{ row.score|nota_classe }}" role="img" title="Nota do Lodout: {{ row.score }} de 100" aria-label="Nota {{ row.score }} de 100">{{ row.score|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ row.score }}</span></span>{% endif %}
-                {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
-                   item? Separa unidades numa linha própria; junta de novo
-                   com o valor médio. #}
+                {% if not tem_acao_lote and row.quantity and row.quantity > 1 and not row.fora_desde %}
+                <details class="separar-lote">
+                  <summary class="acao-texto">valores diferentes?<span class="visualmente-oculto"> Separar unidades de {{ row.name_fmt }}</span></summary>
+                  <form method="post" action="{{ url_for('account.separar_lote', name=row.name) }}" class="form-separar">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
+                    <label>Separar
+                      <input type="number" name="quantidade" min="1" max="{{ row.quantity - 1 }}" value="1" inputmode="numeric" class="input-compacto input-quantidade" aria-describedby="explica-separar-{{ loop.index }}">
+                      de {{ row.quantity }}</label>
+                    <button type="submit" class="botao-link">separar</button>
+                    <span class="explica-separar" id="explica-separar-{{ loop.index }}">As unidades separadas ganham linha e valor próprios.</span>
+                  </form>
+                </details>
+                {% endif %}
+                {% if not tem_acao_lote and not row.fora_desde %}
+                <form method="post" action="{{ url_for('account.remover_posicao', name=row.name) }}" class="form-inline form-remover" data-nome="{{ row.name_fmt }}{{ ' (lote ' ~ row.lote_numero ~ ')' if row.lotes_total and row.lotes_total > 1 else '' }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  {% if row.lote %}<input type="hidden" name="lote" value="{{ row.lote }}">{% endif %}
+                  <button type="submit" class="botao-link botao-remover" aria-label="Remover {{ row.name_fmt }}">remover</button>
+                </form>
+                {% endif %}
+              </span>
+              {# Lotes (2026-11-15): pagou valores diferentes pelo mesmo
+                 item? Separa unidades numa linha própria; junta de novo
+                 com o valor médio. #}
+              {% if tem_acao_lote %}
+              <span class="celula-item-conta-acoes">
                 {% if row.quantity and row.quantity > 1 and not row.fora_desde %}
                 <details class="separar-lote">
                   <summary class="acao-texto">valores diferentes?<span class="visualmente-oculto"> Separar unidades de {{ row.name_fmt }}</span></summary>
@@ -255,6 +282,7 @@
                 </form>
                 {% endif %}
               </span>
+              {% endif %}
               {# Saiu do inventário público (revisão 16/11): anunciar no
                  Mercado também tira o item de lá até vender. #}
               {% if row.fora_desde %}

@@ -13214,6 +13214,856 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .grade-cards > .cartao-item .cartao-item-corpo > *,
 .grade-cards > .cartao-item .cartao-item-rodape > * { margin-block: 0; }
 
+/* ==========================================================================
+   Polimento da tabela da conta (/conta) — 26/11 (só visual, sem mexer em funções)
+   Reduz a poluição visual da tabela e unifica os botões em uma hierarquia
+   clara: identidade + nota no topo da célula, metadados limpos abaixo, ações
+   coesas em pílulas na mesma altura, campo "Você pagou" com largura uniforme,
+   e "Venda por" com destaque para a meta e referência discreta no empate.
+   ========================================================================== */
+
+/* 1. Barra de ferramentas e faixa de status mais calmas e alinhadas. */
+.status-inventario {
+  background: var(--surface);
+  border-color: rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.status-inventario .botao-atualizar-inventario,
+.status-inventario .acao-texto,
+.status-inventario a.acao-texto {
+  height: 30px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.status-inventario .botao-atualizar-inventario:hover,
+.status-inventario .acao-texto:hover,
+.status-inventario a.acao-texto:hover,
+.status-inventario a.acao-texto:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: var(--text-bright);
+}
+
+.conta-ferramentas {
+  background: var(--surface);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: none;
+  padding: 12px 16px;
+}
+.conta-ferramentas .conta-busca input[type="search"],
+.conta-ferramentas .conta-ordem select {
+  height: 34px;
+  min-height: 34px;
+  background-color: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+.conta-ferramentas .conta-busca input[type="search"]:hover,
+.conta-ferramentas .conta-ordem select:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+.conta-ferramentas .conta-busca input[type="search"]:focus,
+.conta-ferramentas .conta-ordem select:focus {
+  background-color: var(--bg);
+  border-color: var(--accent);
+  box-shadow: none;
+}
+.conta-ferramentas > .como-ler summary {
+  height: 34px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.11);
+  color: var(--text-muted);
+}
+.conta-ferramentas > .como-ler summary:hover,
+.conta-ferramentas > .como-ler[open] summary {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--text-bright);
+}
+.conta-ferramentas .conta-filtros {
+  gap: 6px;
+  padding-top: 10px;
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+.conta-ferramentas .conta-filtro {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 11px;
+  border-color: rgba(255, 255, 255, 0.11);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+.conta-ferramentas .conta-filtro[aria-pressed="true"] {
+  background: rgba(249, 115, 22, 0.18);
+  border-color: rgba(249, 115, 22, 0.62);
+  color: var(--text-bright);
+  box-shadow: none;
+}
+.conta-ferramentas .conta-filtro span[data-conta-contagem] {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-muted);
+}
+.conta-ferramentas .conta-filtro[aria-pressed="true"] span[data-conta-contagem] {
+  background: rgba(249, 115, 22, 0.34);
+  color: var(--text-bright);
+}
+
+/* 2. Moldura, cabeçalho e ritmo das linhas da tabela do inventário. */
+.tabela-wrap:has(> .tabela-conta) {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--surface);
+  box-shadow: none;
+}
+table.tabela-conta th {
+  background: var(--surface-sunken);
+  padding: 12px 10px;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+table.tabela-conta th .th-sub {
+  color: rgba(255, 255, 255, 0.45);
+}
+table.tabela-conta th[aria-sort] .ordenar-seta {
+  color: var(--accent-bright);
+}
+table.tabela-conta tbody td {
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+@media (min-width: 641px) {
+  table.tabela-conta th:first-child,
+  table.tabela-conta td:first-child {
+    padding-left: 16px;
+    padding-right: 12px;
+    width: 100%;
+  }
+  table.tabela-conta th:not(:first-child),
+  table.tabela-conta td:not(:first-child) {
+    width: 1%;
+    white-space: nowrap;
+  }
+  table.tabela-conta th:last-child,
+  table.tabela-conta td:last-child {
+    padding-right: 16px;
+  }
+}
+table.tabela-conta tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.028);
+}
+.tabela-wrap:focus-within table.tabela-candidatos.tabela-conta tbody tr:focus-within {
+  background-color: rgba(255, 255, 255, 0.035);
+  outline: none;
+}
+table.tabela-conta tbody tr.linha-fora {
+  background-color: rgba(255, 255, 255, 0.012);
+}
+table.tabela-conta tbody tr.linha-fora:hover {
+  background-color: rgba(255, 255, 255, 0.032);
+}
+table.tabela-conta tbody tr.linha-lote:has(+ tr.linha-lote) td {
+  border-bottom-style: dashed;
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 3. Célula do item: título + anel da nota alinhados no topo, metadados limpos
+      na 2ª linha e ações separadas com botões na mesma família visual. */
+table.tabela-conta .celula-item-conta {
+  align-items: flex-start;
+  gap: 12px;
+  padding-block: 4px;
+}
+table.tabela-conta .icone-item-quadro.icone-item-quadro-compacto {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  margin-top: 1px;
+  box-shadow: none;
+}
+table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto {
+  transform: none;
+  box-shadow: none;
+}
+table.tabela-conta .celula-item-conta > .celula-item-conta-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+table.tabela-conta .celula-item-conta-cabeca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+table.tabela-conta .celula-item-conta-cabeca > .link-item {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-bright);
+}
+table.tabela-conta .celula-item-conta-cabeca > .link-item:hover {
+  color: var(--accent-bright);
+}
+table.tabela-conta .celula-item-conta-cabeca > .nota-mini {
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: none;
+}
+table.tabela-conta .celula-item-conta-cabeca > .nota-mini .nota-numero {
+  font-size: 0.65rem;
+}
+
+/* Metadados (desgaste, quantidade, lote, selo de status): serenos e sem caixas pesadas. */
+table.tabela-conta .celula-item-conta-texto > .celula-item-conta-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 7px;
+  margin-top: 0;
+  line-height: 1.3;
+}
+table.tabela-conta .celula-item-conta-extra:empty {
+  display: none;
+}
+table.tabela-conta .celula-item-conta-extra .item-exterior {
+  font-size: 0.75rem;
+  font-weight: 450;
+  color: var(--text-muted);
+}
+table.tabela-conta .celula-item-conta-extra .item-quantidade {
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+table.tabela-conta .celula-item-conta-extra .item-lote {
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+table.tabela-conta .celula-item-conta-extra .item-etiqueta-fora {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid rgba(242, 187, 37, 0.30);
+  border-radius: var(--radius-pill);
+  background: rgba(242, 187, 37, 0.09);
+  color: var(--warn);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+table.tabela-conta .celula-item-conta-extra .item-etiqueta-fora::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+table.tabela-conta .celula-item-conta-extra .item-etiqueta-fora.item-etiqueta-anunciado {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  font-weight: 500;
+}
+table.tabela-conta .celula-item-conta-extra .item-etiqueta-fora.item-etiqueta-anunciado::before {
+  background: var(--text-muted);
+}
+
+/* Ações da linha (lotes e remover): discretas em repouso, pílula clara no hover. */
+table.tabela-conta .celula-item-conta-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 1px;
+}
+table.tabela-conta .celula-item-conta-acoes .form-inline {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+}
+table.tabela-conta .celula-item-conta-acoes .separar-lote > summary.acao-texto {
+  margin-left: -7px;
+}
+table.tabela-conta .separar-lote > summary.acao-texto {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta tbody tr:hover .separar-lote > summary.acao-texto {
+  color: var(--text-muted);
+}
+table.tabela-conta .separar-lote > summary.acao-texto:hover,
+table.tabela-conta .separar-lote > summary.acao-texto:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--text-bright);
+  text-decoration: none;
+}
+table.tabela-conta .botao-juntar.acao-texto {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .botao-juntar.acao-texto:hover,
+table.tabela-conta .botao-juntar.acao-texto:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--text-bright);
+  text-decoration: none;
+}
+table.tabela-conta .separar-lote[open] {
+  flex-basis: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  box-shadow: none;
+}
+table.tabela-conta .separar-lote[open] > summary.acao-texto {
+  margin-left: 0;
+  margin-bottom: 8px;
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: var(--text-bright);
+}
+table.tabela-conta .form-separar {
+  margin: 0;
+  gap: 6px 10px;
+}
+table.tabela-conta .form-separar .input-quantidade {
+  height: 30px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-xs);
+}
+table.tabela-conta .form-separar .explica-separar {
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+table.tabela-conta .botao-link.botao-remover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .botao-link.botao-remover:hover,
+table.tabela-conta .botao-link.botao-remover:focus-visible {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  text-decoration: none;
+}
+
+/* 4. Item fora do inventário: barra única de botões coerentes (todos 26px). */
+table.tabela-conta .item-fora {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 6px;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+table.tabela-conta .item-fora .item-fora-pergunta {
+  flex-basis: 100%;
+  font-size: 0.7rem;
+  font-weight: 450;
+  color: rgba(255, 255, 255, 0.50);
+  margin-bottom: 1px;
+}
+table.tabela-conta .item-fora .form-anunciado {
+  flex-basis: auto;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+table.tabela-conta .item-fora .caixa-marcar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .item-fora .caixa-marcar:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--text-bright);
+}
+table.tabela-conta .item-fora .caixa-marcar:has(input:checked) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--text-bright);
+}
+table.tabela-conta .item-fora .caixa-marcar input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  flex: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.34);
+  border-radius: 3.5px;
+  background: var(--bg);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+table.tabela-conta .item-fora .caixa-marcar:hover input[type="checkbox"] {
+  border-color: rgba(255, 255, 255, 0.56);
+}
+table.tabela-conta .item-fora .caixa-marcar input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+table.tabela-conta .item-fora .caixa-marcar input[type="checkbox"]:checked::after {
+  content: "";
+  width: 7px;
+  height: 4px;
+  border-left: 1.75px solid #ffffff;
+  border-bottom: 1.75px solid #ffffff;
+  transform: rotate(-45deg) translate(0.5px, -0.5px);
+}
+table.tabela-conta .item-fora .botao-mudar-anuncio {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .item-fora .botao-mudar-anuncio:hover,
+table.tabela-conta .item-fora .botao-mudar-anuncio:focus-visible {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--text-bright);
+  text-decoration: none;
+}
+table.tabela-conta .item-fora .vendi > summary {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 11px;
+  border: 1px solid rgba(249, 115, 22, 0.52);
+  border-radius: var(--radius-pill);
+  background: rgba(249, 115, 22, 0.20);
+  color: var(--text-bright);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .item-fora .vendi > summary:hover,
+table.tabela-conta .item-fora .vendi > summary:focus-visible {
+  background: var(--accent-acao);
+  border-color: var(--accent);
+  color: var(--text-bright);
+  text-decoration: none;
+  box-shadow: none;
+}
+table.tabela-conta .item-fora .botao-link.botao-fora-remover {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 9px;
+}
+
+/* 5. Coluna "Você pagou": largura única (sem degrau entre ×1 e ×N). */
+table.tabela-conta .input-custo {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 10px 0 28px;
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: var(--radius-xs);
+  color: var(--text-bright);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+table.tabela-conta .campo-reais-prefixo {
+  left: 10px;
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+table.tabela-conta .campo-reais-sufixo {
+  right: 9px;
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+table.tabela-conta .input-custo::placeholder {
+  color: rgba(255, 255, 255, 0.34);
+}
+table.tabela-conta .input-custo:hover {
+  background: var(--bg);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+table.tabela-conta .input-custo:focus {
+  background: var(--bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.22);
+}
+table.tabela-conta .linha-sem-custo .input-custo {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.20);
+  background: rgba(15, 16, 18, 0.65);
+}
+table.tabela-conta .linha-sem-custo .input-custo:hover,
+table.tabela-conta .linha-sem-custo .input-custo:focus {
+  border-style: solid;
+}
+@media (min-width: 641px) {
+  table.tabela-conta .input-custo,
+  table.tabela-conta .campo-reais-cada .input-custo {
+    width: 132px;
+  }
+  table.tabela-conta .campo-reais-cada .input-custo {
+    padding-right: 40px;
+  }
+  table.tabela-conta .custo-salvo {
+    flex-basis: 100%;
+    text-align: right;
+    font-size: 0.7rem;
+  }
+  table.tabela-conta .custo-salvo:empty {
+    display: none;
+  }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  table.tabela-conta .input-custo,
+  table.tabela-conta .campo-reais-cada .input-custo {
+    width: 114px;
+  }
+}
+
+/* 6. "Vale hoje" e "Lucro hoje": número principal claro, selo "na meta" pílula. */
+table.tabela-conta .celula-numero [data-campo="lucro-valor"] {
+  font-weight: 600;
+}
+table.tabela-conta .celula-numero .lucro-pct {
+  margin-top: 1px;
+  font-weight: 500;
+}
+table.tabela-conta .celula-numero .selo-meta-atingida {
+  margin-top: 3px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(57, 194, 102, 0.10);
+  border: 1px solid rgba(57, 194, 102, 0.28);
+  color: var(--positive);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 7. "Venda por": metade das caixas -- "Sem prejuízo" discreto sem borda em
+      repouso, "Lucrar X%" como botão principal copiável, ambos alinhados. */
+table.tabela-conta .venda-por-linha {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.50);
+}
+table.tabela-conta .venda-por-meta {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco {
+  width: 100%;
+  padding: 3px 8px;
+  gap: 7px;
+  border-radius: 7px;
+  font-size: 0.78125rem;
+  line-height: 1.3;
+  margin: 0;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+table.tabela-conta .venda-por-bloco .icone-copiar {
+  flex: none;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.venda-por-valor {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.venda-por-valor .icone-copiar {
+  opacity: 0.34;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.venda-por-valor:hover,
+table.tabela-conta .venda-por-bloco .copiar-preco.venda-por-valor:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--text-bright);
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.preco-alvo {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-bright);
+  font-weight: 600;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.preco-alvo .icone-copiar {
+  opacity: 0.55;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.preco-alvo:hover,
+table.tabela-conta .venda-por-bloco .copiar-preco.preco-alvo:focus-visible {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.48);
+  color: var(--text-bright);
+}
+table.tabela-conta .venda-por-bloco .copiar-preco:hover .icone-copiar,
+table.tabela-conta .venda-por-bloco .copiar-preco:focus-visible .icone-copiar {
+  opacity: 0.92;
+}
+table.tabela-conta .venda-por-bloco .copiar-preco.copiado {
+  background: rgba(57, 194, 102, 0.15);
+  border-color: rgba(57, 194, 102, 0.45);
+  color: var(--positive);
+}
+@media (min-width: 901px) {
+  table.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+    grid-template-columns: auto minmax(7.6em, auto);
+    gap: 3px 10px;
+  }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  table.tabela-conta .celula-item-conta .icone-item-quadro.icone-item-quadro-compacto {
+    display: none;
+  }
+  table.tabela-conta th,
+  table.tabela-conta tbody td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  table.tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
+    grid-template-columns: auto;
+    gap: 2px;
+    justify-items: end;
+  }
+  table.tabela-conta .venda-por-bloco .copiar-preco {
+    width: auto;
+  }
+}
+@media (min-width: 641px) {
+  table.tabela-conta .venda-por-falta {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+  table.tabela-conta .venda-por-falta::after {
+    content: none;
+  }
+  table.tabela-conta .venda-por-falta:hover,
+  table.tabela-conta .venda-por-falta:focus-visible {
+    border-style: solid;
+    background: rgba(249, 115, 22, 0.14);
+    border-color: rgba(249, 115, 22, 0.46);
+    color: var(--text-bright);
+  }
+}
+
+/* 8. Botões abaixo da tabela (+ Adicionar, Baixar, Excluir): mesmo acabamento. */
+.adicionar-manual > summary {
+  height: 34px;
+  padding: 0 15px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.adicionar-manual > summary:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--text-bright);
+}
+
+/* 9. Cartões da conta no celular (até 640px): nota fixa no canto superior
+      direito, divisória limpa entre cabeçalho e números, botões confortáveis. */
+@media (max-width: 640px) {
+  table.tabela-conta tbody {
+    gap: 10px;
+  }
+  table.tabela-conta tbody tr:not(.linha-regras) {
+    padding: 12px 12px 10px;
+    border-color: rgba(255, 255, 255, 0.09);
+    background: var(--surface);
+    box-shadow: none;
+  }
+  table.tabela-conta tbody td {
+    padding: 6px 4px;
+  }
+  table.tabela-conta tbody td[data-label="Item"] {
+    padding: 0 4px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  table.tabela-conta .celula-item-conta {
+    width: 100%;
+    padding-block: 0;
+  }
+  table.tabela-conta .celula-item-conta-cabeca {
+    justify-content: space-between;
+  }
+  table.tabela-conta .celula-item-conta-extra .form-remover {
+    margin-left: auto;
+  }
+  table.tabela-conta .celula-item-conta-acoes {
+    margin-top: 3px;
+    gap: 4px 10px;
+  }
+  table.tabela-conta .separar-lote > summary.acao-texto {
+    height: 26px;
+    min-height: 26px;
+    padding: 0;
+    color: var(--text-muted);
+  }
+  table.tabela-conta .celula-item-conta-acoes .separar-lote > summary.acao-texto {
+    margin-left: 0;
+  }
+  table.tabela-conta .botao-juntar.acao-texto {
+    height: 26px;
+    min-height: 26px;
+    padding: 0 9px;
+  }
+  table.tabela-conta .botao-link.botao-remover {
+    height: 26px;
+    min-height: 26px;
+    padding: 0;
+  }
+  table.tabela-conta .celula-item-conta-acoes .form-remover {
+    margin-left: auto;
+  }
+  table.tabela-conta .item-fora {
+    margin-top: 6px;
+    gap: 6px;
+  }
+  table.tabela-conta .item-fora .caixa-marcar,
+  table.tabela-conta .item-fora .botao-mudar-anuncio,
+  table.tabela-conta .item-fora .vendi > summary,
+  table.tabela-conta .item-fora .botao-link.botao-fora-remover {
+    height: 30px;
+    min-height: 30px;
+    padding: 0 10px;
+  }
+  table.tabela-conta .item-fora .caixa-marcar {
+    padding-left: 9px;
+  }
+  table.tabela-conta tbody td[data-label="Você pagou"] .campo-reais {
+    width: 100%;
+    max-width: 152px;
+  }
+  table.tabela-conta tbody td[data-label="Você pagou"] .input-custo {
+    width: 100%;
+  }
+  table.tabela-conta .venda-por-bloco {
+    width: 100%;
+    grid-template-columns: auto minmax(7.2em, auto);
+    justify-content: end;
+    gap: 3px 8px;
+  }
+  table.tabela-conta .venda-por-bloco .copiar-preco {
+    justify-content: space-between;
+    padding: 4px 8px;
+  }
+}
+
 /* 15. 390–640px: nada vaza para o lado. Títulos, rótulos e contadores
    recebem largura mínima zero e corte/quebra controlados. */
 @media (max-width: 640px) {
