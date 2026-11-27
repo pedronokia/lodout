@@ -21,6 +21,13 @@ _HISTORICO_MAX = 20
 _FALHAS_MAX = 40
 
 
+# Cache em memória do último scan, pela identidade do arquivo (caminho,
+# mtime_ns, tamanho): scanner_last.json só muda a cada coleta (horas), mas
+# era lido e decodificado do disco em toda visita à home, ranking, item e
+# a cada tecla em /api/sugestoes.
+_CACHE_SCAN: dict = {"chave": None, "dados": None}
+
+
 def save_last_scan(category: str, results: list,
                    path: Path | str = _DEFAULT_PATH,
                    now: float | None = None) -> None:
@@ -30,6 +37,7 @@ def save_last_scan(category: str, results: list,
     try:
         atomic_write_text(path, json.dumps(data, ensure_ascii=False,
                                            default=str))
+        _CACHE_SCAN["chave"] = None
     except OSError:
         pass
 
@@ -39,21 +47,40 @@ def load_last_scan(path: Path | str = _DEFAULT_PATH) -> "dict | None":
 
     E' cache: arquivo ruim vira None em silencio, sem quarentena.
     """
+    p = Path(path)
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        st = p.stat()
+    except OSError:
         return None
-    if not isinstance(data, dict):
+    chave = (str(p.resolve()), st.st_mtime_ns, st.st_size)
+    if _CACHE_SCAN["chave"] != chave:
+        resultado = None
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            data = None
+        if isinstance(data, dict):
+            results = data.get("results")
+            if (isinstance(results, list) and results
+                    and all(isinstance(r, dict) and "name" in r and "score" in r
+                            for r in results)):
+                resultado = {
+                    "ts": float(data.get("ts") or 0),
+                    "category": str(data.get("category") or ""),
+                    "results": results,
+                }
+        _CACHE_SCAN["dados"] = resultado
+        _CACHE_SCAN["chave"] = chave
+    cached = _CACHE_SCAN["dados"]
+    if cached is None:
         return None
-    results = data.get("results")
-    if not isinstance(results, list) or not results:
-        return None
-    if not all(isinstance(r, dict) and "name" in r and "score" in r
-               for r in results):
-        return None
-    return {"ts": float(data.get("ts") or 0),
-            "category": str(data.get("category") or ""),
-            "results": results}
+    # Devolve cópias rasas dos itens para evitar que mutações na rota
+    # contaminem o cache compartilhado entre requisições.
+    return {
+        "ts": cached["ts"],
+        "category": cached["category"],
+        "results": [dict(r) for r in cached["results"]],
+    }
 
 
 def registrar_ciclo(itens: int, duracao_min: float,

@@ -11,16 +11,20 @@ import json
 import threading
 from pathlib import Path
 
-from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
+from lodout import _paths
+from lodout._paths import atomic_write_text, load_json_record
 
 try:
     import fcntl
 except ImportError:
     fcntl = None
 
-_DEFAULT_PATH = DATA_DIR / "buscas.json"
 _CAP = 200  # termos distintos guardados -- evita crescimento sem limite
 _LOCK = threading.Lock()
+
+
+def _caminho_padrao() -> Path:
+    return Path(_paths.DATA_DIR) / "buscas.json"
 
 
 @contextlib.contextmanager
@@ -46,7 +50,7 @@ def registrar(termo: str, path: "Path | str | None" = None) -> None:
     termo = (termo or "").strip().lower()
     if not termo:
         return
-    p = Path(path) if path is not None else _DEFAULT_PATH
+    p = Path(path) if path is not None else _caminho_padrao()
     with _lock_arquivo(p):
         data = load_json_record(p, {})
         if not isinstance(data, dict):
@@ -65,7 +69,7 @@ def registrar(termo: str, path: "Path | str | None" = None) -> None:
 def mais_buscados(limite: int = 10,
                   path: "Path | str | None" = None) -> list[tuple[str, int]]:
     """[(termo, contagem)] dos mais buscados, maior primeiro."""
-    p = Path(path) if path is not None else _DEFAULT_PATH
+    p = Path(path) if path is not None else _caminho_padrao()
     data = load_json_record(p, {})
     if not isinstance(data, dict):
         return []

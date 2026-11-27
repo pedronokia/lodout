@@ -501,10 +501,15 @@ def create_app() -> Flask:
         if busca:
             buscas.registrar(busca)
 
+        base_candidatos = (
+            recommendations.buy_candidates(
+                scan["results"], owned_names=set(),
+                limit=len(scan["results"]) or 1)
+            if scan else [])
         todos = _candidatos_filtrados(
             scan, categoria, nota_min, preco_max, busca, ordenar,
             liquidez_min, com_historico=False, com_icone=False,
-            **filtros_steam)
+            base_candidatos=base_candidatos, **filtros_steam)
         # Total real da aba "Todas" -- achado 2026-10-30: `scan["results"]`
         # inclui item com risco alto de pump, que `buy_candidates` descarta
         # antes de qualquer filtro do visitante. Sem isto a aba dizia um
@@ -517,16 +522,14 @@ def create_app() -> Flask:
         # resultado, a tela dizia "Nenhum item" e as abas "Facas 7".
         sem_categoria = (todos if not categoria else _candidatos_filtrados(
             scan, None, nota_min, preco_max, busca, ordenar, liquidez_min,
-            com_historico=False, com_icone=False, **filtros_steam))
+            com_historico=False, com_icone=False,
+            base_candidatos=base_candidatos, **filtros_steam))
         total_geral = len(sem_categoria)
         # Itens coletados que a lista nunca mostra (risco alto de alta
         # artificial, descartados em `buy_candidates`). A linha de status
         # conta o scan inteiro; sem isto ela dizia 183 e a aba "Todas" 173,
         # sem explicar a diferença (2026-11-14).
-        ocultos_risco = (len(scan["results"]) - len(
-            recommendations.buy_candidates(
-                scan["results"], owned_names=set(),
-                limit=len(scan["results"]) or 1))) if scan else 0
+        ocultos_risco = (len(scan["results"]) - len(base_candidatos)) if scan else 0
         contagem_abas: dict = {}
         for c in sem_categoria:
             if c.get("category"):
@@ -597,15 +600,6 @@ def create_app() -> Flask:
         if pagina == 1 and sem_filtro_ativo:
             snaps = ranking.load_snapshots()
             resumo_do_dia = _resumo_do_dia(snaps[-1] if snaps else None)
-            # Imagem do item nos cartões de "Maiores mudanças" (eram só
-            # texto, destoando do resto da home). Hash do ícone vem do scan.
-            if resumo_do_dia and resumo_do_dia.get("movimentos") and scan:
-                icones = {r.get("name"): r.get("icon") for r in scan.get("results") or []}
-                for m in resumo_do_dia["movimentos"]:
-                    h = icones.get(m["name"])
-                    m["icon_url"] = url_for("icone_cache", hash_icone=h, v=3) if h else None
-                    m["icon_url_2x"] = (url_for("icone_cache", hash_icone=h, v=3, tam=384)
-                                        if h else None)
         _marca("ranking")
         # Hero "nota mais alta hoje" (revisão de direção visual
         # 2026-11-08) -- a home abria direto no formulário de filtro, sem
@@ -617,16 +611,12 @@ def create_app() -> Flask:
         # "destaque") -- é uma leitura do dado, não uma recomendação (ver
         # AGENTS.md, "não promete retorno").
         destaque_hero = None
-        market_pulse = None
-        if pagina == 1 and sem_filtro_ativo and ordenar == "nota" and todos:
-            market_pulse = _calcular_market_pulse(todos, scan)
         if pagina == 1 and sem_filtro_ativo and ordenar == "nota" and candidatos_pagina:
             destaque_hero = candidatos_pagina[0]
         resp = make_response(render_template(
             "index.html",
             candidatos=candidatos_pagina,
             destaque_hero=destaque_hero,
-            market_pulse=market_pulse,
             scan=scan,
             resumo_do_dia=resumo_do_dia,
             idade=scan_store.idade_txt(scan["ts"]) if scan else None,
@@ -1343,8 +1333,7 @@ def create_app() -> Flask:
         if periodo not in _PERIODOS_CONSISTENCIA:
             periodo = _PERIODO_CONSISTENCIA_PADRAO
         dias = _PERIODOS_CONSISTENCIA[periodo][0]
-        agora = time.time()
-        consistente = notas_historico.ranking_consistente(dias, agora=agora)
+        consistente = notas_historico.ranking_consistente(dias)
         scan = scan_store.load_last_scan()
         por_nome_scan = {r["name"]: r for r in (scan or {}).get("results") or []}
         com_pagina = _nomes_com_pagina(scan)
@@ -2184,73 +2173,6 @@ def _resumo_entre(atual: "dict | None",
     }
 
 
-def _calcular_market_pulse(candidatos: list[dict], scan: dict | None) -> dict | None:
-    """Termômetro do Mercado (4 destaques para o topo da Home).
-    Calculado só com os dados do scan atual, sem nenhuma consulta à Steam.
-    Garante que cada cartão exiba um item distinto para evitar duplicações."""
-    if not candidatos:
-        return None
-
-    escolhidos = set()
-
-    # 1. Top Nota do scan
-    top_score = max(candidatos, key=lambda c: c.get("score") or 0)
-    escolhidos.add(top_score.get("name"))
-
-    # 2. Maior Queda recente (distinto)
-    em_queda = [
-        c for c in candidatos
-        if c.get("name") not in escolhidos
-        and isinstance(c.get("variacao_pct"), (int, float))
-        and c["variacao_pct"] < 0
-    ]
-    maior_queda = min(em_queda, key=lambda c: c["variacao_pct"]) if em_queda else None
-    if not maior_queda:
-        restantes = [c for c in candidatos if c.get("name") not in escolhidos]
-        if restantes:
-            maior_queda = min(restantes, key=lambda c: (c.get("price") or 999999))
-    if maior_queda:
-        escolhidos.add(maior_queda.get("name"))
-
-    # 3. Mais Negociado em volume (distinto)
-    com_volume = [
-        c for c in candidatos
-        if c.get("name") not in escolhidos
-        and isinstance(c.get("volume"), (int, float))
-        and c["volume"] > 0
-    ]
-    mais_negociado = max(com_volume, key=lambda c: c["volume"]) if com_volume else None
-    if mais_negociado:
-        escolhidos.add(mais_negociado.get("name"))
-
-    # 4. Caixa ou Cápsula em alta (distinto do top_score e demais)
-    containers = [
-        c for c in candidatos
-        if c.get("name") not in escolhidos
-        and (c.get("is_container") or c.get("category") in ("Caixas", "Cápsulas"))
-    ]
-    destaque_container = max(containers, key=lambda c: c.get("score") or 0) if containers else None
-    if not destaque_container:
-        restantes = [c for c in candidatos if c.get("name") not in escolhidos]
-        if restantes:
-            destaque_container = max(restantes, key=lambda c: c.get("score") or 0)
-    if destaque_container:
-        escolhidos.add(destaque_container.get("name"))
-
-    pulse_itens = [it for it in (top_score, maior_queda, mais_negociado, destaque_container) if it]
-    for it in pulse_itens:
-        h = it.get("icon")
-        if h and not it.get("icon_url"):
-            it["icon_url"] = f"/icone/{h}.webp?v=3"
-
-    return {
-        "top_score": top_score,
-        "maior_queda": maior_queda,
-        "mais_negociado": mais_negociado,
-        "destaque_container": destaque_container,
-    }
-
-
 def _desde_txt(ts: float) -> str:
     """ "desde ontem" para o ranking de ~1 dia atrás; senão a data
     (revisão 17/11: "desde o ranking salvo há 1 dia" era jargão)."""
@@ -2575,7 +2497,8 @@ def _candidatos_filtrados(
         com_icone: bool = True,
         exterior: "str | None" = None,
         raridade_sel: "str | None" = None,
-        versao: "str | None" = None) -> list[dict]:
+        versao: "str | None" = None,
+        base_candidatos: "list[dict] | None" = None) -> list[dict]:
     """Candidatos públicos: sem dono (sem login ainda), já filtrados.
 
     Sem limite aqui de propósito -- a paginação é responsabilidade de quem
@@ -2604,8 +2527,11 @@ def _candidatos_filtrados(
     """
     if not scan:
         return []
-    candidatos = recommendations.buy_candidates(
-        scan["results"], owned_names=set(), limit=len(scan["results"]) or 1)
+    candidatos = ([dict(r) for r in base_candidatos]
+                  if base_candidatos is not None
+                  else recommendations.buy_candidates(
+                      scan["results"], owned_names=set(),
+                      limit=len(scan["results"]) or 1))
     out = []
     for c in candidatos:
         if categoria and c.get("category") != categoria:

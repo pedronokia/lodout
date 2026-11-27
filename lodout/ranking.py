@@ -20,6 +20,10 @@ _RANKINGS_PATH = DATA_DIR / "rankings.json"
 # 150 = ~37 dias com o worker de 6 em 6h -- margem folgada: o /ranking hoje
 # só compara com ~24h atrás (`_snapshot_de_comparacao` em public_site/server.py).
 _SNAPSHOT_CAP = 150
+# Cache em memória dos snapshots de rankings.json, pela identidade do
+# arquivo (caminho, mtime_ns, tamanho): o arquivo só muda a cada coleta,
+# mas era relido inteiro em toda visita à home e ao /ranking.
+_CACHE_SNAPSHOTS: dict = {"chave": None, "dados": []}
 
 
 def save_snapshot(results: list[dict],
@@ -54,6 +58,7 @@ def save_snapshot(results: list[dict],
         data = data[-_SNAPSHOT_CAP:]
     try:
         atomic_write_text(p, json.dumps(data, indent=2))
+        _CACHE_SNAPSHOTS["chave"] = None
     except OSError as e:
         print(f"WARNING: failed to save ranking snapshot: {e}",
               file=__import__('sys').stderr)
@@ -63,8 +68,16 @@ def save_snapshot(results: list[dict],
 def load_snapshots(path: Path | str = _RANKINGS_PATH) -> list[dict]:
     """Retorna todos os snapshots (mais recente por ultimo)."""
     p = Path(path)
-    data = load_json_record(p, [])
-    return data if isinstance(data, list) else []
+    try:
+        st = p.stat()
+    except OSError:
+        return []
+    chave = (str(p.resolve()), st.st_mtime_ns, st.st_size)
+    if _CACHE_SNAPSHOTS["chave"] != chave:
+        data = load_json_record(p, [])
+        _CACHE_SNAPSHOTS["dados"] = data if isinstance(data, list) else []
+        _CACHE_SNAPSHOTS["chave"] = chave
+    return list(_CACHE_SNAPSHOTS["dados"])
 
 
 def latest_before(ts: float, path: Path | str = _RANKINGS_PATH) -> dict | None:
@@ -103,6 +116,7 @@ def clear_rankings(path: Path | str = _RANKINGS_PATH) -> None:
     """Limpa todos os snapshots."""
     try:
         atomic_write_text(path, "[]")
+        _CACHE_SNAPSHOTS["chave"] = None
     except OSError as e:
         print(f"WARNING: failed to clear rankings: {e}",
               file=__import__('sys').stderr)

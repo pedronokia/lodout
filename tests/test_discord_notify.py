@@ -101,3 +101,31 @@ def test_enviar_url_invalida_nao_chama_rede(monkeypatch):
     monkeypatch.setattr("httpx.Client", lambda **kw: fake)
     assert discord_notify.enviar("http://169.254.169.254/", "oi") is False
     assert fake.chamadas == []
+
+
+def test_enviar_embed_sucesso_falha_rede_e_ssrf(monkeypatch):
+    payload = {"embeds": [{"title": "Alerta", "description": "Subiu"}]}
+
+    # Sucesso (200 e 204)
+    for code in (200, 204):
+        fake = _FakeClient(status_code=code)
+        monkeypatch.setattr("httpx.Client", lambda **kw: fake)
+        assert discord_notify.enviar_embed(_WEBHOOK_OK, payload) is True
+        assert fake.chamadas == [(_WEBHOOK_OK, payload)]
+
+    # Falha HTTP
+    fake_err = _FakeClient(status_code=400)
+    monkeypatch.setattr("httpx.Client", lambda **kw: fake_err)
+    assert discord_notify.enviar_embed(_WEBHOOK_OK, payload) is False
+
+    # Exceção de rede
+    fake_net = _FakeClient(levanta=OSError("timeout"))
+    monkeypatch.setattr("httpx.Client", lambda **kw: fake_net)
+    assert discord_notify.enviar_embed(_WEBHOOK_OK, payload) is False
+
+    # URL inválida / SSRF: bloqueada antes de abrir cliente HTTP
+    fake_ssrf = _FakeClient(status_code=204)
+    monkeypatch.setattr("httpx.Client", lambda **kw: fake_ssrf)
+    assert discord_notify.enviar_embed("http://169.254.169.254/latest", payload) is False
+    assert discord_notify.enviar_embed("", payload) is False
+    assert fake_ssrf.chamadas == []
