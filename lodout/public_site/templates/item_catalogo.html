@@ -13,9 +13,9 @@
   <meta property="og:title" content="{{ item.name_fmt }} — Lodout">
   <meta property="og:description" content="{{ item.price_fmt }} hoje · {{ item.a_venda }} à venda no Mercado da Steam">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:url" content="{{ request.base_url }}">
   <meta property="og:locale" content="pt_BR">
-  <link rel="canonical" href="{{ request.url }}">
+  <link rel="canonical" href="{{ request.base_url }}">
   {% include "partials/_head_pwa.html" %}
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>

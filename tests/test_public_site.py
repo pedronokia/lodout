@@ -1594,6 +1594,8 @@ def test_index_sem_busca_nao_registra_termo(client, monkeypatch):
 
 
 def test_changelog_feed_xml(client):
+    import xml.etree.ElementTree as ET
+
     resp = client.get("/changelog.xml")
     assert resp.status_code == 200
     assert resp.mimetype == "application/rss+xml"
@@ -1603,6 +1605,51 @@ def test_changelog_feed_xml(client):
     body = resp.data.decode("utf-8")
     assert body.count("<link>") == body.count("<item>") + 1  # +1 do <channel>
     assert "<link>http://localhost/changelog</link>" in body
+
+    raiz = ET.fromstring(resp.data)
+    itens = raiz.findall("./channel/item")
+    assert len(itens) == len(changelog.ENTRADAS)
+    guids = [it.findtext("guid") for it in itens]
+    links = [it.findtext("link") for it in itens]
+    assert len(guids) == len(set(guids))
+    assert len(links) == len(set(links))
+    assert all(lk.startswith("http://localhost/changelog#em-") for lk in links)
+
+
+def test_changelog_ids_unicos_e_ancoras_estaveis(client):
+    body = client.get("/changelog").data.decode("utf-8")
+    ids = re.findall(r'class="changelog-entrada"\s+id="([^"]+)"', body)
+    assert len(ids) == len(changelog.ENTRADAS)
+    assert len(ids) == len(set(ids))
+
+    # Acrescentar uma nova entrada no topo para a mesma data não muda a
+    # âncora nem o guid da entrada anterior.
+    base = [{"data": "2026-11-27", "titulo": "A", "itens": ["1"]}]
+    com_nova = [{"data": "2026-11-27", "titulo": "B", "itens": ["2"]}] + base
+    r1 = changelog.entradas_com_ancora(base)
+    r2 = changelog.entradas_com_ancora(com_nova)
+    assert r1[0]["ancora"] == "em-2026-11-27"
+    assert r2[1]["ancora"] == "em-2026-11-27"
+    assert r2[1]["guid"] == "2026-11-27"
+    assert r2[0]["ancora"] == "em-2026-11-27-2"
+    assert r2[0]["guid"] == "2026-11-27-2"
+
+
+def test_canonical_e_jsonld_ignoram_query_string_arbitraria(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "category": "Rifles",
+         "breakdown": []},
+    ])
+    for rota in ("/ranking", "/metodo", "/status", "/changelog",
+                 "/faq", "/glossario", "/como-usar", "/sobre",
+                 "/privacidade", "/novidades", "/api",
+                 "/item/AK-47%20%7C%20Redline%20(Field-Tested)"):
+        body = client.get(f"{rota}?utm_source=teste&fbclid=123").data.decode("utf-8")
+        m = re.search(r'<link rel="canonical" href="([^"]+)"', body)
+        assert m, rota
+        assert "?" not in m.group(1), (rota, m.group(1))
+        assert "utm_source" not in body, rota
 
 
 def test_metodo_page(client):

@@ -616,3 +616,24 @@ ENTRADAS = [
         ],
     },
 ]
+
+
+def entradas_com_ancora(entradas: "list[dict] | None" = None) -> "list[dict]":
+    """Devolve cópias das entradas com `ancora` (id HTML único) e `guid`
+    (identificador único para o RSS).
+
+    Datas repetidas recebem sufixo cronológico (-2, -3...) contando da
+    entrada mais antiga do dia para a mais nova, assim acrescentar uma
+    entrada no topo não muda a âncora nem o guid das anteriores.
+    """
+    lista = ENTRADAS if entradas is None else entradas
+    vistos: dict[str, int] = {}
+    out_rev: list[dict] = []
+    for e in reversed(lista):
+        data = str(e["data"])
+        n = vistos.get(data, 0) + 1
+        vistos[data] = n
+        sufixo = "" if n == 1 else f"-{n}"
+        out_rev.append({**e, "ancora": f"em-{data}{sufixo}", "guid": f"{data}{sufixo}"})
+    out_rev.reverse()
+    return out_rev

@@ -1255,7 +1255,8 @@ def create_app() -> Flask:
 
     @app.route("/changelog")
     def changelog_page():
-        return render_template("changelog.html", entradas=changelog.ENTRADAS)
+        return render_template(
+            "changelog.html", entradas=changelog.entradas_com_ancora())
 
     @app.route("/changelog.xml")
     def changelog_feed():
@@ -1264,15 +1265,11 @@ def create_app() -> Flask:
         itens_xml = "\n".join(
             "    <item>\n"
             f"      <title>{_xml_escape(e['data'])} — {_xml_escape(e['titulo'])}</title>\n"
-            # Opcional pela spec RSS 2.0, mas sem nenhum <link> o item não
-            # tinha pra onde clicar -- achado 2026-11-01. Sem âncora por
-            # entrada ainda (changelog.html não tem id por data), então
-            # aponta pra página toda.
-            f"      <link>{_xml_escape(link_changelog)}</link>\n"
+            f"      <link>{_xml_escape(link_changelog + '#' + e['ancora'])}</link>\n"
             f"      <description>{_xml_escape('; '.join(e['itens']))}</description>\n"
-            f"      <guid isPermaLink=\"false\">{_xml_escape(e['data'])}</guid>\n"
+            f"      <guid isPermaLink=\"false\">{_xml_escape(e['guid'])}</guid>\n"
             "    </item>"
-            for e in changelog.ENTRADAS
+            for e in changelog.entradas_com_ancora()
         )
         rss = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'

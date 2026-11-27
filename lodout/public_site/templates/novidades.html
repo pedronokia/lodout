@@ -6,7 +6,7 @@
   <title>Novidades do Counter-Strike 2 — Lodout</title>
   <meta name="description" content="Mudanças nos arquivos do Counter-Strike 2 (drops, Armory, caixas novas) e anúncios oficiais da Valve.">
   <meta property="og:locale" content="pt_BR">
-  <link rel="canonical" href="{{ request.url }}">
+  <link rel="canonical" href="{{ request.base_url }}">
   {% include "partials/_head_pwa.html" %}
   <link rel="alternate" type="application/rss+xml" title="Lodout — Preços e notas" href="{{ url_for('feed') }}">
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
@@ -16,7 +16,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Lodout", "item": "{{ request.url_root }}"},
-      {"@type": "ListItem", "position": 2, "name": "Novidades", "item": "{{ request.url }}"}
+      {"@type": "ListItem", "position": 2, "name": "Novidades", "item": "{{ request.base_url }}"}
     ]
   }
   </script>
