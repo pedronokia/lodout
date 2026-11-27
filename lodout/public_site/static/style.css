@@ -11166,7 +11166,9 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .pagina-inicial .home-tese-texto {
-  font-size: 0.9375rem;
+  /* 17px, o texto normal do site (pedido do usuário, 27/11; era 15px,
+     fora da escala). */
+  font-size: var(--fs-base);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.68);
   max-width: 720px;
@@ -11177,6 +11179,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-size: inherit;
   color: var(--accent);
   font-weight: 500;
   text-decoration: none;
