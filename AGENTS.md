@@ -164,6 +164,12 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   O worker semeia `_PAGE_CACHE` em `steam_api` (TTL 2 h, limpo no início de cada
   ciclo); variantes irmãs do mesmo skin no ciclo são avaliadas diretamente do
   cache sem consultas HTTP adicionais à Steam e sem risco de 429.
+- Modo 1 requisição por item (`worker._fonte_do_ciclo`, `LODOUT_SCAN_FONTE=pagina`):
+  em 27/11 o critério foi atualizado para validar diretamente `nota_com_pagina`
+  (`itens >= 50`, `mais_de_5_pontos == 0`, `diferenca_media <= 0.5`) enquanto a
+  mediana estiver fora da nota (`signals._MEDIANA_PESO == 0`), mantendo a trava
+  de mediana caso o peso volte. Pronto no código para testar/ativar depois do
+  teste de 3 dias do catálogo (sem reiniciar o worker antes disso).
 
 ### Evidência histórica do modelo
 

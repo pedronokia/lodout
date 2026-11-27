@@ -5546,6 +5546,80 @@ def test_fonte_do_ciclo_ligada_exige_medicao_boa(monkeypatch):
     assert worker._fonte_do_ciclo([]) == ("ambas", None)
 
 
+def test_fonte_do_ciclo_usa_nota_com_pagina_quando_mediana_fora_da_nota(monkeypatch):
+    from lodout import signals
+
+    monkeypatch.setenv("LODOUT_SCAN_FONTE", "pagina")
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 0.0)
+    # Cenário real de produção (27/11): mediana diverge (~80%), mas a mediana
+    # saiu da nota em 22/11 e `nota_com_pagina` mostra 0 notas alteradas.
+    prod = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "mediana_concorda_pct": 80.6,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mudariam": 0,
+            "mudariam_pct": 0.0,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.0,
+        },
+    }}
+    assert worker._fonte_do_ciclo([prod]) == ("pagina", 0.01)
+
+    # Se a nota divergir (mesmo com mediana >= 90%), reprova.
+    nota_divergente = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "mediana_concorda_pct": 95.0,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mais_de_5_pontos": 1,
+            "diferenca_media": 0.2,
+        },
+    }}
+    assert worker._fonte_do_ciclo([nota_divergente]) == ("ambas", None)
+
+    dif_media_alta = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.8,
+        },
+    }}
+    assert worker._fonte_do_ciclo([dif_media_alta]) == ("ambas", None)
+
+    amostra_curta = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "nota_com_pagina": {
+            "itens": 20,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.0,
+        },
+    }}
+    assert worker._fonte_do_ciclo([amostra_curta]) == ("ambas", None)
+
+    # Se o peso da mediana voltar no futuro, volta a exigir mediana >= 90%.
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)
+    assert worker._fonte_do_ciclo([prod]) == ("ambas", None)
+    prod_mediana_ok = {"comparacao_fontes": {
+        **prod["comparacao_fontes"], "mediana_concorda_pct": 92.0,
+    }}
+    assert worker._fonte_do_ciclo([prod_mediana_ok]) == ("pagina", 0.01)
+    assert worker._fonte_do_ciclo([nota_divergente]) == ("ambas", None)
+
+
 # ── auditoria Web Interface Guidelines (2026-11-13) ─────────────
 
 def test_theme_color_e_do_tema_escuro(client):
