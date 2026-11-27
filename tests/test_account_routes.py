@@ -1073,3 +1073,17 @@ def test_atualizar_custo_json_avalia_carteira_em_uma_passada_e_usa_meta_da_conta
     assert chamadas_preco == 1
 
 
+def test_login_rotaciona_csrf_token(client, monkeypatch):
+    with client.session_transaction() as sess:
+        sess["csrf_token"] = "token-pre-login"
+    _login(client, monkeypatch)
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token") != "token-pre-login"
+    # Abrir /conta gera um token novo, diferente do anterior ao login.
+    client.get("/conta")
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token")
+        assert sess["csrf_token"] != "token-pre-login"
+
+
+

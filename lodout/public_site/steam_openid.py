@@ -81,6 +81,16 @@ def verify_callback(args: "dict[str, str]") -> "str | None":
     except httpx.HTTPError:
         return None
 
-    if "is_valid:true" not in resp.text:
+    if getattr(resp, "status_code", 200) != 200:
+        return None
+    # Formato Key-Value Form do OpenID 2.0: exige exatamente uma linha
+    # `is_valid:true`, evitando falso positivo por substring em outro campo.
+    valores_valid = []
+    for linha in (resp.text or "").splitlines():
+        if ":" in linha:
+            chave, valor = linha.split(":", 1)
+            if chave.strip() == "is_valid":
+                valores_valid.append(valor.strip())
+    if valores_valid != ["true"]:
         return None
     return m.group(1)

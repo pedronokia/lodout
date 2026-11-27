@@ -2071,15 +2071,22 @@ def test_admin_logout_encerra_sessao(client, monkeypatch):
     monkeypatch.setattr(
         "lodout.public_site.server._ADMIN_PASSWORD_HASH",
         generate_password_hash("segredo"))
+    with client.session_transaction() as sess:
+        sess["csrf_token"] = "token-pre-admin"
     client.post("/admin/login", data={"senha": "segredo"})
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token") != "token-pre-admin"
     assert client.get("/admin").status_code == 200
     assert client.get("/admin/logout").status_code == 405
     assert client.post("/admin/logout", data={}).status_code == 403
     with client.session_transaction() as sess:
         token = sess["csrf_token"]
+        assert token != "token-pre-admin"
     logout = client.post("/admin/logout", data={"csrf_token": token})
     assert logout.status_code == 302
     assert client.get("/admin").status_code == 302
+    with client.session_transaction() as sess:
+        assert "csrf_token" not in sess
 
 
 def test_status_mostra_grafico_e_buscas_populares(client, monkeypatch):

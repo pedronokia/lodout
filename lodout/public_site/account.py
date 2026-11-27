@@ -336,6 +336,7 @@ def login_callback():
         persona_name=perfil.get("name"),
         avatar_url=perfil.get("avatar_url"),
     )
+    session.pop("csrf_token", None)
     session["steamid"] = steamid
     session.permanent = True  # 30 dias ou até "Sair" (PERMANENT_SESSION_LIFETIME)
     # Inventário sincroniza sozinho a cada login (ação da própria pessoa),

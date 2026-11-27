@@ -1426,6 +1426,7 @@ def create_app() -> Flask:
         if request.method == "POST":
             senha = request.form.get("senha") or ""
             if check_password_hash(_ADMIN_PASSWORD_HASH, senha):
+                session.pop("csrf_token", None)
                 session["admin"] = time.time()
                 return redirect(url_for("admin"))
             erro = "Senha incorreta."
@@ -1437,6 +1438,7 @@ def create_app() -> Flask:
         if not csrf_valid(request.form.get("csrf_token")):
             return "", 403
         session.pop("admin", None)
+        session.pop("csrf_token", None)
         return redirect(url_for("index"))
 
     @app.route("/admin")
