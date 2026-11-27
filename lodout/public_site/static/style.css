@@ -295,8 +295,6 @@ h3, .card-valor {
 .icone-tendencia,
 .celula-preco,
 .hero-destaque-preco,
-.movimento-variacao,
-.movimento-delta,
 .variacao-nota,
 .nota-numero,
 .cartao-item-nota-numero,
@@ -809,15 +807,6 @@ footer.rodape .rodape-marca-nome {
   text-decoration: none;
 }
 
-/* As aspas da marca em laranja, como no topo. */
-.rodape-marca-icone {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-}
-
-.rodape-marca-icone .logo-aspas { fill: var(--accent); }
-
 /* "● Preços atualizados há 2 h · Status": bolinha verde; atrasada vira
    âmbar e a frase muda (não depende só da cor). */
 footer.rodape .rodape-frescor {
@@ -1170,102 +1159,6 @@ footer.rodape .rodape-base a:hover {
   color: inherit;
   font-size: inherit;
   font-weight: inherit;
-}
-
-/* Com imagem: miniatura à esquerda, mesmas três linhas à direita. */
-.movimento-do-dia.movimento-com-imagem {
-  grid-template-columns: 56px minmax(0, 1fr);
-  column-gap: var(--sp-3);
-}
-
-.movimento-com-imagem > :not(.movimento-icone) { grid-column: 2; }
-
-.movimento-icone {
-  grid-row: 1 / span 3;
-  width: 56px;
-  height: 56px;
-  align-self: center;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
-}
-
-.movimentos-do-dia-titulo {
-  margin: 0 0 var(--sp-2);
-  line-height: 1.4;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-}
-
-.movimentos-do-dia {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sp-3);
-  margin: 0 0 var(--sp-7);
-  padding: 0;
-  list-style: none;
-}
-
-.movimento-do-dia {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: center;
-  gap: var(--sp-1);
-  padding: var(--sp-3) var(--sp-4);
-  
-  border-radius: var(--radius-md);
-  
-  transition: box-shadow var(--dur-emphasis) var(--ease-standard), border-color var(--dur-emphasis) var(--ease-standard), transform var(--dur-base) var(--ease-standard);
-}
-
-/* Elevação, brilho e zoom de ícone dos cartões só com mouse (hover:
-   hover): em tela de toque o :hover "gruda" depois do toque e o cartão
-   ficava levantado. O foco por teclado (:focus-within) segue igual. */
-@media (hover: hover) {
-
-}
-
-/* O cartão já reage ao hover como clicável; o link do nome cobre o
-   cartão todo (antes só os 21px do nome levavam ao item). */
-.movimento-nome::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-}
-
-.movimento-nome {
-  overflow: hidden;
-  color: var(--text-bright);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.movimento-variacao {
-  font-variant-numeric: tabular-nums;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-}
-
-.movimento-delta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 640px) {
-  .movimentos-do-dia { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ── Raridade ────────────────────────────────────────── */
@@ -3795,17 +3688,6 @@ table.tabela-candidatos th.celula-comparar-cabecalho {
   font-weight: 600;
 }
 
-.pagina-texto .conta-revenda-texto,
-.conta-revenda-texto {
-  margin: 0;
-  color: var(--text);
-  font-size: var(--fs-sm);
-  line-height: 1.55;
-  text-align: left;
-}
-
-.conta-revenda-texto strong { color: var(--text-bright); }
-
 /* Três quadrinhos (30 dias, 90 dias, 1 ano) lado a lado, também no
    celular. O número grande é a resposta; a pergunta acima explica. */
 
@@ -4270,9 +4152,6 @@ table.tabela-conta th { white-space: normal; }
 
   color: var(--accent);
 }
-
-.grafico-card.grafico-tendencia-alta { color: var(--positive); }
-.grafico-card.grafico-tendencia-baixa { color: var(--danger); }
 
 .grafico-historico {
   display: block;
@@ -5566,9 +5445,6 @@ a.paginacao-passo:active {
 /* Datas, contagens e durações da tabela de coletas alinhadas. */
 .tabela-status td { font-variant-numeric: tabular-nums; }
 
-/* Mesmo retorno ao toque dos outros cartões clicáveis. */
-.movimento-do-dia:active { transform: scale(0.98); }
-
 /* ── Conta: polimento (2026-11-15) ───────────────────────────────────
    No fim do arquivo de propósito: vale sobre as regras gerais de
    tabela/cartões acima. O que é só de computador fica em min-width
@@ -6535,11 +6411,9 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
    prejuízo", com borda neutra, e o valor de destaque em linha própria. */
 .conta-revenda.encomenda { border-color: var(--border); }
 
-.pagina-texto .encomenda .conta-revenda-texto + .conta-revenda-nota,
 .encomenda .conta-revenda-nota { margin-top: var(--sp-2); }
 .encomenda-linha { color: var(--text-muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
 .encomenda-linha strong { color: var(--text); font-weight: 600; }
-.cartao-item-encomenda { margin: 4px 0 0; }
 
 /* Tese do site no topo da home (revisão 17/11): o <h1> era oculto e
    quem chegava pelo celular não via o que é o Lodout. Compacto, para o
@@ -6594,12 +6468,10 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 /* Avisos e explicações do Ranking */
 .ranking-base, .aviso-periodo-ranking { width: 100%; box-sizing: border-box; }
 /* Quadros "revender sem prejuízo" e "comprar por encomenda" do item. */
-.pagina-item .conta-revenda-texto, .pagina-item .conta-revenda-nota { max-width: 58ch; }
+.pagina-item .conta-revenda-nota { max-width: 58ch; }
 /* "Abrir na Steam" ao lado do valor: copiar e já ir colar (17/11). */
 .encomenda-steam {      margin: -4px 0 -4px 4px;   vertical-align: middle;  }
 .encomenda-steam .icone-ui { width: 15px; height: 15px; }
-
-.encomenda .conta-revenda-texto + .conta-revenda-texto { margin-top: var(--sp-2); }
 
 .encomenda-steam:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* Página do item: botão de copiar a encomenda em destaque claro e direto */
@@ -6688,40 +6560,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 
 }
 
-/* "Meus trades" = trocas (17/11): dois lados, várias linhas por lado. */
-.form-troca { display: grid; gap: var(--sp-3); }
-/* Os dois lados da troca sem moldura própria (polimento 17/11: eram
-   quadros dentro do cartão); uma linha fina no meio separa. */
-.troca-lados { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
-.troca-lado { display: grid; gap: var(--sp-2); margin: 0; padding: 0; border: 0; min-width: 0; }
-.troca-lado + .troca-lado { padding-left: var(--sp-6); border-left: 1px solid var(--border); }
-.troca-lado legend { float: left; width: 100%; margin: 0 0 var(--sp-1); padding: 0; color: var(--text-bright); font-weight: 600; }
-.troca-linha { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem 7.5rem; gap: var(--sp-2); align-items: end; }
-.troca-linha input { width: 100%; min-width: 0; height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
-.troca-linha input:focus-visible { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-halo); }
-.troca-linha .campo-adicionar-nome { min-width: 0; }
-.troca-mais { justify-self: start; min-height: 32px; }
-.troca-mais[hidden],
 .botao-link[hidden] { display: none; }
-.troca-ajuda { margin: 0; }
-.troca-rodape { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); align-items: flex-end; }
-.troca-rodape input { height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: var(--fs-base); }
-
-.troca-card { display: grid; gap: var(--sp-2); }
-
-.troca-coluna-titulo {   gap: var(--sp-2);     }
-
-.troca-item-texto { display: flex; flex-wrap: wrap; gap: 2px 6px; min-width: 0; }
-.troca-item-valor { color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.troca-saldo { margin: 0;  font-variant-numeric: tabular-nums; }
-.troca-card .form-remover { justify-self: end; }
-@media (max-width: 640px) {
-  .troca-lados, .troca-colunas { grid-template-columns: 1fr; }
-  .troca-lado + .troca-lado { padding: var(--sp-4) 0 0; border-left: 0; border-top: 1px solid var(--border); }
-  .troca-linha { grid-template-columns: 5rem minmax(0, 1fr); }
-  .troca-linha .campo-adicionar-nome { grid-column: 1 / -1; }
-  .troca-rodape { align-items: stretch; flex-direction: column; }
-}
 
 /* "N pessoas no site agora" no rodapé (17/11): nasce hidden quando zero. */
 .rodape-online {
@@ -7592,19 +7431,6 @@ circle.grafico-ponto-interativo:hover {
   transform: scale(1.08);
 }
 
-.cartao-item-encomenda {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 .cartao-item-steam:hover {
   color: var(--text-bright);
 }
@@ -7678,49 +7504,6 @@ circle.grafico-ponto-interativo:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.26);
-}
-
-/* 9. Maiores Mudanças de Nota Hoje (.movimento-do-dia) */
-.movimento-do-dia {
-  background: linear-gradient(180deg, rgba(32, 32, 32, 0.7) 0%, rgba(20, 20, 20, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.movimento-icone {
-  border-radius: 8px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.3) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  padding: 4px;
-}
-
-.movimento-delta {
-  padding: 1px 7px;
-  border-radius: var(--radius-pill);
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.02em;
-}
-
-.movimento-alta {
-  color: #39c266;
-  background: rgba(57, 194, 102, 0.12);
-  border: 1px solid rgba(57, 194, 102, 0.3);
-}
-
-.movimento-baixa {
-  color: #ff6e70;
-  background: rgba(255, 110, 112, 0.12);
-  border: 1px solid rgba(255, 110, 112, 0.3);
-}
-
-@media (hover: hover) {
-  .movimento-do-dia:hover {
-    border-color: rgba(249, 115, 22, 0.4);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.45);
-    transform: translateY(-2px);
-  }
 }
 
 /* 10. Status da Coleta Ao Vivo */
@@ -7943,42 +7726,6 @@ circle.grafico-ponto-interativo:hover {
   line-height: 1.6;
   color: #a3a3a3;
 }
-
-/* 17. Status Page Micro-Components (/status) */
-
-.busca-tags-grid[hidden] { display: none; }
-
-.busca-tag-chip {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--radius-pill);
-  padding: 5px 12px;
-  font-size: var(--fs-xs);
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  transition: all 0.15s ease;
-}
-.busca-tag-chip[hidden] { display: none; }
-
-.busca-tag-chip:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(249, 115, 22, 0.4);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.lista-status-catalogo[hidden] { display: none; }
-
-.lista-status-catalogo li {
-
-  line-height: 1.5;
-  
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-/* 18. Termômetro do Mercado Tightening */
 
 /* 19. Tabela de Candidatos Precision Polishing (Modo Lista) */
 .tabela-candidatos th {
@@ -9198,10 +8945,6 @@ h3,
   box-shadow: none;
 }
 
-.filtros-barra-acoes {
-  display: none;
-}
-
 /* Card popover elegante do Filtros */
 .filtros-mais {
   display: flex;
@@ -9523,10 +9266,6 @@ h3,
 }
 
 @media (max-width: 640px) {
-  .filtros-barra-acoes {
-    flex-wrap: wrap;
-  }
-
   .filtros-mais-corpo {
     grid-template-columns: 1fr 1fr;
   }
@@ -10971,92 +10710,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   letter-spacing: 0.04em;
 }
 
-/* Trades: Cards de Troca */
-.lista-trocas {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  list-style: none;
-  padding: 0;
-  margin: var(--sp-4) 0;
-}
-
-.troca-card {
-  padding: 20px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.20);
-}
-
-.troca-data {
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.50);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0 0 12px;
-}
-
-.troca-colunas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.troca-coluna {
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.troca-coluna-titulo {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 0 10px;
-}
-
-.troca-coluna-total {
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: #f8fafc;
-}
-
-.troca-itens {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.troca-itens li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: var(--fs-xs);
-}
-
-.troca-saldo {
-  font-size: var(--fs-xs);
-  color: rgba(255, 255, 255, 0.75);
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 /* Histórico: Card do Gráfico */
 .grafico-card {
   padding: 20px;
@@ -11134,11 +10787,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .home-tese-selo-texto {
   display: inline;
-}
-
-.home-tese-selo-sep {
-  opacity: 0.35;
-  padding: 0 3px;
 }
 
 .home-tese-selo strong {
@@ -11780,55 +11428,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   margin-bottom: var(--sp-4);
 }
 
-.busca-tags-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: var(--sp-2) 0 var(--sp-4);
-}
-
-.busca-tags-grid li a {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.80);
-  font-size: var(--fs-xs);
-  text-decoration: none;
-  transition: all 0.15s ease;
-}
-
-.busca-tags-grid li a:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-.lista-status-catalogo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
-  list-style: none;
-  padding: 0;
-  margin: var(--sp-2) 0 var(--sp-4);
-}
-
-.lista-status-catalogo li {
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: var(--fs-xs);
-  color: rgba(255, 255, 255, 0.80);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 /* --- 6. Ficha do Item (/item/<nome>): Hero, Simulador de Revenda & Variantes --- */
 
 .hero-item {
@@ -12032,7 +11631,6 @@ footer.rodape a:hover {
   backdrop-filter: none;
   background-color: rgba(12, 12, 12, 0.82);
 }
-.movimento-do-dia,
 .ranking-bloco,
 .hero-destaque,
 .resumo-cards:not(.resumo-cards-item) .card,
@@ -12222,25 +11820,6 @@ footer.rodape a:hover {
 .campo-reais-sufixo { color: var(--text-muted); }
 button.confira { min-height: 24px; padding-block: 3px; }
 
-/* Trocas: saldo à esquerda, "apagar" à direita, na mesma linha. */
-.troca-fim {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px var(--sp-3);
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-.troca-fim .troca-saldo {
-  display: block;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.troca-fim .form-remover { margin: 0; }
-
 /* Letra ampliada no celular (revisão 20/11): com a fonte do sistema no
    dobro, duas colunas ficavam estreitas demais e o preço da encomenda
    sumia do cartão. A coluna mínima em rem cresce junto com a letra.
@@ -12250,7 +11829,6 @@ button.confira { min-height: 24px; padding-block: 3px; }
 @media (max-width: 640px) {
   .grade-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); }
 }
-.cartao-item-encomenda { flex-wrap: wrap; max-width: 100%; }
 
 /* Busca rápida: o contorno de foco do campo acompanha o canto arredondado. */
 .spotlight-input:focus-visible { border-radius: 8px; }
