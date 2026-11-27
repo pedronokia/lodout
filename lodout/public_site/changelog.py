@@ -8,6 +8,13 @@ from __future__ import annotations
 
 ENTRADAS = [
     {
+        "data": "2026-11-27",
+        "titulo": "Letras mais uniformes",
+        "itens": [
+            "Tamanhos de letra mais uniformes na página inicial: os textos pequenos (contagem das abas, “ver mais”, coleção, “Destaque do dia”) seguem a mesma escala do resto do site, e o texto de apresentação ficou do tamanho do texto normal, mais fácil de ler.",
+        ],
+    },
+    {
         "data": "2026-11-26",
         "titulo": "Coleta mais transparente",
         "itens": [
