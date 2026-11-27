@@ -111,7 +111,10 @@ def bar_chart_svg(valores: "list[float]", dias: "list[str]",
         x = lado + i * passo + (passo - largura) / 2
         y = topo + area_h - h
         cx = x + largura / 2
-        rotular = i % a_cada == 0 or i == n - 1
+        # O último dia sempre ganha rótulo; o rótulo regular logo antes
+        # dele sai se ficar perto demais (27/11: "26/11" e "27/11" se
+        # sobrepunham no fim do gráfico de visitas).
+        rotular = i == n - 1 or (i % a_cada == 0 and (n - 1 - i) * 2 >= a_cada)
         titulo = f"<title>{_xml_escape(titulos[i])}</title>" if titulos else ""
         valor_txt = (
             f'<text x="{cx:.1f}" y="{y - 5:.1f}" text-anchor="middle" '

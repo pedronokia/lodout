@@ -129,3 +129,13 @@ def test_barras_muitos_dias_rotula_so_parte():
     svg = charts.bar_chart_svg(list(range(30)), dias)
     assert svg.count('class="barra"') == 30
     assert 2 <= svg.count('class="barra-dia"') <= 9
+
+
+def test_barras_ultimo_dia_nao_encavala_com_o_anterior():
+    """27/11: com 30 dias, "26/11" (rótulo regular) e "27/11" (último)
+    ficavam colados no fim do gráfico. O regular perto do fim sai."""
+    dias = [f"{d:02d}/11" for d in range(1, 31)]
+    svg = charts.bar_chart_svg(list(range(30)), dias)
+    assert ">30/11<" in svg        # o último dia sempre aparece
+    assert ">29/11<" not in svg    # o rótulo regular colado nele sai
+    assert ">25/11<" in svg
