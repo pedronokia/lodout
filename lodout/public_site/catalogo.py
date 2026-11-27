@@ -271,6 +271,16 @@ _ESPERA_APOS_404_S = 24 * 3600
 # falhou (26/11): refazer Rifles inteiro custava ~22 h e deixava as outras
 # fatias sem volta. `fatias_puladas` guarda as 20 últimas só pra diagnóstico.
 _MAX_FATIAS_PULADAS = 20
+# Páginas curtas (menos itens que o tamanho cheio da rodada antes do fim da
+# fatia) são indício de throttle silencioso: após N seguidas, pausa a volta.
+_MAX_PAGINAS_CURTAS_SEGUIDAS = 3
+# Escalonamento limitado de pausa em 404 / página curta (sem mexer no valor
+# base de steam_api.RATE_LIMIT_DELAY_S).
+_BACKOFF_MAX_MULT = 4
+# Freio contra recusa geral da busca (23-26/11: 404 em start=0 em todas as
+# categorias): após N fatias seguidas falhando já na posição 0, encerra a
+# rodada sem queimar requisições no restante das categorias.
+_MAX_404_START0_FATIAS = 3
 
 
 def ligado() -> bool:
@@ -285,6 +295,19 @@ def _fator_pausa() -> float:
                                        str(_FATOR_PAUSA_PADRAO))))
     except (TypeError, ValueError):
         return _FATOR_PAUSA_PADRAO
+
+
+def _pausa_entre_paginas(estado: dict) -> float:
+    """Pausa entre páginas com backoff limitado para 404 ou página curta."""
+    from lodout import steam_api
+    base = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
+    falhas = max(
+        int(estado.get("erro_404_seguidos") or 0),
+        int(estado.get("paginas_curta_seguidas") or 0),
+    )
+    if falhas <= 0:
+        return base
+    return base * min(2 ** falhas, _BACKOFF_MAX_MULT)
 
 
 def _intervalo_rodada_s() -> float:
@@ -303,6 +326,9 @@ def _proxima_fatia(estado: dict) -> bool:
     estado["start"] = 0
     estado["erro_404_seguidos"] = 0
     estado["erro_404_start"] = -1
+    estado["paginas_curta_seguidas"] = 0
+    estado.pop("ultimos_nomes_fatia", None)
+    estado.pop("ultimo_avanco_sobreposto", None)
     if estado["fatia"] < len(FATIAS):
         return False
     estado["fatia"] = None
@@ -326,6 +352,8 @@ def _finalizar_rodada(estado: dict) -> str:
         "itens_ultima": estado.get("itens_rodada"),
         "paginas_ultima": estado.get("paginas_rodada"),
     })
+    estado.pop("ultimos_nomes_fatia", None)
+    estado.pop("ultimo_avanco_sobreposto", None)
     if puladas:
         _logger.warning(
             "Catálogo: rodada terminou com %s fatia(s) pulada(s) por 404 "
@@ -441,8 +469,18 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
             "erro_404_seguidos": 0, "erro_404_start": -1,
             "erros_404_fatias": int(estado.get("erros_404_fatias") or 0),
             "erros_404_fatias_rodada": 0,
+            "erro_404_start0_fatias": 0,
+            "freio_404_start0": False,
+            "paginas_curta": int(estado.get("paginas_curta") or 0),
+            "paginas_curta_rodada": 0,
+            "paginas_curta_seguidas": 0,
+            "tamanho_cheio": 0,
+            "ordem_instavel": int(estado.get("ordem_instavel") or 0),
+            "ordem_instavel_rodada": 0,
             "fatias_puladas": [],
         })
+        estado.pop("ultimos_nomes_fatia", None)
+        estado.pop("ultimo_avanco_sobreposto", None)
         if indice or inicio:
             _logger.info("Catálogo: retomando na fatia %s (%s) a partir de %s",
                          indice, FATIAS[indice][0], inicio)
@@ -502,6 +540,18 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                         del historico[:-_MAX_FATIAS_PULADAS]
                     if len(historico) == 1:
                         estado["retomar"] = dict(pulada)
+                    if atual == 0:
+                        s0 = int(estado.get("erro_404_start0_fatias") or 0) + 1
+                        estado["erro_404_start0_fatias"] = s0
+                        if s0 >= _MAX_404_START0_FATIAS:
+                            estado["freio_404_start0"] = True
+                            _logger.warning(
+                                "Catálogo: %s fatias seguidas com 404 em start=0; "
+                                "acionando freio e encerrando a rodada", s0)
+                            motivo = _finalizar_rodada(estado)
+                            break
+                    else:
+                        estado["erro_404_start0_fatias"] = 0
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break
@@ -509,8 +559,8 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     _logger.warning(
                         "Catálogo: 404 em %s na posição %s (%s/%s)",
                         nome_fatia, atual, seguidos, _MAX_404_MESMO_START)
-                # Não para aqui: depois da pausa tenta de novo (ou já segue
-                # com a próxima fatia se o limite de 404 foi atingido).
+                # Não para aqui: depois da pausa (com backoff) tenta de novo
+                # (ou já segue com a próxima fatia se o limite de 404 foi atingido).
             elif status != steam_api.SEARCH_OK:
                 estado["erros"] = int(estado.get("erros") or 0) + 1
                 motivo = "erro"
@@ -518,6 +568,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
             else:
                 estado["erro_404_seguidos"] = 0
                 estado["erro_404_start"] = -1
+                estado["erro_404_start0_fatias"] = 0
                 # Preserva o total conhecido mesmo se a página vier vazia:
                 # é o que permite retomar a fatia sem refazê-la (26/11).
                 totais = estado.setdefault("totais", {})
@@ -531,6 +582,49 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     estado["vazias"] = int(estado.get("vazias") or 0) + 1
                     motivo = "pagina_vazia"
                     break
+                # Diagnóstico de ordem instável (#6): compara sobreposição
+                # observada entre páginas consecutivas da mesma fatia.
+                nomes_pagina = [
+                    it.get("hash_name") or it.get("name")
+                    for it in pagina
+                    if it.get("hash_name") or it.get("name")
+                ]
+                anteriores = estado.get("ultimos_nomes_fatia")
+                if nomes_pagina and isinstance(anteriores, list) and anteriores:
+                    sobrep = len(set(nomes_pagina) & set(anteriores))
+                    esperado_sobrep = (
+                        min(_SOBREPOSICAO, len(anteriores))
+                        if estado.get("ultimo_avanco_sobreposto") else 0
+                    )
+                    if sobrep != esperado_sobrep:
+                        estado["ordem_instavel"] = (
+                            int(estado.get("ordem_instavel") or 0) + 1)
+                        estado["ordem_instavel_rodada"] = (
+                            int(estado.get("ordem_instavel_rodada") or 0) + 1)
+                        _logger.warning(
+                            "Catálogo: ordem instável em %s na posição %s "
+                            "(sobreposição %d, esperada %d)",
+                            nome_fatia, estado["start"], sobrep, esperado_sobrep)
+                ultima = int(estado["start"]) + len(pagina) >= total
+                cheio = int(estado.get("tamanho_cheio") or 0)
+                pagina_curta = bool(
+                    pagina and not ultima and cheio > 0 and len(pagina) < cheio)
+                if pagina_curta:
+                    estado["paginas_curta"] = (
+                        int(estado.get("paginas_curta") or 0) + 1)
+                    estado["paginas_curta_rodada"] = (
+                        int(estado.get("paginas_curta_rodada") or 0) + 1)
+                    estado["paginas_curta_seguidas"] = (
+                        int(estado.get("paginas_curta_seguidas") or 0) + 1)
+                    _logger.warning(
+                        "Catálogo: página curta em %s na posição %s "
+                        "(%d itens, esperado %d; %d seguida(s))",
+                        nome_fatia, estado["start"], len(pagina), cheio,
+                        estado["paginas_curta_seguidas"])
+                else:
+                    if pagina and not ultima:
+                        estado["tamanho_cheio"] = max(cheio, len(pagina))
+                    estado["paginas_curta_seguidas"] = 0
                 estado["itens_rodada"] = (int(estado.get("itens_rodada") or 0)
                                           + gravar(conn, nome_fatia, pagina))
                 if pagina:
@@ -540,16 +634,25 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 # 1a volta vieram 642 repetidos e um tanto parecido foi pulado
                 # (~3,5%, a AWP | Dragon Lore entre eles). Repetido é inofensivo
                 # (grava por cima); pulado só voltava numa próxima volta.
-                ultima = int(estado["start"]) + len(pagina) >= total
-                avanco = (len(pagina) if ultima or len(pagina) <= _SOBREPOSICAO
-                          else len(pagina) - _SOBREPOSICAO)
+                usou_sobrep = bool(
+                    _SOBREPOSICAO > 0
+                    and not ultima
+                    and len(pagina) > _SOBREPOSICAO)
+                avanco = (len(pagina) - _SOBREPOSICAO if usou_sobrep
+                          else len(pagina))
                 estado["start"] = int(estado["start"]) + avanco
+                estado["ultimos_nomes_fatia"] = nomes_pagina
+                estado["ultimo_avanco_sobreposto"] = usou_sobrep
                 if not pagina or estado["start"] >= total:
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break
+                elif (int(estado.get("paginas_curta_seguidas") or 0)
+                      >= _MAX_PAGINAS_CURTAS_SEGUIDAS):
+                    motivo = "pagina_curta"
+                    break
             _salvar_estado(estado)
-            pausa = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
+            pausa = _pausa_entre_paginas(estado)
             if not _dormir(pausa, ate_ts, deve_parar):
                 break
         estado["itens_no_banco"] = contar(conn)
@@ -569,8 +672,10 @@ def resumo() -> dict:
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
               "erro_404_start", "erros_404_fatias",
-               "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
-                "inicio_ts", "retomar", "fatias_puladas")
+              "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
+              "inicio_ts", "retomar", "fatias_puladas",
+              "paginas_curta", "paginas_curta_rodada", "paginas_curta_seguidas",
+              "ordem_instavel", "ordem_instavel_rodada", "freio_404_start0")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Estado de 25/11 não tem estes campos: mostra desde já o ponto que a
     # próxima rodada vai usar, sem precisar esperar ela começar (26/11).

@@ -760,3 +760,85 @@ def test_consultar_ordenar_relevancia_prioriza_exato_e_prefixo():
     _t, res_vazio = catalogo.consultar({"busca": "   "}, ordenar="relevancia", limite=2, contar=False)
     assert len(res_vazio) == 2
 
+
+def test_varrer_conta_paginas_curtas_e_pausa_apos_tres_seguidas(monkeypatch, sem_pausa):
+    """Plano de aprimoramento da busca (#3): página menor que o tamanho cheio
+    antes do fim da fatia conta em paginas_curta e pausa após 3 seguidas."""
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    respostas = iter([
+        (steam_api.SEARCH_OK, [_linha(f"R{i}") for i in range(4)], 20),  # cheia (4)
+        (steam_api.SEARCH_OK, [_linha("R4")], 20),                       # curta 1
+        (steam_api.SEARCH_OK, [_linha("R5")], 20),                       # curta 2
+        (steam_api.SEARCH_OK, [_linha("R6")], 20),                       # curta 3 -> pausa
+        (steam_api.SEARCH_OK, [_linha("R7")], 20),                       # não deve chamar
+    ])
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append(start)
+        return next(respostas)
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 4
+    assert estado["motivo"] == "pagina_curta"
+    assert estado["paginas_curta"] == 3
+    assert estado["paginas_curta_rodada"] == 3
+    assert estado["paginas_curta_seguidas"] == 3
+    assert "ultima_completa_ts" not in estado
+    res = catalogo.resumo()
+    assert res["paginas_curta"] == 3 and res["paginas_curta_rodada"] == 3
+
+
+def test_pausa_entre_paginas_escalona_para_404_e_pagina_curta_com_teto(monkeypatch):
+    """Plano de aprimoramento da busca (#5): backoff limitado sem mexer no
+    valor base de steam_api.RATE_LIMIT_DELAY_S."""
+    monkeypatch.setattr(steam_api, "RATE_LIMIT_DELAY_S", 2.0)
+    monkeypatch.delenv("LODOUT_CATALOGO_FATOR_PAUSA", raising=False)
+    # base = 2.0 * 5.0 = 10.0
+    assert catalogo._pausa_entre_paginas({}) == pytest.approx(10.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 1}) == pytest.approx(20.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 2}) == pytest.approx(40.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 5}) == pytest.approx(40.0)
+    assert catalogo._pausa_entre_paginas({"paginas_curta_seguidas": 1}) == pytest.approx(20.0)
+    assert steam_api.RATE_LIMIT_DELAY_S == 2.0
+
+
+def test_varrer_registra_ordem_instavel_quando_sobreposicao_nao_bate(monkeypatch, sem_pausa):
+    """Plano de aprimoramento da busca (#6): sem sobreposição esperada entre
+    páginas consecutivas da mesma fatia, ordem_instavel é incrementado."""
+    monkeypatch.setattr(catalogo, "_SOBREPOSICAO", 1)
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    paginas = iter([
+        (steam_api.SEARCH_OK, [_linha("A"), _linha("B"), _linha("C")], 5),
+        # Esperava sobreposição de 1 ("C"), mas vieram nomes totalmente novos:
+        (steam_api.SEARCH_OK, [_linha("D"), _linha("E"), _linha("F")], 5),
+    ])
+    monkeypatch.setattr(steam_api, "search_market", lambda **_: next(paginas))
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert estado["motivo"] == "completa"
+    assert estado["ordem_instavel"] == 1
+    assert estado["ordem_instavel_rodada"] == 1
+    assert catalogo.resumo()["ordem_instavel"] == 1
+
+
+def test_varrer_freio_404_em_start_zero_encerra_sem_queimar_todas_fatias(monkeypatch, sem_pausa):
+    """Freio para 404 em start=0 (AGENTS.md): 3 fatias seguidas falhando na
+    posição 0 encerram a rodada sem desperdiçar consultas nas demais."""
+    monkeypatch.setattr(catalogo, "FATIAS", tuple((f"F{i}", f"T{i}") for i in range(6)))
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append((facets["type"], start))
+        return steam_api.SEARCH_NOT_FOUND, [], 0
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 9  # só 3 fatias x 3 tentativas (não 6 x 3 = 18)
+    assert estado["motivo"] == "incompleta_404"
+    assert estado["freio_404_start0"] is True
+    assert estado["erros_404_fatias_rodada"] == 3
+    assert estado["retomar"]["fatia"] == 0 and estado["retomar"]["start"] == 0
+    assert catalogo.resumo()["freio_404_start0"] is True
+    assert catalogo.varrer(ate_ts=1e12)["motivo"] == "esperando_apos_404"
+

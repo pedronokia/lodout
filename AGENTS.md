@@ -133,6 +133,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   também para 404 em `start=0`. Se não voltar, o problema é o IP da VM
   (a mudança para a Ampere, `migrar-vm.yml`, troca o IP). Os extras não
   dependem do catálogo ligado (`itens_extras` lê o banco já guardado).
+  Em 27/11 entraram no código (prontos para o worker quando ele reiniciar após
+  o teste): freio após 3 fatias seguidas com 404 em `start=0` (`freio_404_start0`),
+  backoff limitado (até 4×) para 404/página curta, detecção de página curta
+  (`paginas_curta`, pausa após 3 seguidas) e contador de ordem instável
+  (`ordem_instavel`), todos expostos em `/api/health` → `catalogo`.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
