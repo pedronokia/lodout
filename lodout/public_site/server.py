@@ -506,24 +506,16 @@ def create_app() -> Flask:
                 scan["results"], owned_names=set(),
                 limit=len(scan["results"]) or 1)
             if scan else [])
-        todos = _candidatos_filtrados(
-            scan, categoria, nota_min, preco_max, busca, ordenar,
-            liquidez_min, com_historico=False, com_icone=False,
-            base_candidatos=base_candidatos, **filtros_steam)
-        # Total real da aba "Todas" -- achado 2026-10-30: `scan["results"]`
-        # inclui item com risco alto de pump, que `buy_candidates` descarta
-        # antes de qualquer filtro do visitante. Sem isto a aba dizia um
-        # número (ex. 183) e a lista abaixo mostrava outro (176) sem
-        # explicação. Sem filtro nenhum ativo, `todos` já é esse total;
-        # só recalcula quando algum filtro do visitante reduziu `todos`.
         # Abas de categoria contam o que a pessoa VAI VER ao clicar: a
         # mesma lista filtrada (busca, nota, preço, liquidez), só sem a
-        # categoria. Antes contavam o scan inteiro -- com uma busca sem
-        # resultado, a tela dizia "Nenhum item" e as abas "Facas 7".
-        sem_categoria = (todos if not categoria else _candidatos_filtrados(
+        # categoria. Filtra uma vez só (sem formatar os ~270 itens fora da
+        # página) e deriva a aba selecionada da própria lista.
+        sem_categoria = _candidatos_filtrados(
             scan, None, nota_min, preco_max, busca, ordenar, liquidez_min,
-            com_historico=False, com_icone=False,
-            base_candidatos=base_candidatos, **filtros_steam))
+            com_historico=False, com_icone=False, formatar=False,
+            base_candidatos=base_candidatos, **filtros_steam)
+        todos = ([c for c in sem_categoria if c.get("category") == categoria]
+                 if categoria else sem_categoria)
         total_geral = len(sem_categoria)
         # Itens coletados que a lista nunca mostra (risco alto de alta
         # artificial, descartados em `buy_candidates`). A linha de status
@@ -567,6 +559,7 @@ def create_app() -> Flask:
         pagina = min(max(1, pagina), total_paginas)
         inicio = (pagina - 1) * _PAGINA_TAMANHO
         candidatos_pagina = todos[inicio:inicio + _PAGINA_TAMANHO]
+        _enriquecer_formatacao(candidatos_pagina)
         itens_catalogo_pagina: list = []
         falta = _PAGINA_TAMANHO - len(candidatos_pagina)
         if usa_catalogo and falta > 0 and total_cat:
@@ -638,10 +631,12 @@ def create_app() -> Flask:
             raridade_opcoes=raridade._RARIDADE_LABELS,
             versao_opcoes=_VERSOES,
             # O filtro de Versão só aparece quando há itens StatTrak™/
-            # Souvenir para filtrar: na coleta com nota ou no catálogo.
-            mostrar_versao=bool(versao) or catalogo.tem_dados() or any(
+            # Souvenir para filtrar: na coleta com nota (checado antes em
+            # memória para não abrir SQLite à toa) ou no catálogo.
+            mostrar_versao=bool(versao) or any(
                 _versao_do_item(r.get("name") or "") != "normal"
-                for r in (scan or {}).get("results") or []),
+                for r in (scan or {}).get("results") or []
+            ) or catalogo.tem_dados(),
             total_acompanhados=len(scan["results"]) if scan else 0,
             total_geral=total_geral,
             categoria_sel=categoria,
@@ -695,9 +690,7 @@ def create_app() -> Flask:
         corrigido em 2026-10-26 (ler histórico de TODOS os candidatos
         quando só um é exibido), que não tinha se propagado pra cá."""
         scan = scan_store.load_last_scan()
-        candidatos = _candidatos_filtrados(
-            scan, com_historico=False, com_icone=False)
-        item = next((c for c in candidatos if c["name"] == name), None)
+        item = _candidato_por_nome(scan, name)
         if item is None:
             # Item do catálogo amplo, sem nota ainda (catalogo-grande.md,
             # fase 2): página simples com preço do dia e a conta da revenda.
@@ -787,9 +780,7 @@ def create_app() -> Flask:
         disco até nota/preço mudarem. Nome fora da lista do site: 404."""
         nome = request.args.get("nome") or ""
         scan = scan_store.load_last_scan()
-        candidatos = _candidatos_filtrados(
-            scan, com_historico=False, com_icone=False)
-        item = next((c for c in candidatos if c["name"] == nome), None)
+        item = _candidato_por_nome(scan, nome)
         if item is None:
             return "", 404
         icone = None
@@ -821,11 +812,21 @@ def create_app() -> Flask:
         ~150 candidatos inteiros pra mostrar no máximo 3 era o mesmo
         desperdício já corrigido no `index()` em 2026-10-26."""
         scan = scan_store.load_last_scan()
-        candidatos = _candidatos_filtrados(
-            scan, com_historico=False, com_icone=False)
         nomes = [n for n in (request.args.get("nomes") or "").split(",") if n][:3]
-        por_nome = {c["name"]: c for c in candidatos}
-        itens = [por_nome[n] for n in nomes if n in por_nome]
+        itens = []
+        if scan and nomes:
+            nomes_set = set(nomes)
+            alvos = [r for r in scan.get("results") or []
+                     if r.get("name") in nomes_set]
+            base = (recommendations.buy_candidates(
+                alvos, owned_names=set(), limit=len(alvos) or 1)
+                if alvos else [])
+            por_nome = {
+                c["name"]: _formatar_candidato(
+                    dict(c), com_icone=False, com_historico=False)
+                for c in base
+            }
+            itens = [por_nome[n] for n in nomes if n in por_nome]
         _enriquecer_com_historico(itens)
         _enriquecer_com_icone(itens)
         menor_preco, _ = _destaques_comparar(itens, "price")
@@ -840,7 +841,9 @@ def create_app() -> Flask:
     def api_recommendations():
         scan = scan_store.load_last_scan()
         candidatos = _candidatos_filtrados(
-            scan, com_historico=False, com_icone=False)[:_LIMIT_CANDIDATOS]
+            scan, com_historico=False, com_icone=False,
+            formatar=False)[:_LIMIT_CANDIDATOS]
+        _enriquecer_formatacao(candidatos)
         _enriquecer_com_historico(candidatos)
         _enriquecer_com_icone(candidatos)
         resp = jsonify({
@@ -1004,6 +1007,7 @@ def create_app() -> Flask:
         q = (request.args.get("q") or "").strip()[:80]
         if len(q) < 2 or not catalogo._termos_busca_or(q):
             return jsonify([])
+        grupos_busca = _compilar_busca(q)
         candidatos: list = []
         vistos: set = set()
         scan = scan_store.load_last_scan() or {}
@@ -1012,7 +1016,9 @@ def create_app() -> Flask:
             if not nome or nome in vistos:
                 continue
             nome_pt = localize_name(nome)
-            if _busca_bate(_nome_para_busca(nome, nome_pt), q):
+            if _busca_bate_compilada(
+                    _texto_busca(_nome_para_busca(nome, nome_pt)),
+                    grupos_busca):
                 score = r.get("score")
                 tem_score = isinstance(score, (int, float))
                 candidatos.append((
@@ -1148,7 +1154,7 @@ def create_app() -> Flask:
         scan = scan_store.load_last_scan()
         if scan:
             candidatos = _candidatos_filtrados(
-                scan, com_historico=False, com_icone=False)
+                scan, com_historico=False, com_icone=False, formatar=False)
             itens_xml = "\n".join(
                 f"  <url><loc>{_xml_escape(base + url_for('item_detail', name=c['name']))}</loc></url>"
                 for c in candidatos)
@@ -1482,11 +1488,12 @@ def create_app() -> Flask:
         ciclos_admin = list(reversed(scan_store.load_historico_ciclos()))[:10]
         for c in ciclos_admin:
             c["quando"] = scan_store.idade_txt(c["ts"])
+        visitas_total = visits.total()
         return render_template(
             "admin.html",
             build=_build_id(),
-            visitas=visits.total(),
-            visitas_fmt=f"{visits.total():,}".replace(",", "."),
+            visitas=visitas_total,
+            visitas_fmt=f"{visitas_total:,}".replace(",", "."),
             mais_buscados=buscas.mais_buscados(limite=20),
             erros=erros,
             erros_agregados=erros_agregados,
@@ -1604,6 +1611,7 @@ def create_app() -> Flask:
         if rodada_top:
             rodada_top = dict(rodada_top,
                               quando=scan_store.idade_txt(rodada_top["ts"]))
+        visitas_total = visits.total()
         return render_template(
             "status.html",
             rodada_top=rodada_top,
@@ -1612,8 +1620,8 @@ def create_app() -> Flask:
                 float(ambiente("WORKER_INTERVAL_HORAS",
                                _INTERVALO_HORAS_DEFAULT))),
             no_ar_desde_txt=scan_store.idade_txt(desde),
-            visitas=visits.total(),
-            visitas_fmt=f"{visits.total():,}".replace(",", "."),
+            visitas=visitas_total,
+            visitas_fmt=f"{visitas_total:,}".replace(",", "."),
             ciclos=ciclos,
             ciclos_sucesso_txt=(
                 f"{ciclos_ok} de {len(ciclos)} coletas com sucesso"
@@ -1627,8 +1635,6 @@ def create_app() -> Flask:
             top20_total_recentes=resumo_top["total"],
             grafico_visitas=grafico_visitas,
             grafico_visitas_legenda=grafico_visitas_legenda,
-            mais_buscados=_buscas_com_resultado(
-                buscas.mais_buscados(limite=60), limite=10),
             catalogo_estado=_estado_do_catalogo(),
         )
 
@@ -1643,7 +1649,8 @@ def create_app() -> Flask:
         # ~150 candidatos custava ~3s por request (medido 2026-10-29).
         candidatos = _candidatos_filtrados(
             scan, categoria, com_historico=False,
-            com_icone=False)[:_LIMIT_CANDIDATOS]
+            com_icone=False, formatar=False)[:_LIMIT_CANDIDATOS]
+        _enriquecer_formatacao(candidatos)
         base = request.url_root.rstrip("/")
         itens_xml = "\n".join(
             "    <item>\n"
@@ -1698,23 +1705,33 @@ def _contagem_por_categoria(scan: "dict | None") -> dict:
     return contagem
 
 
-def _buscas_com_resultado(termos: "list[tuple[str, int]]",
-                          limite: int = 10) -> "list[tuple[str, int]]":
-    """Só os termos que acham algum item da última coleta (mesmo critério
-    da busca da home). A lista pública do /status mostrava testes como
-    "<script>alert(1)</script>" e "zzzzznomatchxyz" -- o admin continua
-    vendo tudo, inclusive o que se procura e o site ainda não acompanha."""
-    scan = scan_store.load_last_scan()
-    if not scan:
-        return []
-    nomes = [_nome_para_busca(r.get("name") or "",
-                              localize_name(r.get("name") or ""))
-             for r in scan.get("results") or []]
-    return [(t, n) for t, n in termos
-            if any(_busca_bate(nome, t) for nome in nomes)][:limite]
-
-
 _texto_busca = catalogo.texto_busca
+
+
+def _compilar_busca(busca: "str | None") -> "tuple[tuple[str, ...], ...] | None":
+    """Normaliza a consulta de busca uma vez só (em vez de repetir por item).
+    Devolve `None` quando a consulta está vazia (qualquer item casa)."""
+    if not busca:
+        return None
+    limpo = " ".join(_texto_busca(busca).split())
+    grupos = [g for g in limpo.split(" or ") if g.strip()]
+    if not grupos:
+        return None
+    return tuple(
+        tuple(p for p in grupo.split() if any(ch.isalnum() for ch in p))
+        for grupo in grupos
+    )
+
+
+def _busca_bate_compilada(
+        alvo_norm: str,
+        grupos: "tuple[tuple[str, ...], ...] | None") -> bool:
+    if grupos is None:
+        return True
+    for palavras in grupos:
+        if palavras and all(p in alvo_norm for p in palavras):
+            return True
+    return False
 
 
 def _busca_bate(nome: str, busca: "str | None") -> bool:
@@ -1725,18 +1742,10 @@ def _busca_bate(nome: str, busca: "str | None") -> bool:
     ordem ("redline ak" acha "AK-47 | Redline").
 
     "termo1 OR termo2" continua valendo (qualquer um dos dois basta)."""
-    if not busca:
+    grupos = _compilar_busca(busca)
+    if grupos is None:
         return True
-    alvo = _texto_busca(nome)
-    limpo = " ".join(_texto_busca(busca).split())
-    grupos = [g for g in limpo.split(" or ") if g.strip()]
-    if not grupos:
-        return True
-    for grupo in grupos:
-        palavras = [p for p in grupo.split() if any(ch.isalnum() for ch in p)]
-        if palavras and all(p in alvo for p in palavras):
-            return True
-    return False
+    return _busca_bate_compilada(_texto_busca(nome), grupos)
 
 
 _nome_para_busca = catalogo.nome_para_busca
@@ -2317,7 +2326,7 @@ def _nomes_com_pagina(scan: "dict | None") -> "set[str]":
     if not scan:
         return set()
     return {c["name"] for c in _candidatos_filtrados(
-        scan, com_historico=False, com_icone=False)}
+        scan, com_historico=False, com_icone=False, formatar=False)}
 
 
 def _saidas_do_top(atual: "dict | None", anterior: "dict | None",
@@ -2486,6 +2495,117 @@ def _passa_filtros_steam(c: dict, exterior: "str | None",
     return True
 
 
+def _formatar_candidato(c: dict, *, com_icone: bool = False,
+                        com_historico: bool = False,
+                        name_fmt: "str | None" = None) -> dict:
+    """Preenche os campos de exibição de um candidato (preço/nome formatados,
+    raridade, margem de nota, confiança, URLs e selo de descontinuada).
+
+    Mantido à parte de `_candidatos_filtrados(..., formatar=False)` para que
+    rotas paginadas ou de item único só formatem os itens exibidos de fato.
+    """
+    nome = c.get("name") or ""
+    c["price_fmt"] = fmt.brl(c.get("price"))
+    c["name_fmt"] = name_fmt if name_fmt is not None else localize_name(nome)
+    c["raridade_classe"] = _raridade_classe(c)
+    c["raridade_titulo"] = _raridade_titulo(c)
+    # Nota crua (signals.raw_score) sem o corte em [0, 100] -- achado
+    # 2026-11-04: a soma dos fatores passa de 100 (ou de 0) com
+    # frequência pra item muito bom (ou muito ruim), e o corte faz
+    # vários itens diferentes mostrarem o mesmo "100"/"0" na tela,
+    # mesmo a ORDEM deles já sendo correta por dentro (buy_candidates
+    # já desempata por isto). margem != 0 só quando o corte realmente
+    # aconteceu -- pra nota normal (1-99) a nota crua bate exatamente
+    # com a exibida, margem sempre 0, não aparece nada. Exige
+    # `breakdown` não-vazio: sem ele não dá pra confiar que bate com
+    # `score` (ex.: dado sintético de teste que só define `score`).
+    c["nota_margem"] = None
+    if c.get("breakdown"):
+        margem = round(signals.raw_score(c["breakdown"])) - (c.get("score") or 0)
+        c["nota_margem"] = margem if margem != 0 else None
+    # Confiança do dado por trás da nota (signals.data_quality) --
+    # achado 2026-11-04: calculada a cada scan, nunca exibida em
+    # lugar nenhum (a própria função já dizia "Util para... UI
+    # badge: mostrar ao usuário quando confiar no score"). Um item
+    # com poucos pontos de histórico (ou histórico velho) calcula a
+    # MESMA nota que um com dado rico -- vários fatores (momentum,
+    # drawdown, rel_ath, pump_risk) são gateados por tamanho mínimo
+    # de amostra, mas isso não aparece pro visitante hoje. Mostra só
+    # quando a confiança é baixa -- caso raro é o esperado (como
+    # risco baixo não vira coluna), então sem selo nenhum na maioria
+    # das linhas.
+    dq = c.get("data_quality") or {}
+    c["confianca_baixa"] = dq.get("level") in ("low", "very_low", "none")
+    if c["confianca_baixa"]:
+        n = dq.get("n") or 0
+        age = dq.get("age_days")
+        if age is not None:
+            c["confianca_baixa_titulo"] = (
+                f"Nota calculada com só {n} ponto{'s' if n != 1 else ''} de "
+                f"histórico da Steam, o mais recente de {age:.0f} dia"
+                f"{'s' if round(age) != 1 else ''} atrás — alguns fatores "
+                "podem não ter tido dado suficiente pra entrar no cálculo.")
+        else:
+            c["confianca_baixa_titulo"] = (
+                "Nota calculada sem histórico de preço da Steam pra esse "
+                "item — a maioria dos fatores não tinha dado suficiente "
+                "pra entrar no cálculo.")
+    # icon_url_2x pede 384px (2x de 192) -- até 2026-11-08 era cópia
+    # do icon_url de 192px (achado da revisão de direção visual: o
+    # hero/vitrine mostra esse ícone bem maior que o nativo, perda
+    # de nitidez visível). Mesmo hash, cache separado por tamanho
+    # (ver icon_cache.py) -- o navegador já escolhe sozinho qual
+    # usar pelo density do visitante, sem mudar nenhum template.
+    if com_icone:
+        c["icon_url"] = (
+            url_for("icone_cache", hash_icone=c["icon"], v=3)
+            if c.get("icon") else None)
+        c["icon_url_2x"] = (
+            url_for("icone_cache", hash_icone=c["icon"], v=3, tam=384)
+            if c.get("icon") else None)
+    else:
+        c["icon_url"] = None
+        c["icon_url_2x"] = None
+    nome_url = urllib.parse.quote(nome, safe="")
+    c["market_url"] = _MARKET_LISTING_URL.format(name=nome_url)
+    c["coletado_txt"] = (
+        scan_store.idade_txt(c["coletado_em"])
+        if isinstance(c.get("coletado_em"), (int, float)) else None)
+    c["steamdb_url"] = _STEAMDB_SEARCH_URL.format(name=nome_url)
+    # achado 2026-10-30: quando tem data exata registrada em
+    # retirements.py, cases.py gera "aposentada em DD/MM/AAAA" em
+    # vez de "descontinuada" -- esse rótulo (o mais confiável, por
+    # ter fonte factual) ficava sem o selo .selo-descontinuada.
+    _rotulo_cx = c.get("case_label") or ""
+    c["descontinuada"] = (
+        "descontinuada" in _rotulo_cx or "aposentada" in _rotulo_cx)
+    if com_historico:
+        _enriquecer_com_historico([c])
+    return c
+
+
+def _enriquecer_formatacao(candidatos: list[dict], *,
+                           com_icone: bool = False,
+                           com_historico: bool = False) -> None:
+    """Aplica `_formatar_candidato` só na fatia que vai ser exibida."""
+    for c in candidatos:
+        _formatar_candidato(c, com_icone=com_icone, com_historico=com_historico)
+
+
+def _candidato_por_nome(scan: "dict | None", name: str) -> "dict | None":
+    """Encontra e formata um único item público do scan pelo nome exato,
+    aplicando exatamente o filtro de `buy_candidates` sem formatar os demais."""
+    if not scan or not name:
+        return None
+    alvos = [r for r in scan.get("results") or [] if r.get("name") == name]
+    if not alvos:
+        return None
+    base = recommendations.buy_candidates(alvos, owned_names=set(), limit=1)
+    if not base:
+        return None
+    return _formatar_candidato(dict(base[0]), com_icone=False, com_historico=False)
+
+
 def _candidatos_filtrados(
         scan: "dict | None", categoria: "str | None" = None,
         nota_min: "float | None" = None,
@@ -2498,7 +2618,8 @@ def _candidatos_filtrados(
         exterior: "str | None" = None,
         raridade_sel: "str | None" = None,
         versao: "str | None" = None,
-        base_candidatos: "list[dict] | None" = None) -> list[dict]:
+        base_candidatos: "list[dict] | None" = None,
+        formatar: bool = True) -> list[dict]:
     """Candidatos públicos: sem dono (sem login ainda), já filtrados.
 
     Sem limite aqui de propósito -- a paginação é responsabilidade de quem
@@ -2518,6 +2639,11 @@ def _candidatos_filtrados(
     2026-11-09 (profiling ao vivo): essas duas chamadas pra TODOS os
     candidatos eram 42% do tempo da home inteira.
 
+    `formatar=False` pula também os campos derivados de exibição (URLs
+    escapadas, raridade, `fmt.brl`, `raw_score` e `localize_name` quando
+    não há busca) -- quem exibe uma fatia chama `_enriquecer_formatacao`
+    depois só nos itens que aparecem na tela.
+
     `liquidez_min` usa a mesma faixa nomeada de `signals.liquidity_depth`
     (pedido numa pesquisa de como outros sites de skin expõem liquidez,
     2026-11-02) -- item sem o dado (volume/histórico insuficiente) fica
@@ -2532,6 +2658,10 @@ def _candidatos_filtrados(
                   else recommendations.buy_candidates(
                       scan["results"], owned_names=set(),
                       limit=len(scan["results"]) or 1))
+    grupos_busca = _compilar_busca(busca) if busca else None
+    liquidez_idx = (_LIQUIDEZ_ORDEM.index(liquidez_min)
+                    if liquidez_min and liquidez_min in _LIQUIDEZ_ORDEM
+                    else None)
     out = []
     for c in candidatos:
         if categoria and c.get("category") != categoria:
@@ -2540,95 +2670,25 @@ def _candidatos_filtrados(
             continue
         if preco_max is not None and (c.get("price") or 0) > preco_max:
             continue
-        if liquidez_min:
+        if liquidez_idx is not None:
             band = (c.get("liquidity_depth") or {}).get("band")
             if band not in _LIQUIDEZ_ORDEM:
                 continue
-            if _LIQUIDEZ_ORDEM.index(band) < _LIQUIDEZ_ORDEM.index(liquidez_min):
+            if _LIQUIDEZ_ORDEM.index(band) < liquidez_idx:
                 continue
         if not _passa_filtros_steam(c, exterior, raridade_sel, versao):
             continue
-        name_fmt = localize_name(c.get("name") or "")
-        if not _busca_bate(_nome_para_busca(c.get("name") or "", name_fmt),
-                           busca):
-            continue
-        c["price_fmt"] = fmt.brl(c.get("price"))
-        c["name_fmt"] = name_fmt
-        c["raridade_classe"] = _raridade_classe(c)
-        c["raridade_titulo"] = _raridade_titulo(c)
-        # Nota crua (signals.raw_score) sem o corte em [0, 100] -- achado
-        # 2026-11-04: a soma dos fatores passa de 100 (ou de 0) com
-        # frequência pra item muito bom (ou muito ruim), e o corte faz
-        # vários itens diferentes mostrarem o mesmo "100"/"0" na tela,
-        # mesmo a ORDEM deles já sendo correta por dentro (buy_candidates
-        # já desempata por isto). margem != 0 só quando o corte realmente
-        # aconteceu -- pra nota normal (1-99) a nota crua bate exatamente
-        # com a exibida, margem sempre 0, não aparece nada. Exige
-        # `breakdown` não-vazio: sem ele não dá pra confiar que bate com
-        # `score` (ex.: dado sintético de teste que só define `score`).
-        c["nota_margem"] = None
-        if c.get("breakdown"):
-            margem = round(signals.raw_score(c["breakdown"])) - (c.get("score") or 0)
-            c["nota_margem"] = margem if margem != 0 else None
-        # Confiança do dado por trás da nota (signals.data_quality) --
-        # achado 2026-11-04: calculada a cada scan, nunca exibida em
-        # lugar nenhum (a própria função já dizia "Util para... UI
-        # badge: mostrar ao usuário quando confiar no score"). Um item
-        # com poucos pontos de histórico (ou histórico velho) calcula a
-        # MESMA nota que um com dado rico -- vários fatores (momentum,
-        # drawdown, rel_ath, pump_risk) são gateados por tamanho mínimo
-        # de amostra, mas isso não aparece pro visitante hoje. Mostra só
-        # quando a confiança é baixa -- caso raro é o esperado (como
-        # risco baixo não vira coluna), então sem selo nenhum na maioria
-        # das linhas.
-        dq = c.get("data_quality") or {}
-        c["confianca_baixa"] = dq.get("level") in ("low", "very_low", "none")
-        if c["confianca_baixa"]:
-            n = dq.get("n") or 0
-            age = dq.get("age_days")
-            if age is not None:
-                c["confianca_baixa_titulo"] = (
-                    f"Nota calculada com só {n} ponto{'s' if n != 1 else ''} de "
-                    f"histórico da Steam, o mais recente de {age:.0f} dia"
-                    f"{'s' if round(age) != 1 else ''} atrás — alguns fatores "
-                    "podem não ter tido dado suficiente pra entrar no cálculo.")
-            else:
-                c["confianca_baixa_titulo"] = (
-                    "Nota calculada sem histórico de preço da Steam pra esse "
-                    "item — a maioria dos fatores não tinha dado suficiente "
-                    "pra entrar no cálculo.")
-        # icon_url_2x pede 384px (2x de 192) -- até 2026-11-08 era cópia
-        # do icon_url de 192px (achado da revisão de direção visual: o
-        # hero/vitrine mostra esse ícone bem maior que o nativo, perda
-        # de nitidez visível). Mesmo hash, cache separado por tamanho
-        # (ver icon_cache.py) -- o navegador já escolhe sozinho qual
-        # usar pelo density do visitante, sem mudar nenhum template.
-        if com_icone:
-            c["icon_url"] = (
-                url_for("icone_cache", hash_icone=c["icon"], v=3)
-                if c.get("icon") else None)
-            c["icon_url_2x"] = (
-                url_for("icone_cache", hash_icone=c["icon"], v=3, tam=384)
-                if c.get("icon") else None)
-        else:
-            c["icon_url"] = None
-            c["icon_url_2x"] = None
-        c["market_url"] = _MARKET_LISTING_URL.format(
-            name=urllib.parse.quote(c.get("name") or "", safe=""))
-        c["coletado_txt"] = (
-            scan_store.idade_txt(c["coletado_em"])
-            if isinstance(c.get("coletado_em"), (int, float)) else None)
-        c["steamdb_url"] = _STEAMDB_SEARCH_URL.format(
-            name=urllib.parse.quote(c.get("name") or "", safe=""))
-        # achado 2026-10-30: quando tem data exata registrada em
-        # retirements.py, cases.py gera "aposentada em DD/MM/AAAA" em
-        # vez de "descontinuada" -- esse rótulo (o mais confiável, por
-        # ter fonte factual) ficava sem o selo .selo-descontinuada.
-        _rotulo_cx = c.get("case_label") or ""
-        c["descontinuada"] = (
-            "descontinuada" in _rotulo_cx or "aposentada" in _rotulo_cx)
-        if com_historico:
-            _enriquecer_com_historico([c])
+        name_fmt = None
+        if grupos_busca is not None:
+            nome = c.get("name") or ""
+            name_fmt = localize_name(nome)
+            if not _busca_bate_compilada(
+                    _texto_busca(_nome_para_busca(nome, name_fmt)),
+                    grupos_busca):
+                continue
+        if formatar:
+            _formatar_candidato(c, com_icone=com_icone,
+                                com_historico=com_historico, name_fmt=name_fmt)
         out.append(c)
     if ordenar == "preco":
         out.sort(key=lambda c: c.get("price") if c.get("price") is not None

@@ -842,3 +842,18 @@ def test_varrer_freio_404_em_start_zero_encerra_sem_queimar_todas_fatias(monkeyp
     assert catalogo.resumo()["freio_404_start0"] is True
     assert catalogo.varrer(ate_ts=1e12)["motivo"] == "esperando_apos_404"
 
+
+def test_texto_busca_ascii_equivale_a_nfkd():
+    import unicodedata
+
+    todos_ascii = "".join(chr(i) for i in range(128))
+    esperado = "".join(
+        ch for ch in unicodedata.normalize("NFKD", todos_ascii)
+        if not unicodedata.combining(ch)
+    ).lower().replace("-", "")
+    assert catalogo.texto_busca(todos_ascii) == esperado
+    assert catalogo.texto_busca("AK-47 | Redline (Field-Tested)") == "ak47 | redline (fieldtested)"
+    assert catalogo.texto_busca("Cápsula de Autógrafo") == "capsula de autografo"
+    assert catalogo.texto_busca("★ Karambit | Fade") == "★ karambit | fade"
+
+

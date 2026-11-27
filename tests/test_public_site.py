@@ -6640,3 +6640,89 @@ def test_api_sugestoes_mescla_fontes_dedupa_e_prioriza_exato_do_catalogo(
     # Coringa LIKE escapado também na API de sugestões.
     assert client.get("/api/sugestoes?q=ak%25").json == []
 
+
+def test_candidatos_filtrados_formatar_false_e_enriquecer_formatacao():
+    from lodout.public_site import server
+
+    scan = {"results": [
+        {
+            "name": "AK-47 | Redline (Field-Tested)",
+            "score": 82,
+            "price": 120.5,
+            "category": "Rifles",
+            "case_label": "aposentada em 10/01/2020",
+            "pump_risk": {"level": "low"},
+            "data_quality": {"level": "high", "n": 90, "age_days": 0.5},
+            "breakdown": [{"label": "Spread", "delta": 20}],
+        },
+        {
+            "name": "Item Risco Alto",
+            "score": 95,
+            "price": 50.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "high"},
+            "breakdown": [],
+        },
+    ]}
+    cru = server._candidatos_filtrados(
+        scan, com_historico=False, com_icone=False, formatar=False)
+    assert [c["name"] for c in cru] == ["AK-47 | Redline (Field-Tested)"]
+    assert "price_fmt" not in cru[0]
+    assert "market_url" not in cru[0]
+
+    server._enriquecer_formatacao(cru)
+    completo = server._candidatos_filtrados(
+        scan, com_historico=False, com_icone=False, formatar=True)
+    assert cru == completo
+
+
+def test_candidato_por_nome_respeita_risco_alto_e_formata_item():
+    from lodout.public_site import server
+
+    scan = {"results": [
+        {
+            "name": "AK-47 | Slate (Field-Tested)",
+            "score": 74,
+            "price": 18.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "low"},
+            "breakdown": [{"label": "Liquidez", "delta": 15}],
+        },
+        {
+            "name": "Skin Pump (Factory New)",
+            "score": 99,
+            "price": 300.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "high"},
+            "breakdown": [],
+        },
+    ]}
+    item = server._candidato_por_nome(scan, "AK-47 | Slate (Field-Tested)")
+    assert item is not None
+    assert item["price_fmt"] == "R$ 18,00"
+    assert item["reasons"] == ["Liquidez"]
+    assert "market_url" in item
+    # Item com risco alto continua bloqueado, exatamente como em buy_candidates.
+    assert server._candidato_por_nome(scan, "Skin Pump (Factory New)") is None
+    assert server._candidato_por_nome(scan, "Inexistente") is None
+    assert server._candidato_por_nome(None, "AK-47 | Slate (Field-Tested)") is None
+
+
+def test_compilar_busca_e_busca_bate_compilada_cobrem_or_e_pontuacao():
+    from lodout.public_site import server
+
+    assert server._compilar_busca(None) is None
+    assert server._compilar_busca("   ") is None
+    assert server._compilar_busca("---") is None
+    assert server._busca_bate_compilada("qualquer coisa", None) is True
+
+    grupos_pontuacao = server._compilar_busca("!!!")
+    assert grupos_pontuacao is not None
+    assert server._busca_bate_compilada("ak47 redline", grupos_pontuacao) is False
+
+    grupos_or = server._compilar_busca("redline OR cápsula")
+    assert server._busca_bate_compilada("ak47 | redline", grupos_or) is True
+    assert server._busca_bate_compilada("capsula legends", grupos_or) is True
+    assert server._busca_bate_compilada("awp asiimov", grupos_or) is False
+
+

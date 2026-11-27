@@ -64,6 +64,8 @@ def versao_do_item(nome: str) -> str:
 def texto_busca(texto: str) -> str:
     """Minúsculo, sem acento e sem hífen: "Cápsula" casa com "capsula" e
     "AK-47" com "ak47"."""
+    if texto.isascii():
+        return texto.lower().replace("-", "")
     sem_acento = "".join(
         ch for ch in unicodedata.normalize("NFKD", texto)
         if not unicodedata.combining(ch))
