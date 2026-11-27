@@ -5731,7 +5731,7 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
 /* Textos de apoio da lista em tamanho de leitura (design-guide:
    descrições >= 1rem; antes 13px). */
 .conta-lista-cabecalho ~ .status-inventario {
-  font-size: 1rem;
+  font-size: var(--fs-base);
 }
 
 /* Item, "Outras versões": preço e vendas alinhados à direita, com
@@ -9104,7 +9104,7 @@ h3,
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
   color: #f1f5f9;
-  font-size: 0.78125rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
   letter-spacing: -0.015em;
   text-decoration: none;
@@ -9841,7 +9841,7 @@ h3,
 }
 
 .resumo-cards-conta .card-sub[data-total="liquido_sub"] {
-  font-size: 0.71875rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.40);
   margin-top: 4px;
 }
@@ -9858,7 +9858,7 @@ h3,
 }
 
 .conta-lista-cabecalho .secao-titulo {
-  font-size: 1.25rem;
+  font-size: var(--fs-copy);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #f8fafc;
@@ -9881,7 +9881,7 @@ h3,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.78125rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
   margin: 0;
@@ -10089,7 +10089,7 @@ h3,
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.12);
   color: inherit;
-  font-size: 0.625rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   line-height: 1;
 }
@@ -10185,7 +10185,7 @@ table.tabela-conta-lista th,
 table.tabela-comparar th {
   background: #121212;
   padding: 12px 14px;
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -10196,7 +10196,7 @@ table.tabela-comparar th {
 
 .tabela-conta th .th-sub {
   display: block;
-  font-size: 0.60rem;
+  font-size: var(--fs-2xs);
   font-weight: 400;
   text-transform: lowercase;
   letter-spacing: normal;
@@ -10318,7 +10318,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.08);
   color: #f1f5f9;
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
@@ -10609,7 +10609,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.78125rem;
+  font-size: var(--fs-xs);
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
@@ -10655,7 +10655,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .tabela-conta .form-separar .explica-separar {
   flex-basis: 100%;
-  font-size: 0.71875rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.45);
   line-height: 1.4;
   margin-top: 4px;
@@ -10820,7 +10820,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 
 .como-ler-lista dd {
   margin: 0;
-  font-size: 0.78125rem;
+  font-size: var(--fs-xs);
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.45;
 }
@@ -10931,7 +10931,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .card-adicionar-watchlist .secao-titulo {
   margin-top: 0;
   margin-bottom: 12px;
-  font-size: 0.9375rem;
+  font-size: var(--fs-lead);
 }
 
 .card-adicionar-watchlist .form-adicionar {
@@ -13456,7 +13456,7 @@ table.tabela-conta .celula-item-conta-extra .item-quantidade {
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   line-height: 1.35;
 }
@@ -13479,7 +13479,7 @@ table.tabela-conta .celula-item-conta-extra .item-etiqueta-fora {
   border-radius: var(--radius-pill);
   background: rgba(242, 187, 37, 0.09);
   color: var(--warn);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1.3;
 }
@@ -13526,7 +13526,7 @@ table.tabela-conta .separar-lote > summary.acao-texto {
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgba(255, 255, 255, 0.48);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
@@ -13610,7 +13610,7 @@ table.tabela-conta .botao-link.botao-remover {
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgba(255, 255, 255, 0.48);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
@@ -13638,7 +13638,7 @@ table.tabela-conta .item-fora {
 }
 table.tabela-conta .item-fora .item-fora-pergunta {
   flex-basis: 100%;
-  font-size: 0.7rem;
+  font-size: var(--fs-2xs);
   font-weight: 450;
   color: rgba(255, 255, 255, 0.50);
   margin-bottom: 1px;
@@ -13661,7 +13661,7 @@ table.tabela-conta .item-fora .caixa-marcar {
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -13718,7 +13718,7 @@ table.tabela-conta .item-fora .botao-mudar-anuncio {
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
@@ -13742,7 +13742,7 @@ table.tabela-conta .item-fora .vendi > summary {
   border-radius: var(--radius-pill);
   background: rgba(249, 115, 22, 0.20);
   color: var(--text-bright);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   line-height: 1;
   text-decoration: none;
@@ -13780,13 +13780,13 @@ table.tabela-conta .input-custo {
 table.tabela-conta .campo-reais-prefixo {
   left: 10px;
   color: rgba(255, 255, 255, 0.44);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
 }
 table.tabela-conta .campo-reais-sufixo {
   right: 9px;
   color: rgba(255, 255, 255, 0.44);
-  font-size: 0.7rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
 }
 table.tabela-conta .input-custo::placeholder {
@@ -13849,7 +13849,7 @@ table.tabela-conta .celula-numero .selo-meta-atingida {
   background: rgba(57, 194, 102, 0.10);
   border: 1px solid rgba(57, 194, 102, 0.28);
   color: var(--positive);
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -13857,7 +13857,7 @@ table.tabela-conta .celula-numero .selo-meta-atingida {
 /* 7. "Venda por": metade das caixas -- "Sem prejuízo" discreto sem borda em
       repouso, "Lucrar X%" como botão principal copiável, ambos alinhados. */
 table.tabela-conta .venda-por-linha {
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.50);
 }
 table.tabela-conta .venda-por-meta {
@@ -13869,7 +13869,7 @@ table.tabela-conta .venda-por-bloco .copiar-preco {
   padding: 3px 8px;
   gap: 7px;
   border-radius: 7px;
-  font-size: 0.78125rem;
+  font-size: var(--fs-xs);
   line-height: 1.3;
   margin: 0;
   transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
@@ -13946,7 +13946,7 @@ table.tabela-conta .venda-por-bloco .copiar-preco.copiado {
     background: transparent;
     border: 1px dashed rgba(255, 255, 255, 0.16);
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: var(--fs-2xs);
     font-weight: 500;
   }
   table.tabela-conta .venda-por-falta::after {
