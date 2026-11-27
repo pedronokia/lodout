@@ -7180,7 +7180,11 @@ font-family: inherit;
 }
 .simulador-slider {
 width: 100%;
-height: 6px;
+/* Área de toque de 28px (revisão do celular, 27/11): com 6px, o dedo
+   só pegava o controle acertando a bolinha. A trilha continua fina; a
+   margem negativa mantém o espaço da página igual. */
+height: 28px;
+margin-block: -11px;
 border-radius: 3px;
 accent-color: var(--accent);
 cursor: pointer;
@@ -9889,7 +9893,9 @@ h3,
 
 .conta-lista-cabecalho .meta-lucro-barra {
   width: 115px;
-  height: 20px;
+  /* 28px de área de toque (27/11); a trilha segue com 6px. */
+  height: 28px;
+  margin-block: -4px;
   accent-color: var(--accent);
   cursor: pointer;
 }
@@ -13054,6 +13060,12 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   .pagina-inicial .home-tese-guia { margin-top: -4px; }
   .pagina-inicial .home-tese-guia .link-com-seta { min-height: 44px; }
 }
+
+/* Revisão do celular (27/11): o endereço de exemplo da página da API
+   empurrava a página para o lado em 320px, e o link "API" do rodapé
+   tinha 20px de largura, pouco para o dedo. */
+.pagina-texto code { overflow-wrap: anywhere; }
+.rodape-nav-grupo a { min-width: 44px; }
 
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
