@@ -12,18 +12,6 @@ from lodout.public_site import inventario, user_portfolio, user_store, worker
 SID = "76561198000000001"
 
 
-@pytest.fixture(autouse=True)
-def _prazo_da_recuperacao_aberto(monkeypatch):
-    """O quadro de recuperação só aparece até 23/11/2026
-    (`account.RECUPERAR_ATE_TS`). Sem isto, os testes dele falhariam
-    sozinhos a partir de 24/11 e travariam todo deploy (achado de
-    2026-11-17). O fim do prazo tem teste próprio."""
-    import time
-
-    from lodout.public_site import account
-    monkeypatch.setattr(account, "RECUPERAR_ATE_TS", time.time() + 86400)
-
-
 def _inv(*nomes, qtd=1):
     return [{"name": n, "quantity": qtd, "icon": f"h-{n}"} for n in nomes]
 
@@ -536,51 +524,6 @@ def test_faq_explica_anunciado_e_vendi(client):
     assert "não é público" in faq
 
 
-def test_recuperar_pela_propria_conta(client):
-    """Pedido 16/11: a pessoa recupera pela conta, sem entrar no servidor."""
-    import re
-    import sqlite3
-    from lodout import _paths
-    from lodout.public_site import db as site_db
-    sid = "76561198000000036"
-    outro = "76561198000000037"
-    user_store.save_user_json(sid, "portfolio", [
-        {"name": "Anunciada", "cost": 30.0, "quantity": 1, "source": "steam"}])
-    user_store.save_user_json(outro, "portfolio", [
-        {"name": "Do outro", "cost": 9.0, "quantity": 1, "source": "steam"}])
-    pasta = Path(_paths.DATA_DIR) / "backups"
-    pasta.mkdir(parents=True, exist_ok=True)
-    origem = site_db.connect(None)
-    destino = sqlite3.connect(str(pasta / "public_site-20261115-130000.db"))
-    origem.backup(destino)
-    origem.close(); destino.close()
-    user_store.save_user_json(sid, "portfolio", [])
-    user_store.save_user_json(outro, "portfolio", [])
-    _logado(client, sid)
-    # Quadro no topo, com a lista antes de devolver (revisão 16/11).
-    pagina = client.get("/conta").data.decode("utf-8")
-    assert "Achamos 1 item que sumiu da sua lista" in pagina
-    assert "Anunciada" in pagina and "R$ 30,00" in pagina
-    assert ">Devolver com o valor pago</button>" in pagina
-    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
-    r = client.post("/conta/recuperar", data={"csrf_token": token})
-    assert r.status_code == 302 and r.headers["Location"].endswith("/conta?filtro=fora")
-    pagina = client.get("/conta").data.decode("utf-8")
-    assert "1 item voltou com o valor pago" in pagina
-    assert "Achamos" not in pagina   # nada mais a devolver: o quadro some
-    pos = user_portfolio.load_positions(sid)
-    assert [(p["name"], p["cost"], bool(p.get("fora_desde"))) for p in pos] == [("Anunciada", 30.0, True)]
-    assert user_portfolio.load_positions(outro) == []  # só a própria conta
-    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
-    assert "Nada para devolver" in r.data.decode("utf-8")
-    assert client.post("/conta/recuperar", data={}).status_code in (400, 403)
-    # Quem não perdeu nada não vê o quadro.
-    _logado(client, outro)
-    user_store.save_user_json(outro, "portfolio", [
-        {"name": "Do outro", "cost": 9.0, "quantity": 1, "source": "steam"}])
-    assert "Achamos" not in client.get("/conta").data.decode("utf-8")
-
-
 def _backup_com(sid, posicoes):
     import sqlite3
     from lodout import _paths
@@ -594,22 +537,27 @@ def _backup_com(sid, posicoes):
     origem.close(); destino.close()
 
 
-def test_recuperar_nao_oferece_vendido_removido_nem_dispensado(client):
-    """Rodada 2 (16/11): depois de "Vendi" (ou de remover de propósito) o
-    quadro oferecia o item de volta; e não havia como dispensar o quadro."""
+def test_vender_remover_e_desfazer_atualizam_recuperar_ignorar(client):
+    """Mesmo após a retirada do quadro temporário da /conta (prazo 23/11),
+    vender/remover segue marcando `recuperar_ignorar` para o CLI e desfazer
+    a venda limpa a marca."""
     import re
+    from lodout.public_site import recuperar_posicoes
     sid = "76561198000000042"
-    _backup_com(sid, [
-        {"name": "Vendida", "cost": 10.0, "quantity": 1, "source": "steam"},
-        {"name": "Removida", "cost": 20.0, "quantity": 1, "source": "steam"},
-        {"name": "Esquecida", "cost": 30.0, "quantity": 1, "source": "steam"}])
-    user_store.save_user_json(sid, "portfolio", [])
+    posicoes = [
+        {"name": "Vendida", "cost": 10.0, "quantity": 1, "source": "steam", "fora_desde": 1.0},
+        {"name": "Removida", "cost": 20.0, "quantity": 1, "source": "steam", "fora_desde": 1.0},
+    ]
+    _backup_com(sid, posicoes)
     _logado(client, sid)
     pagina = client.get("/conta").data.decode("utf-8")
-    assert "Achamos 3 itens que sumiram da sua lista" in pagina
-    assert ">Não quero de volta</button>" in pagina
+    assert "Achamos" not in pagina
     token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
-    client.post("/conta/recuperar", data={"csrf_token": token})
+
+    # Rotas do quadro temporário não existem mais.
+    assert client.post("/conta/recuperar", data={"csrf_token": token}).status_code == 404
+    assert client.post("/conta/recuperar/dispensar", data={"csrf_token": token}).status_code == 404
+
     client.post("/conta/posicoes/Vendida/vendido",
                 data={"csrf_token": token, "sell_price": "15", "quantidade": "1",
                       "confirmado": "1"})
@@ -618,53 +566,14 @@ def test_recuperar_nao_oferece_vendido_removido_nem_dispensado(client):
     texto = r.data.decode("utf-8")
     assert "Se voltar ao inventário, volta sem o valor pago." in texto
     assert "saiu da sua lista. Se ainda estiver" not in texto
-    pagina = client.get("/conta").data.decode("utf-8")
-    assert "Achamos" not in pagina
-    nomes = [p["name"] for p in user_portfolio.load_positions(sid)]
-    assert nomes == ["Esquecida"]
-    # Remover a última também: nada volta, e "Devolver" não traz de novo.
-    client.post("/conta/posicoes/Esquecida/remover", data={"csrf_token": token})
-    r = client.post("/conta/recuperar", data={"csrf_token": token}, follow_redirects=True)
-    assert "Nada para devolver" in r.data.decode("utf-8")
-    assert user_portfolio.load_positions(sid) == []
-    # Desfazer a venda tira o item da lista de ignorados.
-    from lodout.public_site import recuperar_posicoes
-    assert "Vendida" in recuperar_posicoes.ignorados(sid)
-    client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
-    assert "Vendida" not in recuperar_posicoes.ignorados(sid)
 
-
-def test_recuperar_nao_quero_de_volta(client):
-    import re
-    from lodout.public_site import recuperar_posicoes
-    sid = "76561198000000043"
-    _backup_com(sid, [{"name": "Velha", "cost": 7.0, "quantity": 1, "source": "steam"}])
-    user_store.save_user_json(sid, "portfolio", [])
-    _logado(client, sid)
-    pagina = client.get("/conta").data.decode("utf-8")
-    assert "Achamos 1 item" in pagina and 'data-nome="este item"' in pagina
-    token = re.search(r'name="csrf_token" value="([^"]+)"', pagina).group(1)
-    r = client.post("/conta/recuperar/dispensar", data={"csrf_token": token},
-                    follow_redirects=True)
-    texto = r.data.decode("utf-8")
-    assert "Esses itens não voltam mais" in texto and "Achamos" not in texto
-    assert user_portfolio.load_positions(sid) == []
-    assert recuperar_posicoes.ignorados(sid) == {"Velha"}
-    assert client.post("/conta/recuperar/dispensar", data={}).status_code in (400, 403)
-    # O comando do servidor também respeita a escolha.
+    assert recuperar_posicoes.ignorados(sid) == {"Vendida", "Removida"}
     assert recuperar_posicoes.main([sid]) == 0
 
-
-def test_recuperar_some_depois_do_prazo(client, monkeypatch):
-    """Depois do prazo (backups de 7 dias) o quadro não aparece mais."""
-    from lodout.public_site import account
-    sid = "76561198000000044"
-    _backup_com(sid, [{"name": "Antiga", "cost": 5.0, "quantity": 1, "source": "steam"}])
-    user_store.save_user_json(sid, "portfolio", [])
-    _logado(client, sid)
-    assert "Achamos 1 item" in client.get("/conta").data.decode("utf-8")
-    monkeypatch.setattr(account, "RECUPERAR_ATE_TS", 0.0)
-    assert "Achamos" not in client.get("/conta").data.decode("utf-8")
+    # Desfazer a venda devolve o item e o tira da lista de ignorados.
+    client.post("/conta/historico/vendidos/0/desfazer", data={"csrf_token": token})
+    assert "Vendida" not in recuperar_posicoes.ignorados(sid)
+    assert "Removida" in recuperar_posicoes.ignorados(sid)
 
 
 def test_preco_do_anuncio(client):

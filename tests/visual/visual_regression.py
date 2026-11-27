@@ -317,17 +317,12 @@ def _semear(data_dir: Path) -> None:
 
 
 # Conta de exemplo (2026-11-17): itens com e sem valor pago, um fora do
-# inventário, um anunciado e um que sumiu (está só no backup), para o
-# quadro de recuperação. Gravada no banco do site, então precisa rodar
+# inventário e um anunciado. Gravada no banco do site, então precisa rodar
 # DEPOIS de apontar LODOUT_DATA_DIR (importa lodout).
 STEAMID_VISUAL = "76561198000000077"
 
 
 def _semear_conta() -> None:
-    import sqlite3
-
-    from lodout import _paths
-    from lodout.public_site import db as site_db
     from lodout.public_site import user_store
 
     dia = 86400
@@ -346,18 +341,6 @@ def _semear_conta() -> None:
          "added_ts": AGORA_FIXO - 20 * dia, "fora_desde": AGORA_FIXO - 3 * dia,
          "anunciado": True, "anuncio_preco": 11.90},
     ]
-    sumiu = {"name": "AWP | Asiimov (Field-Tested)", "cost": 102.40, "quantity": 1,
-             "source": "steam", "lote": "v6", "added_ts": AGORA_FIXO - 40 * dia}
-    user_store.save_user_json(STEAMID_VISUAL, "portfolio", atuais + [sumiu])
-    pasta = Path(_paths.DATA_DIR) / "backups"
-    pasta.mkdir(parents=True, exist_ok=True)
-    origem = site_db.connect(None)
-    destino = sqlite3.connect(str(pasta / "public_site-20270103-030000.db"))
-    try:
-        origem.backup(destino)
-    finally:
-        origem.close()
-        destino.close()
     user_store.save_user_json(STEAMID_VISUAL, "portfolio", atuais)
 
 
@@ -395,8 +378,8 @@ def _congelar_relogio():
     online.marcar = lambda *args, **kwargs: None
     online.contar = lambda *args, **kwargs: 0
 
-    # Conta: "há X", o prazo do quadro de recuperação e a idade dos preços
-    # saem do relógio de account.py; o resto do módulo time segue real.
+    # Conta: "há X" e a idade dos preços saem do relógio de account.py;
+    # o resto do módulo time segue real.
     import time as _time_real
 
     import lodout.public_site.account as account
@@ -413,7 +396,6 @@ def _congelar_relogio():
     # Validade do cache de preços (6 h) contada do mesmo relógio.
     import lodout.prices as prices
     prices.time = _TempoContaFixo()
-    account.RECUPERAR_ATE_TS = AGORA_FIXO + 86400
 
 
 def _subir_servidor():

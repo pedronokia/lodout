@@ -417,7 +417,6 @@ def conta():
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         mudanca_valor=mudanca,
-        recuperar=_quadro_recuperar(steamid, positions),
         idade_precos=_idade_dos_precos(quandos),
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
@@ -889,78 +888,6 @@ def marcar_vendido(name: str):
                  f"prejuízo de {fmt.brl(-pnl)}" if pnl < 0 else "sem lucro nem prejuízo")
     flash(f"{localize_name(name)} foi para “Itens vendidos”, no Histórico: vendido por {fmt.brl(preco)}"
           f"{' cada' if quantidade > 1 else ''}, {resultado} depois da taxa.", "success")
-    return redirect(url_for("account.conta"))
-
-
-# Até 16/11, anunciar no Mercado apagava o item e o valor pago (a
-# sincronização achava que tinha vendido). Os backups diários guardam 7
-# dias: até lá, a própria pessoa pode recuperar os dela pela conta, sem
-# ninguém precisar entrar no servidor (pedido do usuário, 16/11).
-RECUPERAR_ATE_TS = 1795392000.0  # 2026-11-23 21:00 UTC
-
-
-def _quadro_recuperar(steamid: str, positions: "list[dict]") -> "dict | None":
-    """Quadro "Achamos itens que sumiram da sua lista" (revisão 16/11): só
-    para quem tem algo a devolver, com a lista antes de confirmar."""
-    if time.time() >= RECUPERAR_ATE_TS:
-        return None
-    from lodout.public_site import recuperar_posicoes
-    try:
-        prev = recuperar_posicoes.previa(steamid, positions)
-    except Exception:
-        _logger.warning("prévia da recuperação falhou", exc_info=True)
-        return None
-    if not prev["voltam"] and not prev["conferir"]:
-        return None
-    def linha(r):
-        valores = " + ".join(f"{q}× {fmt.brl(c)}" if q > 1 else fmt.brl(c) for q, c in r["valores"])
-        return {"nome": localize_name(r["item"]), "valores": valores}
-    return {"voltam": [linha(r) for r in prev["voltam"]],
-            "conferir": [linha(r) for r in prev["conferir"]]}
-
-
-@bp.route("/conta/recuperar", methods=["POST"])
-@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
-@login_required
-@csrf_protect
-def recuperar_apagados():
-    from lodout.public_site import recuperar_posicoes
-    steamid = session["steamid"]
-    backups = recuperar_posicoes._backups()
-    atuais = user_portfolio.load_positions(steamid)
-    agora = time.time()
-    novas, relatorio = recuperar_posicoes.planejar(
-        steamid, atuais, backups, agora, ignorar=recuperar_posicoes.ignorados(steamid))
-    voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
-    if not voltaram:
-        flash("Nada para devolver.", "info")
-        return redirect(url_for("account.conta"))
-    copia = Path(_paths.DATA_DIR) / "backups" / time.strftime(
-        f"recuperacao-{steamid}-%Y%m%d-%H%M%S.json", time.gmtime(agora))
-    _paths.atomic_write_text(copia, json.dumps(atuais, ensure_ascii=False))
-    user_store.save_user_json(steamid, "portfolio", novas)
-    recuperar_posicoes._CACHE_PREVIA.pop(steamid, None)
-    n = len(voltaram)
-    flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago, "
-          "como “fora do inventário”. Marque “Está anunciado” ou “Vendi” em cada um.", "success")
-    return redirect(url_for("account.conta", filtro="fora"))
-
-
-@bp.route("/conta/recuperar/dispensar", methods=["POST"])
-@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
-@login_required
-@csrf_protect
-def dispensar_recuperar():
-    """"Não quero de volta" (revisão 16/11, rodada 2): esconde o quadro;
-    os itens dele não são mais oferecidos."""
-    from lodout.public_site import recuperar_posicoes
-    steamid = session["steamid"]
-    prev = recuperar_posicoes.previa(steamid, user_portfolio.load_positions(steamid))
-    nomes = [r["item"] for r in prev["voltam"] + prev["conferir"]]
-    if nomes:
-        recuperar_posicoes.ignorar(steamid, nomes)
-        flash("Pronto. Esses itens não voltam mais.",
-              "success")
     return redirect(url_for("account.conta"))
 
 

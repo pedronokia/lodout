@@ -53,9 +53,9 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   reaparecer no inventário. Só o sem valor pago sai sozinho. Vendas e
   trocas da Steam não são públicas: o site não tem como saber sozinho. Valores apagados antes disso:
   `python -m lodout.public_site.recuperar_posicoes STEAMID|--todos
-  [--aplicar]`, lendo os backups diários (7 dias), ou o quadro no topo
-  de `/conta` (até 23/11). Item vendido, removido ou dispensado ("Não
-  quero de volta") entra em `preferencias.recuperar_ignorar` e não volta;
+  [--aplicar]`, lendo os backups diários (7 dias) — o quadro temporário no topo
+  de `/conta` venceu em 23/11 e foi retirado em 27/11. Item vendido ou removido
+  entra em `preferencias.recuperar_ignorar` e não volta;
   "desfazer venda" no Histórico devolve o lote e tira o nome dessa lista.
 - O site descreve dados observados; não promete retorno nem faz previsão.
 - Mantenha validação, CSRF, limites de tentativas e codificação de saída nas
