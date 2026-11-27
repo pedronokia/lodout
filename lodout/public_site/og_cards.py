@@ -2,7 +2,7 @@
 é colado no Discord, WhatsApp, X etc.
 
 - `cartao_padrao()`: marca oficial "Escura Alto Contraste" (sem TM),
-  fundo do tema e texto curto em Outfit / Geist / Geist Mono. Gera o
+  fundo do tema e texto curto em Outfit / Geist. Gera o
   `static/og-image.png` (via scripts/gerar_og_image.py) usado pelas
   páginas sem imagem própria.
 - `cartao_item(...)`: um por item, com ícone, nome, nota, preço e a cor
@@ -10,8 +10,8 @@
   local): gerar a prévia nunca consulta a Steam nem o CDN dela.
 
 Pillow já é dependência do site (icon_cache.py); as fontes são as mesmas
-que o site serve (static/fonts): Outfit no título, Geist no texto e
-Geist Mono nos números.
+que o site serve (static/fonts): Outfit no título e Geist no texto e
+nos números (desde 27/11, como no site: sem a Geist Mono).
 """
 from __future__ import annotations
 
@@ -28,7 +28,6 @@ LARGURA, ALTURA = 1200, 630
 _FONTES = {
     "outfit": Path(__file__).parent / "static" / "fonts" / "outfit-latin.woff2",
     "geist": Path(__file__).parent / "static" / "fonts" / "geist-latin.woff2",
-    "mono": Path(__file__).parent / "static" / "fonts" / "geist-mono-latin.woff2",
 }
 
 # Mesmas cores do tema (style.css :root e .raridade-*, .nota-*).
@@ -52,8 +51,8 @@ _CACHE_MAX_ARQUIVOS = 800
 
 def _fonte(tamanho: int, peso: int = 400,
            familia: str = "geist") -> ImageFont.FreeTypeFont:
-    """Fonte do cartão. `mono` é monoespaçada, então os algarismos já
-    ficam tabulares sem depender de feature OpenType."""
+    """Fonte do cartão. Cada número aparece sozinho (nota, preço), então
+    não precisa de algarismos tabulares."""
     f = ImageFont.truetype(str(_FONTES[familia]), tamanho)
     try:
         f.set_variation_by_axes([peso])
@@ -121,7 +120,7 @@ def _png(img: Image.Image) -> bytes:
 
 def cartao_padrao() -> bytes:
     """Cartão padrão: fundo #161616, marca oficial sem TM, título curto
-    em Outfit e uma linha de dados em Geist / Geist Mono. Sem faixas ou
+    em Outfit e uma linha de dados em Geist. Sem faixas ou
     brilhos: o texto e a marca são os únicos elementos."""
     img = Image.new("RGB", (LARGURA, ALTURA), _FUNDO)
     d = ImageDraw.Draw(img)
@@ -134,8 +133,8 @@ def cartao_padrao() -> bytes:
     d.text((100, 445), "Notas, preços e histórico com dados públicos da Steam.",
            font=_fonte(30, 400), fill=_TEXTO_FRACO)
     d.text((100, 500), "Top 20  ·  7d / 30d / 90d  ·  histórico",
-           font=_fonte(26, 500, "mono"), fill=_TEXTO)
-    d.text((100, ALTURA - 70), "lodout.com", font=_fonte(28, 600, "mono"),
+           font=_fonte(26, 500), fill=_TEXTO)
+    d.text((100, ALTURA - 70), "lodout.com", font=_fonte(28, 600),
            fill=_LARANJA)
     return _png(img)
 
@@ -191,7 +190,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
 
     y = max(y + 24, 330)
     if nota is not None:
-        f_nota = _fonte(120, 800, "mono")
+        f_nota = _fonte(120, 700)
         d.text((x, y), "Nota", font=_fonte(30, 500), fill=_TEXTO_FRACO)
         d.text((x, y + 34), f"{int(nota)}", font=f_nota,
                fill=_CORES_NOTA[_nota_classe(nota)])
@@ -203,11 +202,11 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
             fim_nota = x + f_nota.getlength(f"{int(nota)}")
         px = max(x + 300, int(fim_nota) + 50)
         tam = 56
-        while tam > 34 and _fonte(tam, 700, "mono").getlength(preco_fmt) > LARGURA - 60 - px:
+        while tam > 34 and _fonte(tam, 700).getlength(preco_fmt) > LARGURA - 60 - px:
             tam -= 2
         d.text((px, y), "Preço", font=_fonte(30, 500), fill=_TEXTO_FRACO)
         d.text((px, y + 62 + (56 - tam) // 2), preco_fmt,
-               font=_fonte(tam, 700, "mono"), fill=_TEXTO)
+               font=_fonte(tam, 700), fill=_TEXTO)
 
     # Rodapé com a mesma marca do cartão padrão, sem TM.
     marca = Image.open(_LOGO).convert("RGBA")
@@ -218,7 +217,7 @@ def cartao_item(nome_fmt: str, nota: "int | None", preco_fmt: str,
     y_rod = ALTURA - 96
     img.paste(marca, (x, y_rod), marca)
     tx = x + larg_marca + 16
-    f_dominio = _fonte(26, 600, "mono")
+    f_dominio = _fonte(26, 600)
     d.text((tx, ALTURA - 70), "lodout.com", font=f_dominio, fill=_LARANJA)
     d.text((tx + f_dominio.getlength("lodout.com") + 12, ALTURA - 70),
            "· dados públicos da Steam", font=_fonte(26, 400),
@@ -238,7 +237,7 @@ def cartao_item_em_cache(nome_fmt: str, nota, preco_fmt: str,
     chave = hashlib.sha1("|".join([
         nome_fmt, str(nota), preco_fmt, raridade or "",
         hashlib.sha1(icone).hexdigest() if icone else "-",
-        "v6"]).encode("utf-8")).hexdigest()  # v6: marca/oficina de fontes (26/11)
+        "v7"]).encode("utf-8")).hexdigest()  # v7: números em Geist (27/11)
     pasta = _dir_cache()
     caminho = pasta / f"{chave}.png"
     try:

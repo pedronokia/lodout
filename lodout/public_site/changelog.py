@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-26",
         "titulo": "Coleta mais transparente",
         "itens": [
+            "A imagem que aparece ao compartilhar um link do Lodout (WhatsApp, Discord etc.) também saiu da fonte de código: nota, preço e endereço usam a mesma fonte do site.",
             "Ranking no celular: a lista cabia mal na tela e os cartões cortavam na direita (a nota de hoje ficava escondida). Agora cada cartão cabe inteiro na tela, com a nota de hoje à vista, e o que não cabe desce de linha.",
             "Números mais fáceis de ler: preços, notas e variações saíram da fonte de código (de letras todas da mesma largura) e passaram para a fonte do texto, com os algarismos alinhados em coluna. Textos como o nome da caixa, o risco e a liquidez também voltaram para a fonte normal.",
             "Nova página Como usar o Lodout: em 4 passos, como achar um item, ler a nota e o porquê, usar a encomenda sugerida e acompanhar o seu inventário. Ela aparece no topo da página inicial (“Novo aqui? Veja como usar o Lodout”) e no rodapé, em Entenda.",

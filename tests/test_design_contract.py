@@ -162,14 +162,15 @@ def test_arquivos_da_fonte_comitados():
 
 def test_cartao_de_compartilhamento_usa_a_identidade_atual():
     """26/11: o og-image sai da marca oficial chanfrada, sem TM, com
-    título em Outfit e números monoespaçados, sobre o fundo do site."""
+    título em Outfit, sobre o fundo do site. Desde 27/11 os números
+    usam a Geist, como no site (sem fonte monoespaçada)."""
     from PIL import Image as _Img
     from lodout.public_site import og_cards
 
     origem = (STYLE.parent.parent / "og_cards.py").read_text(encoding="utf-8")
-    for familia in ("outfit-latin.woff2", "geist-latin.woff2",
-                    "geist-mono-latin.woff2"):
+    for familia in ("outfit-latin.woff2", "geist-latin.woff2"):
         assert familia in origem
+    assert "geist-mono" not in origem
     assert og_cards._LOGO.name == "logo-escura-og.png"
     assert og_cards._LOGO.is_file()
     # A marca do cartão vem do mesmo partial do topo/rodapé (sem TM).
@@ -182,8 +183,7 @@ def test_cartao_de_compartilhamento_usa_a_identidade_atual():
     assert img.getpixel((0, 0)) == (22, 22, 22)
     assert all(img.getpixel((x, 4)) == (22, 22, 22)
                for x in range(0, og_cards.LARGURA, 50))
-    f_mono = og_cards._fonte(40, 500, "mono")
-    assert f_mono.getlength("1111") == f_mono.getlength("8888")
+    assert set(og_cards._FONTES) == {"outfit", "geist"}
 
 
 def test_titulos_outfit_700_e_escala_32_48_64():
