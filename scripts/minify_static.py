@@ -20,10 +20,34 @@ from pathlib import Path
 _PASTA_DEFAULT = Path("lodout/public_site/static")
 
 
+# Texto entre aspas (content: "...", url("..."), nomes de fonte) passa
+# intacto; só o que está fora das aspas é compactado.
+_STRING_CSS = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+
+
+def _compactar_fora_de_strings(trecho: str) -> str:
+    trecho = re.sub(r"\s+", " ", trecho)
+    # Espaço em volta de { } ; , > não muda nada no CSS. ":" fica de
+    # fora de propósito: "a :hover" (descendente) é diferente de
+    # "a:hover"; "+" e "~" também ficam, por causa do calc().
+    trecho = re.sub(r"\s*([{};,>])\s*", r"\1", trecho)
+    return trecho.replace(";}", "}")
+
+
 def minify_css(texto: str) -> str:
+    """Tira comentários, quebras de linha e espaços que o navegador
+    ignora (27/11: antes só tirava comentários; o Lighthouse ainda via
+    ~6 KB de sobra). Nunca mexe dentro de aspas. O teste
+    test_minify_css_mantem_as_regras confere, no style.css real, que as
+    regras e declarações continuam as mesmas."""
     texto = re.sub(r"/\*.*?\*/", "", texto, flags=re.DOTALL)
-    linhas = [l.strip() for l in texto.splitlines()]
-    return "\n".join(l for l in linhas if l) + "\n"
+    partes, pos = [], 0
+    for m in _STRING_CSS.finditer(texto):
+        partes.append(_compactar_fora_de_strings(texto[pos:m.start()]))
+        partes.append(m.group(0))
+        pos = m.end()
+    partes.append(_compactar_fora_de_strings(texto[pos:]))
+    return "".join(partes).strip() + "\n"
 
 
 def minify_js(texto: str) -> str:

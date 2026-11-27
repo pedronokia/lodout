@@ -423,7 +423,10 @@ def test_index_vitrine_so_os_6_primeiros_cards_carregam_eager(
     partes = body.split('class="cartao-item-icon"')[1:]
     for i, parte in enumerate(partes):
         esperado = "eager" if i < 6 else "lazy"
-        assert f'loading="{esperado}"' in parte[:200], (
+        # Até o fim da própria tag <img> (o srcset por largura, 27/11,
+        # deixou a tag mais longa que os 200 caracteres de antes).
+        tag = parte[:parte.index(">")]
+        assert f'loading="{esperado}"' in tag, (
             f"card {i}: esperava loading={esperado!r}")
 
 

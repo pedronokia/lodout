@@ -677,3 +677,38 @@ def test_tamanhos_de_letra_seguem_a_escala():
     assert degraus["fs-2xs"] == "0.75"
     assert min(float(v) for v in degraus.values()) >= 0.75
     assert degraus["fs-titulo"] == "1.5"
+
+
+def test_minify_css_mantem_as_regras():
+    """27/11: o build compacta o style.css (scripts/minify_static.py)
+    também nas quebras de linha e espaços. A cópia compactada precisa
+    ter as mesmas regras e declarações, e o texto entre aspas
+    (content, url, nomes de fonte) passa intacto."""
+    import importlib.util
+    import re as _re
+    caminho = Path(__file__).resolve().parents[1] / "scripts" / "minify_static.py"
+    spec = importlib.util.spec_from_file_location("minify_static", caminho)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    original = _css()
+    mini = mod.minify_css(original)
+    assert len(mini) < len(original) * 0.8
+
+    strings = _re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+
+    def regras(css: str):
+        css = _re.sub(r"/\*.*?\*/", "", css, flags=_re.S)
+        assert strings.findall(css) == strings.findall(mini)
+        fora = strings.sub('""', css)
+        blocos = []
+        for m in _re.finditer(r"([^{}]*)\{([^{}]*)\}", fora):
+            seletor = " ".join(m.group(1).split())
+            seletor = _re.sub(r"\s*([,>])\s*", r"\1", seletor)
+            decls = tuple(_re.sub(r"\s*([,>])\s*", r"\1", " ".join(d.split()))
+                          for d in m.group(2).split(";") if d.strip())
+            blocos.append((seletor, decls))
+        return blocos
+
+    assert regras(original) == regras(mini)
+    assert original.count("{") == mini.count("{")
