@@ -620,3 +620,60 @@ def test_unico_azul_e_o_botao_da_steam():
         inicio = css.rfind("}", 0, pos)
         seletor = css[inicio + 1:css.find("{", inicio)]
         assert ":root" in seletor or "conta-link-entrar" in seletor, seletor.strip()[-80:]
+
+
+# Exceções da escala de letras (27/11, combinadas com o usuário): número
+# dentro de moldura fixa (anéis de nota, contadores redondos), teclas
+# (kbd), barra de baixo do celular, ícones desenhados com texto, campo
+# de valor (o iOS dá zoom em campo abaixo de 16px) e o preço da vitrine
+# (16px, pedido do usuário). Tudo o mais usa um degrau --fs-*.
+_EXCECOES_ESCALA = {
+    ".hero-destaque-nota-num": "1.5rem",
+    ".nota-mini.nota-tres-digitos .nota-numero": "0.6875rem",
+    ".cartao-item-nota-numero": "0.6875rem",
+    "table.tabela-conta .celula-item-conta-cabeca > .nota-mini .nota-numero": "0.65rem",
+    ".resumo-cards.resumo-cards-item .card-valor.nota .nota-numero": "1.5rem !important",
+    ".spotlight-fechar kbd": "0.6875rem",
+    ".spotlight-atalho kbd": "0.6875rem",
+    ".spotlight-gatilho-kbd": "0.625rem",
+    ".nav-inferior a": "0.6875rem",
+    ".badge-contagem-filtros": "0.6875rem",
+    ".botao-filtro-topo .badge-contagem-filtros": "0.625rem",
+    ".icone-item-placeholder::before": "1.6rem",
+    # Duas regras (desktop e celular) com tamanhos próprios do ícone.
+    ".icone-item-quadro-compacto .icone-item-placeholder::before": None,
+    ".adicionar-manual > summary::before": "0.85rem",
+    ".cartao-item-rodape .botao-favorito": "16px",
+    ".form-filtros button.filtros-fechar-popover": "1rem !important",
+    ".simulador-input": "1rem",
+    ".grade-cards > .cartao-item .cartao-item-preco .cartao-item-preco-valor": "1rem",
+}
+
+
+def test_tamanhos_de_letra_seguem_a_escala():
+    """27/11: o CSS tinha ~230 tamanhos soltos (11, 11,2, 11,5, 12,5,
+    15px...) e textos parecidos saíam diferentes de uma página para
+    outra. Toda declaração de font-size usa um degrau da escala
+    (--fs-*), um valor relativo (em, inherit, clamp() nos títulos
+    fluidos) ou é uma exceção registrada acima. Nenhum degrau fica
+    abaixo de 12px."""
+    import re as _re
+    css = _re.sub(r"/\*.*?\*/", "", _css(), flags=_re.S)
+    soltos = []
+    for regra in _re.finditer(r"([^{}]*)\{([^{}]*)\}", css):
+        seletor = " ".join(regra.group(1).split())
+        for valor in _re.findall(r"font-size:\s*([^;]+);", regra.group(2)):
+            valor = valor.strip()
+            if (valor.startswith("var(--fs-") or valor.startswith("inherit")
+                    or valor.startswith("clamp(") or _re.fullmatch(r"[0-9.]+em", valor)):
+                continue
+            esperado = _EXCECOES_ESCALA.get(seletor, "")
+            if esperado is None or valor == esperado:
+                continue
+            soltos.append(f"{seletor} {{ font-size: {valor} }}")
+    assert not soltos, "Tamanho fora da escala (use var(--fs-*)):\n" + "\n".join(soltos)
+    # Degraus da escala: o menor é 12px (0,75rem).
+    degraus = dict(_re.findall(r"--(fs-[a-z0-9]+):\s*([0-9.]+)rem;", _css()))
+    assert degraus["fs-2xs"] == "0.75"
+    assert min(float(v) for v in degraus.values()) >= 0.75
+    assert degraus["fs-titulo"] == "1.5"

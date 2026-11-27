@@ -207,7 +207,7 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 - **Headline** (Outfit 700, 2rem, 1.15, -0.025em): títulos de seção ("O que mudou no Top 20 desde ontem").
 - **Title** (Outfit 700, clamp(1.6rem, 4.2vw, 2.4rem), 1.15, -0.025em): nome do item na página do item.
 - **Lead** (450, 1.3125rem): a frase-guia logo abaixo do título de página, em Texto Apagado.
-- **Body** (450, 1.0625rem, 1.47): texto corrido e explicações, em até ~75 letras por linha.
+- **Body** (450, 1.0625rem = 17px, 1.47): texto corrido e explicações, em até ~75 letras por linha.
 - **Small** (450, 0.875rem): células de tabela, botões, metadados ("Última coleta completa há 2 h").
 - **Label** (700, 0.75rem, 0.06em, caixa alta): rótulos de dado ("NOTA", "FREQUÊNCIA") e cabeçalhos de cartão.
 - **Número** (Geist 700, 2rem, `tnum`): o valor em destaque onde se decide (encomenda sugerida, preço do item).
@@ -216,6 +216,8 @@ Paleta neutra escura com um único laranja de voz e três cores de significado.
 **The Tabular Numbers Rule.** Todo preço, nota, porcentagem e contagem usa algarismos tabulares, para que colunas se alinhem e números que mudam não pulem.
 
 **The Reading Measure Rule.** Explicação longa nunca passa de ~75 letras por linha; avisos pequenos, menos ainda.
+
+**The Scale Rule** (27/11, com o usuário). Todo tamanho de letra sai de um degrau da escala, os tokens `--fs-*` em `style.css`: 12 (`2xs`), 13 (`xs`), 14 (`sm`), 17 (`base`), 18 (`lead`), 19 (`lg`), 21 (`copy`), 24 (`titulo`), 32 (`xl`), 48 (`2xl`) e 64px (`display`). Nenhum texto fica abaixo de 12px. O texto corrido (apresentação da página inicial, descrição sob o título das páginas, Método, FAQ, Glossário) é 17px. Os títulos fluidos usam `clamp()`, e valores em `em` acompanham o texto ao redor. Exceções registradas: número dentro de moldura fixa (anéis de nota, contadores redondos dos filtros), teclas (`kbd`), legendas da barra de baixo do celular, ícones desenhados com texto, o campo de valor do simulador (16px, abaixo disso o iOS dá zoom) e o preço da vitrine (16px, pedido do usuário). O teste `test_tamanhos_de_letra_seguem_a_escala` falha com qualquer tamanho fora disso; exceção nova entra na lista do teste e aqui, com o motivo.
 
 ## Layout
 

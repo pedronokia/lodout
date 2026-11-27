@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
+            "Os últimos textos pequenos que sobravam (rótulos dos Filtros, título da Minha conta, aviso “informe quanto pagou” no celular) também entraram na escala, e o site agora confere sozinho que nenhum tamanho novo fuja dela.",
             "Minha conta na mesma escala de letras: botões das linhas, etiquetas, cabeçalhos da tabela e contadores dos filtros ficaram um pouco maiores e mais fáceis de ler (nada ficou abaixo de 12px).",
             "Método, FAQ e Glossário com o texto no tamanho normal do site, mais fácil de ler; no Status, rótulos e tabela um pouco mais legíveis, e o gráfico de visitas não encavala mais as duas últimas datas.",
             "Ranking e página do item na mesma escala de letras: os valores do topo do item (preço, caixa, risco, liquidez), os títulos dos blocos do Ranking e a descrição embaixo do título das páginas ficaram um pouco maiores; os rótulos pequenos, um pouco mais legíveis.",

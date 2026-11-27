@@ -2544,7 +2544,7 @@ table.tabela-candidatos td.celula-preco {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-xs);
@@ -3309,7 +3309,7 @@ a.paginacao-passo:hover {
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.7rem;
+  font-size: var(--fs-2xs);
   line-height: 1.4;
 }
 
@@ -6135,7 +6135,7 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   align-items: center;
   gap: 5px;
   margin-top: 4px;
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
 }
 .card-mudanca .valor-positivo {
   display: inline-flex;
@@ -6146,7 +6146,7 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
   color: var(--positive);
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
 }
 .card-mudanca .valor-negativo {
   display: inline-flex;
@@ -6157,7 +6157,7 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
   border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
   color: var(--danger);
   font-weight: 600;
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
 }
 /* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
 /* Lotes do mesmo item: a linha entre eles é tracejada (continuação do
@@ -6290,7 +6290,7 @@ input, textarea { caret-color: var(--accent); }
    .form-inline ocupava a linha inteira no cartão do celular). */
 @media (max-width: 640px) {
   .cabecalho-conta-com-itens { margin-bottom: var(--sp-3); }
-  .cabecalho-conta-com-itens .titulo-pagina { font-size: 1.5rem; margin-bottom: 2px; }
+  .cabecalho-conta-com-itens .titulo-pagina { font-size: var(--fs-titulo); margin-bottom: 2px; }
   .cabecalho-conta-com-itens .conta-identidade-frase { display: none; }
   .cabecalho-conta-com-itens .conta-identidade:not(:has(.conta-identidade-nome)) { display: none; }
   .cabecalho-conta-com-itens .conta-identidade { font-size: var(--fs-sm); margin-top: 0; }
@@ -7089,7 +7089,7 @@ color: var(--text);
 font-variant-numeric: tabular-nums;
 }
 .spotlight-item-score {
-font-size: 0.6875rem;
+font-size: var(--fs-2xs);
 font-weight: 700;
 padding: 2px 7px;
 border-radius: 980px;
@@ -7098,7 +7098,7 @@ color: var(--accent);
 border: 1px solid rgba(249, 115, 22, 0.3);
 }
 .spotlight-item-sem-score {
-font-size: 0.6875rem;
+font-size: var(--fs-2xs);
 padding: 2px 7px;
 border-radius: 980px;
 background: rgba(255, 255, 255, 0.05);
@@ -7712,7 +7712,7 @@ circle.grafico-ponto-interativo:hover {
 .movimento-delta {
   padding: 1px 7px;
   border-radius: var(--radius-pill);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   letter-spacing: 0.02em;
 }
 
@@ -7996,7 +7996,7 @@ circle.grafico-ponto-interativo:hover {
 /* 19. Tabela de Candidatos Precision Polishing (Modo Lista) */
 .tabela-candidatos th {
   text-transform: uppercase;
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   letter-spacing: 0.05em;
   font-weight: 600;
   color: #a3a3a3;
@@ -9445,7 +9445,7 @@ h3,
 
 .filtro-campo-label {
   display: block;
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -9610,7 +9610,7 @@ h3,
 .conta-identidade-nome {
   font-weight: 600;
   color: #f8fafc;
-  font-size: 0.9375rem;
+  font-size: var(--fs-sm);
 }
 
 .conta-identidade-frase {
@@ -9629,7 +9629,7 @@ h3,
 }
 
 .cabecalho-conta-com-itens .titulo-pagina {
-  font-size: 1.45rem;
+  font-size: var(--fs-titulo);
   margin: 0;
 }
 
@@ -10306,7 +10306,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .item-exterior {
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.45);
   font-weight: 500;
 }
@@ -10325,7 +10325,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-conta .celula-item-conta-extra .botao-remover {
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.35);
   padding: 1px 6px;
   border-radius: 4px;
@@ -10368,13 +10368,13 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.75);
 }
 
 .tabela-conta .item-fora .item-fora-pergunta {
   color: rgba(255, 255, 255, 0.50);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -10388,7 +10388,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: linear-gradient(180deg, rgba(249, 115, 22, 0.20) 0%, rgba(249, 115, 22, 0.10) 100%);
   border: 1px solid rgba(249, 115, 22, 0.38);
   color: var(--accent-bright);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -10409,7 +10409,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.70);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -10426,7 +10426,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .tabela-conta .item-fora .botao-fora-remover {
   white-space: nowrap;
   color: rgba(255, 255, 255, 0.40);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.04);
@@ -10475,7 +10475,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   position: absolute;
   right: 10px;
   color: rgba(255, 255, 255, 0.40);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   pointer-events: none;
 }
@@ -10534,7 +10534,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
@@ -10670,7 +10670,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.65);
-  font-size: 0.71875rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -10845,7 +10845,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .conta-vazia p {
-  font-size: 0.84375rem;
+  font-size: var(--fs-xs);
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.6;
   margin: 0 0 10px;
@@ -10975,7 +10975,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   background: rgba(255, 110, 112, 0.15);
   border: 1px solid rgba(255, 110, 112, 0.35);
   color: #ff6e70;
-  font-size: 0.71875rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -11344,7 +11344,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .hero-destaque-preco {
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
-  font-size: 1.45rem;
+  font-size: var(--fs-titulo);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #ffffff;
@@ -11357,7 +11357,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .hero-destaque-preco .icone-tendencia {
   padding: 2px 8px;
   border-radius: 9999px;
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   line-height: 1.4;
 }
@@ -12187,7 +12187,7 @@ footer.rodape a:hover {
 .grafico-barras { display: block; width: 100%; height: auto; color: var(--accent); }
 .grafico-barras .barra { fill: currentColor; opacity: 0.85; }
 .grafico-barras .barra-grupo:hover .barra { opacity: 1; }
-.grafico-barras .barra-valor { fill: var(--text); font-size: 12px; font-weight: 600; }
+.grafico-barras .barra-valor { fill: var(--text); font-size: var(--fs-2xs); font-weight: 600; }
 .grafico-barras .barra-dia { fill: var(--text-muted); font-size: var(--fs-2xs); }
 .grafico-barras .barra-base { stroke: var(--border); stroke-width: 1; }
 
@@ -12615,7 +12615,7 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.55);
     text-decoration: none;
-    font-size: 0.72rem;
+    font-size: var(--fs-2xs);
     font-weight: 500;
     transition: all 0.15s ease;
   }
@@ -12641,7 +12641,7 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
     min-height: 0;
     padding: 14px 14px 16px;
   }
-  .resumo-cards.resumo-cards-conta .card-valor { font-size: 1.375rem; }
+  .resumo-cards.resumo-cards-conta .card-valor { font-size: var(--fs-titulo); }
   .resumo-cards.resumo-cards-conta .card-sub { font-size: var(--fs-2xs); }
   .resumo-cards-conta .botao-preencher { height: 32px; padding: 0 12px; font-size: var(--fs-2xs); }
 }
@@ -12782,7 +12782,7 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  font-size: 1.5rem;
+  font-size: var(--fs-titulo);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
@@ -12802,7 +12802,7 @@ footer.rodape .rodape-marca-nome { gap: 0; }
     min-height: 140px;
   }
   .resumo-cards.resumo-cards-conta .card-valor {
-    font-size: 1.25rem;
+    font-size: var(--fs-copy);
   }
 }
 
@@ -13466,7 +13466,7 @@ table.tabela-conta .celula-item-conta-extra .item-lote {
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-muted);
-  font-size: 0.6875rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1.35;
 }
@@ -13553,7 +13553,7 @@ table.tabela-conta .botao-juntar.acao-texto {
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
@@ -13821,7 +13821,7 @@ table.tabela-conta .linha-sem-custo .input-custo:focus {
   table.tabela-conta .custo-salvo {
     flex-basis: 100%;
     text-align: right;
-    font-size: 0.7rem;
+    font-size: var(--fs-2xs);
   }
   table.tabela-conta .custo-salvo:empty {
     display: none;
