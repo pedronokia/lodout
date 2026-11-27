@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
+            "Busca do site mais precisa: as sugestões enquanto você digita agora aceitam “OR” (como na página inicial), mostram primeiro o item de nome exato mesmo quando ele está só no catálogo, encontram facas e luvas como Karambit, Bayonet, Shadow Daggers e Hand Wraps ao buscar por “faca” ou “luva”, e tratam símbolos como “%” e “_” como texto normal.",
             "Página inicial um pouco mais leve: no computador, as imagens dos cartões vêm no tamanho em que aparecem (cerca de metade do peso), e o arquivo de estilos do site ficou menor.",
             "Busca no celular: os botões de fechar (agora um “×”) e de Filtros não ficam mais fora da tela, o nome do item aparece em até duas linhas e os atalhos de teclado só aparecem no computador. No teclado, o Tab fica dentro da busca aberta. Textos claros demais sobre fundo laranja ou escuro (página atual da lista, aba ativa, “recebe R$ … depois da taxa”) ficaram mais legíveis.",
             "Celular: a página da API não arrasta mais para o lado em telas pequenas, o link “API” do rodapé ficou mais fácil de tocar e as barras de arrastar (oferta no Simular compra e “Quero lucrar” na conta) ganharam uma área de toque maior.",

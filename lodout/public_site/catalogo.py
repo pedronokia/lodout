@@ -70,24 +70,38 @@ def texto_busca(texto: str) -> str:
     return sem_acento.lower().replace("-", "")
 
 
-# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas e
-# adesivos aparecem com o nome original): quem digita em português também
-# acha ("capsula copenhagen" -> "Copenhagen 2024 Legends Sticker Capsule").
+# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas,
+# adesivos, facas e luvas aparecem com o nome original): quem digita em
+# português também acha ("capsula copenhagen" -> "Copenhagen 2024 Legends
+# Sticker Capsule", "faca karambit" -> "★ Karambit | ...").
 SINONIMOS_BUSCA = {
     "capsule": "capsula",
     "sticker": "adesivo",
     "autograph": "autografo",
     "case": "caixa",
     "gloves": "luvas",
-    "knife": "faca",
+    "hand wraps": "luvas faixas",
+    "knife": "facas",
+    "karambit": "facas",
+    "bayonet": "facas",
+    "shadow daggers": "facas adagas",
 }
 
 
 def nome_para_busca(nome_original: str, nome_pt: str) -> str:
     """Nome em português e original (inglês, como na Steam) juntos, mais
     a tradução das palavras de tipo que ficam em inglês no nome."""
-    extras = [pt for en, pt in SINONIMOS_BUSCA.items()
-              if en in nome_original.lower()]
+    baixo = nome_original.lower()
+    extras = list(dict.fromkeys(
+        pt for en, pt in SINONIMOS_BUSCA.items()
+        if en in baixo
+    ))
+    # Facas da Steam começam com ★ e às vezes não trazem "Knife" no nome.
+    if (nome_original.startswith("★")
+            and "gloves" not in baixo
+            and "hand wraps" not in baixo
+            and "facas" not in extras):
+        extras.append("facas")
     return " ".join([nome_pt, nome_original, *extras])
 
 
@@ -595,6 +609,97 @@ def _conectar_leitura() -> "sqlite3.Connection | None":
     return conn
 
 
+# Palavras em português cuja categoria no catálogo cobre também itens
+# gravados antes dos novos sinônimos (ex.: Karambit, Bayonet, Hand Wraps).
+_PALAVRA_CATEGORIA = {
+    "faca": "Facas",
+    "facas": "Facas",
+    "luva": "Luvas",
+    "luvas": "Luvas",
+}
+
+
+def _escapar_like(termo: str) -> str:
+    """Escapa os coringas do LIKE do SQLite para busca literal."""
+    return termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _sem_estrela(texto_norm: str) -> str:
+    return texto_norm.lstrip("★ ").strip()
+
+
+def _termos_busca_or(busca: str) -> "list[str]":
+    """Grupos normalizados separados por OR com ao menos 1 alfanumérico."""
+    limpo = " ".join(texto_busca(busca).split())
+    if not limpo:
+        return []
+    termos = []
+    for grupo in limpo.split(" or "):
+        if any(ch.isalnum() for ch in grupo):
+            t = _sem_estrela(grupo.strip())
+            if t:
+                termos.append(t)
+    return termos
+
+
+def relevancia_busca(nome: str, nome_pt: str, busca: str) -> int:
+    """0 = nome exato, 1 = prefixo do nome, 2 = outro casamento.
+
+    Considera o nome original da Steam e o traduzido, ignorando acentos,
+    hífens e a estrela ★ inicial."""
+    termos = _termos_busca_or(busca)
+    if not termos:
+        return 2
+    alvos = []
+    for bruto in (nome, nome_pt):
+        norm = " ".join(texto_busca(bruto).split())
+        if norm:
+            alvos.append(norm)
+            sem = _sem_estrela(norm)
+            if sem and sem != norm:
+                alvos.append(sem)
+    melhor = 2
+    for t in termos:
+        for alvo in alvos:
+            if alvo == t:
+                return 0
+            if alvo.startswith(t):
+                melhor = 1
+    return melhor
+
+
+def _ordem_relevancia(busca: str) -> "tuple[str, list]":
+    """ORDER BY que coloca nome exato e prefixo antes de a_venda."""
+    termos = _termos_busca_or(busca)[:6]
+    if not termos:
+        return "a_venda DESC, nome", []
+    exatos, prefixos, args_ex, args_pr = [], [], [], []
+    norm_en = "REPLACE(LOWER(LTRIM(nome, '★ ')), '-', '')"
+    norm_pt = "REPLACE(LOWER(LTRIM(nome_pt, '★ ')), '-', '')"
+    len_pt = "LENGTH(REPLACE(LTRIM(nome_pt, '★ '), '-', ''))"
+    for t in termos:
+        esc = _escapar_like(t)
+        # busca começa por texto_busca(nome_pt), já sem acento: prefixo + mesmo
+        # comprimento pega match exato em português mesmo sem acento ("revolucao").
+        exatos.append(
+            f"{norm_en} = ? OR {norm_pt} = ? "
+            f"OR ((busca LIKE ? ESCAPE '\\' OR busca LIKE ? ESCAPE '\\') "
+            f"AND {len_pt} = ?)"
+        )
+        args_ex.extend([t, t, f"{esc}%", f"★ {esc}%", len(t)])
+        prefixos.append(
+            f"{norm_en} LIKE ? ESCAPE '\\' OR busca LIKE ? ESCAPE '\\' "
+            "OR busca LIKE ? ESCAPE '\\'"
+        )
+        args_pr.extend([f"{esc}%", f"{esc}%", f"★ {esc}%"])
+    sql = (
+        f"CASE WHEN {' OR '.join(exatos)} THEN 0 "
+        f"WHEN {' OR '.join(prefixos)} THEN 1 "
+        "ELSE 2 END, a_venda DESC, nome"
+    )
+    return sql, args_ex + args_pr
+
+
 def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
     """Cláusula WHERE para os filtros da busca (mesma regra de busca do
     site: palavras em qualquer ordem, sem acento; "a OR b")."""
@@ -602,11 +707,21 @@ def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
     busca = (filtros.get("busca") or "").strip()
     if busca:
         grupos = []
-        for grupo in texto_busca(busca).split(" or "):
+        limpo = " ".join(texto_busca(busca).split())
+        for grupo in limpo.split(" or "):
             palavras = [p for p in grupo.split() if any(ch.isalnum() for ch in p)]
             if palavras:
-                grupos.append("(" + " AND ".join("busca LIKE ?" for _ in palavras) + ")")
-                args.extend(f"%{p}%" for p in palavras)
+                conds = []
+                for p in palavras:
+                    like = f"%{_escapar_like(p)}%"
+                    cat = _PALAVRA_CATEGORIA.get(p)
+                    if cat:
+                        conds.append("(busca LIKE ? ESCAPE '\\' OR categoria = ?)")
+                        args.extend([like, cat])
+                    else:
+                        conds.append("busca LIKE ? ESCAPE '\\'")
+                        args.append(like)
+                grupos.append("(" + " AND ".join(conds) + ")")
         if grupos:
             partes.append("(" + " OR ".join(grupos) + ")")
     for coluna, chave in (("categoria", "categoria"), ("exterior", "exterior"),
@@ -640,10 +755,17 @@ def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda"
         where, args = _where(filtros, list(excluir))
         total = conn.execute(f"SELECT COUNT(*) FROM itens WHERE {where}",
                              args).fetchone()[0] if contar else 0
-        ordem = "preco ASC" if ordenar == "preco" else "a_venda DESC, nome"
+        ordem_args: list = []
+        if ordenar == "preco":
+            ordem = "preco ASC"
+        elif ordenar == "relevancia" and (filtros.get("busca") or "").strip():
+            ordem, ordem_args = _ordem_relevancia(filtros["busca"])
+        else:
+            ordem = "a_venda DESC, nome"
         linhas = conn.execute(
             f"SELECT * FROM itens WHERE {where} ORDER BY {ordem} "
-            "LIMIT ? OFFSET ?", [*args, max(0, int(limite)), max(0, int(offset))]
+            "LIMIT ? OFFSET ?",
+            [*args, *ordem_args, max(0, int(limite)), max(0, int(offset))]
         ).fetchall() if limite > 0 else []
         taxa = cambio()
         return total, [_em_reais(dict(r), taxa) for r in linhas]

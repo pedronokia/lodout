@@ -642,3 +642,121 @@ def test_favicon_ico(client):
     assert "max-age=86400" in r.headers["Cache-Control"]
     ico = Image.open(io.BytesIO(r.data))
     assert sorted(ico.ico.sizes()) == [(16, 16), (32, 32), (48, 48)]
+
+
+def test_sinonimos_busca_cobrem_facas_e_luvas_sem_knife_ou_gloves():
+    """Plano de aprimoramento da busca (#10): 'faca karambit', 'faca bayonet',
+    'faca shadow' e 'luva hand wraps' acham itens sem 'Knife'/'Gloves' no nome,
+    inclusive em linhas já gravadas antes dos novos sinônimos."""
+    _catalogo_com(
+        ("Facas", [
+            _linha("★ Karambit | Fade (Factory New)", preco=500.0, a_venda=5),
+            _linha("★ Bayonet | Doppler (Factory New)", preco=300.0, a_venda=8),
+            _linha("★ M9 Bayonet | Tiger Tooth (Factory New)", preco=400.0, a_venda=6),
+            _linha("★ Shadow Daggers | Fade (Factory New)", preco=120.0, a_venda=12),
+        ]),
+        ("Luvas", [
+            _linha("★ Hand Wraps | Cobalt Skull (Field-Tested)", preco=250.0, a_venda=4),
+            _linha("★ Sport Gloves | Vice (Field-Tested)", preco=800.0, a_venda=2),
+        ]),
+        ("Rifles", [
+            _linha("AK-47 | Redline (Field-Tested)", preco=20.0, a_venda=200),
+        ]),
+    )
+
+    def nomes(q):
+        _total, itens = catalogo.consultar({"busca": q}, limite=20)
+        return {it["nome"] for it in itens}
+
+    assert nomes("faca karambit") == {"★ Karambit | Fade (Factory New)"}
+    assert nomes("facas bayonet") == {
+        "★ Bayonet | Doppler (Factory New)",
+        "★ M9 Bayonet | Tiger Tooth (Factory New)",
+    }
+    assert nomes("faca m9") == {"★ M9 Bayonet | Tiger Tooth (Factory New)"}
+    assert nomes("adagas shadow") == {"★ Shadow Daggers | Fade (Factory New)"}
+    assert nomes("faca shadow") == {"★ Shadow Daggers | Fade (Factory New)"}
+    assert nomes("luva hand wraps") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+    assert nomes("luvas cobalt") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+    assert "AK-47 | Redline (Field-Tested)" not in nomes("faca")
+    assert "★ Sport Gloves | Vice (Field-Tested)" not in nomes("faca")
+    assert "★ Karambit | Fade (Factory New)" not in nomes("luva")
+
+    # Simula linha legada no SQLite (gravada antes do sinônimo na coluna busca):
+    # a consulta continua encontrando via categoria = 'Facas' / 'Luvas'.
+    conn = catalogo.conectar()
+    with conn:
+        conn.execute(
+            "UPDATE itens SET busca = '★ karambit | fade (factory new)' "
+            "WHERE nome = '★ Karambit | Fade (Factory New)'"
+        )
+        conn.execute(
+            "UPDATE itens SET busca = '★ hand wraps | cobalt skull (fieldtested)' "
+            "WHERE nome = '★ Hand Wraps | Cobalt Skull (Field-Tested)'"
+        )
+    conn.close()
+    assert nomes("faca karambit") == {"★ Karambit | Fade (Factory New)"}
+    assert nomes("luva hand wraps") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+
+
+def test_consultar_escapa_coringas_like():
+    """Plano de aprimoramento da busca (#11): %, _ e \\ em ?q= são literais."""
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", a_venda=500),
+        _linha("AK-47 | Slate (Field-Tested)", a_venda=400),
+        _linha("AK% Especial", a_venda=10),
+        _linha("AK_Teste", a_venda=10),
+        _linha("AKxTeste", a_venda=10),
+        _linha("Item \\ Barra", a_venda=10),
+    ]))
+    _t, res_pct = catalogo.consultar({"busca": "ak%"})
+    assert [r["nome"] for r in res_pct] == ["AK% Especial"]
+
+    _t, res_sub = catalogo.consultar({"busca": "ak_teste"})
+    assert [r["nome"] for r in res_sub] == ["AK_Teste"]
+
+    _t, res_bar = catalogo.consultar({"busca": "item \\ barra"})
+    assert [r["nome"] for r in res_bar] == ["Item \\ Barra"]
+
+
+def test_consultar_ordenar_relevancia_prioriza_exato_e_prefixo():
+    """Plano de aprimoramento da busca (#2): ordenar='relevancia' coloca nome
+    exato e prefixo antes de itens mais anunciados (a_venda)."""
+    linhas = [_linha(f"Gamma 2 Case Extra {i}", a_venda=5000 - i) for i in range(15)]
+    linhas += [
+        _linha("Gamma Case", a_venda=5),
+        _linha("Gamma Case Especial", a_venda=12),
+        _linha("Revolution Case", a_venda=8),
+        _linha("Caixa Revolução Extra", a_venda=4000),
+        _linha("★ Karambit | Fade (Factory New)", a_venda=3),
+        _linha("★ Karambit | Fade (Minimal Wear)", a_venda=900),
+    ]
+    _catalogo_com(("Caixas e cápsulas", linhas))
+
+    _t, res = catalogo.consultar(
+        {"busca": "Gamma Case"}, ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res[0]["nome"] == "Gamma Case"
+    assert res[1]["nome"] == "Gamma Case Especial"
+
+    # Match exato em português sem acento ("caixa revolucao" -> "Caixa Revolução")
+    # vem antes de um item com prefixo igual e muito mais anúncios.
+    _t, res_pt = catalogo.consultar(
+        {"busca": "caixa revolucao"}, ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res_pt[0]["nome"] == "Revolution Case"
+    assert res_pt[1]["nome"] == "Caixa Revolução Extra"
+
+    # Match exato sem a estrela ★ inicial
+    _t, res_faca = catalogo.consultar(
+        {"busca": "Karambit | Fade (Factory New)"},
+        ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res_faca[0]["nome"] == "★ Karambit | Fade (Factory New)"
+
+    # Bordas: busca vazia ou só pontuação cai no fallback sem erro.
+    assert catalogo.relevancia_busca("Gamma Case", "Caixa Gama", "   ") == 2
+    assert catalogo._ordem_relevancia(" | ")[1] == []
+    _t, res_vazio = catalogo.consultar({"busca": "   "}, ordenar="relevancia", limite=2, contar=False)
+    assert len(res_vazio) == 2
+

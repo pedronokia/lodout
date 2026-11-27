@@ -1012,50 +1012,76 @@ def create_app() -> Flask:
         português ou inglês, com o preço de hoje. Só o banco local: o
         catálogo e a última coleta; nunca a Steam."""
         q = (request.args.get("q") or "").strip()[:80]
-        if len(q) < 2:
+        if len(q) < 2 or not catalogo._termos_busca_or(q):
             return jsonify([])
-        palavras = catalogo.texto_busca(q).split()
-        out: list = []
+        candidatos: list = []
         vistos: set = set()
         scan = scan_store.load_last_scan() or {}
         for r in scan.get("results") or []:
             nome = r.get("name") or ""
-            texto = catalogo.texto_busca(catalogo.nome_para_busca(nome, localize_name(nome)))
-            if nome and all(p in texto for p in palavras):
-                preco_num = r.get("price") if isinstance(r.get("price"), (int, float)) else None
-                h = r.get("icon")
-                icon_url = url_for("icone_cache", hash_icone=h, v=3) if h else None
-                out.append({
-                    "nome": nome,
-                    "nome_pt": localize_name(nome),
-                    "preco": preco_num,
-                    "preco_fmt": fmt.brl(preco_num) if preco_num is not None else None,
-                    "score": r.get("score"),
-                    "icon_url": icon_url,
-                    "raridade_classe": raridade.raridade_classe(r),
-                    "url": url_for("item_detail", name=nome),
-                })
+            if not nome or nome in vistos:
+                continue
+            nome_pt = localize_name(nome)
+            if _busca_bate(_nome_para_busca(nome, nome_pt), q):
+                score = r.get("score")
+                tem_score = isinstance(score, (int, float))
+                candidatos.append((
+                    catalogo.relevancia_busca(nome, nome_pt, q),
+                    0 if tem_score else 1,
+                    -float(score) if tem_score else 1.0,
+                    0,
+                    nome.lower(),
+                    "scan",
+                    nome,
+                    nome_pt,
+                    r,
+                ))
                 vistos.add(nome)
-            if len(out) >= 8:
-                break
-        if len(out) < 8:
-            _total, linhas = catalogo.consultar({"busca": q}, list(vistos),
-                                                limite=8 - len(out), contar=False)
-            for linha in linhas:
-                nome_cat = linha["nome"]
-                preco_cat = linha.get("preco")
-                h_cat = linha.get("icon")
-                icon_url_cat = url_for("icone_cache", hash_icone=h_cat, v=3) if h_cat else None
-                out.append({
-                    "nome": nome_cat,
-                    "nome_pt": localize_name(nome_cat),
-                    "preco": preco_cat,
-                    "preco_fmt": fmt.brl(preco_cat) if preco_cat is not None else None,
-                    "score": None,
-                    "icon_url": icon_url_cat,
-                    "raridade_classe": f"raridade-{linha['raridade']}" if linha.get("raridade") else "",
-                    "url": url_for("item_detail", name=nome_cat),
-                })
+        _total, linhas = catalogo.consultar(
+            {"busca": q}, list(vistos), ordenar="relevancia",
+            limite=24, contar=False,
+        )
+        for linha in linhas:
+            nome_cat = linha["nome"]
+            if not nome_cat or nome_cat in vistos:
+                continue
+            vistos.add(nome_cat)
+            nome_pt_cat = localize_name(nome_cat)
+            a_venda = int(linha.get("a_venda") or 0)
+            candidatos.append((
+                catalogo.relevancia_busca(nome_cat, nome_pt_cat, q),
+                1,
+                1.0,
+                -a_venda,
+                nome_cat.lower(),
+                "catalogo",
+                nome_cat,
+                nome_pt_cat,
+                linha,
+            ))
+        candidatos.sort(key=lambda c: c[:5])
+        out = []
+        for _rk, _ts, _sc, _av, _nl, origem, nome, nome_pt, dado in candidatos[:8]:
+            if origem == "scan":
+                preco_num = dado.get("price") if isinstance(dado.get("price"), (int, float)) else None
+                h = dado.get("icon")
+                score = dado.get("score")
+                rar_cls = raridade.raridade_classe(dado)
+            else:
+                preco_num = dado.get("preco")
+                h = dado.get("icon")
+                score = None
+                rar_cls = f"raridade-{dado['raridade']}" if dado.get("raridade") else ""
+            out.append({
+                "nome": nome,
+                "nome_pt": nome_pt,
+                "preco": preco_num,
+                "preco_fmt": fmt.brl(preco_num) if preco_num is not None else None,
+                "score": score,
+                "icon_url": url_for("icone_cache", hash_icone=h, v=3) if h else None,
+                "raridade_classe": rar_cls,
+                "url": url_for("item_detail", name=nome),
+            })
         resp = jsonify(out)
         resp.headers["Cache-Control"] = "private, max-age=300"
         return resp
@@ -1713,7 +1739,8 @@ def _busca_bate(nome: str, busca: "str | None") -> bool:
     if not busca:
         return True
     alvo = _texto_busca(nome)
-    grupos = [g for g in _texto_busca(busca).split(" or ") if g.strip()]
+    limpo = " ".join(_texto_busca(busca).split())
+    grupos = [g for g in limpo.split(" or ") if g.strip()]
     if not grupos:
         return True
     for grupo in grupos:

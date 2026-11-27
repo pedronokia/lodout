@@ -16,8 +16,8 @@ Legenda de autorização (decisão do usuário em 26/11):
 
 | # | Item | Evidência | Impacto | Correção | Autorização |
 |---|---|---|---|---|---|
-| 1 | `/api/sugestoes` não entende `OR` | `server.py:1017-1024` exige todas as palavras; home usa `split(" or ")` em `server.py:1699-1717` | `?q=redline or asiimov` sugere só pelo catálogo, não pelos itens com nota | Reusar `_busca_bate` no braço do scan | AUTORIZADO |
-| 2 | Ordem e teto de 8 escondem nome exato do catálogo | `server.py:1021-1043`; `catalogo.py:633-636` ordena por `a_venda` | 8 itens com nota impedem o nome exato do catálogo de aparecer | Mesclar fontes, dedupar e ordenar por exato/prefixo antes de `a_venda` | AUTORIZADO |
+| 1 | `/api/sugestoes` não entende `OR` | `server.py:1017-1024` exige todas as palavras; home usa `split(" or ")` em `server.py:1699-1717` | `?q=redline or asiimov` sugere só pelo catálogo, não pelos itens com nota | **APLICADO** em 27/11: `_busca_bate` reusado no braço do scan | Aplicado |
+| 2 | Ordem e teto de 8 escondem nome exato do catálogo | `server.py:1021-1043`; `catalogo.py:633-636` ordena por `a_venda` | 8 itens com nota impedem o nome exato do catálogo de aparecer | **APLICADO** em 27/11: fontes mescladas, dedupadas e ordenadas por exato/prefixo (`relevancia_busca` + `ordenar="relevancia"`) | Aplicado |
 | 3 | Página curta (throttle silencioso) sem diagnóstico | `catalogo.py:504-510` só conta vazia; `:519-522` aceita qualquer `len` | Rodada pode fechar “completa” com cobertura parcial | Contador `paginas_curta` em `resumo()` e, se medido, `break`/limite conservador após N seguidas | LIBERADO EM 26/11 |
 | 4 | Corpo do 404 some no restart | `steam_api.py:637-642` só logava; `catalogo.py` agora grava `detalhe_404` | Depois do restart só a posição da falha sobrevivia | **APLICADO** em `f09db22`: `ultimo_404_busca()` + `detalhe_404` no estado | Aplicado |
 | 5 | Sem backoff para 404/página curta | `catalogo.py:250`, `:528-529` | 3 tentativas em ~20 s no mesmo `start` | Escalonar pausa de forma limitada, sem mexer no valor base de `RATE_LIMIT_DELAY_S` | LIBERADO EM 26/11 |
@@ -25,8 +25,8 @@ Legenda de autorização (decisão do usuário em 26/11):
 | 7 | `search_market_all` trunca em silêncio | `steam_api.py:544,659-690`; `discovery.py:122-137` | `max_items=500` devolve ~400 com status `ok` e é cacheado como completo | Sinal `truncado`/log; não cachear resultado truncado; subir `_SEARCH_MAX_PAGES` com cautela e medindo 429 | LIBERADO EM 26/11 |
 | 8 | Preço ausente vira item invisível | `steam_api.py:591-597,1363-1372`; `catalogo.py:192-197,612` | Item entra no scanner mas não aparece em busca/sugestões/contagens | Não usar `parse_brl` para `US$`; descartar `price is None` na descoberta | AUTORIZADO |
 | 9 | Sem total por fatia quando ela falha | `steam_api.py:642`; `catalogo.py:503`, `_retomar_legado` | Sem `fatias_puladas` antigo, não há como inferir o `start` de retomada | **APLICADO** em `f09db22`: `total` em `pulada` e preservação em `totais` | Aplicado |
-| 10 | Sinônimo “faca” não cobre Karambit/Bayonet | `catalogo.py:76-83,89-90`; `localization.py:34-40` | “faca karambit” não encontra itens que não têm “Knife” no nome | Sinônimos por família em `SINONIMOS_BUSCA` | AUTORIZADO |
-| 11 | Coringas de `LIKE` não escapados | `catalogo.py:596-600` | `?q=ak%` casa qualquer sufixo e empurra o nome exato fora do top 8 | Escapar `%`, `_`, `\` e usar `LIKE ... ESCAPE '\'` | AUTORIZADO |
+| 10 | Sinônimo “faca” não cobre Karambit/Bayonet | `catalogo.py:76-83,89-90`; `localization.py:34-40` | “faca karambit” não encontra itens que não têm “Knife” no nome | **APLICADO** em 27/11: sinônimos por família em `SINONIMOS_BUSCA` + `_PALAVRA_CATEGORIA` para linhas já gravadas | Aplicado |
+| 11 | Coringas de `LIKE` não escapados | `catalogo.py:596-600` | `?q=ak%` casa qualquer sufixo e empurra o nome exato fora do top 8 | **APLICADO** em 27/11: `_escapar_like` + `LIKE ... ESCAPE '\'` | Aplicado |
 | 12 | Descoberta falha em silêncio / cache corrompido | `discovery.py:60-64,110-112,126-135,151-160` | Não dá para saber se foi 404, 429 ou cache inválido; JSON corrompido tratado como vazio | Logar `(categoria, status, start)`; `load_json_record`; remover expirado; ampliar facetas/TTL se medido | LIBERADO EM 26/11 |
 
 ## Regras de aplicação

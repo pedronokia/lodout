@@ -6566,3 +6566,77 @@ def test_index_modo_lista_link_vai_para_pagina_do_item(client, monkeypatch, tmp_
     ])
     body = client.get("/?ver=lista").data.decode("utf-8")
     assert '<a class="link-item" href="/item/AK-47%20%7C%20Redline%20(Field-Tested)" translate="no">AK-47 | Redline (Testada em Campo)</a>' in body
+
+
+def test_api_sugestoes_entende_or_e_sinonimos_de_faca(client, monkeypatch, tmp_path):
+    """Plano de aprimoramento da busca (#1 e #10): /api/sugestoes aceita OR
+    no scan (como a home) e encontra Karambit, Bayonet e Hand Wraps por tipo."""
+    base = {"price": 50.0, "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []}
+    _salva_scan(tmp_path, monkeypatch, [
+        {**base, "name": "AK-47 | Redline (Field-Tested)", "score": 85},
+        {**base, "name": "AWP | Asiimov (Field-Tested)", "score": 78},
+        {**base, "name": "★ Karambit | Doppler (Factory New)", "score": 72},
+        {**base, "name": "★ Bayonet | Fade (Factory New)", "score": 70},
+        {**base, "name": "★ Hand Wraps | Cobalt Skull (Field-Tested)", "score": 68},
+    ])
+
+    nomes_or = [it["nome"] for it in client.get("/api/sugestoes?q=redline OR asiimov").json]
+    assert set(nomes_or) == {
+        "AK-47 | Redline (Field-Tested)",
+        "AWP | Asiimov (Field-Tested)",
+    }
+
+    nomes_or_esp = [it["nome"] for it in client.get("/api/sugestoes?q=redline   OR   asiimov").json]
+    assert set(nomes_or_esp) == set(nomes_or)
+
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=faca karambit").json] == [
+        "★ Karambit | Doppler (Factory New)",
+    ]
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=faca bayonet").json] == [
+        "★ Bayonet | Fade (Factory New)",
+    ]
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=luva hand wraps").json] == [
+        "★ Hand Wraps | Cobalt Skull (Field-Tested)",
+    ]
+    # Consulta só com pontuação não devolve itens aleatórios.
+    assert client.get("/api/sugestoes?q= | ").json == []
+
+
+def test_api_sugestoes_mescla_fontes_dedupa_e_prioriza_exato_do_catalogo(
+        client, monkeypatch, tmp_path):
+    """Plano de aprimoramento da busca (#2 e #11): 10 itens com nota não
+    escondem um nome exato do catálogo, duplicados somem e % não age como coringa."""
+    from lodout.public_site import catalogo
+    monkeypatch.setattr(catalogo, "CAMBIO_FIXO", 1.0)
+
+    base = {"price": 20.0, "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []}
+    scan_itens = [
+        {**base, "name": f"Gamma 2 Case Variante {i}", "score": 80 + i}
+        for i in range(10)
+    ]
+    scan_itens.append({**base, "name": "AK-47 | Redline (Field-Tested)", "score": 88})
+    _salva_scan(tmp_path, monkeypatch, scan_itens)
+
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Caixas e cápsulas", [
+        {"hash_name": "Gamma Case", "price": 5.0, "listings": 5},
+        {"hash_name": "AK-47 | Redline (Field-Tested)", "price": 20.0, "listings": 9999},
+    ] + [
+        {"hash_name": f"Gamma 2 Case Catalogo {i}", "price": 5.0, "listings": 5000 - i}
+        for i in range(10)
+    ])
+    conn.close()
+
+    dados = client.get("/api/sugestoes?q=Gamma Case").json
+    assert len(dados) == 8
+    assert dados[0]["nome"] == "Gamma Case"
+    assert dados[0]["score"] is None
+
+    # Deduplicação: item presente no scan e no catálogo aparece 1 vez e mantém a nota.
+    dedup = client.get("/api/sugestoes?q=AK-47 | Redline (Field-Tested)").json
+    assert [it["nome"] for it in dedup] == ["AK-47 | Redline (Field-Tested)"]
+    assert dedup[0]["score"] == 88
+
+    # Coringa LIKE escapado também na API de sugestões.
+    assert client.get("/api/sugestoes?q=ak%25").json == []
+
