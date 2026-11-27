@@ -24,16 +24,35 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  if (event.request.method !== "GET") {
+    return;
+  }
   var url = new URL(event.request.url);
-  if (url.pathname.indexOf("/static/") !== 0 || !url.searchParams.has("v")) {
-    return; // HTML/API/sem versão -- sempre rede, nunca cache.
+  if (url.origin !== self.location.origin
+      || url.pathname.indexOf("/static/") !== 0
+      || !url.searchParams.has("v")) {
+    return; // HTML/API/externo/sem versão -- sempre rede, nunca cache.
   }
   event.respondWith(
     caches.open(CACHE).then(function (cache) {
       return cache.match(event.request).then(function (cached) {
         if (cached) return cached;
         return fetch(event.request).then(function (resp) {
-          cache.put(event.request, resp.clone());
+          // Só guarda resposta 200 da mesma origem: evita envenenar o cache
+          // com um 502/503 transitório naquela versão ?v=.
+          if (resp && resp.status === 200 && resp.type === "basic") {
+            cache.put(event.request, resp.clone());
+            // Remove versões (?v=) antigas do mesmo arquivo para o cache
+            // não crescer a cada deploy.
+            cache.keys().then(function (chaves) {
+              chaves.forEach(function (req) {
+                var u = new URL(req.url);
+                if (u.pathname === url.pathname && req.url !== event.request.url) {
+                  cache.delete(req);
+                }
+              });
+            }).catch(function () {});
+          }
           return resp;
         });
       });

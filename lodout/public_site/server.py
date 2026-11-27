@@ -424,8 +424,10 @@ def create_app() -> Flask:
             return None
         dados, etag = achado
         resp = Response(dados, mimetype=estaticos_minificados.ARQUIVOS[nome])
-        resp.headers["Cache-Control"] = (
-            f"public, max-age={app.config['SEND_FILE_MAX_AGE_DEFAULT']}")
+        cc = f"public, max-age={app.config['SEND_FILE_MAX_AGE_DEFAULT']}"
+        if request.args.get("v"):
+            cc += ", immutable"
+        resp.headers["Cache-Control"] = cc
         resp.set_etag(etag)
         return resp.make_conditional(request)
 

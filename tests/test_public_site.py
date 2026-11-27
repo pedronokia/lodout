@@ -128,7 +128,10 @@ def test_contraste_muted_e_alvos_do_cabecalho(client):
 
     assert contraste >= 4.5
     assert re.search(r"\.conta-link-entrar\s*\{[^}]*min-height:\s*44px", css)
-    assert ".topo-linha > .nav-principal { grid-column: 1 / -1; grid-row: 2; }" in css
+    assert re.search(
+        r"\.topo-linha\s*>\s*\.nav-principal\s*\{\s*grid-column:\s*1\s*/\s*-1;\s*grid-row:\s*2;?\s*\}",
+        css,
+    )
 
 
 def test_index_tabela_wrap_focavel_por_teclado(client, monkeypatch, tmp_path):
@@ -6529,10 +6532,14 @@ def test_janela_vendi_fala_em_venda_nao_em_anuncio():
 def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
     """Em produção a pasta do código é montada por cima da imagem, então a
     minificação do build não chegava ao visitante (revisão 20/11: 362 KB de
-    CSS, 60 KB disso comentário). O site entrega a versão enxugada."""
+    CSS, 60 KB disso comentário). O site entrega a versão compactada, idêntica
+    à do scripts/minify_static.py, para CSS e todos os JS do site."""
+    import importlib.util
     from pathlib import Path as _P
+    from lodout.public_site import estaticos_minificados
+
     pasta = _P(server.__file__).parent / "static"
-    for nome in ("style.css", "app.js"):
+    for nome in estaticos_minificados.ARQUIVOS:
         fonte = (pasta / nome).read_text(encoding="utf-8")
         resp = client.get(f"/static/{nome}?v=teste")
         assert resp.status_code == 200
@@ -6540,14 +6547,33 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
         assert "/*" not in corpo
         assert len(corpo) < len(fonte)
         assert "max-age=31536000" in resp.headers["Cache-Control"]
+        assert "immutable" in resp.headers["Cache-Control"]
         etag = resp.headers["ETag"]
         r304 = client.get(f"/static/{nome}?v=teste", headers={"If-None-Match": etag})
         assert r304.status_code == 304
+        # Sem ?v=, não marca immutable.
+        r_sem_v = client.get(f"/static/{nome}")
+        assert "immutable" not in r_sem_v.headers["Cache-Control"]
+
+    # Runtime e scripts/minify_static.py precisam gerar exatamente a mesma saída.
+    spec = importlib.util.spec_from_file_location(
+        "minify_static", _P(__file__).resolve().parents[1] / "scripts" / "minify_static.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
     css = client.get("/static/style.css").data.decode("utf-8")
+    assert css == mod.minify_css((pasta / "style.css").read_text(encoding="utf-8"))
     assert "@media (prefers-reduced-motion: reduce)" in css
     assert css.count("{") == css.count("}")
     # arquivos que não estão na lista seguem o caminho normal do Flask
-    assert client.get("/static/popover.js").status_code == 200
+    assert client.get("/static/manifest.json").status_code == 200
+
+
+def test_sw_js_so_cacheia_200_mesma_origem_e_limpa_versoes_antigas(client):
+    corpo = client.get("/sw.js").data.decode("utf-8")
+    assert 'event.request.method !== "GET"' in corpo
+    assert "url.origin !== self.location.origin" in corpo
+    assert 'resp.status === 200 && resp.type === "basic"' in corpo
+    assert "cache.delete(req)" in corpo
 
 
 def test_previa_de_compartilhamento_usa_a_logomarca():

@@ -1216,11 +1216,10 @@
   }
 })();
 
-// Sugestões de nome ao digitar (pedido 17/11): Watchlist, Trades e
+// Sugestões de nome ao digitar (pedido 17/11): Watchlist e
 // "Adicionar um item à mão" pedem o nome exato do Mercado, em inglês.
 // Enquanto a pessoa digita (em português ou inglês), /api/sugestoes
-// devolve até 8 nomes do catálogo do próprio site, com o preço de hoje;
-// escolher um preenche o nome exato e, nas trocas, o valor de cada.
+// devolve até 8 nomes do catálogo do próprio site, com o preço de hoje.
 (function () {
   var campos = document.querySelectorAll("input[data-sugerir]");
   if (!campos.length || !window.fetch) return;
@@ -1230,20 +1229,13 @@
     lista.id = "sugestoes-itens";
     document.body.appendChild(lista);
   }
-  var precos = {};
+  var vistos = {};
   var espera = null;
   var ultima = "";
   function reais(v) { return v.toFixed(2).replace(".", ","); }
-  function preencherPreco(campo) {
-    var p = precos[campo.value];
-    if (typeof p !== "number") return;
-    var linha = campo.closest("[data-troca-linha]") || campo.form;
-    var alvo = linha && linha.querySelector("[data-sugerir-preco]");
-    if (alvo && !alvo.value.trim()) alvo.value = reais(p);
-  }
   function buscar(campo) {
     var q = campo.value.trim();
-    if (q.length < 2 || q === ultima || precos[q] !== undefined) return;
+    if (q.length < 2 || q === ultima || vistos[q]) return;
     ultima = q;
     fetch("/api/sugestoes?q=" + encodeURIComponent(q), { credentials: "same-origin" })
       .then(function (r) { return r.ok ? r.json() : []; })
@@ -1251,7 +1243,7 @@
         if (campo.value.trim() !== q) return; // a pessoa já digitou outra coisa
         lista.textContent = "";
         itens.forEach(function (it) {
-          precos[it.nome] = it.preco;
+          vistos[it.nome] = true;
           var op = document.createElement("option");
           op.value = it.nome;
           op.label = (it.nome_pt !== it.nome ? it.nome_pt : "") +
@@ -1264,37 +1256,10 @@
   function ligar(campo) {
     campo.setAttribute("list", "sugestoes-itens");
     campo.addEventListener("input", function () {
-      if (precos[campo.value] !== undefined) { preencherPreco(campo); return; }
+      if (vistos[campo.value]) return;
       clearTimeout(espera);
       espera = setTimeout(function () { buscar(campo); }, 250);
     });
-    campo.addEventListener("change", function () { preencherPreco(campo); });
   }
   Array.prototype.forEach.call(campos, ligar);
-
-  // "+ outro item" nas trocas: copia a última linha do lado, vazia. Sem
-  // JavaScript o formulário traz 3 linhas por lado; com ele, começa com 1
-  // (no celular eram 6 linhas vazias) e a pessoa acrescenta.
-  Array.prototype.forEach.call(document.querySelectorAll("[data-troca-mais]"), function (botao) {
-    var extras = botao.closest("[data-troca-lado]").querySelectorAll("[data-troca-linha]");
-    Array.prototype.forEach.call(extras, function (linha, i) {
-      var vazia = Array.prototype.every.call(linha.querySelectorAll("input[data-sugerir], input[data-sugerir-preco]"), function (c) { return !c.value.trim(); });
-      if (i > 0 && vazia) linha.parentNode.removeChild(linha);
-    });
-    botao.hidden = false;
-    botao.addEventListener("click", function () {
-      var lado = botao.closest("[data-troca-lado]");
-      var linhas = lado.querySelectorAll("[data-troca-linha]");
-      if (linhas.length >= 10) { botao.hidden = true; return; }
-      var nova = linhas[linhas.length - 1].cloneNode(true);
-      Array.prototype.forEach.call(nova.querySelectorAll("input"), function (i) {
-        i.value = i.type === "number" ? "1" : "";
-        i.removeAttribute("required");
-      });
-      lado.insertBefore(nova, botao);
-      var nome = nova.querySelector("input[data-sugerir]");
-      if (nome) { ligar(nome); nome.focus(); }
-      if (linhas.length + 1 >= 10) botao.hidden = true;
-    });
-  });
 })();
