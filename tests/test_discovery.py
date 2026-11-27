@@ -211,24 +211,26 @@ def test_descoberta_nao_cacheia_resultado_truncado(tmp_path, monkeypatch, caplog
     assert "truncada" in caplog.text
 
 
-def test_cache_coloca_json_corrompido_em_quarentena_e_remove_expirado(tmp_path):
+def test_cache_coloca_json_corrompido_em_quarentena_e_remove_expirado(tmp_path, monkeypatch):
     """Plano de aprimoramento da busca (#12): load_json_record coloca JSON
     quebrado em quarentena e entradas expiradas são removidas."""
-    import time
+    relogio = [1_000_000.0]
+    monkeypatch.setattr(discovery.time, "time", lambda: relogio[0])
+
     caminho = tmp_path / "d.json"
     caminho.write_text("{corrompido", encoding="utf-8")
-    c = discovery.DiscoveryCache(path=caminho, ttl=0.01)
+    c = discovery.DiscoveryCache(path=caminho, ttl=60.0)
     assert c.size() == 0
     assert list(tmp_path.glob("d.json.corrupt*"))
 
     c.put("k1", ["a"])
-    time.sleep(0.02)
+    relogio[0] += 61.0
     assert c.get("k1") is None
     assert c.size() == 0
 
     # Put também limpa outras chaves já expiradas.
     c.put("velha", ["x"])
-    time.sleep(0.02)
+    relogio[0] += 61.0
     c.put("nova", ["y"])
     assert c.size() == 1 and c.get("nova") == ["y"]
 
