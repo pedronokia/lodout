@@ -13112,6 +13112,24 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .abas-categoria .aba-categoria[aria-current="page"] { background: var(--accent-acao); }
 .paginacao-reticencias { color: rgba(255, 255, 255, 0.6); }
 
+/* Inventário no computador (27/11, relato do usuário): com layout de
+   tabela automático, um nome longo ("Budapest 2025 Challengers Sticker
+   Capsule") esticava a tabela além da borda dos cartões e dos filtros
+   (938 -> 1008px). Colunas com largura fixa, nas mesmas proporções que
+   a tabela já tinha; o nome longo termina em "...", com o nome completo
+   no title (DESIGN.md: nome em uma linha com reticências). */
+@media (min-width: 641px) {
+  table.tabela-conta { table-layout: fixed; width: 100%; }
+  table.tabela-conta thead th:nth-child(1) { width: 33%; }
+  table.tabela-conta thead th:nth-child(2) { width: 19%; }
+  table.tabela-conta thead th:nth-child(3) { width: 13%; }
+  table.tabela-conta thead th:nth-child(4) { width: 12%; }
+  table.tabela-conta thead th:nth-child(5) { width: 23%; }
+  table.tabela-conta td[data-label="Item"],
+  table.tabela-conta .celula-item-conta,
+  table.tabela-conta td .celula-item-conta-texto { min-width: 0; }
+}
+
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
    Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou
