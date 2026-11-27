@@ -1,10 +1,11 @@
-"""Envio de alertas automáticos de oportunidades de mercado para o Discord.
+"""Envio de alertas automáticos de destaques de mercado para o Discord.
 
 Disparado ao fim de cada ciclo do worker (ou manualmente).
 Verifica a presença de LODOUT_DISCORD_WEBHOOK_URL ou
-LODOUT_DISCORD_OPPORTUNITIES_WEBHOOK. Se configurado, extrai as maiores
-oportunidades do scan (maior nota, maior queda recente, lider de giro) e
-dispara um embed formatado, respeitando intervalo mínimo entre envios (dedup).
+LODOUT_DISCORD_OPPORTUNITIES_WEBHOOK. Se configurado, extrai os principais
+destaques observados na coleta (maior nota, maior queda recente, maior volume
+em 24 h e caixa/cápsula com maior nota), descartando itens com risco alto de
+alta artificial, e envia um embed respeitando o intervalo mínimo entre envios.
 """
 from __future__ import annotations
 
@@ -14,46 +15,73 @@ import logging
 import os
 import time
 from pathlib import Path
+from urllib.parse import quote
 
-from lodout._paths import DATA_DIR, atomic_write_text, load_json_record
-from lodout.public_site import discord_notify
+from lodout import _paths, cases, signals
+from lodout._paths import atomic_write_text, load_json_record
+from lodout.localization import localize_name
+from lodout.public_site import discord_notify, fmt
 
 _logger = logging.getLogger(__name__)
 
-_DEDUP_FILE = DATA_DIR / "oportunidades_discord_last.json"
 _INTERVALO_MIN_S = 3600.0  # 1 hora mínima entre envios automáticos
 
 
+def _caminho_dedup() -> Path:
+    return Path(_paths.DATA_DIR) / "oportunidades_discord_last.json"
+
+
+def _variacao_recente_pct(item: dict) -> "float | None":
+    """Usa `variacao_pct` já calculado ou deriva dos 2 últimos pontos do histórico."""
+    bruto = item.get("variacao_pct")
+    if isinstance(bruto, (int, float)) and not isinstance(bruto, bool):
+        return float(bruto)
+    hist = signals.load_item_history(item.get("name") or "")
+    if len(hist) < 2:
+        return None
+    anterior, atual = hist[-2].get("price"), hist[-1].get("price")
+    if not anterior or not atual:
+        return None
+    return round((atual - anterior) / anterior * 100, 1)
+
+
 def extrair_oportunidades(resultados: list[dict]) -> dict:
-    """Extrai os itens de destaque do ciclo de varredura."""
+    """Extrai os itens de destaque do ciclo de varredura (sem risco alto)."""
     if not resultados:
         return {}
 
-    validos = [r for r in resultados if r.get("name") and r.get("price")]
+    validos = [
+        r for r in resultados
+        if r.get("name")
+        and isinstance(r.get("price"), (int, float)) and r["price"] > 0
+        and ((r.get("pump_risk") or {}).get("level") or "low") != "high"
+    ]
     if not validos:
         return {}
 
     # 1. Maior nota
     maior_nota = max(validos, key=lambda r: float(r.get("score") or 0))
 
-    # 2. Maior queda recente (dip)
-    com_queda = [
-        r for r in validos
-        if r.get("variacao_pct") is not None and float(r["variacao_pct"]) < -4.0
-    ]
+    # 2. Maior queda recente (mais de 4% abaixo da coleta anterior)
+    com_queda = []
+    for r in validos:
+        pct = _variacao_recente_pct(r)
+        if pct is not None and pct < -4.0:
+            com_queda.append(r if r.get("variacao_pct") is not None else {**r, "variacao_pct": pct})
     maior_queda = min(com_queda, key=lambda r: float(r["variacao_pct"])) if com_queda else None
 
-    # 3. Mais negociado (volume)
+    # 3. Maior volume em 24 h
     com_volume = [
         r for r in validos
         if r.get("volume") is not None and float(r["volume"]) > 0
     ]
     mais_negociado = max(com_volume, key=lambda r: float(r["volume"])) if com_volume else None
 
-    # 4. Caixa ou cápsula destaque
+    # 4. Caixa ou cápsula com maior nota
     containers = [
         r for r in validos
-        if any(k in r["name"] for k in ("Case", "Caixa", "Capsule", "Cápsula", "Package", "Pacote"))
+        if cases.is_container(r["name"])
+        or any(k in r["name"] for k in ("Caixa", "Cápsula", "Pacote"))
     ]
     destaque_container = max(containers, key=lambda r: float(r.get("score") or 0)) if containers else None
 
@@ -66,57 +94,64 @@ def extrair_oportunidades(resultados: list[dict]) -> dict:
     }
 
 
-def _url_item(nome: str) -> str:
-    from urllib.parse import quote
-    return f"https://lodout.com/item/{quote(nome)}"
+def _url_item(nome: str, base_url: str = "https://lodout.com") -> str:
+    return f"{base_url.rstrip('/')}/item/{quote(nome, safe='')}"
+
+
+def _nome_exibicao(item: dict) -> str:
+    return item.get("name_fmt") or localize_name(item["name"])
+
+
+def _preco_exibicao(item: dict) -> str:
+    return item.get("price_fmt") or fmt.brl(float(item["price"]))
 
 
 def montar_embed(oportunidades: dict, base_url: str = "https://lodout.com") -> dict:
-    """Monta payload do Discord Embed para as oportunidades detectadas."""
+    """Monta payload do Discord Embed para os destaques observados na coleta."""
     fields = []
 
     mn = oportunidades.get("maior_nota")
     if mn:
-        nome = mn.get("name_fmt") or mn["name"]
-        preco = mn.get("price_fmt") or f"R$ {float(mn['price']):.2f}".replace(".", ",")
+        nome = _nome_exibicao(mn)
+        preco = _preco_exibicao(mn)
         score = int(mn.get("score") or 0)
         fields.append({
-            "name": "🏆 Maior Pontuação Algorítmica",
-            "value": f"**[{nome}]({_url_item(mn['name'])})**\nNota: `{score}/100` · Preço: `{preco}`",
+            "name": "Maior nota hoje",
+            "value": f"**[{nome}]({_url_item(mn['name'], base_url)})**\nNota: `{score}` · Preço: `{preco}`",
             "inline": False,
         })
 
     mq = oportunidades.get("maior_queda")
     if mq:
-        nome = mq.get("name_fmt") or mq["name"]
-        preco = mq.get("price_fmt") or f"R$ {float(mq['price']):.2f}".replace(".", ",")
+        nome = _nome_exibicao(mq)
+        preco = _preco_exibicao(mq)
         pct = float(mq["variacao_pct"])
         fields.append({
-            "name": "📉 Maior Recuo Recente (Dip)",
-            "value": f"**[{nome}]({_url_item(mq['name'])})**\nVariação: `{pct:.1f}%` · Preço: `{preco}`",
+            "name": "Maior queda recente",
+            "value": f"**[{nome}]({_url_item(mq['name'], base_url)})**\nVariação: `{pct:.1f}%` · Preço: `{preco}`",
             "inline": False,
         })
 
     vol = oportunidades.get("mais_negociado")
     if vol and vol != mn:
-        nome = vol.get("name_fmt") or vol["name"]
-        preco = vol.get("price_fmt") or f"R$ {float(vol['price']):.2f}".replace(".", ",")
+        nome = _nome_exibicao(vol)
+        preco = _preco_exibicao(vol)
         v_num = int(vol["volume"])
         v_txt = f"{v_num / 1000:.1f}k / 24h" if v_num >= 1000 else f"{v_num} / 24h"
         fields.append({
-            "name": "⚡ Líder em Giro e Liquidez",
-            "value": f"**[{nome}]({_url_item(vol['name'])})**\nVolume: `{v_txt}` · Preço: `{preco}`",
+            "name": "Maior volume em 24 h",
+            "value": f"**[{nome}]({_url_item(vol['name'], base_url)})**\nVolume: `{v_txt}` · Preço: `{preco}`",
             "inline": False,
         })
 
     dc = oportunidades.get("destaque_container")
     if dc and dc not in (mn, mq, vol):
-        nome = dc.get("name_fmt") or dc["name"]
-        preco = dc.get("price_fmt") or f"R$ {float(dc['price']):.2f}".replace(".", ",")
+        nome = _nome_exibicao(dc)
+        preco = _preco_exibicao(dc)
         score = int(dc.get("score") or 0)
         fields.append({
-            "name": "📦 Caixa / Cápsula em Alta",
-            "value": f"**[{nome}]({_url_item(dc['name'])})**\nNota: `{score}/100` · Preço: `{preco}`",
+            "name": "Caixa ou cápsula com maior nota",
+            "value": f"**[{nome}]({_url_item(dc['name'], base_url)})**\nNota: `{score}` · Preço: `{preco}`",
             "inline": False,
         })
 
@@ -126,13 +161,13 @@ def montar_embed(oportunidades: dict, base_url: str = "https://lodout.com") -> d
     return {
         "content": None,
         "embeds": [{
-            "title": "🎯 Lodout — Oportunidades Detectadas no Mercado CS2",
+            "title": "Lodout — Destaques observados no mercado de Counter-Strike 2",
             "url": base_url,
-            "description": f"Varredura concluída com **{total} itens** analisados pelo algoritmo da Lodout.",
+            "description": f"Coleta concluída com **{total} itens** analisados.",
             "color": 16347158,  # #f97316 (laranja Lodout)
             "fields": fields,
             "footer": {
-                "text": "Lodout.com · Inteligência Algorítmica de Mercado CS2",
+                "text": "Lodout · Dados observados da Steam (sem promessa de retorno)",
             },
             "timestamp": agora_iso,
         }]
@@ -143,12 +178,12 @@ def verificar_e_enviar(resultados: list[dict],
                         webhook_url: str | None = None,
                         forcar: bool = False,
                         path_dedup: Path | None = None) -> bool:
-    """Verifica se há webhook configurado e envia o resumo de oportunidades."""
+    """Verifica se há webhook configurado e envia o resumo de destaques."""
     url = webhook_url or os.environ.get("LODOUT_DISCORD_WEBHOOK_URL") or os.environ.get("LODOUT_DISCORD_OPPORTUNITIES_WEBHOOK")
     if not url or not discord_notify.url_valida(url):
         return False
 
-    caminho_dedup = path_dedup or _DEDUP_FILE
+    caminho_dedup = Path(path_dedup) if path_dedup is not None else _caminho_dedup()
     agora = time.time()
 
     if not forcar and caminho_dedup.exists():
@@ -170,7 +205,7 @@ def verificar_e_enviar(resultados: list[dict],
     sucesso = discord_notify.enviar_embed(url, payload)
 
     if sucesso:
-        _logger.info("Alerta de oportunidades de mercado enviado para o Discord com sucesso.")
+        _logger.info("Alerta de destaques de mercado enviado para o Discord com sucesso.")
         try:
             registro = {
                 "ts": agora,
