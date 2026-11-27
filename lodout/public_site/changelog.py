@@ -11,6 +11,7 @@ ENTRADAS = [
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
+            "Ranking e página do item na mesma escala de letras: os valores do topo do item (preço, caixa, risco, liquidez), os títulos dos blocos do Ranking e a descrição embaixo do título das páginas ficaram um pouco maiores; os rótulos pequenos, um pouco mais legíveis.",
             "Tamanhos de letra mais uniformes na página inicial: os textos pequenos (contagem das abas, “ver mais”, coleção, “Destaque do dia”) seguem a mesma escala do resto do site, e o texto de apresentação ficou do tamanho do texto normal, mais fácil de ler.",
         ],
     },
