@@ -471,10 +471,14 @@ def test_ajuste_fino_da_conta():
     css = _css()
     # Cartões: as linhas abaixo do valor não encostam na borda interna.
     assert "padding-inline: 6px;" in _bloco_final(css, ".resumo-cards-conta .card-sub")
-    # Item: título em uma linha, com ellipsis e nome completo no title.
+    # Item: nome inteiro, quebrando em linhas (pedido do usuário, 27/11:
+    # "o nome não pode ficar cortado"); o title segue com o nome completo.
     link = _bloco_final(css, ".tabela-conta .celula-item-conta-texto > .link-item")
-    assert "text-overflow: ellipsis;" in link
-    assert "white-space: nowrap;" in link
+    assert "text-overflow: ellipsis;" not in link
+    assert "white-space: normal;" in link
+    # Colunas fixas no computador: nome longo não estica a tabela além
+    # da borda dos cartões e dos filtros.
+    assert "table.tabela-conta { table-layout: fixed; width: 100%; }" in css
     html = (STYLE.parent.parent / "templates" / "conta.html").read_text(encoding="utf-8")
     assert 'title="{{ row.name_fmt }}"' in html
     # Computador: menos vão vertical dentro da célula do item.

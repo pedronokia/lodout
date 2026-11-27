@@ -12816,15 +12816,16 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   }
 }
 
-/* Item: uma linha só, com ellipsis. O nome completo já está no title. */
+/* Item: nome inteiro, quebrando em mais linhas se precisar (pedido do
+   usuário, 27/11: "o nome não pode ficar cortado"; antes era uma linha
+   com reticências). */
 .tabela-conta .celula-item-conta { min-width: 0; }
-.tabela-conta .celula-item-conta-texto { flex: 1 1 auto; min-width: 0; max-width: 240px; }
+.tabela-conta .celula-item-conta-texto { flex: 1 1 auto; min-width: 0; }
 .tabela-conta .celula-item-conta-texto > .link-item {
   display: block;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .tabela-conta .celula-item-conta-extra {
   gap: 3px 6px;
@@ -13116,8 +13117,7 @@ footer.rodape .rodape-marca-nome { gap: 0; }
    tabela automático, um nome longo ("Budapest 2025 Challengers Sticker
    Capsule") esticava a tabela além da borda dos cartões e dos filtros
    (938 -> 1008px). Colunas com largura fixa, nas mesmas proporções que
-   a tabela já tinha; o nome longo termina em "...", com o nome completo
-   no title (DESIGN.md: nome em uma linha com reticências). */
+   a tabela já tinha; o nome longo quebra em mais linhas, inteiro. */
 @media (min-width: 641px) {
   table.tabela-conta { table-layout: fixed; width: 100%; }
   table.tabela-conta thead th:nth-child(1) { width: 33%; }
@@ -13209,9 +13209,8 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   .tabela-conta .celula-item-conta-texto > .link-item {
     display: block;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
   .tabela-conta .celula-sem-valor,
   .tabela-conta [data-campo="lucro-valor"],
@@ -13488,9 +13487,9 @@ table.tabela-conta .celula-item-conta-cabeca > .link-item {
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Nome inteiro, quebrando em linhas (pedido do usuário, 27/11). */
+  white-space: normal;
+  overflow-wrap: break-word;
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: 1.3;

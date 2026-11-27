@@ -292,8 +292,11 @@ dados, cálculo, workers, chamadas à Steam, CSP ou Caddyfile:
 - **Cartões de resumo (`/conta`):** os quatro cartões esticam para a mesma
   altura; o valor e as linhas de apoio ganham respiro lateral (`padding-inline`)
   e intervalo vertical igual no desktop e no celular.
-- **Tabelas:** o nome do item fica em uma linha só com reticências e o nome
-  completo no `title` (inventário e Ranking). As colunas de Custo, Valor,
+- **Tabelas:** no inventário (Minha conta) o nome do item aparece inteiro,
+  quebrando em mais linhas se precisar, e as colunas têm largura fixa no
+  computador para a tabela não passar da borda dos outros quadros (pedido
+  do usuário, 27/11: "o nome não pode ficar cortado"). No Ranking o nome
+  fica em uma linha só com reticências e o nome completo no `title`. As colunas de Custo, Valor,
   Lucro/Prejuízo e Venda usam Geist com `tabular-nums`, com
   o marcador "—" e as ações na mesma régua; valores compostos (R$ + %) não
   quebram no meio. No Ranking, a coluna ITEM tem largura fixa no computador
