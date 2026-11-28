@@ -395,6 +395,7 @@ def create_app() -> Flask:
     # ser registrado uma vez pra ficar disponível em todos os templates,
     # ao contrário de uma macro Jinja (que exige `{% import %}` em cada
     # arquivo).
+    app.jinja_env.filters["icone_mini"] = _icone_mini
     app.jinja_env.filters["nota_classe"] = _nota_classe
     app.jinja_env.filters["nota_anel"] = _nota_anel
     app.jinja_env.filters["risco_nivel"] = _risco_nivel
@@ -2196,6 +2197,15 @@ def _data_extenso(iso: str) -> str:
     except ValueError:
         return str(iso)
     return f"{d.day} de {_MESES_PT[d.month - 1]} de {d.year}"
+
+
+def _icone_mini(url: "str | None") -> "str | None":
+    """Endereço do ícone em 96px para quadros de 40px (28/11). Só mexe nos
+    ícones servidos pelo próprio site (`/icone/...` sem `tam`); qualquer
+    outro endereço volta igual."""
+    if not url or "/icone/" not in url or "tam=" in url:
+        return url
+    return url + ("&" if "?" in url else "?") + "tam=96"
 
 
 def _nota_classe(score: "int | float | None") -> str:

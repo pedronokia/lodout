@@ -71,7 +71,7 @@
      do Top 20 mostra "fora" no lugar da posição nova. #}
   {% macro linha_movimento(it, saiu=False) %}
   <li class="movimento-linha">
-    <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}><span class="icone-item-placeholder"></span>{% if it.icon_url %}<img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">{% endif %}</span>
+    <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}><span class="icone-item-placeholder"></span>{% if it.icon_url %}<img class="icone-item" src="{{ it.icon_url|icone_mini }}" srcset="{{ it.icon_url|icone_mini }} 2x, {{ it.icon_url }} 3x" alt="" aria-hidden="true" loading="lazy" width="40" height="40">{% endif %}</span>
     <span class="movimento-linha-texto">
       {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</span>{% endif %}
       <span class="movimento-linha-numeros">
@@ -139,7 +139,7 @@
               <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if it.icon_url else '' }}{{ ' ' ~ it.raridade_classe if it.raridade_classe else '' }}" aria-hidden="true"{% if it.raridade_titulo %} title="{{ it.raridade_titulo }}"{% endif %}>
                 <span class="icone-item-placeholder"></span>
               {% if it.icon_url %}
-                <img class="icone-item" src="{{ it.icon_url }}" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
+                <img class="icone-item" src="{{ it.icon_url|icone_mini }}" srcset="{{ it.icon_url|icone_mini }} 2x, {{ it.icon_url }} 3x" alt="" aria-hidden="true" loading="lazy" width="40" height="40">
               {% endif %}
               </span>
               {% if it.tem_pagina %}<a class="link-item" href="{{ url_for('item_detail', name=it.name) }}" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</a>{% else %}<span class="link-item" translate="no" title="{{ it.name_fmt }}">{{ it.name_fmt }}</span>{% endif %}

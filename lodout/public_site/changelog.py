@@ -24,6 +24,9 @@ ENTRADAS = [
             "Ranking: em “O que mudou”, o nome do item aparece inteiro também em celulares pequenos.",
             "Compartilhar: Ranking, Método, FAQ, Glossário e as outras páginas agora têm título e descrição próprios na prévia do WhatsApp e das redes.",
             "Leitores de tela: os links “Steam” da vitrine dizem de qual item são, e os avisos de comparar usam “para” em vez de “pra”.",
+            "Novidades: as notas de atualização da Valve apareciam com os itens colados (“…out of reachFixed some…”); agora cada item vem separado por “·”.",
+            "Ranking, lista, Minha conta e Favoritos: as imagens pequenas dos itens carregam numa versão menor, do tamanho em que aparecem (o Ranking baixa cerca de 270 KB a menos).",
+            "Alto contraste do Windows: a categoria, o período e a visualização escolhidos ficam marcados (antes pareciam iguais aos outros), e o botão “Ver no Mercado da Steam” ganhou contorno.",
         ],
     },
     {

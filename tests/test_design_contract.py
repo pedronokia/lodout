@@ -787,3 +787,16 @@ def test_minify_css_mantem_as_regras():
 
     assert regras(original) == regras(mini)
     assert original.count("{") == mini.count("{")
+
+
+def test_alto_contraste_marca_o_escolhido():
+    """Auditoria 28/11: no alto contraste do Windows o fundo some, e a aba,
+    o período e Vitrine/Lista escolhidos ficavam iguais aos outros."""
+    css = _css()
+    inicio = css.index("@media (forced-colors: active)")
+    bloco = css[inicio:css.index("\n}", inicio)]
+    for seletor in ('main a[aria-current="page"]', 'main a[aria-current="true"]',
+                    'main [aria-pressed="true"]'):
+        assert seletor in bloco
+    assert "border: 2px solid Highlight;" in bloco
+    assert ".botao-acao { border: 1px solid ButtonText; }" in bloco

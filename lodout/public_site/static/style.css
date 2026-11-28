@@ -6474,6 +6474,17 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 @media (forced-colors: active) {
   .conta-filtro[aria-pressed="true"] { border-width: 2px; font-weight: 700; text-decoration: underline; }
   .card-progresso { border: 1px solid CanvasText; }
+  /* Auditoria 28/11: o mesmo vale para a aba de categoria, o período,
+     Vitrine/Lista e Nota/Preço -- no alto contraste o escolhido ficava
+     igual aos outros. E o botão principal perdia o contorno. */
+  main a[aria-current="page"],
+  main a[aria-current="true"],
+  main [aria-pressed="true"] {
+    border: 2px solid Highlight;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+  .botao-acao { border: 1px solid ButtonText; }
 }
 /* Mensagem neutra (não é erro nem sucesso): "acabou de ser atualizado". */
 .status-info {

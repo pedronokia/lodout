@@ -42,6 +42,25 @@ def _caminho() -> Path:
     return Path(_paths.DATA_DIR) / "steam_news.json"
 
 
+# Desde nov/2026 a Steam devolve as notas de atualização com os itens da
+# lista colados ("...out of reachFixed some...") e "\" entre as seções
+# (o mesmo texto chega por outros clientes da API). Separa antes dos verbos
+# que abrem um item e troca a barra por um separador. Só verbos conhecidos:
+# uma regra genérica de minúscula+Maiúscula quebraria nomes como
+# "IsServerLoading" ou "YouTube".
+_VERBOS_ITEM = (
+    "Fixed|Fixes|Added|Updated|Removed|Improved|Changed|Reduced|Increased|"
+    "Optimized|Adjusted|Disabled|Enabled|Restored|Moved|Replaced|Various|"
+    "Players|Bomb")
+_COLADO = re.compile(r"(?<=[\w.)\]])(?=(?:" + _VERBOS_ITEM + r")\b)")
+
+
+def _separar_itens(t: str) -> str:
+    t = re.sub(r"\s*\\+\s*", " · ", t or "").strip(" ·")
+    t = _COLADO.sub(" · ", t)
+    return re.sub(r"(?: · )+", " · ", t)
+
+
 def _texto_limpo(bruto: str) -> str:
     """BBCode/HTML/placeholders da Steam -> texto simples, encurtado."""
     t = re.sub(r"\{STEAM_CLAN_IMAGE\}\S*", " ", bruto or "")
@@ -49,6 +68,7 @@ def _texto_limpo(bruto: str) -> str:
     t = re.sub(r"<[^>]+>", " ", t)
     t = html.unescape(t)
     t = re.sub(r"\s+", " ", t).strip()
+    t = _separar_itens(t)
     t = re.sub(r" ([.,;:!?])", r"\1", t)
     if len(t) > _RESUMO_MAX:
         t = t[:_RESUMO_MAX].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
@@ -81,7 +101,13 @@ def _parse(dados: dict) -> "list[dict]":
 def carregar_noticias() -> "list[dict]":
     dados = load_json_record(_caminho(), {})
     itens = dados.get("itens") if isinstance(dados, dict) else None
-    return itens if isinstance(itens, list) else []
+    if not isinstance(itens, list):
+        return []
+    # Resumos gravados antes de 28/11 vieram colados: separa na leitura
+    # também (idempotente), sem esperar o worker buscar de novo.
+    return [dict(n, resumo=_separar_itens(n["resumo"]))
+            if isinstance(n, dict) and isinstance(n.get("resumo"), str) else n
+            for n in itens]
 
 
 def atualizar_noticias(now: "float | None" = None) -> str:

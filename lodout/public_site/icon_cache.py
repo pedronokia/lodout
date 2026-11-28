@@ -41,7 +41,10 @@ _TIMEOUT = 3.0
 # de propósito -- server.py valida a query string `tam` da rota contra
 # ESTA MESMA lista antes de chamar `obter()`, uma fonte só pros 2
 # lugares não dessincronizar.
-TAMANHOS_PERMITIDOS = (192, 384)
+# 96 (28/11): miniatura para os quadros de 40px (Ranking, lista, conta),
+# que baixavam a de 192 -- 45 ícones, ~380 KB no Ranking. Sai do v4 de
+# 384/192 já guardado em disco, sem rede (ver `_gerar`).
+TAMANHOS_PERMITIDOS = (96, 192, 384)
 TAMANHO_PADRAO = 192
 # Hash de ícone da Steam é base64 url-safe: letras, dígitos, "-" e "_",
 # ~200 caracteres. Um filtro só `isalnum()` (até 2026-10-30) arrancava os
@@ -143,8 +146,20 @@ def _gravar(p: Path, dados: bytes) -> None:
 def _gerar(hash_seguro: str, tamanho: int, com_rede: bool) -> "bytes | None":
     """Gera (e grava) o v4. Fonte: o original do CDN (melhor qualidade);
     sem rede ou com falha, o v3 já guardado em disco."""
-    fonte = _baixar_original(hash_seguro) if com_rede else None
-    da_rede = fonte is not None
+    fonte = None
+    if tamanho < TAMANHO_PADRAO:
+        # Miniatura: reduz o v4 maior que já está em disco (o enquadrar de
+        # novo dá o mesmo quadro); só vai à rede se ele não existir.
+        for tam in (384, TAMANHO_PADRAO):
+            try:
+                fonte = _caminho(hash_seguro, tam).read_bytes()
+                break
+            except OSError:
+                pass
+    da_rede = False
+    if fonte is None and com_rede:
+        fonte = _baixar_original(hash_seguro)
+        da_rede = fonte is not None
     if fonte is None:
         for tam in (384, tamanho):
             antigo = _caminho_antigo(hash_seguro, tam)
@@ -215,7 +230,8 @@ def obter(hash_icone: str, tamanho: int = TAMANHO_PADRAO) -> "bytes | None":
     return _gerar(hash_seguro, tamanho, com_rede=True)
 
 
-_CACHE_MAX_ARQUIVOS = 4000
+# 6000 (era 4000): desde 28/11 cada ícone tem até 3 tamanhos.
+_CACHE_MAX_ARQUIVOS = 6000
 _LEGADO_DIAS_MAX = 30
 
 

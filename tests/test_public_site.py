@@ -6409,9 +6409,10 @@ def test_item_home_mostram_comprar_por_encomenda(client, monkeypatch, tmp_path):
 
 
 def test_icones_pequenos_nao_baixam_a_versao_grande():
-    """Revisão 17/11 (Lighthouse): ícone mostrado com até 56 px não leva
-    srcset 2x -- a imagem de 192 px já é nítida até em tela de
-    densidade 3, e a de 384 pesava o dobro à toa no celular."""
+    """Revisão 17/11 (Lighthouse): ícone mostrado com até 56 px não baixa
+    a versão de 384 px -- a de 192 já é nítida até em tela de densidade 3,
+    e a de 384 pesava o dobro à toa no celular. Desde 28/11 o quadro de
+    40 px usa a miniatura de 96 (`icone_mini`) e só a tela 3x pede a de 192."""
     import re
     from pathlib import Path
     pasta = Path(__file__).resolve().parents[1] / "lodout" / "public_site" / "templates"
@@ -6419,7 +6420,9 @@ def test_icones_pequenos_nao_baixam_a_versao_grande():
         for tag in re.findall(r"<img [^>]*>", arq.read_text(encoding="utf-8")):
             w = re.search(r'width="(\d+)"', tag)
             if w and int(w.group(1)) <= 56 and "/icone/" not in tag and "icon_url" in tag:
-                assert "srcset" not in tag, f"{arq.name}: {tag[:90]}"
+                assert "icon_url_2x" not in tag and "384" not in tag, f"{arq.name}: {tag[:90]}"
+                if w.group(1) == "40":
+                    assert "|icone_mini" in tag, f"{arq.name}: {tag[:90]}"
 
 
 def test_desde_txt_diz_ontem_ou_a_data():
@@ -6983,3 +6986,65 @@ def test_filtros_do_topo_levam_o_foco_para_o_painel():
           / "static" / "busca_topo.js").read_text(encoding="utf-8")
     assert "primeiro.focus(" in js
     assert "function devolverFoco()" in js
+
+
+def test_icone_de_96_sai_do_v4_em_disco_sem_rede(monkeypatch, tmp_path):
+    """Miniatura para os quadros de 40px (28/11): reduz o v4 de 384 que já
+    está em disco, sem ir ao CDN da Steam."""
+    from io import BytesIO
+
+    from PIL import Image
+    monkeypatch.setattr(icon_cache, "_CACHE_DIR", tmp_path)
+    buf = BytesIO()
+    Image.new("RGBA", (384, 384), (200, 100, 50, 255)).save(buf, format="WEBP")
+    icon_cache._caminho("abc123", 384).write_bytes(buf.getvalue())
+
+    def _boom(*a, **kw):
+        raise AssertionError("miniatura não pode ir à rede com o v4 em disco")
+
+    import httpx
+    monkeypatch.setattr(httpx, "get", _boom)
+    dados = icon_cache.obter("abc123", 96)
+    with Image.open(BytesIO(dados)) as im:
+        assert im.size == (96, 96)
+    assert icon_cache._caminho("abc123", 96).exists()
+
+
+def test_filtro_icone_mini():
+    from lodout.public_site.server import _icone_mini
+    assert _icone_mini("/icone/abc.webp?v=3") == "/icone/abc.webp?v=3&tam=96"
+    assert _icone_mini("/icone/abc.webp") == "/icone/abc.webp?tam=96"
+    # Já com tamanho, de fora do site ou vazio: volta igual.
+    assert _icone_mini("/icone/abc.webp?v=3&tam=384") == "/icone/abc.webp?v=3&tam=384"
+    assert _icone_mini("https://community.steamstatic.com/x") == "https://community.steamstatic.com/x"
+    assert _icone_mini(None) is None
+
+
+def test_noticias_da_steam_separam_itens_colados():
+    """Desde nov/2026 a Steam manda as notas com os itens colados e "\\"
+    entre as seções (28/11)."""
+    from lodout import steam_news
+    bruto = ("\\CobblestoneFixed a spot where the bomb could be thrown out of "
+             "reachFixed some bad wall bang locations\\Updated slow reload "
+             "animation for the AWPOptimized ground burn decals")
+    limpo = steam_news._texto_limpo(bruto)
+    assert limpo == ("Cobblestone · Fixed a spot where the bomb could be thrown "
+                     "out of reach · Fixed some bad wall bang locations · Updated "
+                     "slow reload animation for the AWP · Optimized ground burn decals")
+    # Idempotente, e não quebra nomes nem texto normal.
+    assert steam_news._separar_itens(limpo) == limpo
+    assert steam_news._separar_itens("Added CSPrecache.IsServerLoading") == \
+        "Added CSPrecache.IsServerLoading"
+    assert steam_news._separar_itens("Watch it on YouTube. Fixed bugs.") == \
+        "Watch it on YouTube. Fixed bugs."
+
+
+def test_noticias_gravadas_coladas_saem_separadas(monkeypatch, tmp_path):
+    from lodout import steam_news
+    from lodout._paths import atomic_write_text
+    import json
+    monkeypatch.setattr(steam_news, "_caminho", lambda: tmp_path / "n.json")
+    atomic_write_text(tmp_path / "n.json", json.dumps({"itens": [
+        {"titulo": "Counter-Strike 2 Update", "resumo": "\\InfernoFixed aFixed b",
+         "url": None, "ts": 1.0}]}))
+    assert steam_news.carregar_noticias()[0]["resumo"] == "Inferno · Fixed a · Fixed b"
