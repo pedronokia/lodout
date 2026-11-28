@@ -71,11 +71,12 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           RESTART_CADDY: ${{ inputs.restart_caddy == true || contains(github.event.workflow_run.head_commit.message, '[restart-caddy]') }}
           FORCE_REBUILD: ${{ inputs.force_rebuild == true || contains(github.event.workflow_run.head_commit.message, '[rebuild]') }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: opc
           key: ${{ secrets.ORACLE_SSH_KEY }}
-          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY,FORCE_REBUILD
+          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY,FORCE_REBUILD,TARGET_SHA
           script: |
             set -euo pipefail
             cd ~/skinvault
@@ -85,16 +86,21 @@ jobs:
               echo "remote da VM: pedronokia/lodout"
             fi
 
-            # fetch + reset --hard (nunca "pull"): evita divergência na VM.
+            # fetch + reset --hard no commit EXATO que passou nos testes
+            # (evita subir um commit mais novo ainda não testado).
             # Guarda o SHA anterior fora do repo para rollback automático caso
             # /readyz ou smoke_test falhem após a troca.
             git fetch origin
             PREV_SHA="$(git rev-parse HEAD)"
-            TARGET_SHA="$(git rev-parse origin/main)"
-            if [ "$PREV_SHA" != "$TARGET_SHA" ]; then
+            DEPLOY_REF="${TARGET_SHA:-origin/main}"
+            if ! git cat-file -e "${DEPLOY_REF}^{commit}" 2>/dev/null; then
+              git fetch origin "$DEPLOY_REF"
+            fi
+            RESOLVED_SHA="$(git rev-parse "${DEPLOY_REF}^{commit}")"
+            if [ "$PREV_SHA" != "$RESOLVED_SHA" ]; then
               printf '%s\n' "$PREV_SHA" > "$HOME/.lodout-prev-sha"
             fi
-            git reset --hard origin/main
+            git reset --hard "$RESOLVED_SHA"
             git clean -fd
 
             # Como ./lodout é montado via bind mount (:ro), só reconstruímos a
@@ -122,15 +128,17 @@ jobs:
               up $BUILD_FLAG -d --force-recreate web
             printf '%s\n' "$BUILD_HASH" > "$STAMP_FILE"
 
-            # Recria o Caddy antes do smoke test quando solicitado.
+            # Recria só o Caddy (--no-deps) para não recriar o web de novo nem
+            # apagar LODOUT_BUILD_ID.
             if [ "${RESTART_CADDY:-false}" = "true" ]; then
               echo "Recriando container do Caddy..."
               SITE_DOMAIN="${SITE_DOMAIN:-}" \
                 LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
                 LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+                LODOUT_BUILD_ID="$BUILD_ID" \
                 sudo -E docker compose \
                 -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
-                up -d --force-recreate caddy
+                up -d --no-deps --force-recreate caddy
             fi
 
             # Só limpa imagens/cache Docker antigos (>7 dias) quando houve
@@ -180,11 +188,12 @@ jobs:
           SITE_DOMAIN: ${{ secrets.SITE_DOMAIN }}
           ADMIN_DISCORD_WEBHOOK: ${{ secrets.ADMIN_DISCORD_WEBHOOK }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          RESTART_CADDY: ${{ inputs.restart_caddy == true || contains(github.event.workflow_run.head_commit.message, '[restart-caddy]') }}
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: opc
           key: ${{ secrets.ORACLE_SSH_KEY }}
-          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD
+          envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY
           script: |
             set -euo pipefail
             cd ~/skinvault
@@ -211,14 +220,23 @@ jobs:
               BUILD_FLAG="--build"
             fi
 
+            ROLLBACK_ID="rollback-${PREV_SHA:0:7}"
             SITE_DOMAIN="${SITE_DOMAIN:-}" \
               LODOUT_ADMIN_DISCORD_WEBHOOK="${ADMIN_DISCORD_WEBHOOK:-}" \
               LODOUT_ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
-              LODOUT_BUILD_ID="rollback-${PREV_SHA:0:7}" \
+              LODOUT_BUILD_ID="$ROLLBACK_ID" \
               sudo -E docker compose \
               -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
               up $BUILD_FLAG -d --force-recreate web
             printf '%s\n' "$BUILD_HASH" > "$STAMP_FILE"
+            if [ "${RESTART_CADDY:-false}" = "true" ]; then
+              echo "Revertendo também container do Caddy..."
+              SITE_DOMAIN="${SITE_DOMAIN:-}" \
+                LODOUT_BUILD_ID="$ROLLBACK_ID" \
+                sudo -E docker compose \
+                -f docker-compose.public-site.yml -f docker-compose.oracle.yml \
+                up -d --no-deps --force-recreate caddy
+            fi
             echo "Rollback concluído para ${PREV_SHA:0:7}."
 
       - name: Avisa no Discord se o deploy falhou

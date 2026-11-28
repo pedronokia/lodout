@@ -20,4 +20,8 @@ if [ "$(stat -c '%u:%g' /data)" != "$uid_gid" ]; then
 else
     find /data -maxdepth 1 \( ! -user lodout -o ! -group lodout \) -exec chown -R lodout:lodout {} +
 fi
-exec su -s /bin/sh lodout -c 'exec "$0" "$@"' -- "$@"
+# setpriv (em vez de `su`) substitui este shell direto pelo processo final:
+# sem wrapper intermediário que manda SIGKILL após 2 s no SIGTERM, permitindo
+# desligamento limpo do gunicorn (30 s) e checkpoint do worker (40 s).
+export HOME=/tmp
+exec setpriv --reuid="$(id -u lodout)" --regid="$(id -g lodout)" --init-groups -- "$@"
