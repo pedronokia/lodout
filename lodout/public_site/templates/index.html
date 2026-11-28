@@ -212,7 +212,7 @@
         {% if c.case_label %}
         <span class="cartao-item-caixa" title="{{ c.case_label|rotulo_caixa(c.name) }}">{{ c.case_label|rotulo_caixa_curto(c.name) }}</span>
         {% endif %}
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener" aria-label="Steam: abrir {{ c.name_fmt }} no Mercado (nova aba)">Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>
@@ -244,7 +244,7 @@
       </div>
       <div class="cartao-item-selos">
         <span class="cartao-item-caixa">Preço do dia</span>
-        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener">Steam {{ icone("seta-direita") }}</a>
+        <a class="cartao-item-steam" href="{{ c.market_url }}" target="_blank" rel="noopener" aria-label="Steam: abrir {{ c.name_fmt }} no Mercado (nova aba)">Steam {{ icone("seta-direita") }}</a>
       </div>
     </div>
   </li>
@@ -267,7 +267,7 @@
     <td class="celula-sparkline" data-label="Histórico">—</td>
     <td class="celula-nota" data-label="Nota"><span class="selo-sem-nota">sem nota ainda</span></td>
     <td data-label="Caixa/Cápsula">—</td>
-    <td data-label="Por quê">{{ c.a_venda }} à venda · <a href="{{ c.market_url }}" target="_blank" rel="noopener">Ver na Steam</a></td>
+    <td data-label="Por quê">{{ c.a_venda }} à venda · <a href="{{ c.market_url }}" target="_blank" rel="noopener" aria-label="Ver na Steam: {{ c.name_fmt }} (nova aba)">Ver na Steam</a></td>
   </tr>
   {% endmacro %}
 

@@ -25,14 +25,19 @@
     "@context": "https://schema.org",
     "@type": "Product",
     "name": {{ item.name_fmt|tojson }},
-    "image": "{{ request.url_root.rstrip('/') ~ (item.icon_url_2x if item.icon_url_2x else url_for('static', filename='og-image.png')) }}",
+    {#- tojson (28/11): com a interpolação comum, o "&" do endereço virava
+        "&amp;" dentro do JSON e o endereço da imagem saía errado. #}
+    "image": {{ (request.url_root.rstrip('/') ~ (item.icon_url_2x if item.icon_url_2x else url_for('static', filename='og-image.png')))|tojson }},
     "description": {{ (item.reasons|join('; ') if item.reasons else 'Sem fator em destaque')|tojson }}
     {%- if item.price is not none %},
     "offers": {
       "@type": "Offer",
       "price": "{{ '%.2f'|format(item.price) }}",
       "priceCurrency": "BRL",
-      "url": "{{ request.base_url }}",
+      {#- A oferta é a do Mercado da Steam, não do Lodout (que não vende
+          nada): endereço e vendedor apontam para lá (28/11). #}
+      "url": {{ item.market_url|tojson }},
+      "seller": {"@type": "Organization", "name": "Mercado da Comunidade Steam"},
       "availability": "https://schema.org/InStock"
     }
     {%- endif %}

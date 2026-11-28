@@ -2694,12 +2694,12 @@ def _formatar_candidato(c: dict, *, com_icone: bool = False,
                 f"Nota calculada com só {n} ponto{'s' if n != 1 else ''} de "
                 f"histórico da Steam, o mais recente de {age:.0f} dia"
                 f"{'s' if round(age) != 1 else ''} atrás — alguns fatores "
-                "podem não ter tido dado suficiente pra entrar no cálculo.")
+                "podem não ter tido dado suficiente para entrar no cálculo.")
         else:
             c["confianca_baixa_titulo"] = (
-                "Nota calculada sem histórico de preço da Steam pra esse "
+                "Nota calculada sem histórico de preço da Steam para esse "
                 "item — a maioria dos fatores não tinha dado suficiente "
-                "pra entrar no cálculo.")
+                "para entrar no cálculo.")
     # icon_url_2x pede 384px (2x de 192) -- até 2026-11-08 era cópia
     # do icon_url de 192px (achado da revisão de direção visual: o
     # hero/vitrine mostra esse ícone bem maior que o nativo, perda

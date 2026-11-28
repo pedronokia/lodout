@@ -5723,7 +5723,7 @@ def test_app_js_anuncia_mudancas_pro_leitor_de_tela():
         encoding="utf-8")
     assert 'setAttribute("aria-live", "polite")' in js
     assert 'anunciar("Copiado")' in js
-    assert "selecionados pra comparar" in js
+    assert "selecionados para comparar" in js
 
 
 def test_css_acabamento_toque_e_tipografia():
@@ -6912,3 +6912,74 @@ def test_app_js_atalhos_respeitam_modificadores_e_sem_style_inline(client):
 
 
 
+
+
+# ── Auditoria 2 (28/11) ─────────────────────────────────────────────
+
+def test_paginas_publicas_tem_previa_de_compartilhamento(client):
+    """Ranking, Método, FAQ etc. não tinham og:title/og:description: ao
+    compartilhar no WhatsApp, a prévia vinha sem título próprio."""
+    import re
+    for caminho in ("/ranking", "/metodo", "/faq", "/glossario", "/status",
+                    "/changelog", "/como-usar", "/api", "/sobre",
+                    "/novidades", "/privacidade"):
+        body = client.get(caminho).data.decode("utf-8")
+        titulo = re.search(r"<title>([^<]*)</title>", body).group(1)
+        assert f'<meta property="og:title" content="{titulo}">' in body, caminho
+        assert '<meta property="og:description" content="' in body, caminho
+        assert '<meta name="twitter:title" content="' in body, caminho
+        assert body.count('property="og:image"') == 1, caminho
+
+
+def test_json_ld_do_item_e_valido_e_aponta_para_a_steam(
+        client, monkeypatch, tmp_path):
+    """O "&" do endereço da imagem saía como "&amp;" dentro do JSON, e a
+    oferta apontava para o Lodout, que não vende nada (28/11)."""
+    import json
+    import re
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 85, "price": 50.0,
+         "icon": "skin-icon-hash", "case_label": "", "category": "Rifles",
+         "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/item/AK-47 | Redline (Field-Tested)").data.decode("utf-8")
+    blocos = [json.loads(b) for b in re.findall(
+        r'<script type="application/ld\+json">(.*?)</script>', body, re.S)]
+    produto = next(b for b in blocos if b.get("@type") == "Product")
+    assert "&amp;" not in produto["image"]
+    oferta = produto["offers"]
+    assert oferta["url"].startswith("https://steamcommunity.com/market/")
+    assert "Steam" in oferta["seller"]["name"]
+
+
+def test_links_da_steam_na_vitrine_dizem_qual_item(client, monkeypatch, tmp_path):
+    """12 links "Steam" iguais na vitrine: o leitor de tela não sabia de
+    qual item era cada um (28/11)."""
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 1.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []},
+    ])
+    body = client.get("/").data.decode("utf-8")
+    assert 'aria-label="Steam: abrir AK-47' in body
+    lista = client.get("/?ver=lista").data.decode("utf-8")
+    assert 'aria-label="Ver na Steam: AK-47' in lista or "Ver na Steam" not in lista
+
+
+def test_simulador_avisa_valor_invalido():
+    """"abc" ou "0" deixavam na tela o resultado do valor anterior (28/11)."""
+    from pathlib import Path
+    js = (Path(__file__).resolve().parents[1] / "lodout" / "public_site"
+          / "static" / "app.js").read_text(encoding="utf-8")
+    assert '"Valor inválido"' in js
+    assert 'setAttribute("aria-invalid"' in js
+    assert "btnCopiarSimOferta.disabled = sim" in js
+
+
+def test_filtros_do_topo_levam_o_foco_para_o_painel():
+    """Abrir os filtros pelo topo rolava a página, mas o Tab seguia pelo
+    topo (28/11): o foco agora entra no painel e volta ao fechar."""
+    from pathlib import Path
+    js = (Path(__file__).resolve().parents[1] / "lodout" / "public_site"
+          / "static" / "busca_topo.js").read_text(encoding="utf-8")
+    assert "primeiro.focus(" in js
+    assert "function devolverFoco()" in js

@@ -287,7 +287,7 @@ document.addEventListener("error", function (e) {
     if (e.target.checked) {
       if (lista.length >= MAX) {
         e.target.checked = false;
-        anunciar("Limite de " + MAX + " itens pra comparar. Desmarque um pra trocar.");
+        anunciar("Limite de " + MAX + " itens para comparar. Desmarque um para trocar.");
         avisarLimite();
         return;
       }
@@ -297,14 +297,14 @@ document.addEventListener("error", function (e) {
     }
     salvar(lista);
     atualizarBarra();
-    anunciar(lista.length + " de " + MAX + " selecionados pra comparar");
+    anunciar(lista.length + " de " + MAX + " selecionados para comparar");
   });
   document.addEventListener("click", function (e) {
     if (e.target.id !== "botao-limpar-comparar") return;
     salvar([]);
     document.querySelectorAll(".checkbox-comparar").forEach(function (cb) { cb.checked = false; });
     atualizarBarra();
-    anunciar("Seleção pra comparar limpa");
+    anunciar("Seleção para comparar limpa");
   });
 })();
 (function () {
@@ -327,7 +327,7 @@ document.addEventListener("error", function (e) {
       var subiu = nota > antes;
       var selo = document.createElement("span");
       selo.className = "selo-mudou-nota " + (subiu ? "tendencia-alta" : "tendencia-baixa");
-      selo.title = "Nota " + (subiu ? "subiu" : "caiu") + " de " + antes + " pra " + nota + " desde sua última visita";
+      selo.title = "Nota " + (subiu ? "subiu" : "caiu") + " de " + antes + " para " + nota + " desde sua última visita";
       selo.setAttribute("aria-label", "Nota " + (subiu ? "subiu" : "caiu") + " " + Math.abs(nota - antes) + " pontos desde sua última visita");
       var seta = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       seta.setAttribute("class", "icone-ui icone-ui-seta-" + (subiu ? "cima" : "baixo"));
@@ -539,17 +539,45 @@ if ("serviceWorker" in navigator) {
     }
   }
 
+  // Valor que não dá para calcular (vazio, zero, letras): diz o que fazer
+  // em vez de deixar na tela o resultado do valor anterior (auditoria
+  // 28/11: "abc" e "0" mantinham "Na frente da fila" e o lucro antigo, e
+  // "Copiar oferta" copiava o valor velho).
+  function invalido(sim) {
+    input.setAttribute("aria-invalid", sim ? "true" : "false");
+    if (btnCopiarSimOferta) btnCopiarSimOferta.disabled = sim;
+    if (!sim) return;
+    if (elFila) {
+      elFila.textContent = "Valor inválido";
+      elFila.className = "simulador-fila-status texto-alerta";
+    }
+    if (elFilaDesc) elFilaDesc.textContent = "Digite um valor maior que zero, como 12,50.";
+    if (elEmpate) elEmpate.textContent = "—";
+    if (elLucro) {
+      elLucro.textContent = "—";
+      elLucro.className = "simulador-metrica-val";
+    }
+    if (elRetorno) {
+      elRetorno.textContent = "";
+      elRetorno.className = "simulador-metrica-sub";
+    }
+  }
+
   if (input && slider) {
     input.addEventListener("input", function () {
       var val = lerValor(input.value);
-      if (!isNaN(val)) {
+      if (!isNaN(val) && val > 0) {
+        invalido(false);
         slider.value = val;
         calcular(val);
+      } else {
+        invalido(true);
       }
     });
     slider.addEventListener("input", function () {
       var val = parseFloat(slider.value);
       input.value = escreverValor(val);
+      invalido(false);
       calcular(val);
     });
     var valInicial = lerValor(input.value);

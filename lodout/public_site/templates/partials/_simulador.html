@@ -18,13 +18,13 @@
         <div class="simulador-input-linha">
           <div class="simulador-input-wrap">
             <span class="simulador-moeda">R$</span>
-            <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua oferta" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
+            <input type="text" inputmode="decimal" autocomplete="off" id="sim-input-encomenda" class="simulador-input" aria-label="Preço da sua oferta" aria-describedby="sim-fila" value="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}">
           </div>
           <button type="button" id="btn-copiar-sim-oferta" class="copiar-preco btn-copiar-simulador" data-copiar-preco="{{ ('%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)))|replace('.', ',') }}" title="Copiar oferta para colar na encomenda da Steam" aria-label="Copiar oferta">{{ icone("copiar") }}<span>Copiar oferta</span></button>
         </div>
       </div>
       <input type="range" id="sim-slider-encomenda" class="simulador-slider" min="{{ '%.2f'|format((item.price or 10.0) * 0.3) }}" max="{{ '%.2f'|format((item.price or 10.0) * 1.1) }}" step="0.01" value="{{ '%.2f'|format(encomenda_sugestao.valor if encomenda_sugestao else ((item.price or 10.0) * 0.85)) }}" aria-label="Ajustar oferta">
-      <p class="simulador-fila"><strong class="simulador-fila-status" id="sim-fila-status">—</strong> <span id="sim-fila-desc"></span></p>
+      <p class="simulador-fila" id="sim-fila"><strong class="simulador-fila-status" id="sim-fila-status">—</strong> <span id="sim-fila-desc"></span></p>
     </div>
     <div class="simulador-metricas-grid">
       <div class="simulador-metrica-card">

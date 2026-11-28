@@ -28,7 +28,9 @@
      bloquear nada (só uma dica de conexão). Sem `crossorigin` (28/11):
      <img> busca sem CORS, e a conexão aberta em modo CORS não servia. #}
   <link rel="preconnect" href="https://community.steamstatic.com">
-  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  {# Com ?v= do build (28/11): o /static fica 1 ano em cache, e sem a
+     versão uma mudança no manifest não chegava a quem já instalou. #}
+  <link rel="manifest" href="{{ static_v('manifest.json') }}">
   {# iOS Safari historicamente não aceita SVG em apple-touch-icon -- cai
      pra tirar um print da página como ícone (achado 2026-11-01). O PNG
      180x180 sai de static/logo-escura-app.svg, com a marca completa

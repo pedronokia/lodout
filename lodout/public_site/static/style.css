@@ -8232,15 +8232,13 @@ h3,
   min-width: 0;
 }
 
+/* Nome inteiro também em "O que mudou" (28/11): o corte em 2 linhas
+   escondia o desgaste em telas de 320 px, contra o nome inteiro do Ranking. */
 .movimento-linha-texto .link-item {
   font-size: var(--fs-xs);
   font-weight: 600;
   color: #f1f5f9;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
+  display: block;
   overflow-wrap: anywhere;
   line-height: 1.35;
   text-decoration: none;
@@ -12424,6 +12422,18 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   }
   .sem-nota-hoje { max-width: 7ch; text-align: center; white-space: normal; line-height: 1.2; }
 }
+
+/* "Copiar oferta" com valor inválido no simulador (28/11): fica
+   desligado e mostra isso, em vez de copiar o valor anterior. */
+.copiar-preco:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status: a página é larga (840px) por causa das tabelas, mas o texto
+   corrido segue a medida de leitura do site (auditoria 28/11: o parágrafo
+   da coleta passava de 100 letras por linha). */
+.pagina-status > p { max-width: var(--largura-texto); }
 
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)

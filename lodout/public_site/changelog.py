@@ -19,6 +19,11 @@ ENTRADAS = [
             "Página inicial: na primeira visita, o texto não pula mais de lugar quando as letras do site terminam de carregar, e as páginas carregam um arquivo de fonte a menos.",
             "Página inicial: com a coleta atrasada, o ponto de status para de piscar (piscar dava a ideia de dado ao vivo), e o texto “desde a última coleta” ficou mais legível.",
             "Página inicial: o aviso de atraso aparece uma vez só (na faixa amarela), em vez de três. A linha de cima agora diz “coleta completa há X h” e o rodapé, “última atualização”: o rodapé conta também a atualização rápida do Top 20, por isso pode mostrar um horário mais recente.",
+            "Filtros: quem abre os filtros pelo teclado agora cai direto no painel (antes precisava passar por cerca de 15 links); ao fechar com Esc, volta para o botão.",
+            "Simular compra: com um valor que não dá para calcular (vazio, zero ou letras), aparece “Valor inválido” e o botão de copiar fica desligado, em vez de continuar mostrando o resultado do valor anterior.",
+            "Ranking: em “O que mudou”, o nome do item aparece inteiro também em celulares pequenos.",
+            "Compartilhar: Ranking, Método, FAQ, Glossário e as outras páginas agora têm título e descrição próprios na prévia do WhatsApp e das redes.",
+            "Leitores de tela: os links “Steam” da vitrine dizem de qual item são, e os avisos de comparar usam “para” em vez de “pra”.",
         ],
     },
     {

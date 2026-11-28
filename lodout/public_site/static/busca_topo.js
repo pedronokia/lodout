@@ -265,7 +265,19 @@
     if (novoEstado) {
       var reduzir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       detFiltros.scrollIntoView({ behavior: reduzir ? "auto" : "smooth", block: "nearest" });
+      // Foco vai para o primeiro campo do painel (auditoria 28/11): a
+      // página rolava até os filtros, mas o Tab seguia pelo topo e por
+      // ~15 links antes de chegar lá.
+      var primeiro = detFiltros.querySelector(".filtros-mais-corpo input:not([type=hidden]), .filtros-mais-corpo select, .filtros-mais-corpo button, .filtros-mais-corpo a[href]");
+      if (primeiro) primeiro.focus({ preventScroll: true });
+    } else {
+      devolverFoco();
     }
+  }
+
+  // Fechou com o foco lá dentro: ele volta para o botão que abriu.
+  function devolverFoco() {
+    if (btnFiltroTopo && detFiltros.contains(document.activeElement)) btnFiltroTopo.focus();
   }
 
   if (btnFiltroTopo) {
@@ -308,6 +320,7 @@
       if (e.key === "Escape" && detFiltros.open) {
         detFiltros.open = false;
         if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "false");
+        devolverFoco();
       }
     });
   }
