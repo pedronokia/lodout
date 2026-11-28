@@ -73,15 +73,30 @@ def _idade_dos_precos(quandos: "list[float]") -> "str | None":
 
 
 def _preco_do_dia(positions: "list[dict]"):
-    """Preço de cada item da conta: o da coleta com nota quando existe;
-    senão o do catálogo amplo (todo o Mercado, 1x por dia). Só leitura
-    local, sem rede (catalogo-grande.md, fase 2)."""
+    """Preço de cada item da conta: o da coleta com nota em BRL quando
+    existe; depois PriceCache (legado/testes); senão o do catálogo amplo
+    (todo o Mercado, convertido do dólar). Só leitura local, sem rede."""
+    scan = scan_store.load_last_scan()
+    do_scan: dict = {}
+    scan_ts = None
+    if scan:
+        scan_ts = scan.get("ts")
+        for r in scan.get("results") or []:
+            nome_r = r.get("name")
+            preco_r = r.get("price")
+            if nome_r and isinstance(preco_r, (int, float)):
+                do_scan[nome_r] = float(preco_r)
     cache = PriceCache()
     nomes = [p.get("name") for p in positions]
-    do_catalogo = catalogo.precos(nomes)
+    faltam_cat = [n for n in nomes if n and n not in do_scan]
+    do_catalogo = catalogo.precos(faltam_cat) if faltam_cat else {}
     datas: dict = {}
 
     def _preco(nome: str):
+        if nome in do_scan:
+            if scan_ts:
+                datas[nome] = scan_ts
+            return do_scan[nome]
         preco = cache.get(nome)
         if preco is not None:
             datas[nome] = cache.ts(nome)
@@ -178,6 +193,13 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
         # inventário (hash do CDN da Steam), em vez de ficar sem foto.
         row.update(raridade.icone_raridade(
             raw or do_catalogo.get(row["name"]) or {"icon": row.get("icon")}))
+    avaliacao["textos"] = _formatar_totais(avaliacao, meta_pct)
+    return avaliacao
+
+
+def _formatar_totais(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dict:
+    """Preenche os campos *_fmt e contadores de `avaliacao['totals']` e devolve
+    os textos dos cartões do topo, sem precisar formatar cada linha da tabela."""
     t = avaliacao["totals"]
     # Quanto valem hoje os itens sem valor pago: o lucro em destaque não
     # os inclui, e o cartão "Sem valor pago" diz isso (crítica de 15/11).
@@ -189,9 +211,11 @@ def _formatar_linhas(avaliacao: dict, meta_pct: int = _META_LUCRO_PADRAO) -> dic
     t["market_fmt"] = fmt.brl(t.get("market"))
     t["net_if_sold_fmt"] = fmt.brl(t.get("net_if_sold"))
     t["pnl_fmt"] = fmt.brl(t.get("pnl"))
-    t["atingiu_meta_n"] = sum(1 for r in avaliacao["rows"] if r.get("atingiu_meta"))
-    avaliacao["textos"] = _textos_totais(t)
-    return avaliacao
+    t["atingiu_meta_n"] = sum(
+        1 for r in avaliacao["rows"]
+        if r.get("has_cost") and (r.get("cost") or 0) > 0
+        and r.get("pnl_pct") is not None and r["pnl_pct"] >= meta_pct)
+    return _textos_totais(t)
 
 
 # Palavras em português para a busca da conta achar o tipo do item cujo
@@ -327,6 +351,7 @@ def login_callback():
         persona_name=perfil.get("name"),
         avatar_url=perfil.get("avatar_url"),
     )
+    session.pop("csrf_token", None)
     session["steamid"] = steamid
     session.permanent = True  # 30 dias ou até "Sair" (PERMANENT_SESSION_LIFETIME)
     # Inventário sincroniza sozinho a cada login (ação da própria pessoa),
@@ -417,7 +442,6 @@ def conta():
                           if estado_inv.get("ts") else None),
         meta_lucro_opcoes=_META_LUCRO_OPCOES,
         mudanca_valor=mudanca,
-        recuperar=_quadro_recuperar(steamid, positions),
         idade_precos=_idade_dos_precos(quandos),
         taxa_steam_pct=round(portfolio.STEAM_FEE * 100),
     )
@@ -518,13 +542,14 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     com_valor = []
     for p in lotes:
         custo = p.get("cost")
-        if portfolio.has_cost_basis(p) and custo:
-            empate = portfolio.break_even_price(float(custo))
+        if portfolio.has_cost_basis(p) and custo is not None:
+            custo_f = float(custo)
+            empate = portfolio.break_even_price(custo_f) if custo_f > 0 else None
             com_valor.append({
                 "quantidade": int(p.get("quantity") or 1),
-                "pago_fmt": fmt.brl(float(custo)),
-                "empate_fmt": fmt.brl(empate),
-                "alvo_fmt": fmt.brl(empate * (1 + meta / 100)),
+                "pago_fmt": fmt.brl(custo_f),
+                "empate_fmt": fmt.brl(empate) if empate is not None else None,
+                "alvo_fmt": fmt.brl(empate * (1 + meta / 100)) if empate is not None else None,
             })
     sem_valor = unidades - sum(l["quantidade"] for l in com_valor)
     # Lucro se vender hoje (revisão 2026-11-16): o mesmo preço e a mesma
@@ -537,7 +562,7 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     if preco is not None and com_valor:
         pnl = custo_total = 0.0
         for p in lotes:
-            if portfolio.has_cost_basis(p) and p.get("cost"):
+            if portfolio.has_cost_basis(p) and p.get("cost") is not None:
                 d = portfolio.position_pnl(float(p["cost"]), float(preco), int(p.get("quantity") or 1))
                 pnl += d["pnl"]
                 custo_total += d["cost_total"]
@@ -755,23 +780,29 @@ def editar_custo(name: str):
     if quer_json:
         if erro:
             return jsonify({"ok": False, "erro": erro}), 400
-        linhas = [p for p in user_portfolio.load_positions(steamid)
-                  if p.get("name") == name and (not lote or p.get("lote") == lote)]
-        if not linhas:
+        todas = user_portfolio.load_positions(steamid)
+        alvo_idx = next(
+            (i for i, p in enumerate(todas)
+             if p.get("name") == name and (not lote or p.get("lote") == lote)),
+            None,
+        )
+        if alvo_idx is None:
             # Tirado da lista em outra aba (ou pela sincronização) depois
             # que esta página abriu (revisão 2026-11-16).
             return jsonify({"ok": False, "recarregar": True, "erro":
                             "Este item não está mais na sua lista. "}), 404
-        avaliacao = _formatar_linhas(
-            portfolio.evaluate_portfolio(linhas, _preco_do_dia(linhas)),
-            _meta_lucro(steamid))
-        row = avaliacao["rows"][0]
+        meta_pct = _meta_lucro(steamid)
+        av_todas = portfolio.evaluate_portfolio(todas, _preco_do_dia(todas))
+        totais = _formatar_totais(av_todas, meta_pct)
+        row = _formatar_linhas(
+            {"rows": [dict(av_todas["rows"][alvo_idx])],
+             "totals": dict(av_todas["totals"])},
+            meta_pct,
+        )["rows"][0]
         pnl = row.get("pnl") if row.get("has_cost") else None
-        todas = user_portfolio.load_positions(steamid)
-        totais = _textos_totais(_formatar_linhas(
-            portfolio.evaluate_portfolio(todas, _preco_do_dia(todas)))["totals"])
         return jsonify({
             "ok": True,
+            "has_cost": bool(row.get("has_cost")),
             "totais": totais,
             "empate_fmt": row.get("empate_fmt"),
             "alvo_fmt": row.get("alvo_fmt"),
@@ -889,78 +920,6 @@ def marcar_vendido(name: str):
                  f"prejuízo de {fmt.brl(-pnl)}" if pnl < 0 else "sem lucro nem prejuízo")
     flash(f"{localize_name(name)} foi para “Itens vendidos”, no Histórico: vendido por {fmt.brl(preco)}"
           f"{' cada' if quantidade > 1 else ''}, {resultado} depois da taxa.", "success")
-    return redirect(url_for("account.conta"))
-
-
-# Até 16/11, anunciar no Mercado apagava o item e o valor pago (a
-# sincronização achava que tinha vendido). Os backups diários guardam 7
-# dias: até lá, a própria pessoa pode recuperar os dela pela conta, sem
-# ninguém precisar entrar no servidor (pedido do usuário, 16/11).
-RECUPERAR_ATE_TS = 1795392000.0  # 2026-11-23 21:00 UTC
-
-
-def _quadro_recuperar(steamid: str, positions: "list[dict]") -> "dict | None":
-    """Quadro "Achamos itens que sumiram da sua lista" (revisão 16/11): só
-    para quem tem algo a devolver, com a lista antes de confirmar."""
-    if time.time() >= RECUPERAR_ATE_TS:
-        return None
-    from lodout.public_site import recuperar_posicoes
-    try:
-        prev = recuperar_posicoes.previa(steamid, positions)
-    except Exception:
-        _logger.warning("prévia da recuperação falhou", exc_info=True)
-        return None
-    if not prev["voltam"] and not prev["conferir"]:
-        return None
-    def linha(r):
-        valores = " + ".join(f"{q}× {fmt.brl(c)}" if q > 1 else fmt.brl(c) for q, c in r["valores"])
-        return {"nome": localize_name(r["item"]), "valores": valores}
-    return {"voltam": [linha(r) for r in prev["voltam"]],
-            "conferir": [linha(r) for r in prev["conferir"]]}
-
-
-@bp.route("/conta/recuperar", methods=["POST"])
-@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
-@login_required
-@csrf_protect
-def recuperar_apagados():
-    from lodout.public_site import recuperar_posicoes
-    steamid = session["steamid"]
-    backups = recuperar_posicoes._backups()
-    atuais = user_portfolio.load_positions(steamid)
-    agora = time.time()
-    novas, relatorio = recuperar_posicoes.planejar(
-        steamid, atuais, backups, agora, ignorar=recuperar_posicoes.ignorados(steamid))
-    voltaram = [r for r in relatorio if not r["acao"].startswith("conferir")]
-    if not voltaram:
-        flash("Nada para devolver.", "info")
-        return redirect(url_for("account.conta"))
-    copia = Path(_paths.DATA_DIR) / "backups" / time.strftime(
-        f"recuperacao-{steamid}-%Y%m%d-%H%M%S.json", time.gmtime(agora))
-    _paths.atomic_write_text(copia, json.dumps(atuais, ensure_ascii=False))
-    user_store.save_user_json(steamid, "portfolio", novas)
-    recuperar_posicoes._CACHE_PREVIA.pop(steamid, None)
-    n = len(voltaram)
-    flash(f"{'1 item voltou' if n == 1 else f'{n} itens voltaram'} com o valor pago, "
-          "como “fora do inventário”. Marque “Está anunciado” ou “Vendi” em cada um.", "success")
-    return redirect(url_for("account.conta", filtro="fora"))
-
-
-@bp.route("/conta/recuperar/dispensar", methods=["POST"])
-@rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
-@login_required
-@csrf_protect
-def dispensar_recuperar():
-    """"Não quero de volta" (revisão 16/11, rodada 2): esconde o quadro;
-    os itens dele não são mais oferecidos."""
-    from lodout.public_site import recuperar_posicoes
-    steamid = session["steamid"]
-    prev = recuperar_posicoes.previa(steamid, user_portfolio.load_positions(steamid))
-    nomes = [r["item"] for r in prev["voltam"] + prev["conferir"]]
-    if nomes:
-        recuperar_posicoes.ignorar(steamid, nomes)
-        flash("Pronto. Esses itens não voltam mais.",
-              "success")
     return redirect(url_for("account.conta"))
 
 

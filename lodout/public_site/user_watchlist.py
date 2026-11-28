@@ -44,6 +44,7 @@ def update_rules(steamid: str, name: str, rules: dict,
     for it in items:
         if it.get("name") == name:
             it["rules"] = rules
+            it["target"] = float(rules["price_below"]) if rules.get("price_below") else 0.0
             if baseline_price is not None:
                 it["baseline_price"] = baseline_price
             it["triggered_rules"] = []

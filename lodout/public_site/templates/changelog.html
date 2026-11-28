@@ -6,7 +6,7 @@
   <title>Mudanças — Lodout</title>
   <meta name="description" content="O que mudou no Lodout, por data.">
   <meta property="og:locale" content="pt_BR">
-  <link rel="canonical" href="{{ request.url }}">
+  <link rel="canonical" href="{{ request.base_url }}">
   {% include "partials/_head_pwa.html" %}
   <link rel="alternate" type="application/rss+xml" title="Lodout — Preços e notas" href="{{ url_for('feed') }}">
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
@@ -28,7 +28,7 @@
     {# As 6 mais recentes à vista; as outras recolhidas (a página passava
        de 30 mil pixels no celular -- revisão 20/11). #}
     {% macro entrada_changelog(entrada) %}
-      <section class="changelog-entrada" id="em-{{ entrada.data }}">
+      <section class="changelog-entrada" id="{{ entrada.ancora }}">
         <h2 class="secao-titulo">{{ entrada.titulo }}</h2>
         <p class="changelog-data"><time datetime="{{ entrada.data }}">{{ entrada.data|data_extenso }}</time></p>
         <ul>

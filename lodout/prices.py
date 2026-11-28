@@ -12,12 +12,37 @@ import json
 import time
 from pathlib import Path
 
-from lodout import steam_api
-from lodout._paths import DATA_DIR, atomic_write_text
+from lodout import _paths, steam_api
+from lodout._paths import atomic_write_text
 
 _TTL_SECONDS = 6 * 3600
 _NEG_TTL_SECONDS = 60 * 60  # 1h pra entries "sem preco" (None cacheado)
-_DEFAULT_PATH = DATA_DIR / "prices.json"
+# Override opcional para testes; quando None, resolve dinamicamente via _paths.DATA_DIR.
+_DEFAULT_PATH: "Path | None" = None
+# Cache em memória pela identidade do arquivo (caminho, mtime_ns, tamanho):
+# `_preco_do_dia` na `/conta` e na Watchlist instancia `PriceCache()` por
+# request; sem isto, `prices.json` era relido e decodificado do disco toda vez.
+_FILE_CACHE: "tuple[tuple[str, int, int], dict[str, dict]] | None" = None
+
+
+def _caminho_padrao() -> Path:
+    if _DEFAULT_PATH is not None:
+        return Path(_DEFAULT_PATH)
+    return Path(_paths.DATA_DIR) / "prices.json"
+
+
+def limpar_cache() -> None:
+    """Descarta o cache em memória do prices.json (usado por testes)."""
+    global _FILE_CACHE
+    _FILE_CACHE = None
+
+
+def _chave_arquivo(p: Path) -> "tuple[str, int, int] | None":
+    try:
+        st = p.stat()
+    except OSError:
+        return None
+    return (str(p.resolve()), st.st_mtime_ns, st.st_size)
 
 
 class PriceCache:
@@ -27,23 +52,48 @@ class PriceCache:
     com TTL mais curto, evitando re-fetch repetido a cada startup.
     """
 
-    def __init__(self, path: Path | str = _DEFAULT_PATH, ttl: float = _TTL_SECONDS,
+    def __init__(self, path: "Path | str | None" = None,
+                 ttl: float = _TTL_SECONDS,
                  neg_ttl: float = _NEG_TTL_SECONDS):
-        self.path = Path(path)
+        self.path = Path(path) if path is not None else _caminho_padrao()
         self.ttl = ttl
         self.neg_ttl = neg_ttl
         self._data: dict[str, dict] = {}
         self._load()
 
     def _load(self) -> None:
+        global _FILE_CACHE
+        chave = _chave_arquivo(self.path)
+        if chave is None:
+            self._data = {}
+            return
+        cached = _FILE_CACHE
+        if cached is not None and cached[0] == chave:
+            self._data = {k: dict(v) for k, v in cached[1].items()
+                          if isinstance(v, dict)}
+            return
         try:
-            self._data = json.loads(self.path.read_text(encoding="utf-8"))
+            data = json.loads(self.path.read_text(encoding="utf-8"))
         except Exception:
             self._data = {}
+            return
+        if not isinstance(data, dict):
+            self._data = {}
+            return
+        limpo = {k: dict(v) for k, v in data.items() if isinstance(v, dict)}
+        _FILE_CACHE = (chave, limpo)
+        self._data = {k: dict(v) for k, v in limpo.items()}
 
     def _save(self) -> None:
+        global _FILE_CACHE
         try:
             atomic_write_text(self.path, json.dumps(self._data))
+            chave = _chave_arquivo(self.path)
+            if chave is not None:
+                _FILE_CACHE = (chave, {k: dict(v) for k, v in self._data.items()
+                                       if isinstance(v, dict)})
+            else:
+                _FILE_CACHE = None
         except OSError as e:
             print(f"WARNING: failed to save price cache: {e}",
                   file=__import__('sys').stderr)

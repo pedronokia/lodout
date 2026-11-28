@@ -137,9 +137,28 @@ jobs:
               ip=$(oci compute instance list-vnics --instance-id "$id" --query 'data[0]."public-ip"' --raw-output)
               echo "VM criada! $cfg — IP público: $ip"
               if [ -n "$WEBHOOK" ]; then
-                curl -s -H 'Content-Type: application/json' \
-                  -d "{\"content\":\"Lodout: a VM Ampere ($NOME) foi criada. IP público: $ip ($cfg). Próximo passo: segredo ORACLE_HOST_NOVO no GitHub e migrar-vm → preparar.\"}" \
-                  "$WEBHOOK" >/dev/null || true
+                NOME="$NOME" IP="$ip" CFG="$cfg" WEBHOOK="$WEBHOOK" python3 -c '
+          import json, os, urllib.request
+          nome = os.environ["NOME"]
+          ip = os.environ["IP"]
+          cfg = os.environ["CFG"]
+          msg = (
+              f"Lodout: a VM Ampere ({nome}) foi criada. "
+              f"IP público: {ip} ({cfg}). "
+              "Próximo passo: segredo ORACLE_HOST_NOVO no GitHub e migrar-vm → preparar."
+          )
+          req = urllib.request.Request(
+              os.environ["WEBHOOK"],
+              data=json.dumps({"content": msg}).encode("utf-8"),
+              method="POST",
+              headers={"Content-Type": "application/json", "User-Agent": "Lodout-Ampere/1.0"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=10) as r:
+                  print(f"Aviso Discord enviado (HTTP {r.status}).")
+          except Exception as e:
+              print(f"Aviso Discord falhou: {e}")
+          ' || true
               fi
               exit 0
             fi

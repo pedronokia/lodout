@@ -195,3 +195,93 @@ def test_historico_do_item_sem_snapshots():
     h = ranking.historico_do_item("A", snapshots=[], now=time.time())
     assert h["dias_com_ranking"] == 0
     assert h["posicao_atual"] is None
+
+
+def test_load_snapshots_cacheia_invalida_e_protege_mutacao(tmp_path, monkeypatch):
+    p = tmp_path / "r.json"
+    ranking.save_snapshot([{"name": "A", "score": 80}], path=p)
+
+    leituras = []
+    orig = ranking.load_json_record
+
+    def espiao(*a, **k):
+        leituras.append(a[0])
+        return orig(*a, **k)
+
+    monkeypatch.setattr(ranking, "load_json_record", espiao)
+    s1 = ranking.load_snapshots(path=p)
+    s2 = ranking.load_snapshots(path=p)
+    assert len(leituras) == 1
+    assert len(s1) == 1 and len(s2) == 1
+    # Mutar a lista devolvida não corrompe o cache.
+    s1.append({"ts": 0, "items": []})
+    assert len(ranking.load_snapshots(path=p)) == 1
+
+    # Gravar novo snapshot invalida o cache imediatamente.
+    ranking.save_snapshot([{"name": "B", "score": 90}], path=p)
+    assert len(ranking.load_snapshots(path=p)) == 2
+    ranking.clear_rankings(path=p)
+    assert ranking.load_snapshots(path=p) == []
+
+
+def test_scan_store_load_last_scan_cacheia_e_devolve_copias(tmp_path, monkeypatch):
+    from lodout import scan_store
+    p = tmp_path / "scan.json"
+    scan_store.save_last_scan("Rifles", [{"name": "AK-47", "score": 85}], path=p, now=1000.0)
+
+    chamadas_json = []
+    orig_loads = scan_store.json.loads
+
+    def espiao(texto):
+        chamadas_json.append(1)
+        return orig_loads(texto)
+
+    monkeypatch.setattr(scan_store.json, "loads", espiao)
+    r1 = scan_store.load_last_scan(path=p)
+    r2 = scan_store.load_last_scan(path=p)
+    assert len(chamadas_json) == 1
+    assert r1["results"][0]["name"] == "AK-47"
+    # Mutar item devolvido não contamina o cache.
+    r1["results"][0]["price_fmt"] = "MUTADO"
+    assert "price_fmt" not in r2["results"][0]
+    assert "price_fmt" not in scan_store.load_last_scan(path=p)["results"][0]
+
+    # Novo save invalida o cache imediatamente.
+    scan_store.save_last_scan("Rifles", [{"name": "AWP", "score": 90}], path=p, now=2000.0)
+    r3 = scan_store.load_last_scan(path=p)
+    assert r3["results"][0]["name"] == "AWP"
+
+
+def test_notas_historico_ranking_consistente_cacheia_e_invalida(monkeypatch):
+    from lodout.public_site import notas_historico as nh
+
+    agora = time.time()
+    nh.gravar_snapshot(
+        {"ts": agora - 3600, "items": [{"name": "Item A", "score": 82, "position": 1}]},
+        agora=agora,
+    )
+    conexoes = []
+    orig_conectar = nh._conectar
+
+    def espiao():
+        conexoes.append(1)
+        return orig_conectar()
+
+    monkeypatch.setattr(nh, "_conectar", espiao)
+    r1 = nh.ranking_consistente(7)
+    r2 = nh.ranking_consistente(7)
+    # 1ª chamada abre 1 única conexão; 2ª sai direto do cache (0 conexões).
+    assert len(conexoes) == 1
+    assert r1["itens"][0]["name"] == "Item A"
+    assert r2["itens"][0]["name"] == "Item A"
+    r1["itens"][0]["name"] = "MUTADO"
+    assert nh.ranking_consistente(7)["itens"][0]["name"] == "Item A"
+
+    # Nova gravação invalida o cache imediatamente.
+    nh.gravar_snapshot(
+        {"ts": agora, "items": [{"name": "Item B", "score": 95, "position": 1}]},
+        agora=agora,
+    )
+    r3 = nh.ranking_consistente(7)
+    nomes = {i["name"] for i in r3["itens"]}
+    assert nomes == {"Item A", "Item B"}

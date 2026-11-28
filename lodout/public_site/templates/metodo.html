@@ -6,7 +6,7 @@
   <title>Como funciona a nota — Lodout</title>
   <meta name="description" content="O que a nota do Lodout mede e o que ela não é.">
   <meta property="og:locale" content="pt_BR">
-  <link rel="canonical" href="{{ request.url }}">
+  <link rel="canonical" href="{{ request.base_url }}">
   {% include "partials/_head_pwa.html" %}
   <link rel="alternate" type="application/rss+xml" title="Lodout — Preços e notas" href="{{ url_for('feed') }}">
   <link rel="stylesheet" href="{{ static_v('style.css') }}">
@@ -16,7 +16,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Lodout", "item": "{{ request.url_root }}"},
-      {"@type": "ListItem", "position": 2, "name": "Método", "item": "{{ request.url }}"}
+      {"@type": "ListItem", "position": 2, "name": "Método", "item": "{{ request.base_url }}"}
     ]
   }
   </script>

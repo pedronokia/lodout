@@ -128,7 +128,10 @@ def test_contraste_muted_e_alvos_do_cabecalho(client):
 
     assert contraste >= 4.5
     assert re.search(r"\.conta-link-entrar\s*\{[^}]*min-height:\s*44px", css)
-    assert ".topo-linha > .nav-principal { grid-column: 1 / -1; grid-row: 2; }" in css
+    assert re.search(
+        r"\.topo-linha\s*>\s*\.nav-principal\s*\{\s*grid-column:\s*1\s*/\s*-1;\s*grid-row:\s*2;?\s*\}",
+        css,
+    )
 
 
 def test_index_tabela_wrap_focavel_por_teclado(client, monkeypatch, tmp_path):
@@ -1591,6 +1594,8 @@ def test_index_sem_busca_nao_registra_termo(client, monkeypatch):
 
 
 def test_changelog_feed_xml(client):
+    import xml.etree.ElementTree as ET
+
     resp = client.get("/changelog.xml")
     assert resp.status_code == 200
     assert resp.mimetype == "application/rss+xml"
@@ -1600,6 +1605,51 @@ def test_changelog_feed_xml(client):
     body = resp.data.decode("utf-8")
     assert body.count("<link>") == body.count("<item>") + 1  # +1 do <channel>
     assert "<link>http://localhost/changelog</link>" in body
+
+    raiz = ET.fromstring(resp.data)
+    itens = raiz.findall("./channel/item")
+    assert len(itens) == len(changelog.ENTRADAS)
+    guids = [it.findtext("guid") for it in itens]
+    links = [it.findtext("link") for it in itens]
+    assert len(guids) == len(set(guids))
+    assert len(links) == len(set(links))
+    assert all(lk.startswith("http://localhost/changelog#em-") for lk in links)
+
+
+def test_changelog_ids_unicos_e_ancoras_estaveis(client):
+    body = client.get("/changelog").data.decode("utf-8")
+    ids = re.findall(r'class="changelog-entrada"\s+id="([^"]+)"', body)
+    assert len(ids) == len(changelog.ENTRADAS)
+    assert len(ids) == len(set(ids))
+
+    # Acrescentar uma nova entrada no topo para a mesma data não muda a
+    # âncora nem o guid da entrada anterior.
+    base = [{"data": "2026-11-27", "titulo": "A", "itens": ["1"]}]
+    com_nova = [{"data": "2026-11-27", "titulo": "B", "itens": ["2"]}] + base
+    r1 = changelog.entradas_com_ancora(base)
+    r2 = changelog.entradas_com_ancora(com_nova)
+    assert r1[0]["ancora"] == "em-2026-11-27"
+    assert r2[1]["ancora"] == "em-2026-11-27"
+    assert r2[1]["guid"] == "2026-11-27"
+    assert r2[0]["ancora"] == "em-2026-11-27-2"
+    assert r2[0]["guid"] == "2026-11-27-2"
+
+
+def test_canonical_e_jsonld_ignoram_query_string_arbitraria(client, monkeypatch, tmp_path):
+    _salva_scan(tmp_path, monkeypatch, [
+        {"name": "AK-47 | Redline (Field-Tested)", "score": 80, "price": 50.0,
+         "case_label": "", "pump_risk": {"level": "low"}, "category": "Rifles",
+         "breakdown": []},
+    ])
+    for rota in ("/ranking", "/metodo", "/status", "/changelog",
+                 "/faq", "/glossario", "/como-usar", "/sobre",
+                 "/privacidade", "/novidades", "/api",
+                 "/item/AK-47%20%7C%20Redline%20(Field-Tested)"):
+        body = client.get(f"{rota}?utm_source=teste&fbclid=123").data.decode("utf-8")
+        m = re.search(r'<link rel="canonical" href="([^"]+)"', body)
+        assert m, rota
+        assert "?" not in m.group(1), (rota, m.group(1))
+        assert "utm_source" not in body, rota
 
 
 def test_metodo_page(client):
@@ -2021,15 +2071,22 @@ def test_admin_logout_encerra_sessao(client, monkeypatch):
     monkeypatch.setattr(
         "lodout.public_site.server._ADMIN_PASSWORD_HASH",
         generate_password_hash("segredo"))
+    with client.session_transaction() as sess:
+        sess["csrf_token"] = "token-pre-admin"
     client.post("/admin/login", data={"senha": "segredo"})
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token") != "token-pre-admin"
     assert client.get("/admin").status_code == 200
     assert client.get("/admin/logout").status_code == 405
     assert client.post("/admin/logout", data={}).status_code == 403
     with client.session_transaction() as sess:
         token = sess["csrf_token"]
+        assert token != "token-pre-admin"
     logout = client.post("/admin/logout", data={"csrf_token": token})
     assert logout.status_code == 302
     assert client.get("/admin").status_code == 302
+    with client.session_transaction() as sess:
+        assert "csrf_token" not in sess
 
 
 def test_status_mostra_grafico_e_buscas_populares(client, monkeypatch):
@@ -5546,6 +5603,80 @@ def test_fonte_do_ciclo_ligada_exige_medicao_boa(monkeypatch):
     assert worker._fonte_do_ciclo([]) == ("ambas", None)
 
 
+def test_fonte_do_ciclo_usa_nota_com_pagina_quando_mediana_fora_da_nota(monkeypatch):
+    from lodout import signals
+
+    monkeypatch.setenv("LODOUT_SCAN_FONTE", "pagina")
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 0.0)
+    # Cenário real de produção (27/11): mediana diverge (~80%), mas a mediana
+    # saiu da nota em 22/11 e `nota_com_pagina` mostra 0 notas alteradas.
+    prod = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "mediana_concorda_pct": 80.6,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mudariam": 0,
+            "mudariam_pct": 0.0,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.0,
+        },
+    }}
+    assert worker._fonte_do_ciclo([prod]) == ("pagina", 0.01)
+
+    # Se a nota divergir (mesmo com mediana >= 90%), reprova.
+    nota_divergente = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "mediana_concorda_pct": 95.0,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mais_de_5_pontos": 1,
+            "diferenca_media": 0.2,
+        },
+    }}
+    assert worker._fonte_do_ciclo([nota_divergente]) == ("ambas", None)
+
+    dif_media_alta = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "nota_com_pagina": {
+            "itens": 120,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.8,
+        },
+    }}
+    assert worker._fonte_do_ciclo([dif_media_alta]) == ("ambas", None)
+
+    amostra_curta = {"comparacao_fontes": {
+        "itens_preco": 118,
+        "razao_preco": 0.01,
+        "preco_concorda_pct": 100.0,
+        "volume_concorda_pct": 93.3,
+        "nota_com_pagina": {
+            "itens": 20,
+            "mais_de_5_pontos": 0,
+            "diferenca_media": 0.0,
+        },
+    }}
+    assert worker._fonte_do_ciclo([amostra_curta]) == ("ambas", None)
+
+    # Se o peso da mediana voltar no futuro, volta a exigir mediana >= 90%.
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)
+    assert worker._fonte_do_ciclo([prod]) == ("ambas", None)
+    prod_mediana_ok = {"comparacao_fontes": {
+        **prod["comparacao_fontes"], "mediana_concorda_pct": 92.0,
+    }}
+    assert worker._fonte_do_ciclo([prod_mediana_ok]) == ("pagina", 0.01)
+    assert worker._fonte_do_ciclo([nota_divergente]) == ("ambas", None)
+
+
 # ── auditoria Web Interface Guidelines (2026-11-13) ─────────────
 
 def test_theme_color_e_do_tema_escuro(client):
@@ -6455,10 +6586,14 @@ def test_janela_vendi_fala_em_venda_nao_em_anuncio():
 def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
     """Em produção a pasta do código é montada por cima da imagem, então a
     minificação do build não chegava ao visitante (revisão 20/11: 362 KB de
-    CSS, 60 KB disso comentário). O site entrega a versão enxugada."""
+    CSS, 60 KB disso comentário). O site entrega a versão compactada, idêntica
+    à do scripts/minify_static.py, para CSS e todos os JS do site."""
+    import importlib.util
     from pathlib import Path as _P
+    from lodout.public_site import estaticos_minificados
+
     pasta = _P(server.__file__).parent / "static"
-    for nome in ("style.css", "app.js"):
+    for nome in estaticos_minificados.ARQUIVOS:
         fonte = (pasta / nome).read_text(encoding="utf-8")
         resp = client.get(f"/static/{nome}?v=teste")
         assert resp.status_code == 200
@@ -6466,14 +6601,33 @@ def test_css_e_js_saem_sem_comentarios_com_cache_e_etag(client):
         assert "/*" not in corpo
         assert len(corpo) < len(fonte)
         assert "max-age=31536000" in resp.headers["Cache-Control"]
+        assert "immutable" in resp.headers["Cache-Control"]
         etag = resp.headers["ETag"]
         r304 = client.get(f"/static/{nome}?v=teste", headers={"If-None-Match": etag})
         assert r304.status_code == 304
+        # Sem ?v=, não marca immutable.
+        r_sem_v = client.get(f"/static/{nome}")
+        assert "immutable" not in r_sem_v.headers["Cache-Control"]
+
+    # Runtime e scripts/minify_static.py precisam gerar exatamente a mesma saída.
+    spec = importlib.util.spec_from_file_location(
+        "minify_static", _P(__file__).resolve().parents[1] / "scripts" / "minify_static.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
     css = client.get("/static/style.css").data.decode("utf-8")
+    assert css == mod.minify_css((pasta / "style.css").read_text(encoding="utf-8"))
     assert "@media (prefers-reduced-motion: reduce)" in css
     assert css.count("{") == css.count("}")
     # arquivos que não estão na lista seguem o caminho normal do Flask
-    assert client.get("/static/popover.js").status_code == 200
+    assert client.get("/static/manifest.json").status_code == 200
+
+
+def test_sw_js_so_cacheia_200_mesma_origem_e_limpa_versoes_antigas(client):
+    corpo = client.get("/sw.js").data.decode("utf-8")
+    assert 'event.request.method !== "GET"' in corpo
+    assert "url.origin !== self.location.origin" in corpo
+    assert 'resp.status === 200 && resp.type === "basic"' in corpo
+    assert "cache.delete(req)" in corpo
 
 
 def test_previa_de_compartilhamento_usa_a_logomarca():
@@ -6566,3 +6720,193 @@ def test_index_modo_lista_link_vai_para_pagina_do_item(client, monkeypatch, tmp_
     ])
     body = client.get("/?ver=lista").data.decode("utf-8")
     assert '<a class="link-item" href="/item/AK-47%20%7C%20Redline%20(Field-Tested)" translate="no">AK-47 | Redline (Testada em Campo)</a>' in body
+
+
+def test_api_sugestoes_entende_or_e_sinonimos_de_faca(client, monkeypatch, tmp_path):
+    """Plano de aprimoramento da busca (#1 e #10): /api/sugestoes aceita OR
+    no scan (como a home) e encontra Karambit, Bayonet e Hand Wraps por tipo."""
+    base = {"price": 50.0, "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []}
+    _salva_scan(tmp_path, monkeypatch, [
+        {**base, "name": "AK-47 | Redline (Field-Tested)", "score": 85},
+        {**base, "name": "AWP | Asiimov (Field-Tested)", "score": 78},
+        {**base, "name": "★ Karambit | Doppler (Factory New)", "score": 72},
+        {**base, "name": "★ Bayonet | Fade (Factory New)", "score": 70},
+        {**base, "name": "★ Hand Wraps | Cobalt Skull (Field-Tested)", "score": 68},
+    ])
+
+    nomes_or = [it["nome"] for it in client.get("/api/sugestoes?q=redline OR asiimov").json]
+    assert set(nomes_or) == {
+        "AK-47 | Redline (Field-Tested)",
+        "AWP | Asiimov (Field-Tested)",
+    }
+
+    nomes_or_esp = [it["nome"] for it in client.get("/api/sugestoes?q=redline   OR   asiimov").json]
+    assert set(nomes_or_esp) == set(nomes_or)
+
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=faca karambit").json] == [
+        "★ Karambit | Doppler (Factory New)",
+    ]
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=faca bayonet").json] == [
+        "★ Bayonet | Fade (Factory New)",
+    ]
+    assert [it["nome"] for it in client.get("/api/sugestoes?q=luva hand wraps").json] == [
+        "★ Hand Wraps | Cobalt Skull (Field-Tested)",
+    ]
+    # Consulta só com pontuação não devolve itens aleatórios.
+    assert client.get("/api/sugestoes?q= | ").json == []
+
+
+def test_api_sugestoes_mescla_fontes_dedupa_e_prioriza_exato_do_catalogo(
+        client, monkeypatch, tmp_path):
+    """Plano de aprimoramento da busca (#2 e #11): 10 itens com nota não
+    escondem um nome exato do catálogo, duplicados somem e % não age como coringa."""
+    from lodout.public_site import catalogo
+    monkeypatch.setattr(catalogo, "CAMBIO_FIXO", 1.0)
+
+    base = {"price": 20.0, "case_label": "", "pump_risk": {"level": "low"}, "breakdown": []}
+    scan_itens = [
+        {**base, "name": f"Gamma 2 Case Variante {i}", "score": 80 + i}
+        for i in range(10)
+    ]
+    scan_itens.append({**base, "name": "AK-47 | Redline (Field-Tested)", "score": 88})
+    _salva_scan(tmp_path, monkeypatch, scan_itens)
+
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Caixas e cápsulas", [
+        {"hash_name": "Gamma Case", "price": 5.0, "listings": 5},
+        {"hash_name": "AK-47 | Redline (Field-Tested)", "price": 20.0, "listings": 9999},
+    ] + [
+        {"hash_name": f"Gamma 2 Case Catalogo {i}", "price": 5.0, "listings": 5000 - i}
+        for i in range(10)
+    ])
+    conn.close()
+
+    dados = client.get("/api/sugestoes?q=Gamma Case").json
+    assert len(dados) == 8
+    assert dados[0]["nome"] == "Gamma Case"
+    assert dados[0]["score"] is None
+
+    # Deduplicação: item presente no scan e no catálogo aparece 1 vez e mantém a nota.
+    dedup = client.get("/api/sugestoes?q=AK-47 | Redline (Field-Tested)").json
+    assert [it["nome"] for it in dedup] == ["AK-47 | Redline (Field-Tested)"]
+    assert dedup[0]["score"] == 88
+
+    # Coringa LIKE escapado também na API de sugestões.
+    assert client.get("/api/sugestoes?q=ak%25").json == []
+
+
+def test_candidatos_filtrados_formatar_false_e_enriquecer_formatacao():
+    from lodout.public_site import server
+
+    scan = {"results": [
+        {
+            "name": "AK-47 | Redline (Field-Tested)",
+            "score": 82,
+            "price": 120.5,
+            "category": "Rifles",
+            "case_label": "aposentada em 10/01/2020",
+            "pump_risk": {"level": "low"},
+            "data_quality": {"level": "high", "n": 90, "age_days": 0.5},
+            "breakdown": [{"label": "Spread", "delta": 20}],
+        },
+        {
+            "name": "Item Risco Alto",
+            "score": 95,
+            "price": 50.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "high"},
+            "breakdown": [],
+        },
+    ]}
+    cru = server._candidatos_filtrados(
+        scan, com_historico=False, com_icone=False, formatar=False)
+    assert [c["name"] for c in cru] == ["AK-47 | Redline (Field-Tested)"]
+    assert "price_fmt" not in cru[0]
+    assert "market_url" not in cru[0]
+
+    server._enriquecer_formatacao(cru)
+    completo = server._candidatos_filtrados(
+        scan, com_historico=False, com_icone=False, formatar=True)
+    assert cru == completo
+
+
+def test_candidato_por_nome_respeita_risco_alto_e_formata_item():
+    from lodout.public_site import server
+
+    scan = {"results": [
+        {
+            "name": "AK-47 | Slate (Field-Tested)",
+            "score": 74,
+            "price": 18.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "low"},
+            "breakdown": [{"label": "Liquidez", "delta": 15}],
+        },
+        {
+            "name": "Skin Pump (Factory New)",
+            "score": 99,
+            "price": 300.0,
+            "category": "Rifles",
+            "pump_risk": {"level": "high"},
+            "breakdown": [],
+        },
+    ]}
+    item = server._candidato_por_nome(scan, "AK-47 | Slate (Field-Tested)")
+    assert item is not None
+    assert item["price_fmt"] == "R$ 18,00"
+    assert item["reasons"] == ["Liquidez"]
+    assert "market_url" in item
+    # Item com risco alto continua bloqueado, exatamente como em buy_candidates.
+    assert server._candidato_por_nome(scan, "Skin Pump (Factory New)") is None
+    assert server._candidato_por_nome(scan, "Inexistente") is None
+    assert server._candidato_por_nome(None, "AK-47 | Slate (Field-Tested)") is None
+
+
+def test_compilar_busca_e_busca_bate_compilada_cobrem_or_e_pontuacao():
+    from lodout.public_site import server
+
+    assert server._compilar_busca(None) is None
+    assert server._compilar_busca("   ") is None
+    assert server._compilar_busca("---") is None
+    assert server._busca_bate_compilada("qualquer coisa", None) is True
+
+    grupos_pontuacao = server._compilar_busca("!!!")
+    assert grupos_pontuacao is not None
+    assert server._busca_bate_compilada("ak47 redline", grupos_pontuacao) is False
+
+    grupos_or = server._compilar_busca("redline OR cápsula")
+    assert server._busca_bate_compilada("ak47 | redline", grupos_or) is True
+    assert server._busca_bate_compilada("capsula legends", grupos_or) is True
+    assert server._busca_bate_compilada("awp asiimov", grupos_or) is False
+
+
+def test_busca_topo_carregado_em_todas_as_paginas_com_cabecalho(client):
+    """Buscar (Ctrl+K) e Filtros no cabeçalho precisam funcionar em todo o site,
+    não apenas nas 4 páginas que carregam app.js."""
+    import re as _re
+    for rota in ("/", "/ranking", "/metodo", "/faq", "/status", "/como-usar",
+                 "/changelog", "/glossario", "/novidades", "/privacidade",
+                 "/sobre", "/api", "/pagina-inexistente-404"):
+        body = client.get(rota).data.decode("utf-8")
+        assert "gatilho-spotlight" in body, rota
+        assert "gatilho-filtros-topo" in body, rota
+        assert _re.search(r'src="/static/busca_topo\.js\?v=', body), rota
+        assert 'role="combobox"' in body, rota
+
+    js = client.get("/static/busca_topo.js").data.decode("utf-8")
+    assert "AbortController" in js
+    assert "res.status === 429" in js
+    assert '"nota-alta"' in js and '"nota-media"' in js and '"nota-baixa"' in js
+    assert "aria-activedescendant" in js and "aria-selected" in js
+
+
+def test_app_js_atalhos_respeitam_modificadores_e_sem_style_inline(client):
+    js = client.get("/static/app.js").data.decode("utf-8")
+    assert "if (e.ctrlKey || e.metaKey || e.altKey) return;" in js
+    assert 'window.addEventListener("pageshow"' in js
+    assert 'style="' not in js
+    assert "campo-busca" not in js
+    assert "link-secundario" not in js
+
+
+

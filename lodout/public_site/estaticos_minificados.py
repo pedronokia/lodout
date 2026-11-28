@@ -1,14 +1,12 @@
-"""Entrega style.css e app.js sem comentários (revisão 20/11).
+"""Entrega CSS e JS do site minificados em tempo de execução.
 
-O Dockerfile já minifica esses arquivos no build (scripts/minify_static.py),
-mas em produção a pasta `lodout/` do servidor é montada por cima da imagem
-(`./lodout:/app/lodout:ro`, deploy rápido de 19/11) -- então o visitante
-baixava o fonte com 60 KB de comentário: 362 KB, ou 72 KB comprimido, antes
-de ver qualquer página. Aqui o próprio site minifica na hora (uma vez por
-versão do arquivo, guardado em memória) e entrega com o mesmo cache longo.
+O Dockerfile também minifica esses arquivos no build (scripts/minify_static.py,
+que reutiliza este módulo como fonte única), mas em produção a pasta `lodout/`
+do servidor é montada por cima da imagem (`./lodout:/app/lodout:ro`, deploy
+rápido de 19/11). Por isso o próprio site minifica na hora (uma vez por versão
+do arquivo, guardado em memória) e entrega com o mesmo cache longo.
 
-Minificação leve, igual à do build: só tira comentário e linha em branco,
-nunca reescreve token. O fonte no repositório continua comentado.
+O fonte no repositório continua legível e comentado.
 """
 from __future__ import annotations
 
@@ -17,16 +15,44 @@ import re
 import threading
 from pathlib import Path
 
-ARQUIVOS = {"style.css": "text/css", "app.js": "text/javascript"}
+ARQUIVOS = {
+    "style.css": "text/css",
+    "app.js": "text/javascript",
+    "busca_topo.js": "text/javascript",
+    "conta.js": "text/javascript",
+    "copiar_preco.js": "text/javascript",
+    "online.js": "text/javascript",
+    "popover.js": "text/javascript",
+}
 
 _cache: "dict[str, tuple[tuple[int, int], bytes, str]]" = {}
 _trava = threading.Lock()
 
+# Texto entre aspas (content: "...", url("..."), nomes de fonte) passa
+# intacto; só o que está fora das aspas é compactado.
+_STRING_CSS = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+
+
+def _compactar_fora_de_strings(trecho: str) -> str:
+    trecho = re.sub(r"\s+", " ", trecho)
+    # Espaço em volta de { } ; , > não muda nada no CSS. ":" fica de
+    # fora de propósito: "a :hover" (descendente) é diferente de
+    # "a:hover"; "+" e "~" também ficam, por causa do calc().
+    trecho = re.sub(r"\s*([{};,>])\s*", r"\1", trecho)
+    return trecho.replace(";}", "}")
+
 
 def minificar_css(texto: str) -> str:
+    """Tira comentários, quebras de linha e espaços que o navegador
+    ignora, sem nunca mexer dentro de aspas."""
     texto = re.sub(r"/\*.*?\*/", "", texto, flags=re.DOTALL)
-    linhas = (linha.strip() for linha in texto.splitlines())
-    return "\n".join(linha for linha in linhas if linha) + "\n"
+    partes, pos = [], 0
+    for m in _STRING_CSS.finditer(texto):
+        partes.append(_compactar_fora_de_strings(texto[pos:m.start()]))
+        partes.append(m.group(0))
+        pos = m.end()
+    partes.append(_compactar_fora_de_strings(texto[pos:]))
+    return "".join(partes).strip() + "\n"
 
 
 def minificar_js(texto: str) -> str:

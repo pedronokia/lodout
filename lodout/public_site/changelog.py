@@ -12,6 +12,9 @@ ENTRADAS = [
         "titulo": "Letras mais uniformes",
         "itens": [
             "Minha conta no computador: a tabela do inventário não passa mais da borda dos outros quadros quando um item tem nome longo; o nome do item aparece sempre inteiro, quebrando em duas linhas quando é longo.",
+            "Busca rápida (Ctrl+K ou /) e o botão Filtros no topo agora funcionam em todas as páginas do site (Ranking, Método, Status, FAQ, Minha conta etc.), com cores por faixa de nota e sem interferir em atalhos do navegador como Ctrl+F.",
+            "Minha conta e Favoritos agora usam primeiro o preço mais recente em reais da coleta; editar ou apagar o preço-alvo de um favorito passa a atualizar o alerta na hora, limpar um valor pago não preenche mais “0,00” por engano e a barra “Quero lucrar” calcula o percentual considerando a quantidade de unidades.",
+            "Busca do site mais precisa: as sugestões enquanto você digita agora aceitam “OR” (como na página inicial), mostram primeiro o item de nome exato mesmo quando ele está só no catálogo, encontram facas e luvas como Karambit, Bayonet, Shadow Daggers e Hand Wraps ao buscar por “faca” ou “luva”, e tratam símbolos como “%” e “_” como texto normal.",
             "Página inicial um pouco mais leve: no computador, as imagens dos cartões vêm no tamanho em que aparecem (cerca de metade do peso), e o arquivo de estilos do site ficou menor.",
             "Busca no celular: os botões de fechar (agora um “×”) e de Filtros não ficam mais fora da tela, o nome do item aparece em até duas linhas e os atalhos de teclado só aparecem no computador. No teclado, o Tab fica dentro da busca aberta. Textos claros demais sobre fundo laranja ou escuro (página atual da lista, aba ativa, “recebe R$ … depois da taxa”) ficaram mais legíveis.",
             "Celular: a página da API não arrasta mais para o lado em telas pequenas, o link “API” do rodapé ficou mais fácil de tocar e as barras de arrastar (oferta no Simular compra e “Quero lucrar” na conta) ganharam uma área de toque maior.",
@@ -616,3 +619,24 @@ ENTRADAS = [
         ],
     },
 ]
+
+
+def entradas_com_ancora(entradas: "list[dict] | None" = None) -> "list[dict]":
+    """Devolve cópias das entradas com `ancora` (id HTML único) e `guid`
+    (identificador único para o RSS).
+
+    Datas repetidas recebem sufixo cronológico (-2, -3...) contando da
+    entrada mais antiga do dia para a mais nova, assim acrescentar uma
+    entrada no topo não muda a âncora nem o guid das anteriores.
+    """
+    lista = ENTRADAS if entradas is None else entradas
+    vistos: dict[str, int] = {}
+    out_rev: list[dict] = []
+    for e in reversed(lista):
+        data = str(e["data"])
+        n = vistos.get(data, 0) + 1
+        vistos[data] = n
+        sufixo = "" if n == 1 else f"-{n}"
+        out_rev.append({**e, "ancora": f"em-{data}{sufixo}", "guid": f"{data}{sufixo}"})
+    out_rev.reverse()
+    return out_rev

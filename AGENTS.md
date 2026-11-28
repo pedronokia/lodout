@@ -53,9 +53,9 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   reaparecer no inventário. Só o sem valor pago sai sozinho. Vendas e
   trocas da Steam não são públicas: o site não tem como saber sozinho. Valores apagados antes disso:
   `python -m lodout.public_site.recuperar_posicoes STEAMID|--todos
-  [--aplicar]`, lendo os backups diários (7 dias), ou o quadro no topo
-  de `/conta` (até 23/11). Item vendido, removido ou dispensado ("Não
-  quero de volta") entra em `preferencias.recuperar_ignorar` e não volta;
+  [--aplicar]`, lendo os backups diários (7 dias) — o quadro temporário no topo
+  de `/conta` venceu em 23/11 e foi retirado em 27/11. Item vendido ou removido
+  entra em `preferencias.recuperar_ignorar` e não volta;
   "desfazer venda" no Histórico devolve o lote e tira o nome dessa lista.
 - O site descreve dados observados; não promete retorno nem faz previsão.
 - Mantenha validação, CSRF, limites de tentativas e codificação de saída nas
@@ -133,6 +133,11 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   também para 404 em `start=0`. Se não voltar, o problema é o IP da VM
   (a mudança para a Ampere, `migrar-vm.yml`, troca o IP). Os extras não
   dependem do catálogo ligado (`itens_extras` lê o banco já guardado).
+  Em 27/11 entraram no código (prontos para o worker quando ele reiniciar após
+  o teste): freio após 3 fatias seguidas com 404 em `start=0` (`freio_404_start0`),
+  backoff limitado (até 4×) para 404/página curta, detecção de página curta
+  (`paginas_curta`, pausa após 3 seguidas) e contador de ordem instável
+  (`ordem_instavel`), todos expostos em `/api/health` → `catalogo`.
   **A busca ignora `currency=7`: `sell_price` vem em centavos de DÓLAR.**
   O banco do catálogo guarda dólar; toda leitura (`precos`, `consultar`,
   `item`, filtro de preço) converte com `catalogo.cambio()`, medida pela
@@ -159,6 +164,12 @@ site (`scripts/dev_public_site.py`) e o worker de coleta continuam necessários.
   O worker semeia `_PAGE_CACHE` em `steam_api` (TTL 2 h, limpo no início de cada
   ciclo); variantes irmãs do mesmo skin no ciclo são avaliadas diretamente do
   cache sem consultas HTTP adicionais à Steam e sem risco de 429.
+- Modo 1 requisição por item (`worker._fonte_do_ciclo`, `LODOUT_SCAN_FONTE=pagina`):
+  em 27/11 o critério foi atualizado para validar diretamente `nota_com_pagina`
+  (`itens >= 50`, `mais_de_5_pontos == 0`, `diferenca_media <= 0.5`) enquanto a
+  mediana estiver fora da nota (`signals._MEDIANA_PESO == 0`), mantendo a trava
+  de mediana caso o peso volte. Pronto no código para testar/ativar depois do
+  teste de 3 dias do catálogo (sem reiniciar o worker antes disso).
 
 ### Evidência histórica do modelo
 

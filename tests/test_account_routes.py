@@ -1026,3 +1026,141 @@ def test_conta_tabela_cabeca_e_coluna_pago_alinhada(client, monkeypatch):
     assert "valores diferentes?" in pagina
     assert "juntar lotes" in pagina
 
+
+def test_atualizar_custo_json_avalia_carteira_em_uma_passada_e_usa_meta_da_conta(
+        client, monkeypatch):
+    from lodout.public_site import account, user_portfolio, user_store
+
+    _login(client, monkeypatch)
+    steamid = "76561198000000000"
+    user_portfolio.add_position(steamid, "Skin A", 10.0, 1)
+    user_portfolio.add_position(steamid, "Skin B", 10.0, 1)
+    user_store.save_user_json(steamid, "preferencias", {"meta_lucro": 20})
+    token = _csrf_token(client)
+
+    leituras_posicoes = 0
+    chamadas_preco = 0
+    real_load = user_portfolio.load_positions
+
+    def espia_load(*args, **kwargs):
+        nonlocal leituras_posicoes
+        leituras_posicoes += 1
+        return real_load(*args, **kwargs)
+
+    def fake_preco_do_dia(posicoes):
+        nonlocal chamadas_preco
+        chamadas_preco += 1
+        fn = lambda _nome: 100.0
+        fn.data = lambda _nome: None
+        return fn
+
+    monkeypatch.setattr(user_portfolio, "load_positions", espia_load)
+    monkeypatch.setattr(account, "_preco_do_dia", fake_preco_do_dia)
+
+    resp = client.post(
+        "/conta/posicoes/Skin A/custo",
+        data={"cost": "20,00", "csrf_token": token},
+        headers={"Accept": "application/json"},
+    )
+    assert resp.status_code == 200
+    dados = resp.get_json()
+    assert dados["ok"] is True
+    assert dados["atingiu_meta"] is True
+    assert dados["totais"]["com_valor"] == 2
+    assert dados["totais"]["pago"] == "R$ 30,00"
+    # 1 leitura em update_position_cost + 1 leitura para responder (não 2 na resposta).
+    assert leituras_posicoes == 2
+    assert chamadas_preco == 1
+
+
+def test_login_rotaciona_csrf_token(client, monkeypatch):
+    with client.session_transaction() as sess:
+        sess["csrf_token"] = "token-pre-login"
+    _login(client, monkeypatch)
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token") != "token-pre-login"
+    # Abrir /conta gera um token novo, diferente do anterior ao login.
+    client.get("/conta")
+    with client.session_transaction() as sess:
+        assert sess.get("csrf_token")
+        assert sess["csrf_token"] != "token-pre-login"
+
+
+def test_conta_usa_preco_fresco_da_coleta_antes_do_catalogo(client, monkeypatch):
+    from lodout.public_site import catalogo
+    agora = time.time() - 600
+    monkeypatch.setattr(
+        "lodout.scan_store.load_last_scan", lambda: {
+            "ts": agora, "category": "Rifles", "results": [
+                {"name": "AK-47 | Redline (Field-Tested)", "score": 81, "price": 99.90},
+            ]})
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Rifles", [
+        {"hash_name": "AK-47 | Redline (Field-Tested)", "price": 50.0,
+         "listings": 20, "name_color": "d32ce6", "icon": "h-ak"},
+    ])
+    conn.close()
+
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "AK-47 | Redline (Field-Tested)", "cost": "40,00",
+        "quantity": "3", "csrf_token": token,
+    })
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert "R$ 99,90" in pagina
+    assert 'data-qtd="3"' in pagina
+
+
+def test_conta_custo_zero_aparece_no_campo_json_e_resumo_item(client, monkeypatch):
+    from lodout.public_site import account
+    monkeypatch.setattr(
+        "lodout.scan_store.load_last_scan", lambda: {
+            "ts": time.time(), "category": "Caixas", "results": [
+                {"name": "Kilowatt Case", "score": 70, "price": 10.0},
+            ]})
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/posicoes", data={
+        "name": "Kilowatt Case", "cost": "0", "quantity": "2", "csrf_token": token,
+    })
+    pagina = client.get("/conta").data.decode("utf-8")
+    assert 'value="0,00"' in pagina
+    assert "linha-sem-custo" not in pagina.split("Kilowatt Case", 1)[0].rsplit("<tr", 1)[-1]
+
+    resp = client.post(
+        "/conta/posicoes/Kilowatt Case/custo",
+        data={"cost": "0", "csrf_token": token},
+        headers={"Accept": "application/json"},
+    )
+    assert resp.status_code == 200
+    dados = resp.get_json()
+    assert dados["ok"] is True
+    assert dados["has_cost"] is True
+    assert dados["empate_fmt"] is None
+
+    resumo = account.resumo_na_conta("76561198000000000", "Kilowatt Case")
+    assert resumo is not None
+    assert resumo["sem_valor"] == 0
+    assert resumo["lotes"][0]["pago_fmt"] == "R$ 0,00"
+    assert resumo["lotes"][0]["empate_fmt"] is None
+    assert resumo["lucro"] is not None
+    assert resumo["lucro"]["tipo"] == "lucro"
+    assert resumo["lucro"]["pct_fmt"] == ""
+
+    pagina_item = client.get("/item/Kilowatt%20Case").data.decode("utf-8")
+    assert "pagou <strong>R$ 0,00</strong> cada" in pagina_item
+    assert "()" not in pagina_item
+
+
+def test_conta_js_limpar_custo_e_meta_multiquantidade():
+    from pathlib import Path
+    from lodout.public_site import account
+    js = (Path(account.__file__).parent / "static" / "conta.js").read_text(encoding="utf-8")
+    assert "if (!limpar && valor)" in js
+    assert 'tr.getAttribute("data-qtd")' in js
+    assert "pnl / custoTotal" in js
+
+
+
+

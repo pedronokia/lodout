@@ -76,6 +76,8 @@ def test_entrypoint_sintaxe_valida_e_sem_chown_incondicional():
     conteudo = ep.read_text(encoding="utf-8")
     assert "stat -c '%u:%g' /data" in conteudo
     assert "find /data -maxdepth 1" in conteudo
+    assert "exec setpriv " in conteudo
+    assert "exec su " not in conteudo
 
 
 def test_compose_sem_duplicacao_de_volumes_no_override():
@@ -109,9 +111,11 @@ def test_deploy_workflow_endurecido():
         assert "set -euo pipefail" in script
         assert "${{ secrets." not in script
 
-    assert "envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY,FORCE_REBUILD" in wf
-    assert "envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD\n" in wf
+    assert "envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY,FORCE_REBUILD,TARGET_SHA" in wf
+    assert "envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,RESTART_CADDY\n" in wf
     assert "envs: SITE_DOMAIN,ADMIN_DISCORD_WEBHOOK,ADMIN_PASSWORD,FORCE_REBUILD" in wf
+    assert 'git reset --hard "$RESOLVED_SHA"' in wf
+    assert "up -d --no-deps --force-recreate caddy" in wf
     assert "docker image prune -f --filter \"until=168h\" || true" in wf
     assert "docker builder prune -f --filter \"until=168h\" || true" in wf
     assert ".lodout-web-build.sha256" in wf
@@ -120,6 +124,16 @@ def test_deploy_workflow_endurecido():
     assert "failure() && steps.deploy_web.outcome == 'success'" in wf
     assert "/readyz" in wf
     assert "scripts/smoke_test.py" in wf
+
+
+def test_criar_ampere_aviso_discord_gera_json_valido():
+    wf = (_REPO_ROOT / ".github" / "workflows" / "criar-ampere.yml").read_text(encoding="utf-8")
+    assert "json.dumps(" in wf
+    assert '-d "{\\"content\\"' not in wf
+    # Extrai o bloco Python do aviso Discord e valida sintaxe.
+    py_block = wf.rsplit("python3 -c '", 1)[1].split("' || true", 1)[0]
+    linhas = [ln[10:] if ln.startswith(" " * 10) else ln for ln in py_block.splitlines()]
+    compile("\n".join(linhas), "criar-ampere.yml", "exec")
 
 
 class _FlaskSmokeAdapter:

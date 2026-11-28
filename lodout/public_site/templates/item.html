@@ -13,13 +13,13 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="{{ item.name_fmt }}: nota {{ item.score }}, {{ item.price_fmt }}">
-  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:url" content="{{ request.base_url }}">
   <meta property="og:locale" content="pt_BR">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ item.name_fmt }} — Lodout">
   <meta name="twitter:description" content="Nota {{ item.score }} · {{ item.price_fmt }}">
   <meta name="twitter:image" content="{{ request.url_root.rstrip('/') ~ url_for('og_item', nome=item.name) }}">
-  <link rel="canonical" href="{{ request.url }}">
+  <link rel="canonical" href="{{ request.base_url }}">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -32,7 +32,7 @@
       "@type": "Offer",
       "price": "{{ '%.2f'|format(item.price) }}",
       "priceCurrency": "BRL",
-      "url": "{{ request.url }}",
+      "url": "{{ request.base_url }}",
       "availability": "https://schema.org/InStock"
     }
     {%- endif %}
@@ -44,7 +44,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Lodout", "item": "{{ request.url_root }}"},
-      {"@type": "ListItem", "position": 2, "name": "{{ item.name_fmt }}", "item": "{{ request.url }}"}
+      {"@type": "ListItem", "position": 2, "name": "{{ item.name_fmt }}", "item": "{{ request.base_url }}"}
     ]
   }
   </script>
@@ -83,7 +83,7 @@
           <p class="hero-item-acoes">
             <a class="botao-acao" href="{{ item.market_url }}" target="_blank" rel="noopener">Ver no Mercado da Steam</a>
             <button type="button" class="botao-copiar" data-copiar="{{ item.name }}" title="Copiar nome do item" aria-label="Copiar nome">{{ icone("copiar") }}{{ icone("check") }}<span class="texto-copiar">Copiar</span></button>
-            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
+            <button type="button" class="botao-compartilhar" data-nome="{{ item.name_fmt }}" data-nota="{{ item.score }}" data-preco="{{ item.price_fmt }}" data-url="{{ request.base_url }}" title="Copiar resumo e link" aria-label="Compartilhar análise">{{ icone("compartilhar") }}{{ icone("check") }}<span class="texto-compartilhar">Compartilhar</span></button>
             <button type="button" class="botao-favorito" data-favorito="{{ item.name }}" data-favorito-label="{{ item.name_fmt }}" aria-pressed="false" title="Favoritar (fica só neste navegador)" aria-label="Favoritar {{ item.name_fmt }}">{{ icone("favorito") }}<span>Favoritar</span></button>
           </p>
         </div>

@@ -730,6 +730,28 @@ _FONTE_PAGINA_MIN_ITENS = 50
 _FONTE_PAGINA_MIN_CONCORDA = 95.0
 _FONTE_PAGINA_MIN_MEDIANA = 90.0
 _FONTE_PAGINA_MIN_VOLUME = 85.0
+_FONTE_PAGINA_MAX_DIF_NOTA = 0.5
+
+
+def _nota_pagina_ok(comp: dict) -> "bool | None":
+    """Valida a comparação direta de nota (`nota_com_pagina`), ou None se ausente."""
+    nota = comp.get("nota_com_pagina")
+    if not isinstance(nota, dict):
+        return None
+    itens = nota.get("itens") or 0
+    if isinstance(itens, bool) or itens < _FONTE_PAGINA_MIN_ITENS:
+        return False
+    dif_media = nota.get("diferenca_media")
+    if (isinstance(dif_media, bool)
+            or not isinstance(dif_media, (int, float))
+            or dif_media > _FONTE_PAGINA_MAX_DIF_NOTA):
+        return False
+    mais_de_5 = nota.get("mais_de_5_pontos")
+    if (isinstance(mais_de_5, bool)
+            or not isinstance(mais_de_5, (int, float))
+            or mais_de_5 > 0):
+        return False
+    return True
 
 
 def _fonte_do_ciclo(historico: "list[dict]") -> "tuple[str, float | None]":
@@ -750,13 +772,22 @@ def _fonte_do_ciclo(historico: "list[dict]") -> "tuple[str, float | None]":
             continue
         razao = comp.get("razao_preco")
         concorda = comp.get("preco_concorda_pct") or 0
-        # Mediana e volume entram na nota: precisam ter sido medidos e
-        # concordar também (medição antiga, sem mediana, não libera).
         mediana_ok = (comp.get("mediana_concorda_pct") or 0) >= _FONTE_PAGINA_MIN_MEDIANA
         volume_ok = (comp.get("volume_concorda_pct") or 0) >= _FONTE_PAGINA_MIN_VOLUME
+        nota_ok = _nota_pagina_ok(comp)
+        # Desde 22/11 a mediana saiu da nota (`signals._MEDIANA_PESO == 0`):
+        # quando há medição direta da nota final (`nota_com_pagina`), ela
+        # valida o impacto real (e barra divergência mesmo se a mediana passar).
+        # Se a mediana voltar a pesar na nota, volta a exigir `mediana_ok`.
+        if signals._MEDIANA_PESO:
+            qualidade_ok = mediana_ok and (nota_ok is not False)
+        elif nota_ok is not None:
+            qualidade_ok = nota_ok
+        else:
+            qualidade_ok = mediana_ok
         if isinstance(razao, (int, float)) and razao > 0 \
                 and concorda >= _FONTE_PAGINA_MIN_CONCORDA \
-                and mediana_ok and volume_ok:
+                and qualidade_ok and volume_ok:
             return "pagina", float(razao)
         return "ambas", None  # medição mais recente reprovou
     return "ambas", None

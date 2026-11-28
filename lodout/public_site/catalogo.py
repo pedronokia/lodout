@@ -64,30 +64,46 @@ def versao_do_item(nome: str) -> str:
 def texto_busca(texto: str) -> str:
     """Minúsculo, sem acento e sem hífen: "Cápsula" casa com "capsula" e
     "AK-47" com "ak47"."""
+    if texto.isascii():
+        return texto.lower().replace("-", "")
     sem_acento = "".join(
         ch for ch in unicodedata.normalize("NFKD", texto)
         if not unicodedata.combining(ch))
     return sem_acento.lower().replace("-", "")
 
 
-# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas e
-# adesivos aparecem com o nome original): quem digita em português também
-# acha ("capsula copenhagen" -> "Copenhagen 2024 Legends Sticker Capsule").
+# Palavras dos nomes em inglês que ficam sem tradução no site (cápsulas,
+# adesivos, facas e luvas aparecem com o nome original): quem digita em
+# português também acha ("capsula copenhagen" -> "Copenhagen 2024 Legends
+# Sticker Capsule", "faca karambit" -> "★ Karambit | ...").
 SINONIMOS_BUSCA = {
     "capsule": "capsula",
     "sticker": "adesivo",
     "autograph": "autografo",
     "case": "caixa",
     "gloves": "luvas",
-    "knife": "faca",
+    "hand wraps": "luvas faixas",
+    "knife": "facas",
+    "karambit": "facas",
+    "bayonet": "facas",
+    "shadow daggers": "facas adagas",
 }
 
 
 def nome_para_busca(nome_original: str, nome_pt: str) -> str:
     """Nome em português e original (inglês, como na Steam) juntos, mais
     a tradução das palavras de tipo que ficam em inglês no nome."""
-    extras = [pt for en, pt in SINONIMOS_BUSCA.items()
-              if en in nome_original.lower()]
+    baixo = nome_original.lower()
+    extras = list(dict.fromkeys(
+        pt for en, pt in SINONIMOS_BUSCA.items()
+        if en in baixo
+    ))
+    # Facas da Steam começam com ★ e às vezes não trazem "Knife" no nome.
+    if (nome_original.startswith("★")
+            and "gloves" not in baixo
+            and "hand wraps" not in baixo
+            and "facas" not in extras):
+        extras.append("facas")
     return " ".join([nome_pt, nome_original, *extras])
 
 
@@ -257,6 +273,16 @@ _ESPERA_APOS_404_S = 24 * 3600
 # falhou (26/11): refazer Rifles inteiro custava ~22 h e deixava as outras
 # fatias sem volta. `fatias_puladas` guarda as 20 últimas só pra diagnóstico.
 _MAX_FATIAS_PULADAS = 20
+# Páginas curtas (menos itens que o tamanho cheio da rodada antes do fim da
+# fatia) são indício de throttle silencioso: após N seguidas, pausa a volta.
+_MAX_PAGINAS_CURTAS_SEGUIDAS = 3
+# Escalonamento limitado de pausa em 404 / página curta (sem mexer no valor
+# base de steam_api.RATE_LIMIT_DELAY_S).
+_BACKOFF_MAX_MULT = 4
+# Freio contra recusa geral da busca (23-26/11: 404 em start=0 em todas as
+# categorias): após N fatias seguidas falhando já na posição 0, encerra a
+# rodada sem queimar requisições no restante das categorias.
+_MAX_404_START0_FATIAS = 3
 
 
 def ligado() -> bool:
@@ -271,6 +297,19 @@ def _fator_pausa() -> float:
                                        str(_FATOR_PAUSA_PADRAO))))
     except (TypeError, ValueError):
         return _FATOR_PAUSA_PADRAO
+
+
+def _pausa_entre_paginas(estado: dict) -> float:
+    """Pausa entre páginas com backoff limitado para 404 ou página curta."""
+    from lodout import steam_api
+    base = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
+    falhas = max(
+        int(estado.get("erro_404_seguidos") or 0),
+        int(estado.get("paginas_curta_seguidas") or 0),
+    )
+    if falhas <= 0:
+        return base
+    return base * min(2 ** falhas, _BACKOFF_MAX_MULT)
 
 
 def _intervalo_rodada_s() -> float:
@@ -289,6 +328,9 @@ def _proxima_fatia(estado: dict) -> bool:
     estado["start"] = 0
     estado["erro_404_seguidos"] = 0
     estado["erro_404_start"] = -1
+    estado["paginas_curta_seguidas"] = 0
+    estado.pop("ultimos_nomes_fatia", None)
+    estado.pop("ultimo_avanco_sobreposto", None)
     if estado["fatia"] < len(FATIAS):
         return False
     estado["fatia"] = None
@@ -312,6 +354,8 @@ def _finalizar_rodada(estado: dict) -> str:
         "itens_ultima": estado.get("itens_rodada"),
         "paginas_ultima": estado.get("paginas_rodada"),
     })
+    estado.pop("ultimos_nomes_fatia", None)
+    estado.pop("ultimo_avanco_sobreposto", None)
     if puladas:
         _logger.warning(
             "Catálogo: rodada terminou com %s fatia(s) pulada(s) por 404 "
@@ -427,8 +471,18 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
             "erro_404_seguidos": 0, "erro_404_start": -1,
             "erros_404_fatias": int(estado.get("erros_404_fatias") or 0),
             "erros_404_fatias_rodada": 0,
+            "erro_404_start0_fatias": 0,
+            "freio_404_start0": False,
+            "paginas_curta": int(estado.get("paginas_curta") or 0),
+            "paginas_curta_rodada": 0,
+            "paginas_curta_seguidas": 0,
+            "tamanho_cheio": 0,
+            "ordem_instavel": int(estado.get("ordem_instavel") or 0),
+            "ordem_instavel_rodada": 0,
             "fatias_puladas": [],
         })
+        estado.pop("ultimos_nomes_fatia", None)
+        estado.pop("ultimo_avanco_sobreposto", None)
         if indice or inicio:
             _logger.info("Catálogo: retomando na fatia %s (%s) a partir de %s",
                          indice, FATIAS[indice][0], inicio)
@@ -488,6 +542,18 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                         del historico[:-_MAX_FATIAS_PULADAS]
                     if len(historico) == 1:
                         estado["retomar"] = dict(pulada)
+                    if atual == 0:
+                        s0 = int(estado.get("erro_404_start0_fatias") or 0) + 1
+                        estado["erro_404_start0_fatias"] = s0
+                        if s0 >= _MAX_404_START0_FATIAS:
+                            estado["freio_404_start0"] = True
+                            _logger.warning(
+                                "Catálogo: %s fatias seguidas com 404 em start=0; "
+                                "acionando freio e encerrando a rodada", s0)
+                            motivo = _finalizar_rodada(estado)
+                            break
+                    else:
+                        estado["erro_404_start0_fatias"] = 0
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break
@@ -495,8 +561,8 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     _logger.warning(
                         "Catálogo: 404 em %s na posição %s (%s/%s)",
                         nome_fatia, atual, seguidos, _MAX_404_MESMO_START)
-                # Não para aqui: depois da pausa tenta de novo (ou já segue
-                # com a próxima fatia se o limite de 404 foi atingido).
+                # Não para aqui: depois da pausa (com backoff) tenta de novo
+                # (ou já segue com a próxima fatia se o limite de 404 foi atingido).
             elif status != steam_api.SEARCH_OK:
                 estado["erros"] = int(estado.get("erros") or 0) + 1
                 motivo = "erro"
@@ -504,6 +570,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
             else:
                 estado["erro_404_seguidos"] = 0
                 estado["erro_404_start"] = -1
+                estado["erro_404_start0_fatias"] = 0
                 # Preserva o total conhecido mesmo se a página vier vazia:
                 # é o que permite retomar a fatia sem refazê-la (26/11).
                 totais = estado.setdefault("totais", {})
@@ -517,6 +584,49 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     estado["vazias"] = int(estado.get("vazias") or 0) + 1
                     motivo = "pagina_vazia"
                     break
+                # Diagnóstico de ordem instável (#6): compara sobreposição
+                # observada entre páginas consecutivas da mesma fatia.
+                nomes_pagina = [
+                    it.get("hash_name") or it.get("name")
+                    for it in pagina
+                    if it.get("hash_name") or it.get("name")
+                ]
+                anteriores = estado.get("ultimos_nomes_fatia")
+                if nomes_pagina and isinstance(anteriores, list) and anteriores:
+                    sobrep = len(set(nomes_pagina) & set(anteriores))
+                    esperado_sobrep = (
+                        min(_SOBREPOSICAO, len(anteriores))
+                        if estado.get("ultimo_avanco_sobreposto") else 0
+                    )
+                    if sobrep != esperado_sobrep:
+                        estado["ordem_instavel"] = (
+                            int(estado.get("ordem_instavel") or 0) + 1)
+                        estado["ordem_instavel_rodada"] = (
+                            int(estado.get("ordem_instavel_rodada") or 0) + 1)
+                        _logger.warning(
+                            "Catálogo: ordem instável em %s na posição %s "
+                            "(sobreposição %d, esperada %d)",
+                            nome_fatia, estado["start"], sobrep, esperado_sobrep)
+                ultima = int(estado["start"]) + len(pagina) >= total
+                cheio = int(estado.get("tamanho_cheio") or 0)
+                pagina_curta = bool(
+                    pagina and not ultima and cheio > 0 and len(pagina) < cheio)
+                if pagina_curta:
+                    estado["paginas_curta"] = (
+                        int(estado.get("paginas_curta") or 0) + 1)
+                    estado["paginas_curta_rodada"] = (
+                        int(estado.get("paginas_curta_rodada") or 0) + 1)
+                    estado["paginas_curta_seguidas"] = (
+                        int(estado.get("paginas_curta_seguidas") or 0) + 1)
+                    _logger.warning(
+                        "Catálogo: página curta em %s na posição %s "
+                        "(%d itens, esperado %d; %d seguida(s))",
+                        nome_fatia, estado["start"], len(pagina), cheio,
+                        estado["paginas_curta_seguidas"])
+                else:
+                    if pagina and not ultima:
+                        estado["tamanho_cheio"] = max(cheio, len(pagina))
+                    estado["paginas_curta_seguidas"] = 0
                 estado["itens_rodada"] = (int(estado.get("itens_rodada") or 0)
                                           + gravar(conn, nome_fatia, pagina))
                 if pagina:
@@ -526,16 +636,25 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 # 1a volta vieram 642 repetidos e um tanto parecido foi pulado
                 # (~3,5%, a AWP | Dragon Lore entre eles). Repetido é inofensivo
                 # (grava por cima); pulado só voltava numa próxima volta.
-                ultima = int(estado["start"]) + len(pagina) >= total
-                avanco = (len(pagina) if ultima or len(pagina) <= _SOBREPOSICAO
-                          else len(pagina) - _SOBREPOSICAO)
+                usou_sobrep = bool(
+                    _SOBREPOSICAO > 0
+                    and not ultima
+                    and len(pagina) > _SOBREPOSICAO)
+                avanco = (len(pagina) - _SOBREPOSICAO if usou_sobrep
+                          else len(pagina))
                 estado["start"] = int(estado["start"]) + avanco
+                estado["ultimos_nomes_fatia"] = nomes_pagina
+                estado["ultimo_avanco_sobreposto"] = usou_sobrep
                 if not pagina or estado["start"] >= total:
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break
+                elif (int(estado.get("paginas_curta_seguidas") or 0)
+                      >= _MAX_PAGINAS_CURTAS_SEGUIDAS):
+                    motivo = "pagina_curta"
+                    break
             _salvar_estado(estado)
-            pausa = steam_api.RATE_LIMIT_DELAY_S * _fator_pausa()
+            pausa = _pausa_entre_paginas(estado)
             if not _dormir(pausa, ate_ts, deve_parar):
                 break
         estado["itens_no_banco"] = contar(conn)
@@ -555,8 +674,10 @@ def resumo() -> dict:
               "ultimo_bloqueio_ts", "erros", "vazias", "itens_no_banco",
               "totais", "motivo", "ultima_pagina_ts", "erro_404_seguidos",
               "erro_404_start", "erros_404_fatias",
-               "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
-                "inicio_ts", "retomar", "fatias_puladas")
+              "erros_404_fatias_rodada", "fim_ultima_rodada_ts",
+              "inicio_ts", "retomar", "fatias_puladas",
+              "paginas_curta", "paginas_curta_rodada", "paginas_curta_seguidas",
+              "ordem_instavel", "ordem_instavel_rodada", "freio_404_start0")
     saida = {k: estado.get(k) for k in chaves if k in estado}
     # Estado de 25/11 não tem estes campos: mostra desde já o ponto que a
     # próxima rodada vai usar, sem precisar esperar ela começar (26/11).
@@ -595,6 +716,97 @@ def _conectar_leitura() -> "sqlite3.Connection | None":
     return conn
 
 
+# Palavras em português cuja categoria no catálogo cobre também itens
+# gravados antes dos novos sinônimos (ex.: Karambit, Bayonet, Hand Wraps).
+_PALAVRA_CATEGORIA = {
+    "faca": "Facas",
+    "facas": "Facas",
+    "luva": "Luvas",
+    "luvas": "Luvas",
+}
+
+
+def _escapar_like(termo: str) -> str:
+    """Escapa os coringas do LIKE do SQLite para busca literal."""
+    return termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _sem_estrela(texto_norm: str) -> str:
+    return texto_norm.lstrip("★ ").strip()
+
+
+def _termos_busca_or(busca: str) -> "list[str]":
+    """Grupos normalizados separados por OR com ao menos 1 alfanumérico."""
+    limpo = " ".join(texto_busca(busca).split())
+    if not limpo:
+        return []
+    termos = []
+    for grupo in limpo.split(" or "):
+        if any(ch.isalnum() for ch in grupo):
+            t = _sem_estrela(grupo.strip())
+            if t:
+                termos.append(t)
+    return termos
+
+
+def relevancia_busca(nome: str, nome_pt: str, busca: str) -> int:
+    """0 = nome exato, 1 = prefixo do nome, 2 = outro casamento.
+
+    Considera o nome original da Steam e o traduzido, ignorando acentos,
+    hífens e a estrela ★ inicial."""
+    termos = _termos_busca_or(busca)
+    if not termos:
+        return 2
+    alvos = []
+    for bruto in (nome, nome_pt):
+        norm = " ".join(texto_busca(bruto).split())
+        if norm:
+            alvos.append(norm)
+            sem = _sem_estrela(norm)
+            if sem and sem != norm:
+                alvos.append(sem)
+    melhor = 2
+    for t in termos:
+        for alvo in alvos:
+            if alvo == t:
+                return 0
+            if alvo.startswith(t):
+                melhor = 1
+    return melhor
+
+
+def _ordem_relevancia(busca: str) -> "tuple[str, list]":
+    """ORDER BY que coloca nome exato e prefixo antes de a_venda."""
+    termos = _termos_busca_or(busca)[:6]
+    if not termos:
+        return "a_venda DESC, nome", []
+    exatos, prefixos, args_ex, args_pr = [], [], [], []
+    norm_en = "REPLACE(LOWER(LTRIM(nome, '★ ')), '-', '')"
+    norm_pt = "REPLACE(LOWER(LTRIM(nome_pt, '★ ')), '-', '')"
+    len_pt = "LENGTH(REPLACE(LTRIM(nome_pt, '★ '), '-', ''))"
+    for t in termos:
+        esc = _escapar_like(t)
+        # busca começa por texto_busca(nome_pt), já sem acento: prefixo + mesmo
+        # comprimento pega match exato em português mesmo sem acento ("revolucao").
+        exatos.append(
+            f"{norm_en} = ? OR {norm_pt} = ? "
+            f"OR ((busca LIKE ? ESCAPE '\\' OR busca LIKE ? ESCAPE '\\') "
+            f"AND {len_pt} = ?)"
+        )
+        args_ex.extend([t, t, f"{esc}%", f"★ {esc}%", len(t)])
+        prefixos.append(
+            f"{norm_en} LIKE ? ESCAPE '\\' OR busca LIKE ? ESCAPE '\\' "
+            "OR busca LIKE ? ESCAPE '\\'"
+        )
+        args_pr.extend([f"{esc}%", f"{esc}%", f"★ {esc}%"])
+    sql = (
+        f"CASE WHEN {' OR '.join(exatos)} THEN 0 "
+        f"WHEN {' OR '.join(prefixos)} THEN 1 "
+        "ELSE 2 END, a_venda DESC, nome"
+    )
+    return sql, args_ex + args_pr
+
+
 def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
     """Cláusula WHERE para os filtros da busca (mesma regra de busca do
     site: palavras em qualquer ordem, sem acento; "a OR b")."""
@@ -602,11 +814,21 @@ def _where(filtros: dict, excluir: "list[str]") -> "tuple[str, list]":
     busca = (filtros.get("busca") or "").strip()
     if busca:
         grupos = []
-        for grupo in texto_busca(busca).split(" or "):
+        limpo = " ".join(texto_busca(busca).split())
+        for grupo in limpo.split(" or "):
             palavras = [p for p in grupo.split() if any(ch.isalnum() for ch in p)]
             if palavras:
-                grupos.append("(" + " AND ".join("busca LIKE ?" for _ in palavras) + ")")
-                args.extend(f"%{p}%" for p in palavras)
+                conds = []
+                for p in palavras:
+                    like = f"%{_escapar_like(p)}%"
+                    cat = _PALAVRA_CATEGORIA.get(p)
+                    if cat:
+                        conds.append("(busca LIKE ? ESCAPE '\\' OR categoria = ?)")
+                        args.extend([like, cat])
+                    else:
+                        conds.append("busca LIKE ? ESCAPE '\\'")
+                        args.append(like)
+                grupos.append("(" + " AND ".join(conds) + ")")
         if grupos:
             partes.append("(" + " OR ".join(grupos) + ")")
     for coluna, chave in (("categoria", "categoria"), ("exterior", "exterior"),
@@ -640,10 +862,17 @@ def consultar(filtros: dict, excluir: "list[str]" = (), ordenar: str = "a_venda"
         where, args = _where(filtros, list(excluir))
         total = conn.execute(f"SELECT COUNT(*) FROM itens WHERE {where}",
                              args).fetchone()[0] if contar else 0
-        ordem = "preco ASC" if ordenar == "preco" else "a_venda DESC, nome"
+        ordem_args: list = []
+        if ordenar == "preco":
+            ordem = "preco ASC"
+        elif ordenar == "relevancia" and (filtros.get("busca") or "").strip():
+            ordem, ordem_args = _ordem_relevancia(filtros["busca"])
+        else:
+            ordem = "a_venda DESC, nome"
         linhas = conn.execute(
             f"SELECT * FROM itens WHERE {where} ORDER BY {ordem} "
-            "LIMIT ? OFFSET ?", [*args, max(0, int(limite)), max(0, int(offset))]
+            "LIMIT ? OFFSET ?",
+            [*args, *ordem_args, max(0, int(limite)), max(0, int(offset))]
         ).fetchall() if limite > 0 else []
         taxa = cambio()
         return total, [_em_reais(dict(r), taxa) for r in linhas]

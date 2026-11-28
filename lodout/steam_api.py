@@ -26,6 +26,7 @@ from __future__ import annotations
 import concurrent.futures
 import json
 import logging
+import math
 import re
 import time
 import urllib.parse
@@ -474,6 +475,9 @@ SEARCH_ERROR = "error"
 # 404 nao e' 429: nao aciona o disjuntor, mas precisa ser contado a parte
 # (2026-11-25: a busca do catalogo devolveu 404 em start=2664 e travou).
 SEARCH_NOT_FOUND = "not_found"
+# Paginacao encerrada antes de max_items e antes de total (teto de paginas ou
+# pagina vazia no meio): resultado parcial nao deve ser cacheado como completo.
+SEARCH_TRUNCATED = "truncated"
 
 # Trecho do último 404 da busca, preservado em memória até o catálogo gravar
 # no estado (26/11): o log do container some no restart e sem isso não dá
@@ -549,9 +553,9 @@ def get_cached_page_data(market_hash_name: str) -> dict | None:
 
 
 _SORT_COLUMNS = ("quantity", "price", "name", "default")
-# A Steam ignora count menor que o dela e devolve o proprio tamanho de pagina;
-# por isso a paginacao avanca por len(resultados), nunca pelo count pedido.
-_SEARCH_MAX_PAGES = 40
+# A Steam ignora count menor que o dela e devolve o proprio tamanho de pagina
+# (~10 sem login); 50 paginas cobrem o default max_items=500 sem truncar cedo.
+_SEARCH_MAX_PAGES = 50
 
 
 def _search_url(query: str, facets: dict | None, sort: str, descending: bool,
@@ -603,7 +607,11 @@ def _parse_search_results(data: dict) -> list[dict]:
         if isinstance(raw, (int, float)) and raw > 0:
             price = float(raw) / 100.0  # vem em centavos da moeda pedida
         if price is None:
-            price = parse_brl(r.get("sell_price_text"))
+            txt = r.get("sell_price_text")
+            if txt and "R$" in str(txt):
+                price = parse_brl(txt)
+            else:
+                price = _parse_usd(txt)
         try:
             listings = int(r.get("sell_listings") or 0)
         except (TypeError, ValueError):
@@ -679,7 +687,8 @@ def search_market_all(query: str = "", facets: dict | None = None,
 
     Para em: pagina vazia, max_items atingido, total alcancado ou teto de
     paginas. Rate limit no meio devolve o que ja' juntou com status
-    rate_limited -- resultado parcial e' util, silencio nao e'.
+    rate_limited; teto de paginas ou pagina vazia no meio antes de completar
+    devolvem SEARCH_TRUNCATED para o chamador nao cachear como completo.
     """
     items: list[dict] = []
     total = 0
@@ -694,14 +703,30 @@ def search_market_all(query: str = "", facets: dict | None = None,
             start=start, count=100, currency=currency,
         )
         if status != SEARCH_OK:
+            _logger.warning(
+                "Steam search_market_all interrompido: status=%s start=%d "
+                "coletados=%d total=%d",
+                status, start, len(items), total)
             return (status, items, total) if items else (status, [], 0)
         total = page_total or total
         if not page:
+            if items and start < total:
+                _logger.warning(
+                    "Steam search_market_all truncado por pagina vazia em "
+                    "start=%d/%d (%d itens)", start, total, len(items))
+                return SEARCH_TRUNCATED, items[:max_items], total
             break
         items.extend(page)
         start += len(page)  # nunca `count`: a Steam clampa o tamanho da pagina
         if len(items) >= max_items or start >= total:
             break
+    else:
+        if len(items) < max_items and start < total:
+            _logger.warning(
+                "Steam search_market_all truncado no teto de %d paginas: "
+                "%d/%d itens (total=%d)",
+                _SEARCH_MAX_PAGES, len(items), max_items, total)
+            return SEARCH_TRUNCATED, items[:max_items], total
     return SEARCH_OK, items[:max_items], total
 
 
@@ -1385,3 +1410,19 @@ def parse_brl(text: str | None) -> float | None:
         return float(s)
     except ValueError:
         return None
+
+
+def _parse_usd(text: str | None) -> float | None:
+    """'$1,234.56 USD' / '$5.19' -> 1234.56 / 5.19. Rejeita BRL ('R$')."""
+    if not text:
+        return None
+    s = str(text).replace("\xa0", " ").strip()
+    if "R$" in s or ("$" not in s and "USD" not in s.upper()):
+        return None
+    s = re.sub(r"(?i)\bUSD\b", "", s)
+    s = s.replace("US$", "").replace("$", "").replace(",", "").strip()
+    try:
+        val = float(s)
+    except ValueError:
+        return None
+    return val if math.isfinite(val) and val > 0 else None

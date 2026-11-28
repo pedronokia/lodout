@@ -54,6 +54,16 @@ def _scan_lookup() -> dict:
     return {r["name"]: r for r in scan["results"]}
 
 
+def _preco_atual(name: str, por_nome_scan: dict, cache: PriceCache) -> "float | None":
+    raw = por_nome_scan.get(name)
+    if raw and isinstance(raw.get("price"), (int, float)):
+        return float(raw["price"])
+    preco = cache.get(name)
+    if preco is not None:
+        return preco
+    return catalogo.precos([name]).get(name)
+
+
 def _avaliar(items: list[dict]) -> list[dict]:
     cache = PriceCache()
     nomes = [it["name"] for it in items]
@@ -61,7 +71,13 @@ def _avaliar(items: list[dict]) -> list[dict]:
     # Item fora da coleta: imagem e preço do dia vêm do catálogo do
     # Mercado (leitura local), como na conta -- antes ficava "—".
     imagens = raridade.completar_com_catalogo(por_nome_scan, nomes)
-    precos = {n: cache.get(n) for n in nomes}
+    precos = {}
+    for n in nomes:
+        raw = por_nome_scan.get(n)
+        if raw and isinstance(raw.get("price"), (int, float)):
+            precos[n] = float(raw["price"])
+        else:
+            precos[n] = cache.get(n)
     sem_preco = [n for n, p in precos.items() if p is None]
     if sem_preco:
         precos.update(catalogo.precos(sem_preco))
@@ -105,7 +121,10 @@ def _rules_do_form() -> dict:
         if not bruto:
             continue
         try:
-            valor = float(bruto)
+            if campo == "price_below":
+                valor = fmt.ler_reais(bruto)
+            else:
+                valor = float(bruto.replace(",", "."))
         except ValueError:
             raise ValueError(campo)
         if not math.isfinite(valor) or valor <= 0:
@@ -136,8 +155,8 @@ def _notificar_discord(steamid: str, items_avaliados: list[dict],
             continue
         if not user_webhook.deve_notificar(steamid, it["name"]):
             continue
-        texto = (f"lodout: {it['name_fmt']} disparou um alerta -- "
-                f"{'; '.join(a['label'] for a in it['alertas'])}")
+        texto = (f"Lodout: {it['name_fmt']} disparou um alerta — "
+                 f"{'; '.join(a['label'] for a in it['alertas'])}")
         if discord_notify.enviar(url, texto):
             user_webhook.marcar_notificado(steamid, it["name"])
 
@@ -225,7 +244,7 @@ def editar_regras(name: str):
     baseline = None
     if baseline_raw:
         try:
-            baseline = float(baseline_raw)
+            baseline = fmt.ler_reais(baseline_raw)
         except ValueError:
             flash(
                 "O preço-base precisa ser um número válido maior que zero.",
@@ -239,10 +258,10 @@ def editar_regras(name: str):
             )
             return redirect(url_for("watchlist.listar"))
 
-    # Sem baseline informado mas com price_drop_pct: comeca a contar a
-    # queda a partir do preco guardado agora.
+    # Sem baseline informado mas com price_drop_pct: começa a contar a
+    # queda a partir do preço guardado agora (coleta, cache ou catálogo).
     if rules.get("price_drop_pct") and baseline is None:
-        baseline = PriceCache().get(name)
+        baseline = _preco_atual(name, _scan_lookup(), PriceCache())
     user_watchlist.update_rules(steamid, name, rules, baseline_price=baseline)
     return redirect(url_for("watchlist.listar"))
 

@@ -37,35 +37,6 @@
 
     {% include "partials/_subnav_conta.html" %}
 
-    {# Itens que a sincronização antiga apagou ao anunciar no Mercado (até
-       23/11, enquanto existem os backups): só para quem perdeu algo, com a
-       lista antes de devolver (revisão 16/11). #}
-    {% if recuperar %}
-    <section class="conta-revenda conta-recuperar" aria-labelledby="titulo-recuperar">
-      <h2 class="conta-revenda-titulo" id="titulo-recuperar">{% if not recuperar.voltam %}Confira o valor pago de {{ "um item" if recuperar.conferir|length == 1 else "alguns itens" }}{% else %}{{ "Achamos 1 item" if recuperar.voltam|length == 1 else "Achamos " ~ recuperar.voltam|length ~ " itens" }} que {{ "sumiu" if recuperar.voltam|length == 1 else "sumiram" }} da sua lista{% endif %}</h2>
-      {% if recuperar.voltam %}
-      <p class="conta-revenda-texto">Até 16/11, anunciar um item no Mercado fazia ele sair da sua conta junto com o valor pago. {{ "Este é o que" if recuperar.voltam|length == 1 else "Estes são os que" }} dá para devolver, com o valor que você tinha informado:</p>
-      <ul class="conta-recuperar-lista">
-        {% for r in recuperar.voltam[:6] %}<li><span translate="no">{{ r.nome }}</span> <span class="conta-recuperar-valor"><span class="conta-recuperar-pagou">pagou</span> {{ r.valores }}</span></li>{% endfor %}
-        {% if recuperar.voltam|length > 6 %}<li class="conta-recuperar-mais">e mais {{ recuperar.voltam|length - 6 }}</li>{% endif %}
-      </ul>
-      <form method="post" action="{{ url_for('account.recuperar_apagados') }}" class="conta-recuperar-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="botao-acao">Devolver com o valor pago</button>
-        <span class="conta-revenda-nota">{{ "Ele volta" if recuperar.voltam|length == 1 else "Eles voltam" }} marcado{{ "" if recuperar.voltam|length == 1 else "s" }} como fora do inventário; depois é só marcar “Está anunciado” ou “Vendi”.</span>
-      </form>
-      {% endif %}
-      {% if recuperar.conferir %}
-      <p class="conta-revenda-nota conta-recuperar-conferir">Confira o valor pago {{ "deste item" if recuperar.conferir|length == 1 else "destes itens" }}: hoje {{ "ele está" if recuperar.conferir|length == 1 else "eles estão" }} separado{{ "" if recuperar.conferir|length == 1 else "s" }} em lotes diferentes dos de antes, então o site não sabe em qual lote pôr cada valor. {% for r in recuperar.conferir %}<span translate="no">{{ r.nome }}</span> (antes: {{ r.valores }}){{ "; " if not loop.last else "." }}{% endfor %}</p>
-      {% endif %}
-      {% set n_recuperar = recuperar.voltam|length + recuperar.conferir|length %}
-      <form method="post" action="{{ url_for('account.dispensar_recuperar') }}" class="conta-recuperar-dispensar form-remover" data-nome="{{ 'este item' if n_recuperar == 1 else 'esses itens' }}" data-dialogo-titulo="Não devolver" data-dialogo-texto="{{ 'Ele não volta' if n_recuperar == 1 else 'Eles não voltam' }} para a sua lista e este aviso some. O valor pago não fica guardado em outro lugar." data-dialogo-botao="Não devolver" data-confirmar="Não devolver {{ 'este item' if n_recuperar == 1 else 'esses itens' }}? O valor pago não fica guardado em outro lugar.">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="botao-link acao-texto">Não quero de volta</button>
-      </form>
-    </section>
-    {% endif %}
-
     {# Revisão 2026-11-15 (conta com inventário + polimento): rótulo,
        valor e uma linha de contexto por cartão. Os textos vêm de
        account._textos_totais -- o mesmo que conta.js recebe ao salvar um
@@ -207,7 +178,7 @@
       </thead>
       <tbody role="rowgroup">
         {% for row in avaliacao.rows %}
-        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}" data-meta-atingida="{{ '1' if row.atingiu_meta else '0' }}">
+        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-qtd="{{ row.quantity or 1 }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}" data-meta-atingida="{{ '1' if row.atingiu_meta else '0' }}">
           <td role="cell" data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -338,7 +309,7 @@
               <span class="campo-reais{{ ' campo-reais-cada' if row.quantity and row.quantity > 1 else '' }}">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
                 {% if row.quantity and row.quantity > 1 %}<span class="campo-reais-sufixo" aria-hidden="true">cada</span>{% endif %}
-                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="quanto?" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
+                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.has_cost and row.cost is not none else '' }}" placeholder="quanto?" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>

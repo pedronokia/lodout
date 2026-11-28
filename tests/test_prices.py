@@ -255,3 +255,48 @@ def test_value_inventory_progress(monkeypatch, tmp_path):
     assert len(progress_log) == 2
     assert progress_log[0] == (1, 2, "AK")
     assert progress_log[1] == (2, 2, "AWP")
+
+
+def test_price_cache_reusa_stat_e_invalida_ao_mudar(tmp_path, monkeypatch):
+    import json
+
+    p = tmp_path / "prices.json"
+    prices.PriceCache(path=p).put("AK-47 | Slate", 15.0, now=1000.0)
+    prices.limpar_cache()
+
+    leituras = []
+    real_loads = json.loads
+
+    def espia(raw, *args, **kwargs):
+        leituras.append(len(raw))
+        return real_loads(raw, *args, **kwargs)
+
+    monkeypatch.setattr(prices.json, "loads", espia)
+    c1 = prices.PriceCache(path=p)
+    c2 = prices.PriceCache(path=p)
+    assert c1.get("AK-47 | Slate", now=1001.0) == 15.0
+    assert c2.get("AK-47 | Slate", now=1001.0) == 15.0
+    # Segunda instanciação com o mesmo arquivo reaproveita o cache em memória.
+    assert len(leituras) == 1
+
+    # Mutar uma instância não contamina o cache compartilhado.
+    c1._data["AK-47 | Slate"]["price"] = 999.0
+    assert prices.PriceCache(path=p).get("AK-47 | Slate", now=1001.0) == 15.0
+
+    # put() atualiza o cache imediatamente, sem precisar reler o JSON.
+    c2.put("AWP | Atheris", 25.0, now=1002.0)
+    c3 = prices.PriceCache(path=p)
+    assert c3.get("AWP | Atheris", now=1003.0) == 25.0
+    assert len(leituras) == 1
+
+
+def test_price_cache_resolve_data_dir_dinamicamente(tmp_path, monkeypatch):
+    from lodout import _paths
+
+    novo_dir = tmp_path / "prices_isolado"
+    monkeypatch.setattr(_paths, "DATA_DIR", novo_dir)
+    monkeypatch.setattr(prices, "_DEFAULT_PATH", None)
+    prices.PriceCache().put("Caixa Teste", 7.5, now=2000.0)
+    assert (novo_dir / "prices.json").exists()
+    assert prices.PriceCache().get("Caixa Teste", now=2001.0) == 7.5
+

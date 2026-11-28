@@ -642,3 +642,218 @@ def test_favicon_ico(client):
     assert "max-age=86400" in r.headers["Cache-Control"]
     ico = Image.open(io.BytesIO(r.data))
     assert sorted(ico.ico.sizes()) == [(16, 16), (32, 32), (48, 48)]
+
+
+def test_sinonimos_busca_cobrem_facas_e_luvas_sem_knife_ou_gloves():
+    """Plano de aprimoramento da busca (#10): 'faca karambit', 'faca bayonet',
+    'faca shadow' e 'luva hand wraps' acham itens sem 'Knife'/'Gloves' no nome,
+    inclusive em linhas já gravadas antes dos novos sinônimos."""
+    _catalogo_com(
+        ("Facas", [
+            _linha("★ Karambit | Fade (Factory New)", preco=500.0, a_venda=5),
+            _linha("★ Bayonet | Doppler (Factory New)", preco=300.0, a_venda=8),
+            _linha("★ M9 Bayonet | Tiger Tooth (Factory New)", preco=400.0, a_venda=6),
+            _linha("★ Shadow Daggers | Fade (Factory New)", preco=120.0, a_venda=12),
+        ]),
+        ("Luvas", [
+            _linha("★ Hand Wraps | Cobalt Skull (Field-Tested)", preco=250.0, a_venda=4),
+            _linha("★ Sport Gloves | Vice (Field-Tested)", preco=800.0, a_venda=2),
+        ]),
+        ("Rifles", [
+            _linha("AK-47 | Redline (Field-Tested)", preco=20.0, a_venda=200),
+        ]),
+    )
+
+    def nomes(q):
+        _total, itens = catalogo.consultar({"busca": q}, limite=20)
+        return {it["nome"] for it in itens}
+
+    assert nomes("faca karambit") == {"★ Karambit | Fade (Factory New)"}
+    assert nomes("facas bayonet") == {
+        "★ Bayonet | Doppler (Factory New)",
+        "★ M9 Bayonet | Tiger Tooth (Factory New)",
+    }
+    assert nomes("faca m9") == {"★ M9 Bayonet | Tiger Tooth (Factory New)"}
+    assert nomes("adagas shadow") == {"★ Shadow Daggers | Fade (Factory New)"}
+    assert nomes("faca shadow") == {"★ Shadow Daggers | Fade (Factory New)"}
+    assert nomes("luva hand wraps") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+    assert nomes("luvas cobalt") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+    assert "AK-47 | Redline (Field-Tested)" not in nomes("faca")
+    assert "★ Sport Gloves | Vice (Field-Tested)" not in nomes("faca")
+    assert "★ Karambit | Fade (Factory New)" not in nomes("luva")
+
+    # Simula linha legada no SQLite (gravada antes do sinônimo na coluna busca):
+    # a consulta continua encontrando via categoria = 'Facas' / 'Luvas'.
+    conn = catalogo.conectar()
+    with conn:
+        conn.execute(
+            "UPDATE itens SET busca = '★ karambit | fade (factory new)' "
+            "WHERE nome = '★ Karambit | Fade (Factory New)'"
+        )
+        conn.execute(
+            "UPDATE itens SET busca = '★ hand wraps | cobalt skull (fieldtested)' "
+            "WHERE nome = '★ Hand Wraps | Cobalt Skull (Field-Tested)'"
+        )
+    conn.close()
+    assert nomes("faca karambit") == {"★ Karambit | Fade (Factory New)"}
+    assert nomes("luva hand wraps") == {"★ Hand Wraps | Cobalt Skull (Field-Tested)"}
+
+
+def test_consultar_escapa_coringas_like():
+    """Plano de aprimoramento da busca (#11): %, _ e \\ em ?q= são literais."""
+    _catalogo_com(("Rifles", [
+        _linha("AK-47 | Redline (Field-Tested)", a_venda=500),
+        _linha("AK-47 | Slate (Field-Tested)", a_venda=400),
+        _linha("AK% Especial", a_venda=10),
+        _linha("AK_Teste", a_venda=10),
+        _linha("AKxTeste", a_venda=10),
+        _linha("Item \\ Barra", a_venda=10),
+    ]))
+    _t, res_pct = catalogo.consultar({"busca": "ak%"})
+    assert [r["nome"] for r in res_pct] == ["AK% Especial"]
+
+    _t, res_sub = catalogo.consultar({"busca": "ak_teste"})
+    assert [r["nome"] for r in res_sub] == ["AK_Teste"]
+
+    _t, res_bar = catalogo.consultar({"busca": "item \\ barra"})
+    assert [r["nome"] for r in res_bar] == ["Item \\ Barra"]
+
+
+def test_consultar_ordenar_relevancia_prioriza_exato_e_prefixo():
+    """Plano de aprimoramento da busca (#2): ordenar='relevancia' coloca nome
+    exato e prefixo antes de itens mais anunciados (a_venda)."""
+    linhas = [_linha(f"Gamma 2 Case Extra {i}", a_venda=5000 - i) for i in range(15)]
+    linhas += [
+        _linha("Gamma Case", a_venda=5),
+        _linha("Gamma Case Especial", a_venda=12),
+        _linha("Revolution Case", a_venda=8),
+        _linha("Caixa Revolução Extra", a_venda=4000),
+        _linha("★ Karambit | Fade (Factory New)", a_venda=3),
+        _linha("★ Karambit | Fade (Minimal Wear)", a_venda=900),
+    ]
+    _catalogo_com(("Caixas e cápsulas", linhas))
+
+    _t, res = catalogo.consultar(
+        {"busca": "Gamma Case"}, ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res[0]["nome"] == "Gamma Case"
+    assert res[1]["nome"] == "Gamma Case Especial"
+
+    # Match exato em português sem acento ("caixa revolucao" -> "Caixa Revolução")
+    # vem antes de um item com prefixo igual e muito mais anúncios.
+    _t, res_pt = catalogo.consultar(
+        {"busca": "caixa revolucao"}, ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res_pt[0]["nome"] == "Revolution Case"
+    assert res_pt[1]["nome"] == "Caixa Revolução Extra"
+
+    # Match exato sem a estrela ★ inicial
+    _t, res_faca = catalogo.consultar(
+        {"busca": "Karambit | Fade (Factory New)"},
+        ordenar="relevancia", limite=5, contar=False,
+    )
+    assert res_faca[0]["nome"] == "★ Karambit | Fade (Factory New)"
+
+    # Bordas: busca vazia ou só pontuação cai no fallback sem erro.
+    assert catalogo.relevancia_busca("Gamma Case", "Caixa Gama", "   ") == 2
+    assert catalogo._ordem_relevancia(" | ")[1] == []
+    _t, res_vazio = catalogo.consultar({"busca": "   "}, ordenar="relevancia", limite=2, contar=False)
+    assert len(res_vazio) == 2
+
+
+def test_varrer_conta_paginas_curtas_e_pausa_apos_tres_seguidas(monkeypatch, sem_pausa):
+    """Plano de aprimoramento da busca (#3): página menor que o tamanho cheio
+    antes do fim da fatia conta em paginas_curta e pausa após 3 seguidas."""
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    respostas = iter([
+        (steam_api.SEARCH_OK, [_linha(f"R{i}") for i in range(4)], 20),  # cheia (4)
+        (steam_api.SEARCH_OK, [_linha("R4")], 20),                       # curta 1
+        (steam_api.SEARCH_OK, [_linha("R5")], 20),                       # curta 2
+        (steam_api.SEARCH_OK, [_linha("R6")], 20),                       # curta 3 -> pausa
+        (steam_api.SEARCH_OK, [_linha("R7")], 20),                       # não deve chamar
+    ])
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append(start)
+        return next(respostas)
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 4
+    assert estado["motivo"] == "pagina_curta"
+    assert estado["paginas_curta"] == 3
+    assert estado["paginas_curta_rodada"] == 3
+    assert estado["paginas_curta_seguidas"] == 3
+    assert "ultima_completa_ts" not in estado
+    res = catalogo.resumo()
+    assert res["paginas_curta"] == 3 and res["paginas_curta_rodada"] == 3
+
+
+def test_pausa_entre_paginas_escalona_para_404_e_pagina_curta_com_teto(monkeypatch):
+    """Plano de aprimoramento da busca (#5): backoff limitado sem mexer no
+    valor base de steam_api.RATE_LIMIT_DELAY_S."""
+    monkeypatch.setattr(steam_api, "RATE_LIMIT_DELAY_S", 2.0)
+    monkeypatch.delenv("LODOUT_CATALOGO_FATOR_PAUSA", raising=False)
+    # base = 2.0 * 5.0 = 10.0
+    assert catalogo._pausa_entre_paginas({}) == pytest.approx(10.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 1}) == pytest.approx(20.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 2}) == pytest.approx(40.0)
+    assert catalogo._pausa_entre_paginas({"erro_404_seguidos": 5}) == pytest.approx(40.0)
+    assert catalogo._pausa_entre_paginas({"paginas_curta_seguidas": 1}) == pytest.approx(20.0)
+    assert steam_api.RATE_LIMIT_DELAY_S == 2.0
+
+
+def test_varrer_registra_ordem_instavel_quando_sobreposicao_nao_bate(monkeypatch, sem_pausa):
+    """Plano de aprimoramento da busca (#6): sem sobreposição esperada entre
+    páginas consecutivas da mesma fatia, ordem_instavel é incrementado."""
+    monkeypatch.setattr(catalogo, "_SOBREPOSICAO", 1)
+    monkeypatch.setattr(catalogo, "FATIAS", (("Rifles", "R"),))
+    paginas = iter([
+        (steam_api.SEARCH_OK, [_linha("A"), _linha("B"), _linha("C")], 5),
+        # Esperava sobreposição de 1 ("C"), mas vieram nomes totalmente novos:
+        (steam_api.SEARCH_OK, [_linha("D"), _linha("E"), _linha("F")], 5),
+    ])
+    monkeypatch.setattr(steam_api, "search_market", lambda **_: next(paginas))
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert estado["motivo"] == "completa"
+    assert estado["ordem_instavel"] == 1
+    assert estado["ordem_instavel_rodada"] == 1
+    assert catalogo.resumo()["ordem_instavel"] == 1
+
+
+def test_varrer_freio_404_em_start_zero_encerra_sem_queimar_todas_fatias(monkeypatch, sem_pausa):
+    """Freio para 404 em start=0 (AGENTS.md): 3 fatias seguidas falhando na
+    posição 0 encerram a rodada sem desperdiçar consultas nas demais."""
+    monkeypatch.setattr(catalogo, "FATIAS", tuple((f"F{i}", f"T{i}") for i in range(6)))
+    chamadas = []
+
+    def fake(facets=None, start=0, **_):
+        chamadas.append((facets["type"], start))
+        return steam_api.SEARCH_NOT_FOUND, [], 0
+
+    monkeypatch.setattr(steam_api, "search_market", fake)
+    estado = catalogo.varrer(ate_ts=1e12)
+    assert len(chamadas) == 9  # só 3 fatias x 3 tentativas (não 6 x 3 = 18)
+    assert estado["motivo"] == "incompleta_404"
+    assert estado["freio_404_start0"] is True
+    assert estado["erros_404_fatias_rodada"] == 3
+    assert estado["retomar"]["fatia"] == 0 and estado["retomar"]["start"] == 0
+    assert catalogo.resumo()["freio_404_start0"] is True
+    assert catalogo.varrer(ate_ts=1e12)["motivo"] == "esperando_apos_404"
+
+
+def test_texto_busca_ascii_equivale_a_nfkd():
+    import unicodedata
+
+    todos_ascii = "".join(chr(i) for i in range(128))
+    esperado = "".join(
+        ch for ch in unicodedata.normalize("NFKD", todos_ascii)
+        if not unicodedata.combining(ch)
+    ).lower().replace("-", "")
+    assert catalogo.texto_busca(todos_ascii) == esperado
+    assert catalogo.texto_busca("AK-47 | Redline (Field-Tested)") == "ak47 | redline (fieldtested)"
+    assert catalogo.texto_busca("Cápsula de Autógrafo") == "capsula de autografo"
+    assert catalogo.texto_busca("★ Karambit | Fade") == "★ karambit | fade"
+
+

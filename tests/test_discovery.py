@@ -179,3 +179,75 @@ def test_resolve_nao_devolve_a_mesma_lista_do_fallback(tmp_path, monkeypatch):
         "Rifles", FALLBACK, cache=_cache(tmp_path))
     items.append("sujeira")
     assert "sujeira" not in FALLBACK
+
+
+def test_descoberta_descarta_item_sem_preco(tmp_path, monkeypatch):
+    """Plano de aprimoramento da busca (#8): price is None não fura min_price."""
+    _fake_search(monkeypatch, "ok", [
+        _row("Sem Preco", None),
+        _row("Com Preco", 5.0),
+    ])
+    monkeypatch.setattr("lodout.steam_api.SEARCH_OK", "ok")
+    nomes, origem = discovery.discover_category("Rifles", cache=_cache(tmp_path))
+    assert nomes == ["Com Preco"]
+    assert origem == discovery.SOURCE_DISCOVERY
+
+    _fake_search(monkeypatch, "ok", [_row("So Sem Preco", None)])
+    nomes2, origem2 = discovery.discover_category("Pistolas", cache=_cache(tmp_path))
+    assert nomes2 is None and origem2 == discovery.SOURCE_FALLBACK
+
+
+def test_descoberta_nao_cacheia_resultado_truncado(tmp_path, monkeypatch, caplog):
+    """Plano de aprimoramento da busca (#7): resultado truncado serve pro ciclo,
+    mas não entra no cache de 24h como se fosse completo."""
+    from lodout import steam_api
+    _fake_search(monkeypatch, steam_api.SEARCH_TRUNCATED, [_row("Bom", 10.0)], total=500)
+    c = _cache(tmp_path)
+    with caplog.at_level("WARNING", logger="lodout.discovery"):
+        nomes, origem = discovery.discover_category("Rifles", cache=c)
+    assert nomes == ["Bom"]
+    assert origem == discovery.SOURCE_DISCOVERY
+    assert c.size() == 0
+    assert "truncada" in caplog.text
+
+
+def test_cache_coloca_json_corrompido_em_quarentena_e_remove_expirado(tmp_path, monkeypatch):
+    """Plano de aprimoramento da busca (#12): load_json_record coloca JSON
+    quebrado em quarentena e entradas expiradas são removidas."""
+    relogio = [1_000_000.0]
+    monkeypatch.setattr(discovery.time, "time", lambda: relogio[0])
+
+    caminho = tmp_path / "d.json"
+    caminho.write_text("{corrompido", encoding="utf-8")
+    c = discovery.DiscoveryCache(path=caminho, ttl=60.0)
+    assert c.size() == 0
+    assert list(tmp_path.glob("d.json.corrupt*"))
+
+    c.put("k1", ["a"])
+    relogio[0] += 61.0
+    assert c.get("k1") is None
+    assert c.size() == 0
+
+    # Put também limpa outras chaves já expiradas.
+    c.put("velha", ["x"])
+    relogio[0] += 61.0
+    c.put("nova", ["y"])
+    assert c.size() == 1 and c.get("nova") == ["y"]
+
+
+def test_descoberta_loga_falha_e_excecao(tmp_path, monkeypatch, caplog):
+    """Plano de aprimoramento da busca (#12): falhas e exceções são logadas."""
+    from lodout import steam_api
+    _fake_search(monkeypatch, steam_api.SEARCH_NOT_FOUND, [], total=0)
+    with caplog.at_level("WARNING", logger="lodout.discovery"):
+        nomes, _ = discovery.discover_category("Rifles", cache=_cache(tmp_path))
+    assert nomes is None
+    assert "Rifles" in caplog.text and "not_found" in caplog.text
+
+    caplog.clear()
+    monkeypatch.setattr("lodout.steam_api.search_market_all",
+                        lambda **kw: (_ for _ in ()).throw(RuntimeError("boom")))
+    with caplog.at_level("WARNING", logger="lodout.discovery"):
+        itens, origem = discovery.resolve_scan_items("Rifles", FALLBACK, cache=_cache(tmp_path))
+    assert itens == FALLBACK and origem == discovery.SOURCE_FALLBACK
+    assert "excecao" in caplog.text and "Rifles" in caplog.text

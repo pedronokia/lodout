@@ -18,18 +18,26 @@ periodica alimentando cache, nao botao que o usuario aperta.
 from __future__ import annotations
 
 import json
+import logging
 import time
 from pathlib import Path
 
-from lodout._paths import DATA_DIR, atomic_write_text
+from lodout import _paths
+from lodout._paths import atomic_write_text, load_json_record
 
-_DEFAULT_PATH = DATA_DIR / "discovery_cache.json"
+_logger = logging.getLogger(__name__)
+
 _TTL_SECONDS = 24 * 60 * 60
 
 # Piso de preco. Sem ele a busca por liquidez devolve a cauda de R$ 0,03
 # (SG 553 Safari Print e afins, 100k+ anuncios) -- liquido e inutil pra
 # analise de investimento.
 _MIN_PRICE = 1.0
+
+
+def _caminho_padrao() -> Path:
+    return Path(_paths.DATA_DIR) / "discovery_cache.json"
+
 
 # Categoria do scanner -> facetas do Market. Só as que tem equivalente
 # limpo; o resto cai no fallback de proposito, em vez de inventar mapeamento.
@@ -50,18 +58,16 @@ SOURCE_FALLBACK = "fallback"
 class DiscoveryCache:
     """Cache JSON chave -> {ts, items}. TTL default 24h."""
 
-    def __init__(self, path: "Path | str" = _DEFAULT_PATH,
+    def __init__(self, path: "Path | str | None" = None,
                  ttl: float = _TTL_SECONDS) -> None:
-        self.path = Path(path)
+        self.path = Path(path) if path is not None else _caminho_padrao()
         self.ttl = ttl
         self._data: dict = {}
         self._load()
 
     def _load(self) -> None:
-        try:
-            self._data = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            self._data = {}
+        dados = load_json_record(self.path, {})
+        self._data = dados if isinstance(dados, dict) else {}
 
     def _save(self) -> None:
         try:
@@ -69,11 +75,23 @@ class DiscoveryCache:
         except OSError:
             pass  # cache e' conveniencia; falha de disco nao derruba scan
 
+    def _limpar_expirados(self, agora: float) -> bool:
+        expiradas = [
+            k for k, v in self._data.items()
+            if not isinstance(v, dict)
+            or agora - float(v.get("ts") or 0) > self.ttl
+        ]
+        for k in expiradas:
+            self._data.pop(k, None)
+        return bool(expiradas)
+
     def get(self, key: str) -> "list | None":
         entry = self._data.get(key)
-        if not entry:
+        if not isinstance(entry, dict):
             return None
-        if time.time() - entry.get("ts", 0) > self.ttl:
+        if time.time() - float(entry.get("ts") or 0) > self.ttl:
+            self._data.pop(key, None)
+            self._save()
             return None
         items = entry.get("items")
         return items if isinstance(items, list) and items else None
@@ -81,7 +99,9 @@ class DiscoveryCache:
     def put(self, key: str, items: list) -> None:
         if not isinstance(items, list) or not items:
             return
-        self._data[key] = {"ts": time.time(), "items": list(items)}
+        agora = time.time()
+        self._limpar_expirados(agora)
+        self._data[key] = {"ts": agora, "items": list(items)}
         self._save()
 
     def clear(self) -> None:
@@ -109,6 +129,9 @@ def discover_category(category: str, max_items: int = 60,
     """
     facets = CATEGORY_FACETS.get(category)
     if not facets:
+        _logger.debug(
+            "Descoberta: categoria=%s sem faceta mapeada; usando fallback",
+            category)
         return None, SOURCE_FALLBACK
 
     cache = cache or DiscoveryCache()
@@ -119,22 +142,35 @@ def discover_category(category: str, max_items: int = 60,
             return hit, SOURCE_CACHE
 
     from lodout import steam_api
-    status, results, _total = steam_api.search_market_all(
+    status, results, total = steam_api.search_market_all(
         facets=facets, sort="quantity", descending=True,
         max_items=max_items * 3,  # folga: o piso de preco corta parte
     )
-    if status != steam_api.SEARCH_OK or not results:
+    truncado = status == getattr(steam_api, "SEARCH_TRUNCATED", "truncated")
+    if (status != steam_api.SEARCH_OK and not truncado) or not results:
+        _logger.warning(
+            "Descoberta falhou: categoria=%s status=%s itens=%d total=%d",
+            category, status, len(results or []), total)
         return None, SOURCE_FALLBACK
 
     nomes = [
         r["hash_name"] for r in results
         if r.get("hash_name")
-        and (r.get("price") is None or r["price"] >= min_price)
+        and isinstance(r.get("price"), (int, float))
+        and r["price"] >= min_price
     ][:max_items]
     if not nomes:
+        _logger.info(
+            "Descoberta sem itens validos: categoria=%s status=%s brutos=%d min_price=%.2f",
+            category, status, len(results), min_price)
         return None, SOURCE_FALLBACK
 
-    cache.put(key, nomes)
+    if truncado:
+        _logger.warning(
+            "Descoberta truncada (nao cacheada): categoria=%s status=%s validos=%d total=%d",
+            category, status, len(nomes), total)
+    else:
+        cache.put(key, nomes)
     return nomes, SOURCE_DISCOVERY
 
 
@@ -155,6 +191,9 @@ def resolve_scan_items(category: str, fallback: list,
             category, max_items=max_items, min_price=min_price, cache=cache)
     except Exception:
         # Descoberta e' melhoria opcional: nunca pode derrubar o scan.
+        _logger.warning(
+            "Descoberta falhou com excecao em categoria=%s; usando fallback",
+            category, exc_info=True)
         return list(fallback), SOURCE_FALLBACK
     if nomes:
         return nomes, origem

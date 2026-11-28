@@ -106,6 +106,31 @@ def compactar(conn: sqlite3.Connection, agora: float) -> None:
     conn.execute("DELETE FROM pontos WHERE ts < ?", (agora - DIAS_MAX * 86400,))
 
 
+_CACHE_RANKING: dict = {}
+_CACHE_RANKING_MAX = 16
+
+
+def limpar_cache() -> None:
+    """Limpa o cache em memória do ranking consistente (usado em gravações/testes)."""
+    _CACHE_RANKING.clear()
+
+
+def _identidade_banco() -> "tuple | None":
+    """Identidade do SQLite + WAL para invalidar o cache assim que o worker gravar."""
+    p = _caminho()
+    try:
+        st = p.stat()
+    except OSError:
+        return None
+    wal = p.with_name(p.name + "-wal")
+    try:
+        wst = wal.stat()
+        wal_sig = (wst.st_mtime_ns, wst.st_size)
+    except OSError:
+        wal_sig = (0, 0)
+    return (str(p.resolve()), st.st_dev, st.st_ino, st.st_mtime_ns, st.st_size, wal_sig)
+
+
 def gravar_snapshot(snapshot: dict, agora: "float | None" = None) -> None:
     """Worker: grava uma foto do ranking (e, na primeira vez, as do
     rankings.json). Nunca derruba a coleta: erro vira aviso no log."""
@@ -121,6 +146,7 @@ def gravar_snapshot(snapshot: dict, agora: "float | None" = None) -> None:
                 compactar(conn, agora)
         finally:
             conn.close()
+        limpar_cache()
     except Exception:
         _logger.warning("histórico da nota: gravação falhou", exc_info=True)
 
@@ -137,6 +163,7 @@ def _garantir_importado() -> None:
                 _importar_rankings_json(conn)
         finally:
             conn.close()
+        limpar_cache()
     except Exception:
         _logger.warning("histórico da nota: importação falhou", exc_info=True)
 
@@ -203,6 +230,10 @@ MIN_DIAS_COMPLETOS = 7     # com menos histórico completo que isso, usa a prese
 MIN_PRESENCA = 0.5         # item precisa aparecer em metade das coletas do período
 
 
+def _copiar_ranking(res: dict) -> dict:
+    return {**res, "itens": [dict(i) for i in res["itens"]]}
+
+
 def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20) -> dict:
     """{"modo": "media"|"presenca"|None, "itens": [...], "coletas": n,
     "desde": ts}. Cada item: name, valor (nota média, ou % das coletas no
@@ -214,34 +245,79 @@ def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20
     com 2 pontos). "presenca": antes disso, % das coletas do período em
     que o item esteve no Top 20 (dado que existe desde o lançamento),
     desempate pela média da nota nessas vezes."""
-    agora = time.time() if agora is None else agora
-    desde = agora - dias * 86400
-    inicio_completo = primeiro_ts_completo()
-    dias_completos = (agora - inicio_completo) / 86400 if inicio_completo else 0
+    usar_cache = agora is None
+    agora_ts = time.time() if agora is None else agora
+    _garantir_importado()
+    chave_cache = None
+    if usar_cache:
+        ident = _identidade_banco()
+        if ident is not None:
+            chave_cache = (ident, float(dias), int(top), int(agora_ts // 60))
+            cached = _CACHE_RANKING.get(chave_cache)
+            if cached is not None:
+                return _copiar_ranking(cached)
+
+    desde = agora_ts - dias * 86400
     fuso = _FUSO_BR_S
-    dias_top = {n: d for n, d in _ler(
-        "SELECT name, COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
-        "WHERE ts >= ? AND position <= 20 GROUP BY name", (fuso, desde))}
-    if dias_completos >= MIN_DIAS_COMPLETOS:
-        desde_media = max(desde, inicio_completo)
-        coletas = (_ler("SELECT COUNT(DISTINCT ts) FROM pontos WHERE completo = 1 AND ts >= ?",
-                        (desde_media,)) or [(0,)])[0][0]
-        linhas = _ler("SELECT name, AVG(score), COUNT(*) FROM pontos WHERE completo = 1 AND ts >= ? "
-                      "GROUP BY name", (desde_media,))
-        itens = [{"name": n, "valor": round(m, 1), "media": round(m, 1),
-                  "presenca_pct": round(100 * c / coletas) if coletas else 0,
-                  "dias_no_top": dias_top.get(n, 0)}
-                 for n, m, c in linhas if coletas and c >= MIN_PRESENCA * coletas]
-        itens.sort(key=lambda i: (-i["media"], -i["dias_no_top"], i["name"]))
-        return {"modo": "media", "itens": itens[:top], "coletas": coletas, "desde": desde_media}
-    coletas = (_ler("SELECT COUNT(DISTINCT ts) FROM pontos WHERE ts >= ?", (desde,)) or [(0,)])[0][0]
-    linhas = _ler("SELECT name, COUNT(DISTINCT ts), AVG(score) FROM pontos "
-                  "WHERE ts >= ? AND position <= 20 GROUP BY name", (desde,))
-    if not coletas or not linhas:
-        return {"modo": None, "itens": [], "coletas": coletas, "desde": desde}
-    itens = [{"name": n, "valor": round(100 * c / coletas), "media": round(m, 1),
-              "presenca_pct": round(100 * c / coletas), "dias_no_top": dias_top.get(n, 0)}
-             for n, c, m in linhas]
-    itens.sort(key=lambda i: (-i["presenca_pct"], -i["media"], i["name"]))
-    primeiro = (_ler("SELECT MIN(ts) FROM pontos WHERE ts >= ?", (desde,)) or [(None,)])[0][0]
-    return {"modo": "presenca", "itens": itens[:top], "coletas": coletas, "desde": primeiro or desde}
+    if not _caminho().exists():
+        return {"modo": None, "itens": [], "coletas": 0, "desde": desde}
+
+    # Uma única conexão para todas as consultas do ranking (antes abria e
+    # fechava o SQLite 4–5 vezes por visita ao /ranking).
+    try:
+        conn = _conectar()
+        try:
+            row_inicio = conn.execute(
+                "SELECT MIN(ts) FROM pontos WHERE completo = 1").fetchone()
+            inicio_completo = row_inicio[0] if row_inicio and row_inicio[0] else None
+            dias_completos = (agora_ts - inicio_completo) / 86400 if inicio_completo else 0
+            dias_top = {n: d for n, d in conn.execute(
+                "SELECT name, COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
+                "WHERE ts >= ? AND position <= 20 GROUP BY name", (fuso, desde)).fetchall()}
+            if dias_completos >= MIN_DIAS_COMPLETOS:
+                desde_media = max(desde, inicio_completo)
+                coletas = (conn.execute(
+                    "SELECT COUNT(DISTINCT ts) FROM pontos WHERE completo = 1 AND ts >= ?",
+                    (desde_media,)).fetchone() or (0,))[0]
+                linhas = conn.execute(
+                    "SELECT name, AVG(score), COUNT(*) FROM pontos WHERE completo = 1 AND ts >= ? "
+                    "GROUP BY name", (desde_media,)).fetchall()
+                itens = [{"name": n, "valor": round(m, 1), "media": round(m, 1),
+                          "presenca_pct": round(100 * c / coletas) if coletas else 0,
+                          "dias_no_top": dias_top.get(n, 0)}
+                         for n, m, c in linhas if coletas and c >= MIN_PRESENCA * coletas]
+                itens.sort(key=lambda i: (-i["media"], -i["dias_no_top"], i["name"]))
+                resultado = {"modo": "media", "itens": itens[:top],
+                             "coletas": coletas, "desde": desde_media}
+            else:
+                coletas = (conn.execute(
+                    "SELECT COUNT(DISTINCT ts) FROM pontos WHERE ts >= ?",
+                    (desde,)).fetchone() or (0,))[0]
+                linhas = conn.execute(
+                    "SELECT name, COUNT(DISTINCT ts), AVG(score) FROM pontos "
+                    "WHERE ts >= ? AND position <= 20 GROUP BY name",
+                    (desde,)).fetchall()
+                if not coletas or not linhas:
+                    resultado = {"modo": None, "itens": [], "coletas": coletas, "desde": desde}
+                else:
+                    itens = [{"name": n, "valor": round(100 * c / coletas), "media": round(m, 1),
+                              "presenca_pct": round(100 * c / coletas),
+                              "dias_no_top": dias_top.get(n, 0)}
+                             for n, c, m in linhas]
+                    itens.sort(key=lambda i: (-i["presenca_pct"], -i["media"], i["name"]))
+                    primeiro = (conn.execute(
+                        "SELECT MIN(ts) FROM pontos WHERE ts >= ?",
+                        (desde,)).fetchone() or (None,))[0]
+                    resultado = {"modo": "presenca", "itens": itens[:top],
+                                 "coletas": coletas, "desde": primeiro or desde}
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        _logger.warning("histórico da nota: leitura do ranking falhou", exc_info=True)
+        return {"modo": None, "itens": [], "coletas": 0, "desde": desde}
+
+    if chave_cache is not None:
+        if len(_CACHE_RANKING) >= _CACHE_RANKING_MAX:
+            _CACHE_RANKING.clear()
+        _CACHE_RANKING[chave_cache] = _copiar_ranking(resultado)
+    return resultado

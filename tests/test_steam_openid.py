@@ -131,3 +131,22 @@ def test_verify_callback_reenvia_mode_check_authentication(monkeypatch):
     monkeypatch.setattr(httpx, "post", _fake_post)
     steam_openid.verify_callback(_args_validos())
     assert recebido["openid.mode"] == "check_authentication"
+
+
+@pytest.mark.parametrize(("status", "body"), [
+    (500, "ns:http://specs.openid.net/auth/2.0\nis_valid:true\n"),
+    (403, "is_valid:true\n"),
+    (200, "error:is_valid:true\n"),
+    (200, "ns:http://specs.openid.net/auth/2.0\nis_valid:true_extra\n"),
+    (200, "is_valid:false\nis_valid:true\n"),
+    (200, "is_valid:true\nis_valid:false\n"),
+])
+def test_verify_callback_rejeita_status_nao_200_e_substrings(
+        monkeypatch, status, body):
+    class _Resp:
+        status_code = status
+        text = body
+
+    monkeypatch.setattr(httpx, "post", lambda *a, **kw: _Resp())
+    assert steam_openid.verify_callback(_args_validos()) is None
+

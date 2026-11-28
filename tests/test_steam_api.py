@@ -1410,3 +1410,83 @@ def test_parse_search_results_traz_imagem_raridade_e_tipo():
     assert rows[0]["name_color"] == "d2d2d2"
     assert rows[0]["tipo"] == "Classified Rifle"
     assert rows[1]["icon"] is None and rows[1]["tipo"] is None
+
+
+def test_parse_search_results_usa_parse_usd_e_nao_parse_brl():
+    """Plano de aprimoramento da busca (#8): texto em dólar não passa por
+    parse_brl (que virava None ou multiplicava por 100)."""
+    rows = steam_api._parse_search_results({"results": [
+        {"hash_name": "Item USD", "sell_price": 0, "sell_price_text": "$5.19 USD"},
+        {"hash_name": "Item Milhar", "sell_price": 0, "sell_price_text": "$1,234.56"},
+        {"hash_name": "Item US", "sell_price": 0, "sell_price_text": "US$ 12.50"},
+        {"hash_name": "Item BRL", "sell_price": 0, "sell_price_text": "R$ 50,00"},
+        {"hash_name": "Item Zero", "sell_price": 0, "sell_price_text": "$0.00"},
+        {"hash_name": "Item Vazio", "sell_price": 0, "sell_price_text": "--"},
+    ]})
+    precos = {r["hash_name"]: r["price"] for r in rows}
+    assert precos["Item USD"] == pytest.approx(5.19)
+    assert precos["Item Milhar"] == pytest.approx(1234.56)
+    assert precos["Item US"] == pytest.approx(12.50)
+    assert precos["Item BRL"] == pytest.approx(50.0)
+    assert precos["Item Zero"] is None
+    assert precos["Item Vazio"] is None
+    assert steam_api._parse_usd("R$ 10,00") is None
+    assert steam_api._parse_usd("5.19") is None
+    assert steam_api._parse_usd("$nan") is None
+    assert steam_api._parse_usd("$abc") is None
+
+
+def test_search_market_all_sinaliza_truncado_no_teto_de_paginas(monkeypatch, caplog):
+    """Plano de aprimoramento da busca (#7): bater no teto de páginas antes
+    de max_items e total devolve SEARCH_TRUNCATED e loga aviso."""
+    assert steam_api._SEARCH_MAX_PAGES == 50
+    monkeypatch.setattr(steam_api, "_SEARCH_MAX_PAGES", 3)
+
+    def fake(url):
+        start = int(url.split("start=")[1].split("&")[0])
+        rows = [{"hash_name": f"i{start + j}", "sell_price": 100, "sell_listings": 1}
+                for j in range(10)]
+        return 200, _search_body(rows, total=500)
+
+    monkeypatch.setattr("lodout.steam_api._http_get", fake)
+    with caplog.at_level("WARNING", logger="lodout.steam_api"):
+        status, items, total = steam_api.search_market_all(max_items=500)
+    assert status == steam_api.SEARCH_TRUNCATED
+    assert len(items) == 30 and total == 500
+    assert "truncado no teto" in caplog.text
+
+
+def test_search_market_all_sinaliza_truncado_em_pagina_vazia_no_meio(monkeypatch, caplog):
+    """Página vazia depois de coletar parte dos itens indica throttle silencioso."""
+    def fake(url):
+        start = int(url.split("start=")[1].split("&")[0])
+        if start == 0:
+            rows = [{"hash_name": f"i{j}", "sell_price": 100, "sell_listings": 1}
+                    for j in range(10)]
+            return 200, _search_body(rows, total=500)
+        return 200, _search_body([], total=500)
+
+    monkeypatch.setattr("lodout.steam_api._http_get", fake)
+    with caplog.at_level("WARNING", logger="lodout.steam_api"):
+        status, items, total = steam_api.search_market_all(max_items=500)
+    assert status == steam_api.SEARCH_TRUNCATED
+    assert len(items) == 10 and total == 500
+    assert "pagina vazia" in caplog.text
+
+
+def test_search_market_all_loga_interrupcao_por_429_no_meio(monkeypatch, caplog):
+    """Plano de aprimoramento da busca (#12): 429 no meio devolve parcial e loga."""
+    def fake(url):
+        start = int(url.split("start=")[1].split("&")[0])
+        if start == 0:
+            rows = [{"hash_name": f"i{j}", "sell_price": 100, "sell_listings": 1}
+                    for j in range(10)]
+            return 200, _search_body(rows, total=500)
+        return 429, None
+
+    monkeypatch.setattr("lodout.steam_api._http_get", fake)
+    with caplog.at_level("WARNING", logger="lodout.steam_api"):
+        status, items, total = steam_api.search_market_all(max_items=500)
+    assert status == steam_api.SEARCH_RATE_LIMITED
+    assert len(items) == 10 and total == 500
+    assert "rate_limited" in caplog.text and "start=10" in caplog.text
