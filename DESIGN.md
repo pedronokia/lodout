@@ -295,12 +295,14 @@ dados, cálculo, workers, chamadas à Steam, CSP ou Caddyfile:
 - **Tabelas:** no inventário (Minha conta) o nome do item aparece inteiro,
   quebrando em mais linhas se precisar, e as colunas têm largura fixa no
   computador para a tabela não passar da borda dos outros quadros (pedido
-  do usuário, 27/11: "o nome não pode ficar cortado"). No Ranking o nome
-  fica em uma linha só com reticências e o nome completo no `title`. As colunas de Custo, Valor,
+  do usuário, 27/11: "o nome não pode ficar cortado"). No Ranking também
+  (28/11): o nome inteiro, quebrando linha, porque o desgaste é o que separa
+  itens do mesmo skin. No cartão do Ranking no celular, o anel do canto leva
+  a legenda "hoje" e, sem nota na última coleta, aparece "sem nota hoje" em
+  vez de um traço. As colunas de Custo, Valor,
   Lucro/Prejuízo e Venda usam Geist com `tabular-nums`, com
   o marcador "—" e as ações na mesma régua; valores compostos (R$ + %) não
-  quebram no meio. No Ranking, a coluna ITEM tem largura fixa no computador
-  para que nomes longos não mudem a altura da linha.
+  quebram no meio. No Ranking, a coluna ITEM tem largura fixa no computador.
 - **Anéis de nota:** número centrado por `place-items: center`, `line-height: 1`
   e `text-align: center`, mono e tabular em desktop e celular.
 - **Vitrine:** régua vertical de 8 px entre imagem, nome, motivo, preço e

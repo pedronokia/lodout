@@ -14,6 +14,10 @@ ENTRADAS = [
             "Minha conta e Favoritos: a imagem das armas não aparece mais com um losango (◇) por cima; ele só aparece quando o item está sem imagem.",
             "Ranking: a nota média em períodos longos (90 dias e 1 ano) agora dá o mesmo peso para cada dia do calendário, evitando que dias mais recentes com mais coletas puxem o resultado.",
             "Minha conta e Favoritos: itens cujo nome tem barra (“/”) agora podem ser editados, separados, juntados e removidos normalmente; salvar vários valores pagos em sequência ou durante a atualização do inventário não perde mais edições, e o botão “Atualizar agora” não fica travado se uma atualização anterior for interrompida.",
+            "Ranking: o nome do item aparece inteiro, quebrando em duas linhas quando é longo, para dar para ver o desgaste (antes era cortado com reticências).",
+            "Ranking no celular: o anel do canto de cada cartão agora diz “hoje”, para não confundir com a nota média; sem nota na última coleta, aparece “sem nota hoje” em vez de um traço.",
+            "Página inicial: na primeira visita, o texto não pula mais de lugar quando as letras do site terminam de carregar, e as páginas carregam um arquivo de fonte a menos.",
+            "Página inicial: com a coleta atrasada, o ponto de status para de piscar (piscar dava a ideia de dado ao vivo), e o texto “desde a última coleta” ficou mais legível.",
         ],
     },
     {

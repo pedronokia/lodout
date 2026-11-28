@@ -17,15 +17,17 @@
   {# O endereço precisa ser IDÊNTICO ao do @font-face no style.css
      ("fonts/...woff2?v=1"): com a versão do build aqui, o navegador
      baixava a fonte duas vezes (73 KB a mais por visita, Lighthouse
-     2026-11-14). São três fontes (títulos, corpo e dados): trocou
-     alguma? Suba o ?v= no @font-face e no preload dela. #}
+     2026-11-14). São duas fontes (títulos e corpo): trocou alguma?
+     Suba o ?v= no @font-face e no preload dela. A Geist Mono ficou só
+     para código desde 26/11 e não tem preload (28/11): baixava 23 KB em
+     toda página sem ser usada. #}
   <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/outfit-latin.woff2') }}?v=1" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/geist-latin.woff2') }}?v=1" crossorigin>
-  <link rel="preload" as="font" type="font/woff2" href="{{ url_for('static', filename='fonts/geist-mono-latin.woff2') }}?v=1" crossorigin>
   {# Ícones de item caem no CDN da Steam quando o cache local não tem o
      hash -- preconnect abre a conexão TCP/TLS antecipadamente, sem
-     bloquear nada (só uma dica de conexão). #}
-  <link rel="preconnect" href="https://community.steamstatic.com" crossorigin>
+     bloquear nada (só uma dica de conexão). Sem `crossorigin` (28/11):
+     <img> busca sem CORS, e a conexão aberta em modo CORS não servia. #}
+  <link rel="preconnect" href="https://community.steamstatic.com">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   {# iOS Safari historicamente não aceita SVG em apple-touch-icon -- cai
      pra tirar um print da página como ícone (achado 2026-11-01). O PNG

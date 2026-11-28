@@ -126,12 +126,25 @@ def test_fontes_oficiais_autohospedadas():
         assert f'src: url("fonts/{arquivo}?v=1") format("woff2");' in css
         assert f"font-weight: {pesos};" in css
     assert css.count("font-display: swap;") >= 3
-    assert "--font-display: 'Outfit', sans-serif;" in css
-    assert "--font-sans: 'Geist', sans-serif;" in css
+    assert "--font-display: 'Outfit', 'Outfit Fallback', sans-serif;" in css
+    assert "--font-sans: 'Geist', 'Geist Fallback', sans-serif;" in css
     assert "--font-mono: 'Geist Mono', monospace;" in css
     # Revisão 26/11 (pedido do usuário): números na Geist tabular; a
     # Geist Mono fica só para código.
-    assert "--font-num: 'Geist', sans-serif;" in css
+    assert "--font-num: 'Geist', 'Geist Fallback', sans-serif;" in css
+
+
+def test_fallback_com_a_medida_das_fontes():
+    """28/11: na primeira visita, a troca da Arial pela Geist mudava a
+    quebra de linha da página inicial e empurrava o destaque ~30px (CLS
+    0,25). Os fallbacks esticam a Arial para ocupar o mesmo espaço."""
+    css = _css()
+    for familia in ("Geist Fallback", "Outfit Fallback"):
+        início = css.index(f'font-family: "{familia}";')
+        bloco = css[início:css.index("}", início)]
+        assert "src: local(" in bloco
+        assert "size-adjust:" in bloco and "ascent-override:" in bloco
+        assert "descent-override:" in bloco
 
 
 def test_sem_import_do_google_fonts():
@@ -192,7 +205,7 @@ def test_titulos_outfit_700_e_escala_32_48_64():
     css = _css()
     titulos = _bloco(css, "h1, h2, h3")
     assert "font-family: var(--font-display);" in titulos
-    assert "--font-display: 'Outfit', sans-serif;" in css
+    assert "--font-display: 'Outfit', 'Outfit Fallback', sans-serif;" in css
     assert "font-weight: 700;" in titulos
     assert "letter-spacing: -0.025em;" in titulos
     assert "line-height: 1.15;" in titulos
@@ -563,12 +576,14 @@ def test_consistencia_de_interface_26_11():
     for seletor in (".card-valor", ".cartao-item-preco", ".frequencia strong",
                     ".encomenda-preco-hoje", ".ranking-pos-num"):
         assert seletor in secao, seletor
-    # Ranking: coluna ITEM protegida e nome com ellipsis.
+    # Ranking: coluna ITEM protegida e nome inteiro, quebrando linha
+    # (pedido do usuário, 28/11; antes era ellipsis).
     assert ".tabela-top20 { table-layout: fixed; }" in secao
     for n, pct in enumerate(("4%", "34%", "15%", "13%", "11%", "23%"), 1):
         assert f".tabela-top20 thead th:nth-child({n}) {{ width: {pct}; }}" in secao
     item = _bloco_apos(secao, ".tabela-top20 .celula-item-ranking > .link-item {")
-    assert "text-overflow: ellipsis;" in item and "white-space: nowrap;" in item
+    assert "white-space: normal;" in item and "overflow-wrap: break-word;" in item
+    assert "text-overflow: ellipsis;" not in item
     # Anel de nota centrado também no celular.
     anel = _bloco_apos(secao, ".nota,\n.nota-mini {")
     assert "place-items: center;" in anel and "text-align: center;" in anel

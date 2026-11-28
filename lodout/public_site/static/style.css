@@ -48,6 +48,31 @@
   font-display: swap;
 }
 
+/* Fallbacks com a medida das fontes do site (28/11). Na primeira visita,
+   antes de o arquivo chegar, o texto aparece na Arial esticada para ocupar
+   o mesmo espaço da Geist/Outfit. Sem isso, a troca de fonte mudava a
+   quebra de linha da apresentação da página inicial e empurrava o destaque
+   do dia ~30px para baixo (CLS 0,25 no computador). Valores medidos com
+   fontTools sobre o texto real da página. */
+@font-face {
+  font-family: "Geist Fallback";
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans");
+  size-adjust: 104.68%;
+  ascent-override: 96%;
+  descent-override: 28.18%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Outfit Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold");
+  font-weight: 600 800;
+  size-adjust: 94.94%;
+  ascent-override: 105.33%;
+  descent-override: 27.39%;
+  line-gap-override: 0%;
+}
+
 :root {
   color-scheme: dark;
 
@@ -176,15 +201,15 @@
      igual no Windows, Mac e celular e não depende do Google Fonts no
      runtime. `sans-serif`/`monospace` no fim são o degrau de fallback
      se o arquivo local falhar. */
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Geist', sans-serif;
+  --font-display: 'Outfit', 'Outfit Fallback', sans-serif;
+  --font-sans: 'Geist', 'Geist Fallback', sans-serif;
   --font-mono: 'Geist Mono', monospace;
   /* Números (revisão 26/11, pedido do usuário: a Geist Mono nos preços
      e notas dava "cara de IA genérica" e vazava para textos como o nome
      da caixa). Preços, notas e variações usam a própria Geist com
      algarismos tabulares: alinham em coluna sem parecer terminal. A
      Geist Mono fica só para código (API, exemplos). */
-  --font-num: 'Geist', sans-serif;
+  --font-num: 'Geist', 'Geist Fallback', sans-serif;
 
   /* Escala tipográfica -- os tamanhos da Apple: 12, 13, 14, 17, 18, 21,
      24, 32, 48 e 64px. */
@@ -6528,7 +6553,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   table.tabela-top20 tbody td.celula-item-top .celula-item-ranking { gap: var(--sp-2); }
   /* 27/11: o bloco do nome ocupava a largura do nome inteiro numa linha
      (até 390 px) e saía do cartão. Agora fica na largura da célula e o
-     nome corta com reticências (DESIGN.md); o completo segue no title. */
+     nome quebra linha (28/11, DESIGN.md). */
   table.tabela-top20 tbody td.celula-item-top .celula-item-ranking { align-self: stretch; max-width: 100%; }
   table.tabela-top20 tbody td.celula-item-top::before { display: none; }
   .ranking-pos-celular { display: inline; min-width: 2.2em; color: var(--text-muted); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -7536,6 +7561,12 @@ circle.grafico-ponto-interativo:hover {
 
 .status-coleta-ponto {
   animation: pulso-radar 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Dado atrasado não pulsa (auditoria 28/11): o pulso diz "ao vivo", e
+   com a coleta parada ele contradizia o "atualização atrasada" ao lado. */
+.status-scan-desatualizado .status-coleta-ponto {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -11024,7 +11055,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .hero-destaque-desde {
-  color: rgba(255, 255, 255, 0.45);
+  /* 0,45 dava 4,49:1 sobre o degradê do destaque (auditoria 28/11). */
+  color: rgba(255, 255, 255, 0.56);
   font-size: var(--fs-2xs);
   font-weight: 400;
 }
@@ -12711,6 +12743,29 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   table.tabela-conta td .celula-item-conta-texto { min-width: 0; }
 }
 
+/* Ranking — "Nota hoje" (28/11, com o usuário). No celular o cabeçalho
+   da coluna some e o anel do canto ficava sem rótulo, ao lado do anel da
+   "Nota média": a legenda "hoje" diz qual é qual. No computador o
+   cabeçalho já diz, então ela fica escondida. Sem nota na última coleta,
+   o texto explica em vez de um traço solto. */
+.nota-hoje-legenda { display: none; }
+.nota-hoje-legenda[hidden] { display: none; }
+.sem-nota-hoje { font-size: var(--fs-xs); font-style: italic; }
+@media (max-width: 640px) {
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .nota-hoje-legenda {
+    display: block;
+    color: var(--text-muted);
+    font-size: var(--fs-2xs);
+    line-height: 1;
+  }
+  .sem-nota-hoje { max-width: 7ch; text-align: center; white-space: normal; line-height: 1.2; }
+}
+
 /* ==========================================================================
    Consistência de interface — 26/11 (só aparência)
    Fecha as 20 melhorias pedidas sem tocar em dados, workers, Steam, CSP ou
@@ -12827,9 +12882,11 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .conta-ferramentas input,
 .conta-ferramentas select { border-radius: var(--radius-xs); }
 
-/* 11–12. Ranking: coluna ITEM com espaço para o nome (cortado com
-   reticências e título completo), anéis e valores sem quebrar. Larguras
-   fixas só no computador; no celular a tabela continua cartão flexível. */
+/* 11–12. Ranking: coluna ITEM com espaço para o nome, anéis e valores
+   sem quebrar. Larguras fixas só no computador; no celular a tabela
+   continua cartão flexível. Nome inteiro, quebrando linha (pedido do
+   usuário, 28/11: com reticências, os dois "M4A1-S | Night Terror" só
+   se diferenciavam pelo desgaste escondido). */
 @media (min-width: 641px) {
   .tabela-top20 { table-layout: fixed; }
   .tabela-top20 thead th:nth-child(1) { width: 4%; }
@@ -12844,9 +12901,10 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 .tabela-top20 .celula-item-ranking > .link-item {
   display: block;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  line-height: 1.3;
 }
 .tabela-top20 .celula-valor-ranking,
 .tabela-top20 .celula-hoje,

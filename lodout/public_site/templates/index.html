@@ -159,7 +159,7 @@
         {% endif %}
       </a>
       <div class="cartao-item-nota-area">
-        <span class="cartao-item-nota nota-{{ c.score|nota_classe }}" role="img" title="Nota {{ c.score }} de 100" aria-label="Nota {{ c.score }} de 100">{{ c.score|nota_anel|safe }}<span class="cartao-item-nota-numero" aria-hidden="true">{{ c.score }}</span></span>
+        <span class="cartao-item-nota nota-{{ c.score|nota_classe }}" role="img" title="Nota {{ c.score }}" aria-label="Nota {{ c.score }} de 100">{{ c.score|nota_anel|safe }}<span class="cartao-item-nota-numero" aria-hidden="true">{{ c.score }}</span></span>
         {% if c.nota_margem %}<span class="cartao-item-margem" title="A soma dos fatores passou do limite da nota: sem o corte, a nota seria {{ c.score + c.nota_margem }}.">{{ "%+d"|format(c.nota_margem) }}</span>{% endif %}
       </div>
       <label class="cartao-item-comparar-alvo" title="Comparar (até 3 itens)">

@@ -190,7 +190,7 @@
             <span class="celula-item-conta-texto">
               <span class="celula-item-conta-cabeca">
                 <a class="link-item" href="{{ url_for('item_detail', name=row.name) }}" translate="no" title="{{ row.name_fmt }}">{{ row.nome_curto }}</a>
-                {% if row.score is not none %}<span class="nota nota-mini nota-{{ row.score|nota_classe }}" role="img" title="Nota do Lodout: {{ row.score }} de 100" aria-label="Nota {{ row.score }} de 100">{{ row.score|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ row.score }}</span></span>{% endif %}
+                {% if row.score is not none %}<span class="nota nota-mini nota-{{ row.score|nota_classe }}" role="img" title="Nota do Lodout: {{ row.score }}" aria-label="Nota {{ row.score }} de 100">{{ row.score|nota_anel|safe }}<span class="nota-numero" aria-hidden="true">{{ row.score }}</span></span>{% endif %}
               </span>
               {% set tem_acao_lote = row.mostra_juntar %}
               <span class="celula-item-conta-extra">

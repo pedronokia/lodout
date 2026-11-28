@@ -4150,13 +4150,13 @@ def test_sem_preload_de_fonte_custom(client, monkeypatch):
     monkeypatch.setattr(scan_store, "load_last_scan", lambda: None)
     body = client.get("/").data.decode("utf-8")
     assert "Poppins" not in body
-    # Os preloads das três fontes oficiais (referenciadas pelo @font-face
-    # do CSS) são intencionais: aceleram o LCP. O que não pode existir é
-    # preload de fonte não usada (Poppins).
+    # Os preloads das fontes de títulos e corpo são intencionais:
+    # aceleram o LCP. O que não pode existir é preload de fonte não usada
+    # (Poppins; e a Geist Mono, só de código desde 26/11 -- 28/11).
     assert 'Poppins' not in body
-    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
-                 "geist-mono-latin.woff2"):
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2"):
         assert nome in body
+    assert "geist-mono-latin.woff2" not in body
     # Não deve haver preload de arquivo de fonte Poppins.
     assert not any(
         'rel="preload"' in linha and 'Poppins' in linha
@@ -6102,8 +6102,8 @@ def test_pagina_alem_do_fim_mostra_a_ultima(client, monkeypatch, tmp_path):
 
 def test_preload_das_fontes_tem_o_mesmo_endereco_do_css(client):
     """Preload e @font-face com URLs diferentes = a fonte baixada duas
-    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita). Desde 26/11
-    são três fontes (títulos, corpo e dados); os três endereços precisam
+    vezes (Lighthouse, 2026-11-14: 73 KB a mais por visita). Desde 28/11
+    são duas fontes com preload (títulos e corpo); os endereços precisam
     bater exatamente."""
     import re
     from pathlib import Path
@@ -6112,8 +6112,7 @@ def test_preload_das_fontes_tem_o_mesmo_endereco_do_css(client):
     corpo = client.get("/").data.decode("utf-8")
     preloads = re.findall(
         r'rel="preload" as="font"[^>]*href="([^"]+)"', corpo)
-    for nome in ("outfit-latin.woff2", "geist-latin.woff2",
-                 "geist-mono-latin.woff2"):
+    for nome in ("outfit-latin.woff2", "geist-latin.woff2"):
         no_css = re.search(
             r'url\("(fonts/' + re.escape(nome) + r'[^"]*)"\)', css).group(1)
         assert "/static/" + no_css in preloads
