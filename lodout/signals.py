@@ -1099,21 +1099,33 @@ def pump_risk(price_history: list[dict] | None = None,
             pct = rta.get("pct_of_ath", 0) * 100
             reasons.append(f"Em {pct:.0f}% do maior preço já registrado")
 
-    # Flag 2: rally recente >= +20% em 30d (v1 era +30%/14d)
+    # Flag 2: rally recente >= +20% em 30 dias reais (v1 era +30%/14d).
+    # Com pontos horarios nos ultimos ~28 dias da Steam, prices[-30] media
+    # ~30 horas em vez de 30 dias. Usa daily_series quando ha timestamps
+    # reais em multiplos dias; fallback por contagem so' para series
+    # sinteticas sem timestamps diarios (< 2 dias distintos).
     if price_history and len(price_history) >= 30 and not regime_recent:
-        try:
-            sorted_h = sorted(price_history, key=lambda x: x["time"])
-        except (KeyError, TypeError):
-            sorted_h = list(price_history)
-        prices = [p["price_median"] for p in sorted_h]
-        if len(prices) >= 30:
-            recent = prices[-1]
-            earlier = prices[-30]
-            if earlier > 0:
-                pct_change = (recent - earlier) / earlier
-                if pct_change >= 0.20:
-                    flags += 1
-                    reasons.append(f"Subiu {pct_change*100:.0f}% em 30 dias")
+        diario_todo = daily_series(price_history)
+        recent = earlier = None
+        if len(diario_todo) >= 30:
+            janela_30 = daily_series(price_history, days=31)
+            if len(janela_30) >= 2:
+                recent = janela_30[-1]["price_median"]
+                earlier = janela_30[0]["price_median"]
+        elif len(diario_todo) < 2:
+            try:
+                sorted_h = sorted(price_history, key=lambda x: x["time"])
+            except (KeyError, TypeError):
+                sorted_h = list(price_history)
+            prices = [p["price_median"] for p in sorted_h]
+            if len(prices) >= 30:
+                recent = prices[-1]
+                earlier = prices[-30]
+        if earlier and earlier > 0 and recent is not None:
+            pct_change = (recent - earlier) / earlier
+            if pct_change >= 0.20:
+                flags += 1
+                reasons.append(f"Subiu {pct_change*100:.0f}% em 30 dias")
 
     # Flag 3: volume sustentado 7d vs 30d
     if volume_history and len(volume_history) >= 30:
@@ -1249,6 +1261,7 @@ def enhanced_score(verdict: dict, volume: int | None = None,
                    is_container: bool = False,
                    volume_history: list[dict] | None = None,
                    now_ts: float | None = None,
+                   category: str | None = None,
                    ) -> tuple[int, list[dict]]:
     """Score 0-100 + breakdown com contribuicao de cada fator.
 
@@ -1513,7 +1526,7 @@ def enhanced_score(verdict: dict, volume: int | None = None,
     # apenas em catalisadores muito recentes. Efeito apenas live (backtest
     # nao passa category para pump_risk).
     if _PUMP_PENALTY_ENABLED and price_history:
-        pr = pump_risk(price_history, volume_history)
+        pr = pump_risk(price_history, volume_history, category=category)
         if pr["level"] == "high":
             reason_short = ", ".join(pr["reasons"][:2]) or "multiplas flags"
             _add("pump_risk", _PUMP_HIGH_PENALTY,

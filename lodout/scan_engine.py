@@ -170,6 +170,7 @@ def scan_item(name: str, category: str | None = None,
         sell_count=ob.get("sell_count") if ob else None,
         price_history=page.get("price_history") if page else None,
         tradable_restriction=meta.get("tradable_restriction"),
+        best_ask=ob.get("best_ask") if ob else None,
     ) if page else steam_api.fair_value_verdict(lowest, median)
     signals.record_item_price(name, lowest)
     if volume:
@@ -190,6 +191,7 @@ def scan_item(name: str, category: str | None = None,
     # manual _SKIN_TO_CASE nao cobre, sem sobrescrever o que ja' cobre.
     cs = cases.case_status(name, collection=meta.get("collection"))
     is_cont = cases.is_container(name)
+    vol_hist = signals.load_item_volume(name)
 
     score, breakdown = signals.enhanced_score(
         verdict, volume, supply,
@@ -197,6 +199,8 @@ def scan_item(name: str, category: str | None = None,
         price_history=page.get("price_history") if page else None,
         case_status=cs,
         is_container=is_cont,
+        volume_history=vol_hist,
+        category=category,
     )
 
     dq = signals.data_quality(
@@ -205,7 +209,7 @@ def scan_item(name: str, category: str | None = None,
 
     pr = signals.pump_risk(
         price_history=page.get("price_history") if page else None,
-        volume_history=signals.load_item_volume(name),
+        volume_history=vol_hist,
         category=category,
     )
 
@@ -218,7 +222,7 @@ def scan_item(name: str, category: str | None = None,
     if sombra is not None and overview_real:
         sombra.update(_nota_so_com_a_pagina(
             sombra, score, lowest, volume, supply, ob, page, meta, multi,
-            cs, is_cont))
+            cs, is_cont, volume_history=vol_hist, category=category))
     approx_suffix = " ~" if ob_approx else ""
 
     return {
@@ -248,8 +252,7 @@ def scan_item(name: str, category: str | None = None,
         "volume": volume,
         "supply": supply,
         "sd_label": signals.supply_demand_ratio(volume, supply).get("label", ""),
-        "liquidity_depth": signals.liquidity_depth(
-            supply, signals.load_item_volume(name)),
+        "liquidity_depth": signals.liquidity_depth(supply, vol_hist),
         "zscore": signals.price_zscore(
             page.get("price_history")) if page else {},
         "score_tooltip": signals.format_breakdown(breakdown),
@@ -347,7 +350,9 @@ def _guardar_copia_da_pagina(name: str, page) -> None:
 
 def _nota_so_com_a_pagina(sombra: dict, score: int, lowest: float,
                           volume, supply, ob, page: dict, meta: dict,
-                          multi, cs, is_cont: bool) -> dict:
+                          multi, cs, is_cont: bool,
+                          volume_history=None,
+                          category: "str | None" = None) -> dict:
     """Modo sombra (2026-11-15): a nota que o item teria se a mediana e o
     volume viessem só da listing page (o modo de 1 consulta por item),
     ao lado da nota de verdade. A trava do modo exige mediana a até 5% do
@@ -372,11 +377,13 @@ def _nota_so_com_a_pagina(sombra: dict, score: int, lowest: float,
             buy_count=ob.get("buy_count") if ob else None,
             sell_count=ob.get("sell_count") if ob else None,
             price_history=hist,
-            tradable_restriction=meta.get("tradable_restriction"))
+            tradable_restriction=meta.get("tradable_restriction"),
+            best_ask=ob.get("best_ask") if ob else None)
         nota_p, _ = signals.enhanced_score(
             verdict_p, sombra.get("compras_24h") or volume, supply,
             multi_trend=multi, price_history=hist, case_status=cs,
-            is_container=is_cont)
+            is_container=is_cont, volume_history=volume_history,
+            category=category)
     except Exception:
         return out
     out["nota_pagina"] = nota_p

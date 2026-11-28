@@ -1266,6 +1266,7 @@ def fair_value_verdict(
     sell_count: int | None = None,
     price_history: list | None = None,
     tradable_restriction: int | None = None,
+    best_ask: int | None = None,
 ) -> dict:
     """Compara lowest vs mediana e da' o veredito honesto.
 
@@ -1275,6 +1276,10 @@ def fair_value_verdict(
       sell_count: numero de ordens de venda
       price_history: lista de {time, price_median, purchases}
       tradable_restriction: dias de bloqueio apos a compra (7 no CS2)
+      best_ask: menor ordem de venda do MESMO order book (em centavos);
+        quando informado, calcula spread_pct de forma adimensional
+        (`spread / best_ask`), imune a diferenca de moeda ou de preco
+        entre desgastes irmaos no cache SSR.
 
     Sobre o bloqueio: comprar e revender NAO e' operacao instantanea. O
     item fica travado por `tradable_restriction` dias, entao todo "flip"
@@ -1317,7 +1322,10 @@ def fair_value_verdict(
         "message": msg,
     }
 
-    extra = _extra_verdict(spread, buy_count, sell_count, price_history, lowest)
+    extra = _extra_verdict(
+        spread, buy_count, sell_count, price_history, lowest,
+        best_ask=best_ask,
+    )
     if extra:
         result.update(extra)
         msg_parts = [result["message"]]
@@ -1354,13 +1362,20 @@ def _extra_verdict(
     sell_count: int | None,
     price_history: list | None,
     lowest: float | None = None,
+    best_ask: int | None = None,
 ) -> dict | None:
     """Analisa order book + price history e retorna indicadores extras."""
     extra: dict = {}
     details: dict = {}
 
-    if spread is not None and spread > 0 and lowest and lowest > 0:
-        spread_pct = spread / (spread + lowest * 100) * 100
+    ref_ask = (
+        float(best_ask)
+        if (isinstance(best_ask, (int, float))
+            and not isinstance(best_ask, bool) and best_ask > 0)
+        else (float(lowest) * 100.0 if lowest and lowest > 0 else 0.0)
+    )
+    if spread is not None and spread >= 0 and ref_ask > 0:
+        spread_pct = spread / ref_ask * 100
         extra["spread_pct"] = round(spread_pct, 2)
         if spread_pct <= 2:
             extra["spread_verdict"] = "tight"
