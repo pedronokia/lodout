@@ -464,6 +464,17 @@ def test_rotulos_de_venda_por_nao_quebram_no_computador():
     assert "@media (min-width: 641px) and (max-width: 64em)" in css
 
 
+def test_losango_some_quando_o_item_tem_imagem():
+    """28/11: a regra do quadro compacto repunha o placeholder (display:
+    flex) e o "◇" aparecia através do fundo transparente das armas na
+    Minha conta. Com imagem, ele fica escondido; sem, volta (app.js tira
+    a classe -com-imagem quando a imagem falha)."""
+    css = _css()
+    regra = ".icone-item-quadro-compacto.icone-item-quadro-com-imagem .icone-item-placeholder"
+    assert "display: none;" in _bloco_final(css, regra)
+    assert css.index(regra) > css.index(".icone-item-quadro-compacto .icone-item-placeholder {")
+
+
 def test_ajuste_fino_da_conta():
     """Ajuste 26/11: linhas de apoio com respiro lateral, célula do item
     mais baixa no computador e os quatro valores numéricos na mesma régua

@@ -10016,6 +10016,14 @@ table.tabela-comparar tbody tr:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Com imagem, o losango some (28/11): a regra acima repunha o
+   placeholder com display:flex por cima da regra geral de esconder, e o
+   "◇" aparecia através do fundo transparente das armas na Minha conta.
+   Se a imagem falhar, app.js tira a classe -com-imagem e ele volta. */
+.icone-item-quadro-compacto.icone-item-quadro-com-imagem .icone-item-placeholder {
+  display: none;
+}
+
 .icone-item-quadro-compacto .icone-item-placeholder::before {
   content: "◇";
   color: rgba(255, 255, 255, 0.25);

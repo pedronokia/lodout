@@ -8,6 +8,13 @@ from __future__ import annotations
 
 ENTRADAS = [
     {
+        "data": "2026-11-28",
+        "titulo": "Imagens dos itens na Minha conta",
+        "itens": [
+            "Minha conta e Favoritos: a imagem das armas não aparece mais com um losango (◇) por cima; ele só aparece quando o item está sem imagem.",
+        ],
+    },
+    {
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
