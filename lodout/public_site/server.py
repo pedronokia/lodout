@@ -8,6 +8,7 @@ conta; a página pública chama `recommendations.buy_candidates` com
 """
 from __future__ import annotations
 
+import json
 import logging
 import logging.handlers
 import math
@@ -1497,6 +1498,7 @@ def create_app() -> Flask:
         for c in ciclos_admin:
             c["quando"] = scan_store.idade_txt(c["ts"])
         visitas_total = visits.total()
+        usuarios_info = _resumo_usuarios_admin()
         return render_template(
             "admin.html",
             build=_build_id(),
@@ -1511,7 +1513,8 @@ def create_app() -> Flask:
             progresso=progresso,
             latencias=latencia.resumo(),
             disco=_disco_info(),
-            usuarios=_contagem_usuarios(),
+            usuarios=usuarios_info["total"],
+            usuarios_info=usuarios_info,
             webhook_configurado=bool(
                 ambiente("ADMIN_DISCORD_WEBHOOK")),
             teste_webhook_msg=request.args.get("teste_webhook"),
@@ -1879,6 +1882,174 @@ def _contagem_usuarios() -> int:
     finally:
         if conn is not None:
             conn.close()
+
+
+def _resumo_usuarios_admin(
+    path: "Path | str | None" = None,
+    now: "float | None" = None,
+    limite: int = 50,
+) -> dict:
+    """Resumo operacional das contas com login Steam para o painel /admin.
+
+    Lê apenas `users` e contagens agregadas de `user_data` (portfólio,
+    watchlist, webhook) sem nunca expor valores pagos ou lucro individual.
+    """
+    vazio = {
+        "total": 0,
+        "ativos_24h": 0,
+        "ativos_7d": 0,
+        "ativos_30d": 0,
+        "novos_24h": 0,
+        "novos_7d": 0,
+        "novos_30d": 0,
+        "com_portfolio": 0,
+        "com_watchlist": 0,
+        "com_webhook": 0,
+        "ultimo_login_txt": None,
+        "grafico_novos": "",
+        "contas": [],
+        "exibidas": 0,
+    }
+    p = Path(path) if path is not None else db_backup._DB_PATH
+    if not p.exists():
+        return vazio
+    agora = time.time() if now is None else float(now)
+    conn = None
+    try:
+        conn = sqlite3.connect(str(p), timeout=3.0)
+        conn.execute("PRAGMA busy_timeout=3000")
+        linhas = conn.execute(
+            "SELECT steamid, persona_name, created_ts, last_login_ts "
+            "FROM users "
+            "ORDER BY COALESCE(last_login_ts, created_ts, 0) DESC"
+        ).fetchall()
+        try:
+            dados_rows = conn.execute(
+                "SELECT steamid, kind, payload FROM user_data "
+                "WHERE kind IN ('portfolio', 'watchlist', 'webhook')"
+            ).fetchall()
+        except sqlite3.Error:
+            dados_rows = []
+    except sqlite3.Error:
+        return vazio
+    finally:
+        if conn is not None:
+            conn.close()
+
+    if not linhas:
+        return vazio
+
+    itens_por_conta: dict[str, int] = {}
+    watch_contas: set[str] = set()
+    webhook_contas: set[str] = set()
+    for sid, kind, payload in dados_rows:
+        try:
+            obj = json.loads(payload)
+        except (TypeError, ValueError):
+            continue
+        if kind == "portfolio" and isinstance(obj, list):
+            if obj:
+                itens_por_conta[sid] = len(obj)
+        elif kind == "watchlist" and isinstance(obj, list) and obj:
+            watch_contas.add(sid)
+        elif kind == "webhook":
+            url = obj.get("url") if isinstance(obj, dict) else obj
+            if isinstance(url, str) and url.strip():
+                webhook_contas.add(sid)
+
+    corte_24h = agora - 86400
+    corte_7d = agora - 7 * 86400
+    corte_30d = agora - 30 * 86400
+    ativos_24h = ativos_7d = ativos_30d = 0
+    novos_24h = novos_7d = novos_30d = 0
+    ultimo_login_ts: float | None = None
+    novos_por_dia: dict[date, int] = {}
+    contas: list[dict] = []
+
+    for sid, nome, created_ts, last_login_ts in linhas:
+        sid_str = str(sid or "")
+        cts = float(created_ts) if isinstance(created_ts, (int, float)) else None
+        lts = float(last_login_ts) if isinstance(last_login_ts, (int, float)) else cts
+        if lts is not None:
+            if ultimo_login_ts is None or lts > ultimo_login_ts:
+                ultimo_login_ts = lts
+            if lts >= corte_24h:
+                ativos_24h += 1
+            if lts >= corte_7d:
+                ativos_7d += 1
+            if lts >= corte_30d:
+                ativos_30d += 1
+        if cts is not None:
+            if cts >= corte_24h:
+                novos_24h += 1
+            if cts >= corte_7d:
+                novos_7d += 1
+            if cts >= corte_30d:
+                novos_30d += 1
+            dia = datetime.fromtimestamp(cts, tz=fmt.FUSO_BR).date()
+            novos_por_dia[dia] = novos_por_dia.get(dia, 0) + 1
+        if len(contas) < max(1, int(limite)):
+            n_itens = itens_por_conta.get(sid_str, 0)
+            tem_w = sid_str in watch_contas
+            tem_wh = sid_str in webhook_contas
+            uso_partes = []
+            if n_itens:
+                uso_partes.append(f"{n_itens} {'item' if n_itens == 1 else 'itens'}")
+            if tem_w:
+                uso_partes.append("alertas")
+            if tem_wh:
+                uso_partes.append("Discord")
+            contas.append({
+                "steamid": sid_str,
+                "perfil_url": (f"https://steamcommunity.com/profiles/{sid_str}"
+                               if sid_str.isdigit() else None),
+                "nome": (str(nome).strip() if nome else "") or "Sem nome",
+                "criado_em": (datetime.fromtimestamp(cts, tz=fmt.FUSO_BR)
+                              .strftime("%d/%m/%Y") if cts is not None else "—"),
+                "ultimo_login": (scan_store.idade_txt(lts, now=agora)
+                                 if lts is not None else "—"),
+                "itens_portfolio": n_itens,
+                "tem_watchlist": tem_w,
+                "tem_webhook": tem_wh,
+                "uso_resumo": " · ".join(uso_partes) if uso_partes else "—",
+            })
+
+    grafico_novos = ""
+    if len(novos_por_dia) >= 2:
+        hoje = datetime.fromtimestamp(agora, tz=fmt.FUSO_BR).date()
+        inicio_janela = max(min(novos_por_dia), hoje - timedelta(days=29))
+        dias_serie = []
+        d_atual = inicio_janela
+        while d_atual <= hoje:
+            dias_serie.append((d_atual, novos_por_dia.get(d_atual, 0)))
+            d_atual += timedelta(days=1)
+        if len(dias_serie) >= 2:
+            grafico_novos = charts.bar_chart_svg(
+                [q for _d, q in dias_serie],
+                [d.strftime("%d/%m") for d, _q in dias_serie],
+                [f"{d.strftime('%d/%m/%Y')} — {q} "
+                 f"{'nova conta' if q == 1 else 'novas contas'}"
+                 for d, q in dias_serie],
+            )
+
+    sids_validos = {str(r[0] or "") for r in linhas}
+    return {
+        "total": len(linhas),
+        "ativos_24h": ativos_24h,
+        "ativos_7d": ativos_7d,
+        "ativos_30d": ativos_30d,
+        "novos_24h": novos_24h,
+        "novos_7d": novos_7d,
+        "novos_30d": novos_30d,
+        "com_portfolio": sum(1 for s in itens_por_conta if s in sids_validos),
+        "com_watchlist": sum(1 for s in watch_contas if s in sids_validos),
+        "com_webhook": sum(1 for s in webhook_contas if s in sids_validos),
+        "ultimo_login_txt": (scan_store.idade_txt(ultimo_login_ts, now=agora)
+                             if ultimo_login_ts is not None else None),
+        "grafico_novos": grafico_novos,
+        "contas": contas,
+        "exibidas": len(contas),
+    }
 
 
 _RISCO_LABELS = {"low": "Baixo", "medium": "Médio", "high": "Alto"}

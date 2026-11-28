@@ -34,6 +34,49 @@
       <div class="card"><span class="card-label">Disco livre</span><span class="card-valor {{ 'valor-negativo' if disco.livre_pct is not none and disco.livre_pct < 15 else '' }}">{{ disco.livre_fmt }} ({{ disco.livre_pct }}%)</span></div>
     </section>
 
+    <h2 class="secao-titulo" id="contas">Contas com login Steam</h2>
+    {% if usuarios_info and usuarios_info.total %}
+    <ul>
+      <li><strong>Total de SteamIDs cadastrados:</strong> {{ usuarios_info.total }}{% if usuarios_info.ultimo_login_txt %} (último login {{ usuarios_info.ultimo_login_txt }}){% endif %}</li>
+      <li><strong>Ativas (fizeram login):</strong> {{ usuarios_info.ativos_24h }} nas últimas 24 h · {{ usuarios_info.ativos_7d }} em 7 dias · {{ usuarios_info.ativos_30d }} em 30 dias</li>
+      <li><strong>Novas contas:</strong> {{ usuarios_info.novos_24h }} nas últimas 24 h · {{ usuarios_info.novos_7d }} em 7 dias · {{ usuarios_info.novos_30d }} em 30 dias</li>
+      <li><strong>Uso da conta:</strong> {{ usuarios_info.com_portfolio }} com itens no portfólio · {{ usuarios_info.com_watchlist }} com alertas · {{ usuarios_info.com_webhook }} com webhook no Discord</li>
+    </ul>
+    {% if usuarios_info.grafico_novos %}
+      <div class="card grafico-card">{{ usuarios_info.grafico_novos|safe }}</div>
+    {% endif %}
+    <p class="dica-rolagem-tabela">Deslize a tabela para ver mais colunas.</p>
+    <div class="tabela-wrap" role="region" tabindex="0" aria-label="Tabela das contas com login Steam, com rolagem lateral">
+      <table class="tabela-candidatos tabela-status">
+        <thead>
+          <tr>
+            <th>Conta</th>
+            <th>SteamID</th>
+            <th>Primeiro login</th>
+            <th>Último login</th>
+            <th>Uso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for conta in usuarios_info.contas %}
+          <tr>
+            <td>{{ conta.nome }}</td>
+            <td>{% if conta.perfil_url %}<a href="{{ conta.perfil_url }}" target="_blank" rel="noopener noreferrer"><code>{{ conta.steamid }}</code></a>{% else %}<code>{{ conta.steamid }}</code>{% endif %}</td>
+            <td>{{ conta.criado_em }}</td>
+            <td>{{ conta.ultimo_login }}</td>
+            <td>{{ conta.uso_resumo }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if usuarios_info.total > usuarios_info.exibidas %}
+      <p class="status">Mostrando as {{ usuarios_info.exibidas }} contas com login mais recente de {{ usuarios_info.total }} no total.</p>
+    {% endif %}
+    {% else %}
+      <p class="status status-vazio">Nenhuma conta entrou com Steam ainda.</p>
+    {% endif %}
+
     <h2 class="secao-titulo">Armazenamento</h2>
     <ul>
       <li>Disco: {{ disco.livre_fmt }} livres de {{ disco.total_fmt }}</li>
