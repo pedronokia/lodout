@@ -27,11 +27,16 @@ def test_add_item_sem_target(tmp_path):
 
 def test_update_rules(tmp_path):
     p = tmp_path / "x.db"
-    user_watchlist.add_item("1", "AK-47", path=p)
+    user_watchlist.add_item("1", "AK-47", 50.0, path=p)
     out = user_watchlist.update_rules(
         "1", "AK-47", {"price_below": 5.0}, baseline_price=20.0, path=p)
     assert out[0]["rules"] == {"price_below": 5.0}
+    assert out[0]["target"] == 5.0
     assert out[0]["baseline_price"] == 20.0
+    # Limpar price_below também zera target legado.
+    limpo = user_watchlist.update_rules("1", "AK-47", {}, path=p)
+    assert limpo[0]["rules"] == {}
+    assert limpo[0]["target"] == 0.0
 
 
 def test_update_rules_reseta_triggered_rules(tmp_path):

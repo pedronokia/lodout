@@ -3,7 +3,7 @@
   <div class="spotlight-modal">
     <div class="spotlight-topo">
       <span class="spotlight-icone" aria-hidden="true">{{ icone("lupa") }}</span>
-      <input type="text" id="spotlight-input" class="spotlight-input" placeholder="Buscar entre 33.000 skins e caixas... (ex.: redline, asiimov)" autocomplete="off" spellcheck="false" aria-label="Digite o nome da skin ou caixa">
+      <input type="text" id="spotlight-input" class="spotlight-input" role="combobox" aria-autocomplete="list" aria-controls="spotlight-resultados" aria-expanded="false" placeholder="Buscar entre 33.000 skins e caixas... (ex.: redline, asiimov)" autocomplete="off" spellcheck="false" aria-label="Digite o nome da skin ou caixa">
       <button type="button" class="spotlight-filtro-btn" id="spotlight-filtro-btn" title="Filtrar catálogo" aria-label="Filtros">{{ icone("filtro") }}<span>Filtros</span></button>
       <button type="button" class="spotlight-fechar" id="spotlight-fechar" aria-label="Fechar busca rápida"><kbd>Esc</kbd>{{ icone("fechar") }}</button>
     </div>
@@ -19,3 +19,4 @@
     </div>
   </div>
 </div>
+<script src="{{ static_v('busca_topo.js') }}" defer></script>

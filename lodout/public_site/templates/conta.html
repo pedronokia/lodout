@@ -178,7 +178,7 @@
       </thead>
       <tbody role="rowgroup">
         {% for row in avaliacao.rows %}
-        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}" data-meta-atingida="{{ '1' if row.atingiu_meta else '0' }}">
+        <tr role="row" class="linha-posicao{{ ' linha-sem-custo' if not row.has_cost else '' }}{{ ' linha-lote' if row.lotes_total and row.lotes_total > 1 else '' }}{{ ' linha-fora' if row.fora_desde else '' }}" data-busca="{{ (row.name_fmt ~ ' ' ~ row.name ~ ' ' ~ row.busca_extra)|lower }}" data-item="{{ row.name }}" data-qtd="{{ row.quantity or 1 }}" data-valor="{{ '%.4f'|format((row.price or 0) * (row.quantity or 1)) }}" data-lucro="{{ '%.4f'|format(row.pnl) if row.has_cost and row.pnl is not none else '' }}" data-empate="{{ '%.4f'|format(row.empate) if row.empate else '' }}" data-meta-atingida="{{ '1' if row.atingiu_meta else '0' }}">
           <td role="cell" data-label="Item">
             <div class="celula-item-conta">
             <span class="icone-item-quadro icone-item-quadro-compacto{{ ' icone-item-quadro-com-imagem' if row.icon_url else '' }}{{ ' ' ~ row.raridade_classe if row.raridade_classe else '' }}" aria-hidden="true"{% if row.raridade_titulo %} title="{{ row.raridade_titulo }}"{% endif %}>
@@ -309,7 +309,7 @@
               <span class="campo-reais{{ ' campo-reais-cada' if row.quantity and row.quantity > 1 else '' }}">
                 <span class="campo-reais-prefixo" aria-hidden="true">R$</span>
                 {% if row.quantity and row.quantity > 1 %}<span class="campo-reais-sufixo" aria-hidden="true">cada</span>{% endif %}
-                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.cost else '' }}" placeholder="quanto?" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
+                <input type="text" name="cost" inputmode="decimal" enterkeyhint="next" pattern="(R\$ ?)?[0-9]{1,3}(\.?[0-9]{3})*([.,][0-9]{1,2})?" title="Valor em reais, por exemplo 12,50" maxlength="12" autocomplete="off" value="{{ ('%.2f'|format(row.cost)).replace('.', ',') if row.has_cost and row.cost is not none else '' }}" placeholder="quanto?" class="input-compacto input-custo" aria-label="Quanto você pagou em {{ row.name_fmt }}, em reais{{ ', por unidade' if row.quantity and row.quantity > 1 else '' }}">
               </span>
               <button type="submit" class="botao-link">salvar</button>
               <span class="custo-salvo" role="status" aria-live="polite"></span>

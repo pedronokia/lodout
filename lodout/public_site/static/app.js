@@ -41,16 +41,19 @@ document.addEventListener("click", function (e) {
   navigator.clipboard.writeText(texto).then(function () {
     var label = btn.querySelector(".texto-copiar");
     if (!label) return;
-    var original = label.textContent;
-    var originalAria = btn.getAttribute("aria-label");
+    if (btn._copiarOriginal === undefined) {
+      btn._copiarOriginal = label.textContent;
+      btn._copiarAria = btn.getAttribute("aria-label");
+    }
     label.textContent = "Copiado";
     anunciar("Copiado");
     btn.classList.add("copiado");
     btn.setAttribute("aria-label", "Copiado");
-    setTimeout(function () {
-      label.textContent = original;
+    clearTimeout(btn._copiarTimer);
+    btn._copiarTimer = setTimeout(function () {
+      label.textContent = btn._copiarOriginal;
       btn.classList.remove("copiado");
-      if (originalAria) btn.setAttribute("aria-label", originalAria);
+      if (btn._copiarAria) btn.setAttribute("aria-label", btn._copiarAria);
       else btn.removeAttribute("aria-label");
     }, 1200);
   }).catch(function () {});
@@ -77,157 +80,6 @@ document.addEventListener("error", function (e) {
     if (quadro) quadro.classList.remove("icone-item-quadro-com-imagem");
   }
 }, true);
-// ==========================================================================
-// Busca e Filtragem Instantânea no Navegador (0ms UX)
-// ==========================================================================
-(function () {
-  var campo = document.getElementById("campo-busca");
-  if (!campo) return;
-
-  function normalizar(txt) {
-    if (!txt) return "";
-    return txt.toString().toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .trim();
-  }
-
-  var cards = document.querySelectorAll(".grade-cards .cartao-item, .cartao-item");
-  var rows = document.querySelectorAll(".tabela-itens tbody tr, .tabela-candidatos tbody tr");
-  var hero = document.querySelector(".hero-destaque");
-  var heroNomeNorm = hero ? normalizar(hero.querySelector(".hero-destaque-nome") ? hero.querySelector(".hero-destaque-nome").textContent : "") : "";
-  var itens = [];
-
-  // Pré-indexa os cards da vitrine
-  cards.forEach(function (el) {
-    var nomeEl = el.querySelector(".cartao-item-nome, .link-item");
-    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || el.textContent || "";
-    itens.push({
-      el: el,
-      tipo: "card",
-      nomeNorm: normalizar(nome)
-    });
-  });
-
-  // Pré-indexa as linhas da tabela
-  rows.forEach(function (el) {
-    var nomeEl = el.querySelector(".link-item");
-    var nome = el.getAttribute("data-nome") || (nomeEl ? nomeEl.textContent : "") || el.textContent || "";
-    itens.push({
-      el: el,
-      tipo: "row",
-      nomeNorm: normalizar(nome)
-    });
-  });
-
-  var debounceTimer = null;
-  function executarFiltro() {
-    var termo = normalizar(campo.value);
-    var termos = termo ? termo.split(/\s+/).filter(Boolean) : [];
-    var visiveis = 0;
-
-    // Filtra o hero card em destaque se presente
-    if (hero) {
-      var heroBateu = true;
-      if (termos.length > 0) {
-        for (var ht = 0; ht < termos.length; ht++) {
-          if (heroNomeNorm.indexOf(termos[ht]) === -1) {
-            heroBateu = false;
-            break;
-          }
-        }
-      }
-      if (heroBateu || termos.length === 0) {
-        hero.removeAttribute("hidden");
-        hero.style.removeProperty("display");
-      } else {
-        hero.setAttribute("hidden", "");
-        hero.style.setProperty("display", "none", "important");
-      }
-    }
-
-    for (var i = 0; i < itens.length; i++) {
-      var it = itens[i];
-      var bateu = true;
-
-      if (termos.length > 0) {
-        for (var t = 0; t < termos.length; t++) {
-          if (it.nomeNorm.indexOf(termos[t]) === -1) {
-            bateu = false;
-            break;
-          }
-        }
-      }
-
-      if (bateu) {
-        it.el.removeAttribute("hidden");
-        it.el.style.removeProperty("display");
-        visiveis++;
-      } else {
-        it.el.setAttribute("hidden", "");
-        it.el.style.setProperty("display", "none", "important");
-      }
-    }
-
-    try {
-      var url = new URL(window.location.href);
-      if (campo.value.trim()) {
-        url.searchParams.set("q", campo.value.trim());
-      } else {
-        url.searchParams.delete("q");
-      }
-      window.history.replaceState({}, "", url.toString());
-    } catch (e) {}
-
-    var avisoVazio = document.getElementById("busca-instantanea-vazia");
-    if (termo && visiveis === 0 && itens.length > 0) {
-      if (!avisoVazio) {
-        avisoVazio = document.createElement("div");
-        avisoVazio.id = "busca-instantanea-vazia";
-        avisoVazio.className = "card card-aviso-vazio";
-        avisoVazio.style.margin = "20px 0";
-        avisoVazio.style.textAlign = "center";
-        avisoVazio.style.padding = "24px 16px";
-        var container = document.querySelector(".grade-cards, .tabela-wrap, .tabela-candidatos");
-        if (container && container.parentNode) {
-          container.parentNode.insertBefore(avisoVazio, container);
-        }
-      }
-      avisoVazio.innerHTML = '<p style="color: rgba(255,255,255,0.7); margin: 0;">Nenhum item corresponde a "<strong>' +
-        campo.value.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</strong>" nesta página.</p>';
-      avisoVazio.removeAttribute("hidden");
-    } else if (avisoVazio) {
-      avisoVazio.setAttribute("hidden", "");
-    }
-  }
-
-  // Atalho "/" para focar o campo de busca
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "/" && !e.ctrlKey && !e.metaKey) {
-      var ativo = document.activeElement;
-      var campoAberto = ativo && (ativo.tagName === "INPUT"
-        || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT");
-      if (campoAberto) return;
-      e.preventDefault();
-      campo.focus();
-    } else if (e.key === "Escape" && document.activeElement === campo) {
-      campo.value = "";
-      executarFiltro();
-      campo.blur();
-    }
-  });
-
-  campo.addEventListener("input", function () {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(executarFiltro, 30);
-  });
-
-  var form = campo.closest("form");
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      executarFiltro();
-    });
-  }
-})();
 (function () {
   var CHAVE = "lodout_notas";
   function lerTudo() {
@@ -493,10 +345,14 @@ document.addEventListener("error", function (e) {
   } catch (e) {}
 })();
 document.addEventListener("keydown", function (e) {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  var spot = document.getElementById("spotlight-overlay");
+  if (spot && !spot.hidden) return;
   var ativo = document.activeElement;
   var campoAberto = ativo && (ativo.tagName === "INPUT"
-    || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT");
+    || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT"
+    || ativo.isContentEditable);
   if (campoAberto) return;
   var id = e.key === "ArrowLeft" ? "link-pagina-anterior" : "link-pagina-seguinte";
   var link = document.getElementById(id);
@@ -555,10 +411,14 @@ if ("serviceWorker" in navigator) {
     }
   });
   document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key !== "f" && e.key !== "F") return;
+    var spot = document.getElementById("spotlight-overlay");
+    if (spot && !spot.hidden) return;
     var ativo = document.activeElement;
     var campoAberto = ativo && (ativo.tagName === "INPUT"
-      || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT");
+      || ativo.tagName === "TEXTAREA" || ativo.tagName === "SELECT"
+      || ativo.isContentEditable);
     if (campoAberto) return;
     var botao = document.getElementById("botao-favoritos");
     if (botao) botao.click();
@@ -567,7 +427,7 @@ if ("serviceWorker" in navigator) {
 (function () {
   var jaPrefetchado = {};
   document.addEventListener("mouseover", function (e) {
-    var link = e.target.closest('a.link-secundario[href^="/item/"]');
+    var link = e.target.closest('a.link-item[href^="/item/"], a.cartao-item-nome[href^="/item/"], a.cartao-item-imagem-link[href^="/item/"]');
     if (!link || jaPrefetchado[link.href]) return;
     jaPrefetchado[link.href] = true;
     var tag = document.createElement("link");
@@ -588,6 +448,9 @@ if ("serviceWorker" in navigator) {
     void barra.offsetWidth;
     barra.classList.add("ativa");
   }
+  window.addEventListener("pageshow", function () {
+    barra.classList.remove("ativa");
+  });
   document.addEventListener("click", function (e) {
     if (e.defaultPrevented || e.button !== 0) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -603,153 +466,6 @@ if ("serviceWorker" in navigator) {
     if (e.defaultPrevented || e.target.target === "_blank") return;
     iniciarCarregamento();
   });
-})();
-(function () {
-  var overlay = document.getElementById("spotlight-overlay");
-  var input = document.getElementById("spotlight-input");
-  var resultados = document.getElementById("spotlight-resultados");
-  var fecharBtn = document.getElementById("spotlight-fechar");
-  var gatilhoBtn = document.getElementById("gatilho-spotlight");
-  if (!overlay || !input || !resultados) return;
-  var debounceTimer = null;
-  var indiceAtivo = -1;
-  // Dica curta em tela estreita: a longa ("Buscar entre 33.000 skins e
-  // caixas...") era cortada no meio em 320px (27/11).
-  var dicaLonga = input.getAttribute("placeholder");
-  function abrirSpotlight() {
-    var estreita = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
-    input.setAttribute("placeholder", estreita ? "Buscar skin ou caixa" : dicaLonga);
-    overlay.hidden = false;
-    overlay.removeAttribute("aria-hidden");
-    input.value = "";
-    indiceAtivo = -1;
-    resultados.innerHTML = '<div class="spotlight-dica-inicial"><p class="spotlight-dica-texto">Digite o nome em português ou inglês para buscar instantaneamente no catálogo e nas notas do Lodout.</p></div>';
-    setTimeout(function () { input.focus(); }, 50);
-  }
-  function fecharSpotlight() {
-    overlay.hidden = true;
-    overlay.setAttribute("aria-hidden", "true");
-    if (gatilhoBtn) gatilhoBtn.focus();
-  }
-  if (gatilhoBtn) {
-    gatilhoBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      abrirSpotlight();
-    });
-  }
-  if (fecharBtn) {
-    fecharBtn.addEventListener("click", fecharSpotlight);
-  }
-  // Toque fora da janela fecha (27/11: antes só o fundo exato contava,
-  // e no celular não havia como sair sem o botão, que ficava fora da tela).
-  overlay.addEventListener("click", function (e) {
-    if (!e.target.closest(".spotlight-modal")) fecharSpotlight();
-  });
-  document.addEventListener("keydown", function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === "k") {
-      e.preventDefault();
-      if (overlay.hidden) abrirSpotlight();
-      else fecharSpotlight();
-      return;
-    }
-    if (overlay.hidden) return;
-    if (e.key === "Escape") {
-      e.preventDefault();
-      fecharSpotlight();
-      return;
-    }
-    // Tab fica dentro da busca aberta (janela modal): do último item volta
-    // para o primeiro, e Shift+Tab faz o caminho inverso (27/11).
-    if (e.key === "Tab") {
-      var focaveis = Array.prototype.filter.call(
-        overlay.querySelectorAll("input, button, a[href]"),
-        function (el) { return el.offsetParent !== null && !el.disabled; });
-      if (focaveis.length) {
-        var primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
-        var dentro = overlay.contains(document.activeElement);
-        if (e.shiftKey && (document.activeElement === primeiro || !dentro)) {
-          e.preventDefault(); ultimo.focus();
-        } else if (!e.shiftKey && (document.activeElement === ultimo || !dentro)) {
-          e.preventDefault(); primeiro.focus();
-        }
-      }
-      return;
-    }
-    var itens = resultados.querySelectorAll(".spotlight-item");
-    if (!itens.length) return;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      indiceAtivo = (indiceAtivo + 1) % itens.length;
-      atualizarAtivo(itens);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      indiceAtivo = (indiceAtivo - 1 + itens.length) % itens.length;
-      atualizarAtivo(itens);
-    } else if (e.key === "Enter") {
-      if (indiceAtivo >= 0 && itens[indiceAtivo]) {
-        e.preventDefault();
-        itens[indiceAtivo].click();
-      }
-    }
-  });
-  function atualizarAtivo(itens) {
-    for (var i = 0; i < itens.length; i++) {
-      if (i === indiceAtivo) {
-        itens[i].classList.add("spotlight-item-ativo");
-        itens[i].scrollIntoView({ block: "nearest" });
-      } else {
-        itens[i].classList.remove("spotlight-item-ativo");
-      }
-    }
-  }
-  input.addEventListener("input", function () {
-    clearTimeout(debounceTimer);
-    var q = input.value.trim();
-    if (q.length < 2) {
-      resultados.innerHTML = '<div class="spotlight-dica-inicial"><p class="spotlight-dica-texto">Digite pelo menos 2 letras para buscar...</p></div>';
-      return;
-    }
-    debounceTimer = setTimeout(function () {
-      fetch("/api/sugestoes?q=" + encodeURIComponent(q))
-        .then(function (res) { return res.json(); })
-        .then(function (lista) {
-          indiceAtivo = -1;
-          if (!lista || !lista.length) {
-            resultados.innerHTML = '<div class="spotlight-sem-resultado"><p>Nenhum item encontrado para "' + escapeHtml(q) + '".</p></div>';
-            return;
-          }
-          var html = "";
-          for (var i = 0; i < lista.length; i++) {
-            var item = lista[i];
-            var imgHtml = item.icon_url
-              ? '<img class="spotlight-item-img" src="' + escapeHtml(item.icon_url) + '" alt="" width="36" height="36" loading="lazy">'
-              : '<span class="icone-item-placeholder"></span>';
-            var scoreHtml = (typeof item.score === "number")
-              ? '<span class="spotlight-item-score nota-' + Math.min(100, Math.max(0, item.score)) + '">Nota ' + item.score + '</span>'
-              : '<span class="spotlight-item-sem-score">Catálogo</span>';
-            var precoHtml = item.preco_fmt ? '<span class="spotlight-item-preco">' + escapeHtml(item.preco_fmt) + '</span>' : '';
-            var rarClasse = item.raridade_classe ? ' ' + escapeHtml(item.raridade_classe) : '';
-            html += '<a class="spotlight-item' + rarClasse + '" href="' + escapeHtml(item.url || ("/item/" + encodeURIComponent(item.nome))) + '" role="option">' +
-              '<span class="spotlight-item-img-wrap' + rarClasse + '">' + imgHtml + '</span>' +
-              '<div class="spotlight-item-info">' +
-                '<strong class="spotlight-item-nome" translate="no">' + escapeHtml(item.nome_pt || item.nome) + '</strong>' +
-                (item.nome_pt && item.nome_pt !== item.nome ? '<span class="spotlight-item-sub">' + escapeHtml(item.nome) + '</span>' : '') +
-              '</div>' +
-              '<div class="spotlight-item-lado">' +
-                precoHtml +
-                scoreHtml +
-              '</div>' +
-            '</a>';
-          }
-          resultados.innerHTML = html;
-        })
-        .catch(function () {});
-    }, 150);
-  });
-  function escapeHtml(s) {
-    if (!s) return "";
-    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
 })();
 (function () {
   var box = document.querySelector(".simulador-encomenda-box");
@@ -891,78 +607,5 @@ if ("serviceWorker" in navigator) {
         mostrarToast("Link do item: " + url);
       }
     });
-  }
-})();
-
-// Alternador do painel de Filtros integrado à barra de pesquisa do topo
-(function () {
-  var btnFiltroTopo = document.getElementById("gatilho-filtros-topo");
-  var detFiltros = document.querySelector(".filtros-mais");
-  var btnFecharPopover = document.getElementById("fechar-filtros-popover");
-  var btnFiltroSpotlight = document.getElementById("spotlight-filtro-btn");
-
-  function alternarFiltros(forcar) {
-    if (!detFiltros) {
-      window.location.href = "/?abrir_filtros=1";
-      return;
-    }
-    var novoEstado = (typeof forcar === "boolean") ? forcar : !detFiltros.open;
-    detFiltros.open = novoEstado;
-    if (btnFiltroTopo) {
-      btnFiltroTopo.setAttribute("aria-expanded", novoEstado ? "true" : "false");
-    }
-    if (novoEstado) {
-      detFiltros.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }
-
-  if (btnFiltroTopo) {
-    btnFiltroTopo.addEventListener("click", function (e) {
-      e.preventDefault();
-      alternarFiltros();
-    });
-  }
-
-  if (btnFecharPopover) {
-    btnFecharPopover.addEventListener("click", function (e) {
-      e.preventDefault();
-      alternarFiltros(false);
-    });
-  }
-
-  if (btnFiltroSpotlight) {
-    btnFiltroSpotlight.addEventListener("click", function (e) {
-      e.preventDefault();
-      var fecharSpot = document.getElementById("spotlight-fechar");
-      if (fecharSpot) fecharSpot.click();
-      setTimeout(function () { alternarFiltros(true); }, 120);
-    });
-  }
-
-  if (detFiltros) {
-    detFiltros.addEventListener("toggle", function () {
-      if (btnFiltroTopo) {
-        btnFiltroTopo.setAttribute("aria-expanded", detFiltros.open ? "true" : "false");
-      }
-    });
-
-    document.addEventListener("click", function (e) {
-      if (!detFiltros.open) return;
-      if (detFiltros.contains(e.target) || (btnFiltroTopo && btnFiltroTopo.contains(e.target))) return;
-      detFiltros.open = false;
-      if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "false");
-    });
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && detFiltros.open) {
-        detFiltros.open = false;
-        if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "false");
-      }
-    });
-  }
-
-  if (window.location.search.indexOf("abrir_filtros=1") !== -1 && detFiltros) {
-    detFiltros.open = true;
-    if (btnFiltroTopo) btnFiltroTopo.setAttribute("aria-expanded", "true");
   }
 })();

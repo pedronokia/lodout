@@ -6880,3 +6880,33 @@ def test_compilar_busca_e_busca_bate_compilada_cobrem_or_e_pontuacao():
     assert server._busca_bate_compilada("awp asiimov", grupos_or) is False
 
 
+def test_busca_topo_carregado_em_todas_as_paginas_com_cabecalho(client):
+    """Buscar (Ctrl+K) e Filtros no cabeçalho precisam funcionar em todo o site,
+    não apenas nas 4 páginas que carregam app.js."""
+    import re as _re
+    for rota in ("/", "/ranking", "/metodo", "/faq", "/status", "/como-usar",
+                 "/changelog", "/glossario", "/novidades", "/privacidade",
+                 "/sobre", "/api", "/pagina-inexistente-404"):
+        body = client.get(rota).data.decode("utf-8")
+        assert "gatilho-spotlight" in body, rota
+        assert "gatilho-filtros-topo" in body, rota
+        assert _re.search(r'src="/static/busca_topo\.js\?v=', body), rota
+        assert 'role="combobox"' in body, rota
+
+    js = client.get("/static/busca_topo.js").data.decode("utf-8")
+    assert "AbortController" in js
+    assert "res.status === 429" in js
+    assert '"nota-alta"' in js and '"nota-media"' in js and '"nota-baixa"' in js
+    assert "aria-activedescendant" in js and "aria-selected" in js
+
+
+def test_app_js_atalhos_respeitam_modificadores_e_sem_style_inline(client):
+    js = client.get("/static/app.js").data.decode("utf-8")
+    assert "if (e.ctrlKey || e.metaKey || e.altKey) return;" in js
+    assert 'window.addEventListener("pageshow"' in js
+    assert 'style="' not in js
+    assert "campo-busca" not in js
+    assert "link-secundario" not in js
+
+
+

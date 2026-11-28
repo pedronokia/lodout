@@ -6919,6 +6919,21 @@ background: rgba(249, 115, 22, 0.15);
 color: var(--accent);
 border: 1px solid rgba(249, 115, 22, 0.3);
 }
+.spotlight-item-score.nota-alta {
+background: rgba(57, 194, 102, 0.14);
+color: var(--positive);
+border-color: rgba(57, 194, 102, 0.32);
+}
+.spotlight-item-score.nota-media {
+background: rgba(242, 187, 37, 0.14);
+color: var(--warn);
+border-color: rgba(242, 187, 37, 0.32);
+}
+.spotlight-item-score.nota-baixa {
+background: rgba(255, 255, 255, 0.06);
+color: var(--text-muted);
+border-color: rgba(255, 255, 255, 0.14);
+}
 .spotlight-item-sem-score {
 font-size: var(--fs-2xs);
 padding: 2px 7px;

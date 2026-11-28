@@ -61,9 +61,11 @@
       var pnl = lucroDe(tr);
       var campoCusto = tr.querySelector('input[name="cost"]');
       var custo = campoCusto ? Number(campoCusto.value.replace(/\./g, "").replace(",", ".")) : 0;
+      var qtd = Math.max(1, Number(tr.getAttribute("data-qtd") || 1));
+      var custoTotal = custo * qtd;
       var atingiu = false;
-      if (custo > 0 && pnl !== null) {
-        var pct = (pnl / custo) * 100;
+      if (custoTotal > 0 && pnl !== null) {
+        var pct = (pnl / custoTotal) * 100;
         atingiu = pct >= meta;
       }
       tr.setAttribute("data-meta-atingida", atingiu ? "1" : "0");
@@ -857,11 +859,13 @@
       // Outro valor espera na fila: a resposta dele atualiza a linha.
       if (form.getAttribute("data-de-novo")) return;
       if (aviso) aviso.classList.remove("custo-erro");
-      // "20" vira "20,00", como as outras linhas.
-      var numero = Number(valor.replace(",", "."));
-      if (campo && isFinite(numero) && campo.value.trim() === valor) {
-        campo.value = numero.toFixed(2).replace(".", ",");
-        form.setAttribute("data-ultimo", campo.value);
+      // "20" vira "20,00", como as outras linhas (nunca quando o campo foi limpo).
+      if (!limpar && valor) {
+        var numero = Number(valor.replace(/R\$|\s/g, "").replace(/\./g, "").replace(",", "."));
+        if (campo && isFinite(numero) && campo.value.trim() === valor) {
+          campo.value = numero.toFixed(2).replace(".", ",");
+          form.setAttribute("data-ultimo", campo.value);
+        }
       }
       // "salvo ✓ · desfazer": volta ao valor de antes (ou a nenhum).
       if (aviso) {
@@ -910,7 +914,8 @@
             seloMeta.remove();
           }
         }
-        if (d.empate_fmt) linha.classList.remove("linha-sem-custo");
+        var temCusto = d.has_cost !== undefined ? Boolean(d.has_cost) : Boolean(d.empate_fmt);
+        if (temCusto) linha.classList.remove("linha-sem-custo");
         else linha.classList.add("linha-sem-custo");
         linha.setAttribute("data-empate", d.empate ? String(d.empate) : "");
         if (d.atingiu_meta !== undefined) {

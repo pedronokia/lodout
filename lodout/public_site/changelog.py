@@ -11,6 +11,8 @@ ENTRADAS = [
         "data": "2026-11-27",
         "titulo": "Letras mais uniformes",
         "itens": [
+            "Busca rápida (Ctrl+K ou /) e o botão Filtros no topo agora funcionam em todas as páginas do site (Ranking, Método, Status, FAQ, Minha conta etc.), com cores por faixa de nota e sem interferir em atalhos do navegador como Ctrl+F.",
+            "Minha conta e Favoritos agora usam primeiro o preço mais recente em reais da coleta; editar ou apagar o preço-alvo de um favorito passa a atualizar o alerta na hora, limpar um valor pago não preenche mais “0,00” por engano e a barra “Quero lucrar” calcula o percentual considerando a quantidade de unidades.",
             "Busca do site mais precisa: as sugestões enquanto você digita agora aceitam “OR” (como na página inicial), mostram primeiro o item de nome exato mesmo quando ele está só no catálogo, encontram facas e luvas como Karambit, Bayonet, Shadow Daggers e Hand Wraps ao buscar por “faca” ou “luva”, e tratam símbolos como “%” e “_” como texto normal.",
             "Página inicial um pouco mais leve: no computador, as imagens dos cartões vêm no tamanho em que aparecem (cerca de metade do peso), e o arquivo de estilos do site ficou menor.",
             "Busca no celular: os botões de fechar (agora um “×”) e de Filtros não ficam mais fora da tela, o nome do item aparece em até duas linhas e os atalhos de teclado só aparecem no computador. No teclado, o Tab fica dentro da busca aberta. Textos claros demais sobre fundo laranja ou escuro (página atual da lista, aba ativa, “recebe R$ … depois da taxa”) ficaram mais legíveis.",

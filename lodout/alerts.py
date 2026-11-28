@@ -45,9 +45,9 @@ def evaluate_item(
     rules = item.get("rules") or {}
     name = item.get("name", "")
 
-    # 1. Preco abaixo do alvo (target legado funciona como price_below;
-    # regra vinda do RulesDialog tambem vale — o dialog grava em rules)
-    target = item.get("target") or (rules.get("price_below") or None)
+    # 1. Preco abaixo do alvo (regra explícita em `rules` vence o `target`
+    # legado de criação, para editar/ajustar o alerta sempre funcionar)
+    target = rules.get("price_below") or item.get("target") or None
     if target and current_price is not None and current_price <= target:
         alerts.append({
             "rule": "price_below",

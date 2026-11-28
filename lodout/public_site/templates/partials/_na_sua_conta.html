@@ -17,13 +17,13 @@
   {% if na_conta.lotes %}
   <ul class="na-sua-conta-lotes">
     {% for l in na_conta.lotes %}
-    <li>{% if na_conta.lotes|length > 1 or na_conta.sem_valor %}<span class="na-sua-conta-qtd">{{ l.quantidade }}×</span> {% endif %}pagou <strong>{{ l.pago_fmt }}</strong> cada · sem prejuízo a partir de <strong>{{ l.empate_fmt }}</strong> · para lucrar {{ na_conta.meta }}%, <strong>{{ l.alvo_fmt }}</strong></li>
+    <li>{% if na_conta.lotes|length > 1 or na_conta.sem_valor %}<span class="na-sua-conta-qtd">{{ l.quantidade }}×</span> {% endif %}pagou <strong>{{ l.pago_fmt }}</strong> cada{% if l.empate_fmt %} · sem prejuízo a partir de <strong>{{ l.empate_fmt }}</strong> · para lucrar {{ na_conta.meta }}%, <strong>{{ l.alvo_fmt }}</strong>{% endif %}</li>
     {% endfor %}
   </ul>
   {% endif %}
   {% if na_conta.lucro %}
   {# Como você está com este item hoje (revisão 2026-11-16). #}
-  <p class="na-sua-conta-texto na-sua-conta-lucro">Se vender hoje: {% if na_conta.lucro.tipo == "empate" %}<strong>sem lucro nem prejuízo</strong>{% else %}<strong class="{{ na_conta.lucro.classe }}">{{ na_conta.lucro.tipo }} de {{ na_conta.lucro.valor_fmt }}</strong> ({{ na_conta.lucro.pct_fmt }}){% endif %}{% if na_conta.lucro.atingiu_meta %} <span class="selo-meta-atingida" title="Atingiu a meta de {{ na_conta.meta }}% de lucro se vender hoje">na meta</span>{% endif %}{% if na_conta.sem_valor %}, só das unidades com valor pago{% endif %}, já sem a taxa da Steam.</p>
+  <p class="na-sua-conta-texto na-sua-conta-lucro">Se vender hoje: {% if na_conta.lucro.tipo == "empate" %}<strong>sem lucro nem prejuízo</strong>{% else %}<strong class="{{ na_conta.lucro.classe }}">{{ na_conta.lucro.tipo }} de {{ na_conta.lucro.valor_fmt }}</strong>{% if na_conta.lucro.pct_fmt %} ({{ na_conta.lucro.pct_fmt }}){% endif %}{% endif %}{% if na_conta.lucro.atingiu_meta %} <span class="selo-meta-atingida" title="Atingiu a meta de {{ na_conta.meta }}% de lucro se vender hoje">na meta</span>{% endif %}{% if na_conta.sem_valor %}, só das unidades com valor pago{% endif %}, já sem a taxa da Steam.</p>
   {% endif %}
   {% if na_conta.vendas %}
   {# Vendas marcadas com "Vendi" (revisão 30, 16/11). #}

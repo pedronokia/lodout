@@ -26,6 +26,14 @@ def test_evaluate_price_below_from_rules():
     assert fired[0]["rule"] == "price_below"
 
 
+def test_evaluate_price_below_rules_precedes_legacy_target():
+    """Quando rules.price_below existe, ele vence o target legado de criação."""
+    item = {"name": "Test", "target": 100.0, "rules": {"price_below": 50.0}}
+    assert alerts.evaluate_item(item, current_price=75.0) == []
+    fired = alerts.evaluate_item(item, current_price=45.0)
+    assert len(fired) == 1 and fired[0]["rule"] == "price_below"
+
+
 def test_evaluate_price_drop_pct():
     item = {
         "name": "Test",

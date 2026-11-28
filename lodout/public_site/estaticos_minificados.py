@@ -18,6 +18,7 @@ from pathlib import Path
 ARQUIVOS = {
     "style.css": "text/css",
     "app.js": "text/javascript",
+    "busca_topo.js": "text/javascript",
     "conta.js": "text/javascript",
     "copiar_preco.js": "text/javascript",
     "online.js": "text/javascript",

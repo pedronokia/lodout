@@ -73,15 +73,30 @@ def _idade_dos_precos(quandos: "list[float]") -> "str | None":
 
 
 def _preco_do_dia(positions: "list[dict]"):
-    """Preço de cada item da conta: o da coleta com nota quando existe;
-    senão o do catálogo amplo (todo o Mercado, 1x por dia). Só leitura
-    local, sem rede (catalogo-grande.md, fase 2)."""
+    """Preço de cada item da conta: o da coleta com nota em BRL quando
+    existe; depois PriceCache (legado/testes); senão o do catálogo amplo
+    (todo o Mercado, convertido do dólar). Só leitura local, sem rede."""
+    scan = scan_store.load_last_scan()
+    do_scan: dict = {}
+    scan_ts = None
+    if scan:
+        scan_ts = scan.get("ts")
+        for r in scan.get("results") or []:
+            nome_r = r.get("name")
+            preco_r = r.get("price")
+            if nome_r and isinstance(preco_r, (int, float)):
+                do_scan[nome_r] = float(preco_r)
     cache = PriceCache()
     nomes = [p.get("name") for p in positions]
-    do_catalogo = catalogo.precos(nomes)
+    faltam_cat = [n for n in nomes if n and n not in do_scan]
+    do_catalogo = catalogo.precos(faltam_cat) if faltam_cat else {}
     datas: dict = {}
 
     def _preco(nome: str):
+        if nome in do_scan:
+            if scan_ts:
+                datas[nome] = scan_ts
+            return do_scan[nome]
         preco = cache.get(nome)
         if preco is not None:
             datas[nome] = cache.ts(nome)
@@ -527,13 +542,14 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     com_valor = []
     for p in lotes:
         custo = p.get("cost")
-        if portfolio.has_cost_basis(p) and custo:
-            empate = portfolio.break_even_price(float(custo))
+        if portfolio.has_cost_basis(p) and custo is not None:
+            custo_f = float(custo)
+            empate = portfolio.break_even_price(custo_f) if custo_f > 0 else None
             com_valor.append({
                 "quantidade": int(p.get("quantity") or 1),
-                "pago_fmt": fmt.brl(float(custo)),
-                "empate_fmt": fmt.brl(empate),
-                "alvo_fmt": fmt.brl(empate * (1 + meta / 100)),
+                "pago_fmt": fmt.brl(custo_f),
+                "empate_fmt": fmt.brl(empate) if empate is not None else None,
+                "alvo_fmt": fmt.brl(empate * (1 + meta / 100)) if empate is not None else None,
             })
     sem_valor = unidades - sum(l["quantidade"] for l in com_valor)
     # Lucro se vender hoje (revisão 2026-11-16): o mesmo preço e a mesma
@@ -546,7 +562,7 @@ def resumo_na_conta(steamid: "str | None", name: str) -> "dict | None":
     if preco is not None and com_valor:
         pnl = custo_total = 0.0
         for p in lotes:
-            if portfolio.has_cost_basis(p) and p.get("cost"):
+            if portfolio.has_cost_basis(p) and p.get("cost") is not None:
                 d = portfolio.position_pnl(float(p["cost"]), float(preco), int(p.get("quantity") or 1))
                 pnl += d["pnl"]
                 custo_total += d["cost_total"]
@@ -786,6 +802,7 @@ def editar_custo(name: str):
         pnl = row.get("pnl") if row.get("has_cost") else None
         return jsonify({
             "ok": True,
+            "has_cost": bool(row.get("has_cost")),
             "totais": totais,
             "empate_fmt": row.get("empate_fmt"),
             "alvo_fmt": row.get("alvo_fmt"),

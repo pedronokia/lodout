@@ -397,3 +397,68 @@ def test_watchlist_sugere_encomenda_copiavel(client, monkeypatch):
     assert 'data-copiar-preco="9,21"' in body and "<strong>R$ 9,21</strong>" in body
     assert "encomendar por" in body and "encomenda até" not in body
     assert "copiar_preco.js" in body and "data-copiado" in body
+
+
+def test_editar_e_limpar_alvo_inicial_realmente_muda_alerta(client, monkeypatch):
+    """Editar ou apagar o preço-alvo criado ao favoritar precisa atualizar e
+    desarmar o alerta (antes `target` legado continuava disparando)."""
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    # AK-47 vale 10.0 no cache fake; alvo 15 dispara.
+    client.post("/conta/watchlist", data={
+        "name": "AK-47", "target": "15,00", "csrf_token": token,
+    })
+    assert 'class="badge-disparado"' in client.get("/conta/watchlist").data.decode("utf-8")
+
+    # Baixar alvo para 8,50 (aceita vírgula decimal): deixa de disparar.
+    client.post("/conta/watchlist/AK-47/regras", data={
+        "price_below": "8,50", "csrf_token": token,
+    })
+    pagina = client.get("/conta/watchlist").data.decode("utf-8")
+    assert "preço abaixo de R$ 8,50" in pagina
+    assert 'class="badge-disparado"' not in pagina
+
+    # Apagar todas as regras: alvo some e volta para "Nenhum alerta ainda".
+    client.post("/conta/watchlist/AK-47/regras", data={"csrf_token": token})
+    pagina = client.get("/conta/watchlist").data.decode("utf-8")
+    assert "Nenhum alerta ainda" in pagina
+    assert 'class="badge-disparado"' not in pagina
+
+
+def test_watchlist_usa_preco_fresco_da_coleta_e_baseline_do_scan_e_catalogo(
+        client, monkeypatch):
+    """Em produção `PriceCache` fica vazio: preços da watchlist e baseline
+    automático de `price_drop_pct` vêm da coleta (scan_store) e do catálogo."""
+    from lodout.public_site import catalogo, user_watchlist
+    monkeypatch.setattr(
+        "lodout.scan_store.load_last_scan", lambda: {
+            "ts": 1_700_000_000.0, "category": "Rifles", "results": [
+                {"name": "Skin Fresca", "score": 82, "price": 123.45},
+            ]})
+    conn = catalogo.conectar()
+    catalogo.gravar(conn, "Caixas", [{"hash_name": "Caixa Cat", "price": 18.5,
+                                      "listings": 10, "name_color": "4b69ff",
+                                      "icon": "h1"}])
+    conn.close()
+
+    _login(client, monkeypatch)
+    token = _csrf_token(client)
+    client.post("/conta/watchlist", data={"name": "Skin Fresca", "csrf_token": token})
+    client.post("/conta/watchlist", data={"name": "Caixa Cat", "csrf_token": token})
+
+    pagina = client.get("/conta/watchlist").data.decode("utf-8")
+    assert "R$ 123,45" in pagina
+    assert "R$ 18,50" in pagina
+
+    # price_drop_pct sem baseline manual herda preço da coleta ou do catálogo.
+    client.post("/conta/watchlist/Skin Fresca/regras", data={
+        "price_drop_pct": "12,5", "csrf_token": token,
+    })
+    client.post("/conta/watchlist/Caixa Cat/regras", data={
+        "price_drop_pct": "10", "csrf_token": token,
+    })
+    salvos = {it["name"]: it for it in user_watchlist.load_items("76561198000000000")}
+    assert salvos["Skin Fresca"]["baseline_price"] == 123.45
+    assert salvos["Skin Fresca"]["rules"]["price_drop_pct"] == 12.5
+    assert salvos["Caixa Cat"]["baseline_price"] == 18.5
+
