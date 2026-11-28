@@ -163,16 +163,6 @@ def _http_get(url: str, timeout: float = 15.0) -> tuple[int, str | None]:
         return 0, None
 
 
-def _get_json(url: str) -> dict | None:
-    code, body = _http_get(url)
-    if code != 200 or body is None:
-        return None
-    try:
-        return json.loads(body)
-    except ValueError:
-        return None
-
-
 def _parse_items(data: dict) -> list[dict]:
     """Cruza assets x descriptions e agrega por market_hash_name.
     So' itens marketaveis (da' pra avaliar no Market). Logica pura, testavel."""
@@ -297,132 +287,6 @@ def fetch_inventory(steam_id: str) -> tuple[str, list[dict]]:
     return _collect_inventory(
         lambda start: _http_get(_inventory_url(steam_id, start))
     )
-
-
-def fetch_public_inventory(steam_id: str) -> list[dict]:
-    """Wrapper simples: so' os itens (lista vazia em qualquer falha)."""
-    return fetch_inventory(steam_id)[1]
-
-
-# ── Link do perfil -> SteamID64 (publico, sem login nem chave de API) ──
-RESOLVE_OK = "ok"
-RESOLVE_INVALID = "invalid"        # o texto nao parece perfil nenhum
-RESOLVE_NOT_FOUND = "not_found"    # apelido nao existe
-RESOLVE_RATE_LIMITED = "rate_limited"
-RESOLVE_ERROR = "error"
-
-_STEAMID64_RE = re.compile(r"^7656119\d{10}$")
-_PERFIL_ID64_RE = re.compile(r"steamcommunity\.com/profiles/(7656119\d{10})")
-_PERFIL_APELIDO_RE = re.compile(r"steamcommunity\.com/id/([A-Za-z0-9_-]{2,32})")
-_APELIDO_RE = re.compile(r"^[A-Za-z0-9_-]{2,32}$")
-
-
-def parse_profile_input(texto: str | None) -> tuple[str, str]:
-    """O que o usuario colou -> ("id64", id) | ("vanity", apelido) |
-    ("invalid", ""). Logica pura.
-
-    Aceita: SteamID64, link /profiles/<id>, link /id/<apelido> e o
-    apelido sozinho (o que aparece no fim do link personalizado).
-    """
-    s = (texto or "").strip()
-    if not s:
-        return "invalid", ""
-    if _STEAMID64_RE.match(s):
-        return "id64", s
-    m = _PERFIL_ID64_RE.search(s)
-    if m:
-        return "id64", m.group(1)
-    m = _PERFIL_APELIDO_RE.search(s)
-    if m:
-        return "vanity", m.group(1)
-    if "/" not in s and _APELIDO_RE.match(s):
-        return "vanity", s
-    return "invalid", ""
-
-
-def resolve_steam_id(texto: str | None) -> tuple[str, str | None]:
-    """Link/apelido/ID -> (status, steamid64).
-
-    Apelido (link personalizado, /id/<apelido>) e' resolvido pela pagina
-    XML publica do perfil (?xml=1) -- a mesma que o profile_fetcher usa pra
-    avatar. Nao precisa de login nem de chave da Web API.
-    """
-    tipo, valor = parse_profile_input(texto)
-    if tipo == "id64":
-        return RESOLVE_OK, valor
-    if tipo != "vanity":
-        return RESOLVE_INVALID, None
-    if em_cooldown("resolve"):
-        return RESOLVE_RATE_LIMITED, None
-    url = ("https://steamcommunity.com/id/"
-           f"{urllib.parse.quote(valor)}/?xml=1")
-    code, body = _http_get(url)
-    if code == 429:
-        _registrar_rate_limit("resolve")
-        return RESOLVE_RATE_LIMITED, None
-    if code != 200 or body is None:
-        return RESOLVE_ERROR, None
-    _limpar_rate_limit("resolve")
-    m = re.search(r"<steamID64>\s*(7656119\d{10})\s*</steamID64>", body)
-    if m:
-        return RESOLVE_OK, m.group(1)
-    return RESOLVE_NOT_FOUND, None
-
-
-PRICE_OK = "ok"                     # a Steam respondeu com preco
-PRICE_NO_PRICE = "no_price"         # a Steam respondeu: este item nao tem preco
-PRICE_RATE_LIMITED = "rate_limited"  # 429 -- nao diz nada sobre o item
-PRICE_ERROR = "error"               # rede/HTTP/parse -- tambem nao diz nada
-
-# Só estes dois são fato sobre o item; os outros dois são estado da rede.
-PRICE_CACHEABLE = (PRICE_OK, PRICE_NO_PRICE)
-
-
-def get_market_price_status(market_hash_name: str,
-                            currency: int = 7) -> "tuple[str, float | None]":
-    """(status, preco) do priceoverview.
-
-    Existe porque `get_market_price` devolve None em quatro situacoes bem
-    diferentes, e todas pediam tratamento distinto:
-
-    - `ok` / `no_price`: a Steam respondeu. É fato sobre o item, pode ir
-      pro cache.
-    - `rate_limited`: 429. Não diz nada sobre o item -- cachear isso como
-      "sem preço" envenena o cache por 1h (o TTL negativo) e o item some da
-      tela mesmo depois de a Steam liberar.
-    - `error`: rede, HTTP ou JSON quebrado. Mesma coisa.
-    """
-    if em_cooldown("priceoverview"):
-        return PRICE_RATE_LIMITED, None
-    url = (
-        "https://steamcommunity.com/market/priceoverview/"
-        f"?appid={_APP_CS2}&currency={currency}"
-        f"&market_hash_name={urllib.parse.quote(market_hash_name)}"
-    )
-    code, body = _http_get(url)
-    if code == 429:
-        _registrar_rate_limit("priceoverview")
-        return PRICE_RATE_LIMITED, None
-    if code != 200 or body is None:
-        return PRICE_ERROR, None
-    try:
-        data = json.loads(body)
-    except ValueError:
-        return PRICE_ERROR, None
-    _limpar_rate_limit("priceoverview")
-    if not data or not data.get("success"):
-        # Resposta valida dizendo que nao ha' item/preco: fato sobre o item.
-        return PRICE_NO_PRICE, None
-    preco = parse_brl(data.get("lowest_price") or data.get("median_price"))
-    return (PRICE_OK, preco) if preco is not None else (PRICE_NO_PRICE, None)
-
-
-def get_market_price(market_hash_name: str, currency: int = 7) -> float | None:
-    """Preco mais baixo atual no Steam Market, em BRL (currency=7). None se
-    indisponivel. O Steam limita ~20 req/min -- producao precisa de cache+backoff.
-
-    Wrapper retrocompatível de `get_market_price_status`."""
-    return get_market_price_status(market_hash_name, currency)[1]
 
 
 def get_market_overview(market_hash_name: str, currency: int = 7) -> dict | None:
@@ -973,19 +837,6 @@ def _collect_facets(queries: list) -> dict:
         if isinstance(qk, list) and "app_facets" in qk:
             return _normalize_facets((q.get("state") or {}).get("data"))
     return {}
-
-
-def fetch_market_facets(appid: int = _APP_CS2) -> dict:
-    """Catalogo de facetas pelo endpoint dedicado. {} em qualquer falha.
-
-    Alternativa a _collect_facets pra quando nao se quer baixar uma listing
-    page inteira (4-5 MB) so' pra atualizar o catalogo.
-    """
-    data = _get_json(
-        f"https://steamcommunity.com/market/appfilters/{appid}")
-    if not data or not data.get("success"):
-        return {}
-    return _normalize_facets(data.get("facets"))
 
 
 # Categoria da tag (minuscula) -> (campo_label, campo_id) no meta do item.

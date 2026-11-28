@@ -223,25 +223,25 @@ def test_sweep_em_diretorio_inexistente(tmp_path):
 
 # ── ponta a ponta: o cenario que motivou tudo ──────────────────────
 
-def test_trades_corrompido_nao_e_apagado_pelo_proximo_save(tmp_path):
-    """Antes: le' vazio -> grava vazio por cima -> os trades somem.
-    Agora: le' vazio, mas a copia velha fica em disco."""
-    from lodout import trades as trades_mod
-    p = tmp_path / "trades.json"
-    p.write_text('[{"name": "AK", "pnl": 7', encoding="utf-8")
+def test_rankings_corrompido_nao_e_apagado_pelo_proximo_save(tmp_path):
+    """Antes: le' vazio -> grava vazio por cima -> o historico some.
+    Agora: le' vazio, mas a copia velha fica preservada em disco."""
+    from lodout import ranking
+    p = tmp_path / "rankings.json"
+    p.write_text('[{"ts": 1, "items": [{"name": "AK"', encoding="utf-8")
 
-    assert trades_mod.load_trades(p) == []
-    trades_mod.record_trade("AWP", 10.0, 20.0, path=p)
+    assert ranking.load_snapshots(p) == []
+    ranking.save_snapshot([{"name": "AWP", "score": 80}], path=p)
 
-    assert len(trades_mod.load_trades(p)) == 1
-    preservado = tmp_path / "trades.json.corrupt"
+    assert len(ranking.load_snapshots(p)) == 1
+    preservado = tmp_path / "rankings.json.corrupt"
     assert preservado.exists()
     assert "AK" in preservado.read_text(encoding="utf-8")
 
 
-def test_portfolio_corrompido_e_preservado(tmp_path):
-    from lodout import portfolio as portfolio_mod
-    p = tmp_path / "portfolio.json"
-    p.write_text('[{"name": "Kilowatt Case",', encoding="utf-8")
-    assert portfolio_mod.load_portfolio(p) == []
-    assert (tmp_path / "portfolio.json.corrupt").exists()
+def test_gamedata_state_corrompido_e_preservado(tmp_path):
+    from lodout import gamedata
+    p = tmp_path / "gamedata_state.json"
+    p.write_text('{"sha": "abc123",', encoding="utf-8")
+    assert gamedata.load_state(p) is None
+    assert (tmp_path / "gamedata_state.json.corrupt").exists()

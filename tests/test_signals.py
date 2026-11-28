@@ -29,124 +29,6 @@ def test_record_cap_at_100(tmp_path):
     assert h[-1]["price"] == 104.0
 
 
-def test_trend_subiu():
-    now = time.time()
-    h = [{"ts": now - 86400 * 10, "price": 100.0},
-         {"ts": now, "price": 120.0}]
-    t = signals.trend(h)
-    assert t is not None
-    assert t["direction"] == "subiu"
-    assert t["change_pct"] == 20.0
-    assert "20.0%" in t["label"]
-
-
-def test_trend_caiu():
-    now = time.time()
-    h = [{"ts": now - 86400 * 5, "price": 200.0},
-         {"ts": now, "price": 150.0}]
-    t = signals.trend(h)
-    assert t["direction"] == "caiu"
-    assert t["change_pct"] == -25.0
-
-
-def test_trend_insuficiente():
-    assert signals.trend([]) is None
-    assert signals.trend([{"ts": 0, "price": 100.0}]) is None
-
-
-def test_trend_zero_first():
-    assert signals.trend([{"ts": 0, "price": 0},
-                          {"ts": 1, "price": 100}]) is None
-
-
-def test_trend_estavel():
-    now = time.time()
-    h = [{"ts": now - 86400 * 7, "price": 150.0},
-         {"ts": now, "price": 150.0}]
-    t = signals.trend(h)
-    assert t is not None
-    assert t["direction"] == "estável"
-    assert t["change_pct"] == 0.0
-    assert "estável" in t["label"]
-
-
-def test_liquidity_liquid():
-    assert signals.liquidity_flag(100)["level"] == "liquid"
-
-
-def test_liquidity_low():
-    assert signals.liquidity_flag(10)["level"] == "low"
-
-
-def test_liquidity_unknown():
-    assert signals.liquidity_flag(None)["level"] == "unknown"
-
-
-def test_discontinued_case():
-    r = signals.discontinued_flag("Operation Bravo Case")
-    assert r["is_discontinued"] is True
-    assert "descontinuada" in r["flag"]
-
-
-def test_discontinued_not():
-    r = signals.discontinued_flag("AK-47 | Redline (Field-Tested)")
-    assert r["is_discontinued"] is False
-    assert r["flag"] == ""
-
-
-def test_discontinued_case_partial_match():
-    r = signals.discontinued_flag("Clutch Case")
-    assert r["is_discontinued"] is True
-    r = signals.discontinued_flag("clutch case")
-    assert r["is_discontinued"] is True
-
-
-# ── cobertura do flag de descontinuada ─────────────────────────────
-#
-# Ate' 2026-07-29 a funcao usava uma lista escrita a mao, paralela ao
-# catalogo de cases.py e majoritariamente errada ("Operation Phoenix Case"
-# em vez de "...Weapon Case", "Operation Falchion Case" em vez de
-# "Falchion Case"). 22 das 36 descontinuadas passavam despercebidas -- 61%
-# de falha, em silencio, porque o match era substring e simplesmente nao
-# casava.
-
-
-def test_flag_cobre_todas_as_descontinuadas_do_catalogo():
-    """A regressao que motivou a troca: a cobertura tem que ser total."""
-    from lodout import cases
-    reais = [n for n, m in cases._CASES.items()
-             if m["status"] == "discontinued"]
-    assert reais, "catalogo sem caixas descontinuadas?"
-    falhas = [n for n in reais
-              if not signals.discontinued_flag(n)["is_discontinued"]]
-    assert falhas == [], "nao detectadas: {}".format(falhas)
-
-
-def test_flag_nao_marca_caixa_ativa():
-    for nome, meta in __import__(
-            "lodout.cases", fromlist=["cases"])._CASES.items():
-        if meta["status"] == "active":
-            assert signals.discontinued_flag(nome)["is_discontinued"] is False
-
-
-def test_flag_nao_marca_skin_de_caixa_descontinuada():
-    """`case_status` resolve skin -> caixa de origem. Usar isso aqui diria
-    que a SKIN esta' descontinuada, que e' outra afirmacao."""
-    r = signals.discontinued_flag("AK-47 | Redline (Field-Tested)")
-    assert r["is_discontinued"] is False
-
-
-def test_flag_nome_vazio_nao_explode():
-    assert signals.discontinued_flag("")["is_discontinued"] is False
-    assert signals.discontinued_flag("   ")["is_discontinued"] is False
-
-
-def test_flag_nome_desconhecido():
-    r = signals.discontinued_flag("Item Que Nao Existe 12345")
-    assert r["is_discontinued"] is False
-    assert r["flag"] == ""
-
-
 def test_record_and_load_volume(tmp_path, monkeypatch):
     p = tmp_path / "vol_history.json"
     monkeypatch.setattr(signals, "_VOLUME_PATH", p)
@@ -255,37 +137,6 @@ def test_multi_trend_period_labels():
     assert "24h" in result
     assert "7d" in result
     assert result["7d"]["direction"] == "subiu"
-
-
-def test_sma_basic():
-    result = signals.sma([1, 2, 3, 4, 5, 6, 7], period=3)
-    assert result[:2] == [None, None]
-    assert result[2] == pytest.approx(2.0)
-    assert result[3] == pytest.approx(3.0)
-    assert result[6] == pytest.approx(6.0)
-
-
-def test_sma_short():
-    assert signals.sma([1, 2], period=5) == [None, None]
-
-
-def test_sma_empty():
-    assert signals.sma([], period=3) == []
-
-
-def test_find_support_resistance():
-    # Trough at middle: point 90 is < both sides
-    ph = [{"price_median": 105.0}, {"price_median": 100.0}, {"price_median": 105.0},
-          {"price_median": 90.0},
-          {"price_median": 105.0}, {"price_median": 100.0}, {"price_median": 105.0}]
-    sr = signals.find_support_resistance(ph, window=2)
-    assert len(sr["support"]) >= 1
-    assert 88 <= sr["support"][0] <= 92
-
-
-def test_find_support_resistance_empty():
-    assert signals.find_support_resistance([], window=2) == {"support": [], "resistance": []}
-    assert signals.find_support_resistance([{"price_median": 100.0}], window=2) == {"support": [], "resistance": []}
 
 
 def test_scan_score_below_median():
@@ -624,34 +475,6 @@ def test_multi_trend_first_price_zero():
     ]
     result = signals.multi_trend(ph, periods=[24])
     assert "24h" not in result
-
-
-def test_find_support_resistance_with_resistance():
-    """Detecta pontos de resistencia."""
-    ph = []
-    for i in range(20):
-        ph.append({"price_median": 100.0 + (i % 5) * 5})
-    sr = signals.find_support_resistance(ph, window=2)
-    assert isinstance(sr["support"], list)
-    assert isinstance(sr["resistance"], list)
-
-
-def test_find_support_resistance_clustering_merge():
-    """Niveis proximos sao agrupados em um unico nivel."""
-    ph = [{"price_median": 100.0}] * 10
-    ph[3] = {"price_median": 90.0}  # primeiro suporte
-    ph[7] = {"price_median": 91.0}  # segundo suporte (proximo)
-    sr = signals.find_support_resistance(ph, window=2, min_separation_pct=5.0)
-    assert len(sr["support"]) >= 1
-
-
-def test_find_support_resistance_clustering_keep_separate():
-    """Niveis distantes mantem-se separados."""
-    ph = [{"price_median": 100.0}] * 10
-    ph[3] = {"price_median": 90.0}   # primeiro suporte
-    ph[7] = {"price_median": 50.0}   # segundo suporte (distante)
-    sr = signals.find_support_resistance(ph, window=2, min_separation_pct=5.0)
-    assert len(sr["support"]) >= 2
 
 
 def test_enhanced_score_delta_zero_skipped():
@@ -1058,64 +881,6 @@ def test_enhanced_score_sem_zscore_se_historico_curto():
     assert "zscore" not in [b["factor"] for b in breakdown]
 
 
-# ---------- is_score_stale / score_age_text ----------
-
-def test_is_score_stale_none():
-    assert signals.is_score_stale(None) is True
-
-
-def test_is_score_stale_fresh():
-    ts = time.time() - 3600  # 1h atras
-    assert signals.is_score_stale(ts) is False
-
-
-def test_is_score_stale_old():
-    ts = time.time() - 8 * 86400  # 8d atras
-    assert signals.is_score_stale(ts) is True
-
-
-def test_is_score_stale_boundary(monkeypatch):
-    # Relógio congelado: no Linux o time.time() de dentro da função já
-    # andou alguns µs, e "exatos 7d" virava 7d + ε (passava só no
-    # Windows, cujo relógio anda em passos de ~15ms).
-    agora = 1_800_000_000.0
-    monkeypatch.setattr(signals.time, "time", lambda: agora)
-    ts = agora - 7 * 86400  # exatos 7d
-    assert signals.is_score_stale(ts) is False
-
-
-def test_is_score_stale_custom_max_age():
-    ts = time.time() - 3 * 86400  # 3d
-    assert signals.is_score_stale(ts, max_age_days=2) is True
-    assert signals.is_score_stale(ts, max_age_days=5) is False
-
-
-def test_score_age_text_none():
-    assert "nunca calculado" in signals.score_age_text(None)
-
-
-def test_score_age_text_fresh():
-    assert signals.score_age_text(time.time()) == "agora"
-
-
-def test_score_age_text_minutes():
-    ts = time.time() - 300  # 5min
-    txt = signals.score_age_text(ts)
-    assert "min" in txt
-
-
-def test_score_age_text_hours():
-    ts = time.time() - 7200  # 2h
-    txt = signals.score_age_text(ts)
-    assert "h" in txt
-
-
-def test_score_age_text_days():
-    ts = time.time() - 5 * 86400  # 5d
-    txt = signals.score_age_text(ts)
-    assert "d" in txt
-
-
 # === pump_risk ===
 
 def test_pump_risk_low_estavel():
@@ -1238,69 +1003,6 @@ def test_price_level_band_e_publica():
     assert signals.price_level_band(800.0)[0] == -4
     assert signals.price_level_band(None) is None
     assert signals.price_level_band(0) is None
-
-
-def test_price_band_labels_bate_com_price_level_band():
-    labels = signals.price_band_labels()
-    assert len(labels) == 4
-    assert signals.price_level_band(2.0)[1] in labels
-    assert signals.price_level_band(800.0)[1] in labels
-
-
-def test_market_breadth_alta():
-    r = signals.market_breadth(["rising"] * 8 + ["falling"] * 2)
-    assert r["tone"] == "up"
-    assert r["pct_up"] == 80.0
-    assert r["total"] == 10
-
-
-def test_market_breadth_queda():
-    r = signals.market_breadth(["falling"] * 7 + ["rising"] * 3)
-    assert r["tone"] == "down"
-
-
-def test_market_breadth_misto():
-    r = signals.market_breadth(["rising"] * 5 + ["falling"] * 5)
-    assert r["tone"] == "mixed"
-
-
-def test_market_breadth_ignora_entradas_invalidas():
-    r = signals.market_breadth(["rising", "", None, "falling", "stable"])
-    assert r["total"] == 3
-
-
-def test_market_breadth_vazio():
-    assert signals.market_breadth([]) == {}
-    assert signals.market_breadth(["", None]) == {}
-
-
-def test_approx_liquidity_from_ssr_basico():
-    ph = [{"time": i, "price_median": 10.0, "purchases": 50}
-          for i in range(10)]
-    ob = {"sell_count": 25}
-    r = signals.approx_liquidity_from_ssr(ph, ob)
-    assert r["supply"] == 25
-    assert r["sd_label"]
-
-
-def test_approx_liquidity_from_ssr_sem_order_book():
-    ph = [{"time": i, "price_median": 10.0, "purchases": 50}
-          for i in range(10)]
-    assert signals.approx_liquidity_from_ssr(ph, None) == {}
-    assert signals.approx_liquidity_from_ssr(ph, {}) == {}
-
-
-def test_approx_liquidity_from_ssr_sem_price_history():
-    r = signals.approx_liquidity_from_ssr(None, {"sell_count": 25})
-    assert r == {}
-    r2 = signals.approx_liquidity_from_ssr([], {"sell_count": 25})
-    assert r2 == {}
-
-
-def test_approx_liquidity_from_ssr_supply_zero():
-    ph = [{"time": i, "price_median": 10.0, "purchases": 50}
-          for i in range(10)]
-    assert signals.approx_liquidity_from_ssr(ph, {"sell_count": 0}) == {}
 
 
 def test_price_level_usa_o_ultimo_ponto_do_prefixo():
