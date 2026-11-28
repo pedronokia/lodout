@@ -11,6 +11,7 @@ segura mesmo com o banco sendo escrito ao mesmo tempo por outro processo
 from __future__ import annotations
 
 import calendar
+import os
 import sqlite3
 import time
 import zipfile
@@ -60,8 +61,9 @@ def _backup_sqlite_rotativo(
         prefixo: str,
         extensao: str,
         agora: float) -> "Path | None":
-    """Copia `src` via API `sqlite3.Connection.backup()` com rotação de
-    `_MANTER` arquivos e limpeza do destino parcial em caso de falha."""
+    """Copia `src` via API `sqlite3.Connection.backup()` em arquivo
+    temporário, valida com `quick_check`, promove atomicamente com
+    `os.replace()` e mantém `_MANTER` arquivos."""
     if not src.exists():
         return None
     padrao = f"{prefixo}*{extensao}"
@@ -72,24 +74,34 @@ def _backup_sqlite_rotativo(
     dest_dir.mkdir(parents=True, exist_ok=True)
     nome = time.strftime(f"{prefixo}%Y%m%d-%H%M%S{extensao}", time.gmtime(agora))
     destino = dest_dir / nome
+    tmp = dest_dir / f".{nome}.{os.getpid()}.tmp"
     origem_conn = None
     destino_conn = None
     try:
         origem_conn = sqlite3.connect(str(src), timeout=10.0)
-        destino_conn = sqlite3.connect(str(destino), timeout=10.0)
+        destino_conn = sqlite3.connect(str(tmp), timeout=10.0)
         with destino_conn:
             origem_conn.backup(destino_conn)
         check = destino_conn.execute("PRAGMA quick_check").fetchone()
         if not check or check[0] != "ok":
             raise sqlite3.DatabaseError(f"quick_check falhou: {check}")
-    except sqlite3.Error:
+        destino_conn.close()
+        destino_conn = None
+        origem_conn.close()
+        origem_conn = None
+        os.replace(tmp, destino)
+    except (sqlite3.Error, OSError):
         if destino_conn is not None:
             destino_conn.close()
             destino_conn = None
-        try:
-            destino.unlink(missing_ok=True)
-        except OSError:
-            pass
+        if origem_conn is not None:
+            origem_conn.close()
+            origem_conn = None
+        for sufixo in ("", "-wal", "-shm"):
+            try:
+                Path(f"{tmp}{sufixo}").unlink(missing_ok=True)
+            except OSError:
+                pass
         return None
     finally:
         if origem_conn is not None:
@@ -157,15 +169,17 @@ def fazer_backup_json_se_necessario(
     dest_dir.mkdir(parents=True, exist_ok=True)
     nome = time.strftime("json-%Y%m%d-%H%M%S.zip", time.gmtime(agora))
     destino = dest_dir / nome
+    tmp = dest_dir / f".{nome}.{os.getpid()}.tmp"
     try:
-        with zipfile.ZipFile(destino, "w", zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
             for nome_arq, p in fontes.items():
                 p = Path(p)
                 if p.exists():
                     zf.write(p, arcname=f"{nome_arq}.json")
+        os.replace(tmp, destino)
     except OSError:
         try:
-            destino.unlink(missing_ok=True)
+            tmp.unlink(missing_ok=True)
         except OSError:
             pass
         return None

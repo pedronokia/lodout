@@ -568,6 +568,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                 motivo = "erro"
                 break
             else:
+                motivo = "janela"
                 estado["erro_404_seguidos"] = 0
                 estado["erro_404_start"] = -1
                 estado["erro_404_start0_fatias"] = 0
@@ -578,9 +579,12 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     totais[nome_fatia] = total
                 else:
                     totais.setdefault(nome_fatia, 0)
-                if not pagina and int(estado["start"]) < total:
-                    # Página vazia antes do fim: pode ser bloqueio silencioso
-                    # (AGENTS.md). Não avança; tenta de novo na próxima janela.
+                total_efetivo = total or int(totais.get(nome_fatia) or 0)
+                atual_start = int(estado["start"])
+                if not pagina and (atual_start < total_efetivo
+                                   or (atual_start > 0 and total == 0)):
+                    # Página vazia antes do fim (ou total=0 no meio da fatia):
+                    # pode ser bloqueio silencioso (AGENTS.md). Não avança.
                     estado["vazias"] = int(estado.get("vazias") or 0) + 1
                     motivo = "pagina_vazia"
                     break
@@ -607,7 +611,7 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                             "Catálogo: ordem instável em %s na posição %s "
                             "(sobreposição %d, esperada %d)",
                             nome_fatia, estado["start"], sobrep, esperado_sobrep)
-                ultima = int(estado["start"]) + len(pagina) >= total
+                ultima = atual_start + len(pagina) >= total_efetivo
                 cheio = int(estado.get("tamanho_cheio") or 0)
                 pagina_curta = bool(
                     pagina and not ultima and cheio > 0 and len(pagina) < cheio)
@@ -642,10 +646,10 @@ def varrer(ate_ts: float, deve_parar=lambda: False) -> dict:
                     and len(pagina) > _SOBREPOSICAO)
                 avanco = (len(pagina) - _SOBREPOSICAO if usou_sobrep
                           else len(pagina))
-                estado["start"] = int(estado["start"]) + avanco
+                estado["start"] = atual_start + avanco
                 estado["ultimos_nomes_fatia"] = nomes_pagina
                 estado["ultimo_avanco_sobreposto"] = usou_sobrep
-                if not pagina or estado["start"] >= total:
+                if not pagina or estado["start"] >= total_efetivo:
                     if _proxima_fatia(estado):
                         motivo = _finalizar_rodada(estado)
                         break

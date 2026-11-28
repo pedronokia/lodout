@@ -107,8 +107,10 @@ def _score_no_prefixo(name: str, prefixo: list[dict], as_of_ts: float,
     median = statistics.median(janela)
 
     # Sem order book histórico -- verdict sai sem spread_verdict/
-    # book_verdict (ver limite documentado no topo do arquivo).
-    verdict = steam_api.fair_value_verdict(lowest, median)
+    # book_verdict, mas com price_history pra tendência de 7d e drawdown
+    # funcionarem igual à produção (ver scan_engine.scan_item).
+    verdict = steam_api.fair_value_verdict(
+        lowest, median, price_history=prefixo)
     # Mesmo cálculo da produção (média do dia; ver scan_engine).
     multi = signals.multi_trend_diario(prefixo)
     cs = cases.case_status(name, as_of=as_of_ts)

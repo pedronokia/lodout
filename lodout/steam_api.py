@@ -235,6 +235,7 @@ def _collect_inventory(get_page) -> tuple[str, list[dict]]:
     assets: list[dict] = []
     descriptions: list[dict] = []
     start: str | None = None
+    completo = False
     for i in range(_INV_MAX_PAGES):
         # Faltava aqui -- toda outra sequencia de chamadas do modulo
         # (scanner, tradeup) dorme RATE_LIMIT_DELAY_S entre uma chamada
@@ -256,15 +257,30 @@ def _collect_inventory(get_page) -> tuple[str, list[dict]]:
             data = json.loads(body)
         except ValueError:
             return INV_ERROR, []
+        # Steam devolve "null", {"success": 0} ou {"error": ...} em falhas
+        # transitorias com HTTP 200: nunca tratar como inventario vazio.
+        if not isinstance(data, dict):
+            return INV_ERROR, []
+        if data.get("error") or ("success" in data and not data.get("success")):
+            return INV_ERROR, []
         if not data:
+            if i > 0:
+                return INV_ERROR, []
             return INV_EMPTY, []
-        assets.extend(data.get("assets") or [])
+        page_assets = data.get("assets") or []
+        if i > 0 and not page_assets:
+            return INV_ERROR, []
+        assets.extend(page_assets)
         descriptions.extend(data.get("descriptions") or [])
         if not data.get("more_items"):
+            completo = True
             break
         start = data.get("last_assetid")
         if not start:
-            break  # more_items sem cursor: nao da' pra avancar, para aqui
+            # more_items sem cursor: devolve erro em vez de truncar o inventario
+            return INV_ERROR, []
+    if not completo:
+        return INV_ERROR, []
     _limpar_rate_limit("inventory")
     if not assets or not descriptions:
         return INV_EMPTY, []
@@ -761,16 +777,17 @@ def _js_unescape(s: str) -> str:
                     result.append(chr(int(s[i + 2 : i + 6], 16)))
                 except ValueError:
                     result.append(s[i : i + 6])
-                i += 5
+                i += 6
+                continue
             elif nxt == "x" and i + 3 < len(s):
                 try:
                     result.append(chr(int(s[i + 2 : i + 4], 16)))
                 except ValueError:
                     result.append(s[i : i + 4])
-                i += 3
+                i += 4
+                continue
             elif nxt == "0":
                 result.append("\0")
-                i += 1
             else:
                 result.append(nxt)
             i += 2

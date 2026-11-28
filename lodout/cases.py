@@ -12,6 +12,7 @@ Expandir conforme necessario.
 from __future__ import annotations
 
 import re
+import threading
 import time
 
 from lodout.sticker_data import get_all as _get_stickers
@@ -781,11 +782,23 @@ for _k, _v in [
 ]:
     _PREMIUM_STICKERS[_k] = _v
 
-_ALL_STICKERS: dict[str, dict] = dict(_get_stickers())
-# Merge premium stickers not in API data (naming differences between events)
-for _k, _v in _PREMIUM_STICKERS.items():
-    if _k not in _ALL_STICKERS:
-        _ALL_STICKERS[_k] = _v
+_ALL_STICKERS_CACHE: dict[str, dict] | None = None
+_ALL_STICKERS_LOCK = threading.Lock()
+
+
+def _all_stickers() -> dict[str, dict]:
+    """Carrega stickers.json sob demanda (evita ~1,1 MB de JSON no import)."""
+    global _ALL_STICKERS_CACHE
+    if _ALL_STICKERS_CACHE is None:
+        with _ALL_STICKERS_LOCK:
+            if _ALL_STICKERS_CACHE is None:
+                merged = dict(_get_stickers())
+                # Merge premium stickers not in API data (naming differences between events)
+                for k, v in _PREMIUM_STICKERS.items():
+                    if k not in merged:
+                        merged[k] = v
+                _ALL_STICKERS_CACHE = merged
+    return _ALL_STICKERS_CACHE
 
 
 def list_all_stickers() -> list[str]:
@@ -795,7 +808,7 @@ def list_all_stickers() -> list[str]:
     Inclui tournament (Team), autograph, community e event stickers.
     + Premium stickers com nomes nao encontrados na API.
     """
-    return list(_ALL_STICKERS.keys())
+    return list(_all_stickers().keys())
 
 
 def list_stickers_by_category(category: str) -> list[str]:
@@ -805,7 +818,7 @@ def list_stickers_by_category(category: str) -> list[str]:
     Premium extras sao tratados como 'Team' (origem mais comum).
     """
     return sorted(
-        k for k, v in _ALL_STICKERS.items()
+        k for k, v in _all_stickers().items()
         if v.get("category", "Team") == category
     )
 

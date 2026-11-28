@@ -105,6 +105,7 @@ def scan_item(name: str, category: str | None = None,
     aproximado ou sem dado faz o priceoverview também. Padrão "ambas":
     as 2 requisições de sempre.
     """
+    overview_real = False
     try:
         if steam_api.has_cached_page_data(name):
             # Página emprestada de um desgaste "irmão" (mesmo payload da
@@ -115,14 +116,17 @@ def scan_item(name: str, category: str | None = None,
             # preço saía do último ponto do histórico.
             page = steam_api.get_market_page_data(name)
             overview = steam_api.get_market_overview(name)
+            overview_real = overview is not None
         elif fonte == "pagina" and fator_preco:
             page = steam_api.get_market_page_data(name)
             overview = _overview_da_pagina(page, fator_preco)
             if overview is None:
                 time.sleep(steam_api.RATE_LIMIT_DELAY_S)
                 overview = steam_api.get_market_overview(name)
+                overview_real = overview is not None
         else:
             overview = steam_api.get_market_overview(name)
+            overview_real = overview is not None
             time.sleep(steam_api.RATE_LIMIT_DELAY_S)
             page = steam_api.get_market_page_data(name)
     except Exception as e:
@@ -207,8 +211,11 @@ def scan_item(name: str, category: str | None = None,
 
     ob_approx = bool(page.get("order_book_approx")) if page else False
     _guardar_copia_da_pagina(name, page)
-    sombra = _fonte_pagina(page, ob, ob_approx)
-    if sombra is not None and overview is not None:
+    # Só mede comparação página vs priceoverview quando o priceoverview foi
+    # realmente consultado; no modo `fonte="pagina"` com overview sintetizado
+    # da própria página, gravar `_sombra` mascararia a revalidação do modo.
+    sombra = _fonte_pagina(page, ob, ob_approx) if overview_real else None
+    if sombra is not None and overview_real:
         sombra.update(_nota_so_com_a_pagina(
             sombra, score, lowest, volume, supply, ob, page, meta, multi,
             cs, is_cont))
@@ -280,13 +287,13 @@ def scan_item(name: str, category: str | None = None,
         # Página veio sem histórico -- pode ser throttle silencioso da
         # Steam (AGENTS.md). `run_full_scan` decide e tira do resultado.
         "_sem_historico": not (page and page.get("price_history")),
-        "_sombra": {
+        "_sombra": ({
             **(sombra or {}),
             "lowest_overview": (overview or {}).get("lowest"),
             "volume_overview": volume,
             "median_overview": (overview or {}).get("median"),
             "name": name,
-        },
+        } if overview_real else None),
     }
 
 
@@ -692,9 +699,19 @@ def run_full_scan(categories: "dict[str, list[str]] | None" = None,
             _avisa("Steam segue bloqueando; ciclo encerrado antes do fim")
             return False
         _avisa(f"Steam pediu pausa (429): esperando {espera / 60:.1f} min")
-        time.sleep(espera)
-        esperado += espera
-        return True
+        if cancelled is None:
+            time.sleep(espera)
+            esperado += espera
+            return True
+        restante = espera
+        while restante > 0:
+            if cancelled():
+                return False
+            passo = min(2.0, restante)
+            time.sleep(passo)
+            restante -= passo
+            esperado += passo
+        return not cancelled()
 
     if pular:
         items = [(n, c) for n, c in items if n not in pular]

@@ -151,12 +151,17 @@ def test_bootstrap_ci_e_deterministico_com_seed():
 
 # ── amostras / avaliar: integração fim-a-fim sintética ───────────
 
-def test_avaliar_detecta_correlacao_sintetica_conhecida():
+def test_avaliar_detecta_correlacao_sintetica_conhecida(monkeypatch):
     """Série fabricada onde 'mais barato que a própria mediana recente'
     SEMPRE precede uma volta ao normal (retorno positivo) -- o fator
     'mediana' domina o score aqui (sem spread/book/caixa), então a
     correlação tem que sair claramente positiva. Não testa se o MODELO
     é bom; testa se avaliar() mede o que deveria medir."""
+    from lodout import signals
+    # Desde 22/11 o fator 'mediana' foi desligado em produção (_MEDIANA_PESO=0.0);
+    # ligamos aqui explicitamente porque este teste valida a ferramenta de
+    # medição num cenário dominado por esse fator (com trend/drawdown ativos).
+    monkeypatch.setattr(signals, "_MEDIANA_PESO", 1.0)
     preco_base = 100.0
 
     def preco_em(i):

@@ -319,11 +319,31 @@ _escaneando = False
 
 
 def _ao_receber_sigterm(signum, frame) -> None:
+    """Sinal de parada: não faz logging aqui (lock de logging pode dar
+    deadlock dentro de handler de sinal). Fora de seção crítica/scan,
+    encerra imediatamente; dentro, apenas marca `_parar`."""
     global _parar
     _parar = True
-    _logger.info("Pedido de parada recebido; encerrando entre dois itens")
     if not _escaneando:
         raise SystemExit(0)
+
+
+def _secao_critica():
+    """Marca `_escaneando = True` durante gravações/backups/catálogo para
+    que SIGTERM aguarde o fim da operação em vez de interromper no meio."""
+    import contextlib
+
+    @contextlib.contextmanager
+    def _cm():
+        global _escaneando
+        anterior = _escaneando
+        _escaneando = True
+        try:
+            yield
+        finally:
+            _escaneando = anterior
+
+    return _cm()
 
 
 def _caminho_checkpoint() -> Path:
@@ -520,11 +540,14 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         _escaneando = False
     relatorio = _mesclar_relatorios(relatorio_anterior, relatorio)
     if _parar:
-        # Parada pedida no meio: guarda o que veio e deixa o ciclo pra
-        # ser retomado no próximo start, sem gravar scan/ranking parcial.
-        _gravar_checkpoint(inicio_ciclo, acumulados, relatorio)
-        _logger.info("Scan interrompido com %d itens no checkpoint",
-                     len(acumulados))
+        # Parada pedida no meio: só grava checkpoint se já coletou algo
+        # (evita checkpoint vazio forçando scan imediato no próximo start).
+        if acumulados:
+            _gravar_checkpoint(inicio_ciclo, acumulados, relatorio)
+            _logger.info("Scan interrompido com %d itens no checkpoint",
+                         len(acumulados))
+        else:
+            _logger.info("Scan interrompido antes do primeiro item; sem checkpoint")
         return []
     novos = ja_coletados + novos
     if relatorio.get("throttle_silencioso"):
@@ -539,118 +562,121 @@ def run_once(categories: "dict[str, list[str]] | None" = None) -> list[dict]:
         _logger.warning("%d itens sem preço sem bloqueio: falha geral, "
                         "contagem de sem-anúncio não mexida", len(sem_preco))
         sem_preco = []
-    try:
-        atomic_write_text(_caminho_sem_anuncio(), json.dumps(
-            _atualizar_sem_anuncio(
-                sem_anuncio, {r["name"] for r in novos}, sem_preco,
-                time.time()),
-            ensure_ascii=False))
-    except OSError:
-        _logger.warning("não gravou scan_sem_anuncio.json", exc_info=True)
-    if relatorio.get("comparacao_fontes"):
-        _logger.info("Listing page vs priceoverview: %s",
-                     relatorio["comparacao_fontes"])
-    # Ciclo sem NENHUM item novo (Steam bloqueando tudo) não regrava
-    # nada: o scan anterior continua valendo inteiro, como antes.
-    mantidos = (_manter_do_ciclo_anterior(novos, anterior, alvos)
-                if novos else [])
-    completados = _completar_metadados_do_anterior(novos, anterior)
-    if completados:
-        _logger.info("Imagem/raridade herdadas do ciclo anterior: %d itens",
-                     completados)
-    do_catalogo = _completar_metadados_do_catalogo(novos)
-    if do_catalogo:
-        _logger.info("Imagem/raridade vindas do catálogo: %d itens", do_catalogo)
-    if falhas:
-        _logger.info("Sem resultado neste ciclo (%d): %s", len(falhas),
-                     ", ".join(falhas[:30]))
-    resultados = novos + mantidos
-    if novos:
-        scan_store.save_last_scan("Todas as categorias", resultados)
-        # Ordena ANTES de cortar: `resultados` vem na ordem do scan
-        # (categoria por categoria), então `[:20]` direto pegava os 20
-        # primeiros escaneados, não as 20 maiores notas. Desempate pela
-        # nota bruta (antes do clamp em 100) também aqui -- sem isso,
-        # o corte em 20 podia excluir por acaso um item com nota bruta
-        # maior que um dos 20 escolhidos, só por ordem de chegada.
-        ordenados = sorted(
-            resultados, key=lambda r: (
-                -r.get("score", 0), -signals.raw_score(r.get("breakdown"))))
-        ranking.save_snapshot(ordenados[:_TOP_RANKING])
-        # Nota de TODOS os itens, para o gráfico da nota (até 1 ano) e o
-        # Ranking de 90 dias / 1 ano (notas_historico.py, pedido 17/11).
-        notas_historico.gravar_snapshot({"ts": time.time(), "items": [
-            {"name": r["name"], "score": int(r.get("score") or 0), "position": i + 1}
-            for i, r in enumerate(ordenados) if r.get("name")]})
+    with _secao_critica():
         try:
-            from lodout.public_site import oportunidades_alerta
-            oportunidades_alerta.verificar_e_enviar(resultados)
+            atomic_write_text(_caminho_sem_anuncio(), json.dumps(
+                _atualizar_sem_anuncio(
+                    sem_anuncio, {r["name"] for r in novos}, sem_preco,
+                    time.time()),
+                ensure_ascii=False))
+        except OSError:
+            _logger.warning("não gravou scan_sem_anuncio.json", exc_info=True)
+        if relatorio.get("comparacao_fontes"):
+            _logger.info("Listing page vs priceoverview: %s",
+                         relatorio["comparacao_fontes"])
+        # Ciclo sem NENHUM item novo (Steam bloqueando tudo) não regrava
+        # nada: o scan anterior continua valendo inteiro, como antes.
+        mantidos = (_manter_do_ciclo_anterior(novos, anterior, alvos)
+                    if novos else [])
+        completados = _completar_metadados_do_anterior(novos, anterior)
+        if completados:
+            _logger.info("Imagem/raridade herdadas do ciclo anterior: %d itens",
+                         completados)
+        do_catalogo = _completar_metadados_do_catalogo(novos)
+        if do_catalogo:
+            _logger.info("Imagem/raridade vindas do catálogo: %d itens", do_catalogo)
+        if falhas:
+            _logger.info("Sem resultado neste ciclo (%d): %s", len(falhas),
+                         ", ".join(falhas[:30]))
+        resultados = novos + mantidos
+        if novos:
+            scan_store.save_last_scan("Todas as categorias", resultados)
+            # Ordena ANTES de cortar: `resultados` vem na ordem do scan
+            # (categoria por categoria), então `[:20]` direto pegava os 20
+            # primeiros escaneados, não as 20 maiores notas. Desempate pela
+            # nota bruta (antes do clamp em 100) também aqui -- sem isso,
+            # o corte em 20 podia excluir por acaso um item com nota bruta
+            # maior que um dos 20 escolhidos, só por ordem de chegada.
+            ordenados = sorted(
+                resultados, key=lambda r: (
+                    -r.get("score", 0), -signals.raw_score(r.get("breakdown"))))
+            ranking.save_snapshot(ordenados[:_TOP_RANKING])
+            # Nota de TODOS os itens, para o gráfico da nota (até 1 ano) e o
+            # Ranking de 90 dias / 1 ano (notas_historico.py, pedido 17/11).
+            notas_historico.gravar_snapshot({"ts": time.time(), "items": [
+                {"name": r["name"], "score": int(r.get("score") or 0), "position": i + 1}
+                for i, r in enumerate(ordenados) if r.get("name")]})
+            try:
+                from lodout.public_site import oportunidades_alerta
+                oportunidades_alerta.verificar_e_enviar(resultados)
+            except Exception:
+                _logger.exception("Falha silenciosa ao processar alerta de oportunidades Discord")
+        _apagar_checkpoint()
+        # Termômetro da extração de miniatura (sem requisição extra): se o
+        # número ficar igual ao total, o HTML da Steam mudou de formato.
+        _logger.info("Itens sem miniatura: %d de %d",
+                     sum(1 for r in novos if not r.get("icon")),
+                     len(novos))
+        duracao_min = (time.time() - inicio) / 60
+        scan_store.registrar_ciclo(
+            len(novos), duracao_min, alvos=len(alvos),
+            mantidos=len(mantidos), falhas=falhas,
+            extras={
+                "ritmo": ritmo,
+                "pausas_429": relatorio.get("pausas_429", 0),
+                "throttle_silencioso": relatorio.get("throttle_silencioso", 0),
+                "abortado": bool(relatorio.get("abortado")),
+                "encerrou_por_429": bool(relatorio.get("encerrou_por_429")),
+                "fonte": fonte,
+                "em_espera": em_espera,
+                "comparacao_fontes": relatorio.get("comparacao_fontes"),
+            })
+        _logger.info("Ciclo concluído: %d itens novos (+%d mantidos do ciclo "
+                     "anterior) em %.1fmin", len(novos), len(mantidos),
+                     duracao_min)
+        if _parar:
+            return resultados
+        # Anúncios oficiais do CS2 -- DEPOIS do scan pra nunca atrasar a
+        # coleta de preço; 1 requisição a cada ~6h no máximo e família própria
+        # no disjuntor (ver steam_news.py).
+        try:
+            _logger.info("Notícias oficiais: %s", steam_news.atualizar_noticias())
         except Exception:
-            _logger.exception("Falha silenciosa ao processar alerta de oportunidades Discord")
-    _apagar_checkpoint()
-    # Termômetro da extração de miniatura (sem requisição extra): se o
-    # número ficar igual ao total, o HTML da Steam mudou de formato.
-    _logger.info("Itens sem miniatura: %d de %d",
-                 sum(1 for r in novos if not r.get("icon")),
-                 len(novos))
-    duracao_min = (time.time() - inicio) / 60
-    scan_store.registrar_ciclo(
-        len(novos), duracao_min, alvos=len(alvos),
-        mantidos=len(mantidos), falhas=falhas,
-        extras={
-            "ritmo": ritmo,
-            "pausas_429": relatorio.get("pausas_429", 0),
-            "throttle_silencioso": relatorio.get("throttle_silencioso", 0),
-            "abortado": bool(relatorio.get("abortado")),
-            "encerrou_por_429": bool(relatorio.get("encerrou_por_429")),
-            "fonte": fonte,
-            "em_espera": em_espera,
-            "comparacao_fontes": relatorio.get("comparacao_fontes"),
-        })
-    _logger.info("Ciclo concluído: %d itens novos (+%d mantidos do ciclo "
-                 "anterior) em %.1fmin", len(novos), len(mantidos),
-                 duracao_min)
-    # Anúncios oficiais do CS2 -- DEPOIS do scan pra nunca atrasar a
-    # coleta de preço; 1 requisição a cada ~6h no máximo e família própria
-    # no disjuntor (ver steam_news.py).
-    try:
-        _logger.info("Notícias oficiais: %s", steam_news.atualizar_noticias())
-    except Exception:
-        _logger.warning("busca de notícias falhou", exc_info=True)
-    # Backup do banco de contas/portfolio pessoal -- auto-limitado a 1x/
-    # ~20h por `fazer_backup_se_necessario`, então chamar a cada ciclo
-    # (mesmo de 6 em 6h) não produz backup demais.
-    try:
-        db_backup.fazer_backup_se_necessario()
-    except Exception:
-        _logger.warning("backup do banco falhou", exc_info=True)
-    # Backup do histórico de notas (notas_historico.sqlite3, até 400 dias --
-    # impossível reconstruir a partir da Steam se corromper).
-    try:
-        db_backup.fazer_backup_notas_se_necessario()
-    except Exception:
-        _logger.warning("backup do histórico de notas falhou", exc_info=True)
-    # Backup dos JSON globais do dashboard (scan_store/ranking) -- achado
-    # da 2a rodada (2026-10-25): só o SQLite tinha backup até aqui.
-    try:
-        db_backup.fazer_backup_json_se_necessario()
-    except Exception:
-        _logger.warning("backup dos JSON falhou", exc_info=True)
-    # Limpeza do cache de ícones (remove versões antigas .v3 já substituídas
-    # e aplica teto de arquivos pra evitar crescimento ilimitado no volume).
-    try:
-        from lodout.public_site import icon_cache
-        removidos = icon_cache.limpar_antigos()
-        if removidos:
-            _logger.info("Limpeza de icon_cache: %d arquivos removidos", removidos)
-    except Exception:
-        _logger.warning("limpeza do cache de ícones falhou", exc_info=True)
-    # Manutenção leve pós-ciclo: checkpoint WAL passivo nos SQLites e
-    # remoção de .tmp órfãos de crashes antigos em DATA_DIR.
-    try:
-        _manutencao_pos_ciclo()
-    except Exception:
-        _logger.warning("manutenção pós-ciclo falhou", exc_info=True)
+            _logger.warning("busca de notícias falhou", exc_info=True)
+        # Backup do banco de contas/portfolio pessoal -- auto-limitado a 1x/
+        # ~20h por `fazer_backup_se_necessario`, então chamar a cada ciclo
+        # (mesmo de 6 em 6h) não produz backup demais.
+        try:
+            db_backup.fazer_backup_se_necessario()
+        except Exception:
+            _logger.warning("backup do banco falhou", exc_info=True)
+        # Backup do histórico de notas (notas_historico.sqlite3, até 400 dias --
+        # impossível reconstruir a partir da Steam se corromper).
+        try:
+            db_backup.fazer_backup_notas_se_necessario()
+        except Exception:
+            _logger.warning("backup do histórico de notas falhou", exc_info=True)
+        # Backup dos JSON globais do dashboard (scan_store/ranking) -- achado
+        # da 2a rodada (2026-10-25): só o SQLite tinha backup até aqui.
+        try:
+            db_backup.fazer_backup_json_se_necessario()
+        except Exception:
+            _logger.warning("backup dos JSON falhou", exc_info=True)
+        # Limpeza do cache de ícones (remove versões antigas .v3 já substituídas
+        # e aplica teto de arquivos pra evitar crescimento ilimitado no volume).
+        try:
+            from lodout.public_site import icon_cache
+            removidos = icon_cache.limpar_antigos()
+            if removidos:
+                _logger.info("Limpeza de icon_cache: %d arquivos removidos", removidos)
+        except Exception:
+            _logger.warning("limpeza do cache de ícones falhou", exc_info=True)
+        # Manutenção leve pós-ciclo: checkpoint WAL passivo nos SQLites e
+        # remoção de .tmp órfãos de crashes antigos em DATA_DIR.
+        try:
+            _manutencao_pos_ciclo()
+        except Exception:
+            _logger.warning("manutenção pós-ciclo falhou", exc_info=True)
     # Alerta Discord do dono se o worker ficar horas sem trazer item
     # nenhum (ver worker_alert.py) -- sem webhook configurado, é no-op.
     try:
@@ -874,27 +900,30 @@ def rodada_top() -> "list[dict]":
         return []
     # Relê: entre o início e agora nada mais escreve o scan_store (o
     # worker é um processo só), mas reler deixa claro que é merge.
-    scan = scan_store.load_last_scan() or scan
-    frescos = {r["name"]: r for r in novos}
-    resultados = [frescos.get(r["name"], r) for r in scan["results"]]
-    scan_store.save_last_scan(scan["category"], resultados, now=scan["ts"])
-    if completou:
-        scan_store.registrar_resultado_rodada_top(
-            len(novos), len(nomes), duracao, sucesso=True,
-            pausas_429=pausas, abortado=abortou,
-            encerrou_por_429=bloqueou)
-        _logger.info("Rodada rápida concluída: %d de %d em %.1fmin",
-                     len(novos), len(nomes), duracao)
-    else:
-        motivo = ("bloqueio da Steam" if bloqueou else
-                  "incompleta" if abortou else "faltaram itens")
-        scan_store.registrar_resultado_rodada_top(
-            len(novos), len(nomes), duracao, sucesso=False,
-            pausas_429=pausas, abortado=abortou,
-            encerrou_por_429=bloqueou, motivo=motivo)
-        _logger.info("Rodada rápida do Top 20 não completou: %d de %d "
-                     "em %.1fmin (%s)", len(novos), len(nomes), duracao,
-                     motivo)
+    with _secao_critica():
+        scan = scan_store.load_last_scan() or scan
+        _completar_metadados_do_anterior(novos, scan)
+        _completar_metadados_do_catalogo(novos)
+        frescos = {r["name"]: r for r in novos}
+        resultados = [frescos.get(r["name"], r) for r in scan["results"]]
+        scan_store.save_last_scan(scan["category"], resultados, now=scan["ts"])
+        if completou:
+            scan_store.registrar_resultado_rodada_top(
+                len(novos), len(nomes), duracao, sucesso=True,
+                pausas_429=pausas, abortado=abortou,
+                encerrou_por_429=bloqueou)
+            _logger.info("Rodada rápida concluída: %d de %d em %.1fmin",
+                         len(novos), len(nomes), duracao)
+        else:
+            motivo = ("bloqueio da Steam" if bloqueou else
+                      "incompleta" if abortou else "faltaram itens")
+            scan_store.registrar_resultado_rodada_top(
+                len(novos), len(nomes), duracao, sucesso=False,
+                pausas_429=pausas, abortado=abortou,
+                encerrou_por_429=bloqueou, motivo=motivo)
+            _logger.info("Rodada rápida do Top 20 não completou: %d de %d "
+                         "em %.1fmin (%s)", len(novos), len(nomes), duracao,
+                         motivo)
     return novos
 
 
@@ -914,22 +943,25 @@ def _esperar(segundos: float, permitido: bool = True) -> None:
         return
     fim = time.time() + segundos
     # Inventários das contas primeiro (poucos e rápidos), depois o catálogo.
-    if inventario.diario_ligado():
+    if inventario.diario_ligado() and not _parar:
         try:
-            inventario.sincronizar_pendentes(fim - _CATALOGO_FOLGA_S,
-                                             deve_parar=lambda: _parar)
+            with _secao_critica():
+                inventario.sincronizar_pendentes(fim - _CATALOGO_FOLGA_S,
+                                                 deve_parar=lambda: _parar)
         except Exception:
             _logger.error("sincronização diária de inventários falhou",
                           exc_info=True)
     # Backtest diário da nota: só cálculo local, sem consulta à Steam.
     if backtest_diario.ligado() and not _parar:
         try:
-            backtest_diario.rodar_se_preciso()
+            with _secao_critica():
+                backtest_diario.rodar_se_preciso()
         except Exception:
             _logger.error("backtest diário falhou", exc_info=True)
     if catalogo.ligado() and not _parar:
         try:
-            catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)
+            with _secao_critica():
+                catalogo.varrer(fim - _CATALOGO_FOLGA_S, deve_parar=lambda: _parar)
         except Exception:
             _logger.error("varredura do catálogo falhou", exc_info=True)
     falta = fim - time.time()
