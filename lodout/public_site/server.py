@@ -620,6 +620,8 @@ def create_app() -> Flask:
             proximo_scan=(scan_store.proxima_txt(scan["ts"], intervalo_horas)
                          if scan else None),
             scan_desatualizado=scan_desatualizado,
+            # A faixa de atraso já aparece; o rodapé não repete (28/11).
+            aviso_atraso_na_pagina=bool(scan and scan_desatualizado),
             ocultos_risco=ocultos_risco,
             categorias=sorted(set(scan_targets.SCAN_BY_CATEGORY.keys())
                               | set(contagem_abas.keys())),

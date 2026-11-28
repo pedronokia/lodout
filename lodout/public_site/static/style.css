@@ -460,7 +460,6 @@ summary:focus-visible,
 
   /* Link no meio do texto corrido: sublinhado para não depender só da
      cor (contraste com a frase em volta no tema claro). */
-  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
@@ -560,10 +559,6 @@ header.topo > * {
 /* A home acompanha a largura da tabela/vitrine. */
 @media (min-width: 641px) {
   header.topo.topo-larga > * { max-width: var(--largura-conteudo); }
-}
-
-@media (max-width: 640px) {
-
 }
 
 .titulo-logo {
@@ -823,7 +818,6 @@ footer.rodape a:hover {  text-decoration: underline; }
 footer.rodape .rodape-marca-nome {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
   margin-bottom: var(--sp-2);
   color: var(--text-bright);
   font-size: var(--fs-base);
@@ -1124,11 +1118,6 @@ footer.rodape .rodape-base a:hover {
 
 /* Texto corrido; "·" entre as partes. A bolinha fica fora do fluxo, à
    esquerda da primeira linha. */
-.status-coleta > span:not(.status-coleta-ponto) + span::before {
-  content: "·";
-  margin: 0 var(--sp-2);
-  color: var(--border-strong);
-}
 
 .status-coleta-ponto {
   position: absolute;
@@ -1144,7 +1133,6 @@ footer.rodape .rodape-base a:hover {
 /* Celular: uma informação por linha, sem os "·". */
 @media (max-width: 640px) {
   .status-coleta > span:not(.status-coleta-ponto) { display: block; }
-  .status-coleta > span:not(.status-coleta-ponto) + span::before { content: none; }
 }
 
 .status-coleta.status-scan-desatualizado .status-coleta-ponto {
@@ -1154,10 +1142,7 @@ footer.rodape .rodape-base a:hover {
 
 /* Link dentro da frase (ex.: "risco alto"): sublinhado, não só cor. */
 .status-coleta a {
-  color: inherit;
-  text-decoration: underline;
   text-decoration-color: var(--border-strong);
-  text-underline-offset: 2px;
 }
 
 .status-coleta a:hover {
@@ -1165,14 +1150,11 @@ footer.rodape .rodape-base a:hover {
   text-decoration-color: currentColor;
 }
 
-.status-coleta .status-scan-alerta { color: var(--warn); font-weight: 600; }
 
 /* Dentro da linha, as partes são texto corrido: sem o fio laranja do
    .resumo-do-dia (usado no Ranking) nem a margem do .badge-cooldown. */
 .status-coleta .resumo-do-dia {
-  padding: 0;
   border: 0;
-  font-size: inherit;
 }
 
 /* Dentro da linha, "Próxima atualização" é texto, não pílula. */
@@ -1181,8 +1163,6 @@ footer.rodape .rodape-base a:hover {
   padding: 0;
   border: 0;
   background: none;
-  color: inherit;
-  font-size: inherit;
   font-weight: inherit;
 }
 
@@ -1242,12 +1222,6 @@ footer.rodape .rodape-base a:hover {
 
 /* A arte fica solta sobre o brilho, sem moldura (era uma caixa preta
    com borda cinza). Sem imagem, o quadro com o ◇ continua. */
-.hero-destaque .icone-item-quadro {
-  flex: 0 0 280px;
-  width: 280px;
-  height: 190px;
-  border-radius: var(--radius-md);
-}
 
 /* Seletor reforçado: as regras de borda por raridade
    (.icone-item-quadro.raridade-*) vêm depois e venciam. */
@@ -1273,14 +1247,7 @@ footer.rodape .rodape-base a:hover {
   min-width: 0;
 }
 
-.hero-destaque-rotulo {
-  
-  line-height: 1.4;
-
-}
-
 .hero-destaque-nome {
-  display: block;
 
   overflow-wrap: anywhere;
   text-wrap: balance;
@@ -1334,21 +1301,10 @@ footer.rodape .rodape-base a:hover {
     padding: var(--sp-5);
   }
 
-  .hero-destaque .icone-item-quadro {
-    flex: 0 0 130px;
-    width: 130px;
-    height: 90px;
-  }
-
   .hero-destaque-nota {
     width: 76px;
     height: 76px;
     margin-left: auto;
-  }
-
-  .hero-destaque-corpo {
-    flex-basis: 100%;
-    order: 3;
   }
 
   .hero-destaque-nota-num { font-size: 1.5rem; }
@@ -1380,7 +1336,6 @@ footer.rodape .rodape-base a:hover {
   border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--text);
-  font-size: var(--fs-base);
   text-overflow: ellipsis;
   transition: border-color var(--dur-base) var(--ease-standard), background-color var(--dur-base) var(--ease-standard),
     box-shadow var(--dur-base) var(--ease-standard);
@@ -1433,34 +1388,8 @@ footer.rodape .rodape-base a:hover {
    escondidos até quem visita pedir (ou já chegam abertos quando um
    dos três já está ativo via URL). */
 .filtros-mais {
-  display: flex;
-  flex-direction: column;
   justify-content: flex-end;
 }
-
-.filtros-mais-toggle {
-  display: inline-flex;
-  height: 40px;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.filtros-mais-toggle::-webkit-details-marker { display: none; }
-.filtros-mais-toggle:hover { color: var(--accent-bright); }
-
-.filtros-mais-toggle .icone-ui {
-  width: 14px;
-  height: 14px;
-  transition: transform var(--dur-base) var(--ease-standard);
-}
-
-.filtros-mais[open] .filtros-mais-toggle .icone-ui { transform: rotate(180deg); }
 
 /* Grade de colunas iguais (2026-11-14): com Exterior, Raridade e Versão
    (os filtros do Mercado da Steam) cada campo saía com uma largura, e a
@@ -1683,17 +1612,10 @@ footer.rodape .rodape-base a:hover {
    padding de 4px dá espaço pro anel de foco não ser cortado pela
    rolagem, e a margem negativa devolve o alinhamento. */
 .abas-categoria {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  margin: -4px -4px var(--sp-2);
-  padding: 4px;
   overflow-x: auto;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
-
-.abas-categoria::-webkit-scrollbar { display: none; }
 
 /* Chips de categoria: pílula fantasma (fundo transparente + fio), como
    os filtros da loja da Apple. A aba escolhida vira pílula laranja. */
@@ -1709,11 +1631,6 @@ footer.rodape .rodape-base a:hover {
 
 }
 
-.aba-categoria:hover {
-
-  text-decoration: none;
-}
-
 /* Selecionado com o MESMO peso do resto (500): já se distingue pelo
    fundo laranja, e trocar o peso alargava o texto e empurrava os vizinhos
    a cada troca de aba/período (layout que pula). */
@@ -1727,15 +1644,6 @@ footer.rodape .rodape-base a:hover {
    ainda fica um tom abaixo do nome (que é branco cheio). */
 
 /* ── Seletor Vitrine/Lista e ordenação ───────────────── */
-
-.barra-visao {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2) var(--sp-3);
-  margin: 0 0 var(--sp-3);
-}
 
 /* Controle segmentado da Apple: trilho cinza, item escolhido em
    branco com sombra suave. */
@@ -1779,14 +1687,9 @@ footer.rodape .rodape-base a:hover {
 }
 
 .ordenar-vitrine {
-  display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-1);
   font-size: var(--fs-sm);
 }
-
-.ordenar-vitrine-rotulo { color: var(--text-muted); }
 
 .ordenar-vitrine a {
   display: inline-flex;
@@ -2468,7 +2371,7 @@ table.tabela-candidatos td.celula-preco {
   border-radius: var(--radius-xs);
   background: rgba(57, 194, 102, 0.12);
   border: 1px solid rgba(57, 194, 102, 0.28);
-  color: #39c266;
+  color: var(--positive);
   white-space: nowrap;
   vertical-align: middle;
 }
@@ -2774,7 +2677,6 @@ a.paginacao-passo:hover {
 }
 
 .paginacao-numero[aria-current="page"] {
-  background: var(--accent);
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
@@ -2785,7 +2687,6 @@ a.paginacao-passo:hover {
   width: 20px;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
   font-size: var(--fs-xs);
 }
 
@@ -2960,7 +2861,6 @@ a.paginacao-passo:hover {
   position: relative;
   display: grid;
   place-items: center;
-  background: var(--surface);
 }
 
 .cartao-item-imagem-link {
@@ -2975,10 +2875,7 @@ a.paginacao-passo:hover {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: none;
   image-rendering: -webkit-optimize-contrast;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 
 .cartao-item:focus-within .cartao-item-icon {
@@ -3148,12 +3045,6 @@ a.paginacao-passo:hover {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   min-height: 2.6em;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: #f8fafc;
-  line-height: 1.3;
-  margin: 4px 0 2px;
 }
 
 .cartao-item-nome:hover {
@@ -3259,12 +3150,10 @@ a.paginacao-passo:hover {
 }
 
 .cartao-item-steam:hover {
-  color: var(--accent);
   text-decoration: none;
 }
 
 .cartao-item-steam .icone-ui { width: 0.6875rem; height: 0.6875rem; transition: transform 0.15s ease; }
-.cartao-item-steam:hover .icone-ui { transform: translateX(2px); }
 
 .cartao-item-nota-area .selo-mudou-nota {
   margin-left: 0;
@@ -3435,9 +3324,6 @@ a.paginacao-passo:hover {
 
 /* Celular: preço embaixo do nome, nota à direita -- com tudo na mesma
    linha o nome quebrava em 3 linhas com hífen. */
-@media (max-width: 560px) {
-
-}
 
 /* ── Comparador ──────────────────────────────────────── */
 
@@ -4639,9 +4525,6 @@ table.tabela-conta th { white-space: normal; }
 
 /* Fallback para navegadores sem View Transitions: fade simples
    no corpo via JS (ver app.js). */
-@supports not (view-transition-name: none) {
-
-}
 
 /* ── Tabelas de cartão no celular ────────────────────── */
 
@@ -5264,10 +5147,6 @@ table.tabela-conta th { white-space: normal; }
 
 /* Só 3 colunas: cabe no celular sem rolagem lateral se o nome quebrar. */
 
-@media (max-width: 560px) {
-
-}
-
 /* /status: scan em andamento. */
 .estado-scan { margin: 0 0 var(--sp-4); }
 .pagina-texto .estado-scan p { margin: 0; text-align: left; }
@@ -5667,8 +5546,6 @@ table.tabela-conta .celula-item-conta-extra .form-remover { width: auto; }
 
 .tabela-wrap:has(> .tabela-conta) + .adicionar-manual { margin-top: var(--sp-4); }
 
-@media (hover: none) { }
-
 /* Conta no celular: cartão de item mais compacto -- o rótulo "Item" é
    redundante (o nome já está ali) e o respiro entre as linhas dobrava a
    altura de cada cartão. */
@@ -6063,7 +5940,6 @@ th[aria-sort="ascending"] .ordenar-seta::before { content: "↑"; }
 /* Lotes do mesmo item ligados por uma faixa na borda esquerda. */
 /* Lotes do mesmo item: a linha entre eles é tracejada (continuação do
    mesmo item), em vez de uma faixa colorida na lateral. */
-table.tabela-conta tbody tr.linha-lote:has(+ tr.linha-lote) td { border-bottom-style: dashed; }
 .na-sua-conta {
   margin: 0 0 var(--sp-4);
   padding: var(--sp-4) var(--sp-5);
@@ -6156,8 +6032,6 @@ input, textarea { caret-color: var(--accent); }
    sem caixa-alta e o preço alinhado à direita, junto do campo. */
 @media (max-width: 640px) {
   table.tabela-conta tbody { gap: var(--sp-2); }
-  table.tabela-conta tbody tr:not(.linha-regras) { padding: 6px 4px; }
-  table.tabela-conta tbody td { padding: 4px 8px; }
   table.tabela-conta tbody td::before {
     margin-bottom: 2px;
     font-weight: 500;
@@ -6206,11 +6080,9 @@ input, textarea { caret-color: var(--accent); }
 /* Revisão 2026-11-16 (33/40). Filtro sem nenhum item agora ("No lucro
    0"): borda tracejada e texto mais fraco, para não parecer igual aos
    outros (continua clicável). */
-.conta-filtro.conta-filtro-vazio { border-style: dashed; color: var(--text-muted); }
-.conta-filtro.conta-filtro-vazio:hover { border-style: solid; }
+.conta-filtro.conta-filtro-vazio { color: var(--text-muted); }
 /* "Como ler" dentro da barra (conta.js o move para lá): ao lado do
    "Ordenar"; aberto, ocupa a linha inteira. */
-.conta-ferramentas > .como-ler { margin: 0; }
 .conta-ferramentas > .como-ler[open] { flex-basis: 100%; }
 @media (max-width: 640px) {
   /* "17 itens" já aparece em "Todos 17" logo abaixo. */
@@ -6443,10 +6315,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 /* Tese do site no topo da home (revisão 17/11): o <h1> era oculto e
    quem chegava pelo celular não via o que é o Lodout. Compacto, para o
    cartão do destaque continuar na primeira tela. */
-.home-tese { margin: 0 0 var(--sp-4); }
-.home-tese-titulo { margin: 0; font-size: var(--fs-lg); line-height: 1.25; color: var(--text-bright); }
-.pagina-inicial .home-tese-texto { margin: 4px 0 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-muted); }
-.hero-destaque-desde { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
+.home-tese-titulo { font-size: var(--fs-lg); }
 
 /* Ranking pela nota média + "o que mudou desde ontem" (17/11). */
 .ranking-base { margin: 0 0 var(--sp-3); }
@@ -6474,7 +6343,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .movimento-linha {    min-width: 0; }
 
 /* Até 2 linhas: cortar no meio escondia o desgaste ("Testada em Ca..."). */
-.movimento-linha-texto .link-item { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;  overflow-wrap: anywhere;  line-height: 1.35; }
+.movimento-linha-texto .link-item { display: -webkit-box; }
 .movimento-mais { margin: 0; }
 .movimento-mais > summary { display: inline-flex; align-items: center; min-height: 32px;    list-style: none; }
 .movimento-mais > summary::-webkit-details-marker { display: none; }
@@ -6489,7 +6358,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 
 /* "Encomenda sugerida" copiável; a dica "copiado" sai por cima. */
 .tabela-top20 .celula-encomenda { white-space: nowrap; }
-.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0; font-size: var(--fs-xs); }
+.ranking-nota-encomenda { max-width: 60ch; margin: var(--sp-2) 0 0; }
 /* Avisos e explicações do Ranking */
 .ranking-base, .aviso-periodo-ranking { width: 100%; box-sizing: border-box; }
 /* Quadros "revender sem prejuízo" e "comprar por encomenda" do item. */
@@ -6516,9 +6385,6 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
 .movimento-linha-nota .nota-mini { width: 2rem; height: 2rem; }
 .movimento-linha-numeros .icone-ui { width: 10px; height: 10px; vertical-align: -1px; }
 .ranking-pos-celular, .ranking-pos-celular[hidden] { display: none; }
-@media (max-width: 640px) {
-  .ranking-movimento { grid-template-columns: 1fr; }
-}
 /* Celular: cada item do Ranking vira um cartão (antes as colunas da
    direita ficavam escondidas, só arrastando a tabela). */
 @media (max-width: 640px) {
@@ -6530,7 +6396,7 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   table.tabela-top20.tabela-cards-mobile tbody tr { display: flex; flex-wrap: wrap; align-items: flex-start; }
   table.tabela-top20.tabela-cards-mobile tbody td::before { white-space: nowrap; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-item-top { order: 0; flex: 1 1 calc(100% - 80px); align-self: center; }
-  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { order: 1; flex: 0 0 auto; justify-content: center; align-items: flex-end; }
+  table.tabela-top20.tabela-cards-mobile tbody td.celula-hoje { order: 1; flex: 0 0 auto; justify-content: center; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-valor-ranking { order: 2; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-no-top { order: 3; }
   table.tabela-top20.tabela-cards-mobile tbody td.celula-encomenda { order: 4; }
@@ -6776,13 +6642,6 @@ table.tabela-conta tbody tr[hidden] { display: none; }
 .botao-acao { gap: 8px; }
 .acoes-erro { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); margin-top: var(--sp-4); }
 .acoes-erro .acao-texto { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
-
-@media (max-width: 900px) {
-
-}
-@media (max-width: 480px) {
-
-}
 .botao-spotlight-gatilho {
 
 font-family: inherit;
@@ -6880,7 +6739,7 @@ transition: background 0.12s ease;
 }
 .spotlight-item:hover,
 .spotlight-item.spotlight-item-ativo {
-background: #252525;
+background: var(--surface-hover);
 outline: none;
 }
 .spotlight-item-img-wrap {
@@ -7157,7 +7016,7 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .gauge-risco-low .gauge-seg:nth-child(1) {
-  background: #39c266;
+  background: var(--positive);
   box-shadow: none;
 }
 
@@ -7168,12 +7027,12 @@ box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .gauge-risco-high .gauge-seg {
-  background: #ff6e70;
+  background: var(--danger);
   box-shadow: none;
 }
 
 .gauge-liquidez-raso .gauge-seg:nth-child(1) {
-  background: #b3b3b3;
+  background: var(--text-muted);
 }
 
 .gauge-liquidez-fino .gauge-seg:nth-child(1),
@@ -7243,8 +7102,8 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .botao-compartilhar.copiado {
-  border-color: #39c266;
-  color: #39c266;
+  border-color: var(--positive);
+  color: var(--positive);
   background: rgba(57, 194, 102, 0.12);
 }
 
@@ -7254,12 +7113,7 @@ circle.grafico-ponto-interativo:hover {
 
 .botao-compartilhar.copiado .icone-ui-check {
   display: inline-block;
-  stroke: #39c266;
-}
-
-@keyframes pulse-fogo-anim {
-  0%, 100% { opacity: 0.9; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
+  stroke: var(--positive);
 }
 
 /* ==========================================================================
@@ -7505,11 +7359,6 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 6. Abas de Categorias & Filtros */
-.aba-contagem {
-
-  margin-left: 4px;
-  
-}
 
 .campo-busca {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -7600,10 +7449,6 @@ circle.grafico-ponto-interativo:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-.tabela-top20 tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.025);
-}
-
 .ranking-bloco {
 
   backdrop-filter: blur(8px);
@@ -7656,14 +7501,6 @@ circle.grafico-ponto-interativo:hover {
 /* 15. FAQ Modern Cards System (/faq) */
 
 .faq-lista[hidden] { display: none; }
-
-.faq-item .secao-titulo {
-  margin: 0 0 10px;
-  font-size: var(--fs-base);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--text-bright);
-}
 
 .faq-resposta p {
   margin: 0;
@@ -7723,7 +7560,7 @@ circle.grafico-ponto-interativo:hover {
 }
 
 .metodo-disclaimer-card .secao-titulo {
-  color: #f2bb25;
+  color: var(--warn);
   margin-top: 0;
   margin-bottom: 8px;
   font-size: var(--fs-lead);
@@ -7803,15 +7640,7 @@ circle.grafico-ponto-interativo:hover {
   
 }
 
-.hero-destaque:hover {
-  transform: translateY(-2px);
-
-}
-
 .hero-destaque-rotulo {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   height: 24px;
   padding: 0 10px 0 8px;
   border-radius: 9999px;
@@ -7820,11 +7649,6 @@ circle.grafico-ponto-interativo:hover {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  font-size: var(--fs-2xs);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-transform: none;
-  color: rgba(255, 255, 255, 0.90);
   width: fit-content;
   line-height: 1;
 }
@@ -8038,10 +7862,10 @@ circle.grafico-ponto-interativo:hover {
   transition: opacity 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ranking-bloco-entraram::before { background: #39c266; }
-.ranking-bloco-subiram::before { background: #39c266; }
-.ranking-bloco-saidas::before { background: #ff6e70; }
-.ranking-bloco-cairam::before { background: #f97316; }
+.ranking-bloco-entraram::before { background: var(--positive); }
+.ranking-bloco-subiram::before { background: var(--positive); }
+.ranking-bloco-saidas::before { background: var(--danger); }
+.ranking-bloco-cairam::before { background: var(--accent); }
 
 .ranking-bloco:hover::before {
   opacity: 1;
@@ -8162,7 +7986,7 @@ h3,
 /* Subtítulos e parágrafos principais: contraste e altura de linha ideais */
 .home-tese-texto,
 .descricao-pagina {
-  color: #b3b3b3;
+  color: var(--text-muted);
   font-size: var(--fs-base);
   line-height: 1.6;
 }
@@ -8210,7 +8034,7 @@ h3,
 
 .barra-periodo-ranking-rotulo {
   font-size: var(--fs-xs);
-  color: #b3b3b3;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -8232,7 +8056,7 @@ h3,
   border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
   font-weight: 500;
-  color: #b3b3b3;
+  color: var(--text-muted);
   text-decoration: none;
   transition: all 0.15s ease;
   border: 1px solid transparent;
@@ -8263,7 +8087,7 @@ h3,
   border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
   line-height: 1.5;
-  color: #b3b3b3;
+  color: var(--text-muted);
   margin-bottom: var(--sp-4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
@@ -8384,7 +8208,7 @@ h3,
 /* Coluna No Top 20 */
 .celula-no-top {
   font-size: var(--fs-xs);
-  color: #b3b3b3;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -8429,7 +8253,7 @@ h3,
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #b3b3b3;
+  color: var(--text-muted);
   transition: all 0.15s ease;
 }
 
@@ -8442,7 +8266,7 @@ h3,
 .encomenda-preco-hoje {
   display: block;
   font-size: var(--fs-2xs);
-  color: #39c266;
+  color: var(--positive);
   font-weight: 550;
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
@@ -8511,7 +8335,7 @@ h3,
 
 .movimento-linha-numeros {
   font-size: var(--fs-2xs);
-  color: #b3b3b3;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -8528,7 +8352,7 @@ h3,
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
-  color: #b3b3b3;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
   margin-top: 6px;
@@ -8967,7 +8791,7 @@ h3,
 .conta-sair:hover {
   background: linear-gradient(180deg, rgba(255, 110, 112, 0.18) 0%, rgba(255, 110, 112, 0.07) 100%);
   border-color: rgba(255, 110, 112, 0.45);
-  color: #ff6e70;
+  color: var(--danger);
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   transform: translateY(-0.5px);
   text-decoration: none;
@@ -8975,7 +8799,7 @@ h3,
 
 .conta-sair:hover .icone-ui {
   transform: translateX(1.5px);
-  color: #ff6e70;
+  color: var(--danger);
 }
 
 /* 2. Barra de Ferramentas e Filtros do Catálogo (Home/Início) */
@@ -9243,7 +9067,7 @@ h3,
 }
 
 .filtros-mais-corpo select option {
-  background: #1e1e1e;
+  background: var(--surface);
   color: #f1f5f9;
 }
 
@@ -9307,7 +9131,7 @@ h3,
 .botao-limpar-filtros:hover {
   background: rgba(255, 110, 112, 0.12);
   border-color: rgba(255, 110, 112, 0.3);
-  color: #ff6e70;
+  color: var(--danger);
   text-decoration: none;
 }
 
@@ -9551,12 +9375,12 @@ h3,
 }
 
 .resumo-cards-conta .card-progresso::-webkit-progress-value {
-  background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
+  background: linear-gradient(90deg, var(--accent) 0%, #fb923c 100%);
   border-radius: 9999px;
 }
 
 .resumo-cards-conta .card-progresso::-moz-progress-bar {
-  background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
+  background: linear-gradient(90deg, var(--accent) 0%, #fb923c 100%);
   border-radius: 9999px;
 }
 
@@ -9603,12 +9427,12 @@ h3,
 }
 
 .resumo-cards-conta .card-valor.valor-positivo {
-  color: #39c266;
+  color: var(--positive);
   text-shadow: none;
 }
 
 .resumo-cards-conta .card-valor.valor-negativo {
-  color: #ff6e70;
+  color: var(--danger);
   text-shadow: none;
 }
 
@@ -9687,11 +9511,8 @@ h3,
   justify-content: space-between;
   gap: 12px 18px;
   padding: 12px 18px;
-  background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
   font-size: var(--fs-xs);
-  color: rgba(255, 255, 255, 0.75);
   line-height: 1.5;
   margin: 0 0 var(--sp-4);
 }
@@ -9714,17 +9535,9 @@ h3,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
-  padding: 0 12px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #f1f5f9;
-  font-size: var(--fs-2xs);
-  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.18s ease;
   white-space: nowrap;
 }
 
@@ -9732,9 +9545,6 @@ h3,
 .status-inventario a.acao-texto:focus-visible,
 .status-inventario .botao-atualizar-inventario:hover,
 .status-inventario .acao-texto:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
   text-decoration: none;
 }
 
@@ -9906,7 +9716,7 @@ h3,
 }
 
 .conta-ordem select option {
-  background: #1e1e1e;
+  background: var(--surface);
   color: #f1f5f9;
 }
 
@@ -9919,12 +9729,8 @@ h3,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.65);
   font-size: var(--fs-2xs);
   font-weight: 500;
   cursor: pointer;
@@ -10063,7 +9869,6 @@ table.tabela-comparar tbody tr:hover {
 }
 
 table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto {
-  transform: scale(1.05);
   border-color: color-mix(in srgb, var(--rar-cor, rgba(255, 255, 255, 0.15)) 75%, rgba(255, 255, 255, 0.15));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rar-cor, transparent) 40%, transparent), 0 4px 12px rgba(0, 0, 0, 0.35);
 }
@@ -10132,11 +9937,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
-  padding: 4px 10px;
-  margin-top: 5px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .tabela-conta .item-fora .form-anunciado {
@@ -10501,12 +10301,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   transition: all 0.18s ease;
 }
 
-.adicionar-manual > summary:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(249, 115, 22, 0.35);
-  color: #ffffff;
-}
-
 .adicionar-manual > summary:hover::before {
   background: rgba(249, 115, 22, 0.25);
   color: var(--accent-bright);
@@ -10757,7 +10551,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   border-radius: 9999px;
   background: rgba(255, 110, 112, 0.15);
   border: 1px solid rgba(255, 110, 112, 0.35);
-  color: #ff6e70;
+  color: var(--danger);
   font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
@@ -10970,16 +10764,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
     padding: var(--sp-4);
   }
 
-  .hero-destaque .icone-item-quadro {
-    flex: 0 0 140px;
-    width: 140px;
-    height: 110px;
-  }
-
   .hero-destaque .icone-item-quadro img,
   .hero-destaque .icone-item-quadro .icone-item {
-    width: 140px;
-    height: 140px;
     max-width: none;
     max-height: none;
   }
@@ -11256,7 +11042,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 }
 
 .tabela-top20 tbody tr:nth-child(3) td:first-child {
-  color: #f97316;
+  color: var(--accent);
   font-weight: 800;
   text-shadow: none;
 }
@@ -11583,7 +11369,7 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 .simulador-metrica-card.card-destaque-lucro {
   background: rgba(57, 194, 102, 0.08);
   border-color: rgba(57, 194, 102, 0.25);
-  color: #39c266;
+  color: var(--positive);
 }
 
 /* 30 Quadrados de Histórico de Top 20 */
@@ -12142,19 +11928,8 @@ button.confira { min-height: 24px; padding-block: 3px; }
 /* Conta (polimento 22/11): "remover" tinha 17px de altura, letra de 11px
    e cinza fraco demais para ler (≈3:1). Agora é a mesma pílula discreta
    de "mudar preço", legível, e fica vermelho só no mouse/foco. */
-table.tabela-conta .botao-link.botao-remover {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 2px 9px;
-  border-radius: var(--radius-pill);
-  font-size: var(--fs-2xs);
-  line-height: 1.2;
-  color: rgba(255, 255, 255, 0.62);
-}
 table.tabela-conta .botao-link.botao-remover:hover,
 table.tabela-conta .botao-link.botao-remover:focus-visible {
-  color: var(--danger);
   border-color: rgba(255, 110, 112, 0.4);
 }
 /* "separar" (valores diferentes?) usa o botão principal do site. */
@@ -12203,7 +11978,6 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   .tabela-conta .linha-posicao:not(.linha-sem-custo) .venda-por-bloco {
     grid-template-columns: auto minmax(6.4em, auto);
   }
-  .tabela-conta .venda-por-bloco .copiar-preco { justify-content: flex-end; }
 }
 
 /* "Venda por" (polimento 22/11): o ícone de copiar aparece sempre,
@@ -12261,10 +12035,8 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
     gap: 10px;
   }
   .resumo-cards.resumo-cards-conta .card {
-    min-height: 0;
     padding: 14px 14px 16px;
   }
-  .resumo-cards.resumo-cards-conta .card-valor { font-size: var(--fs-titulo); }
   .resumo-cards.resumo-cards-conta .card-sub { font-size: var(--fs-2xs); }
   .resumo-cards-conta .botao-preencher { height: 32px; padding: 0 12px; font-size: var(--fs-2xs); }
 }
@@ -12288,7 +12060,6 @@ table.tabela-conta .separar-lote button[type="submit"]:hover { background: rgba(
   .conta-ferramentas > .como-ler { flex: none; }
   .conta-ferramentas .conta-filtros {
     flex-wrap: nowrap;
-    overflow-x: auto;
     scrollbar-width: none;
     margin: 0 -16px;
     padding: 10px 16px 2px;
@@ -12482,9 +12253,6 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 
 /* Filtros: pílulas mais baixas e grupos enxutos; só a aba escolhida
    ganha fundo e contorno em laranja. */
-.conta-ferramentas .conta-filtros {
-  gap: 5px;
-}
 .conta-ferramentas .conta-filtro {
   height: 28px;
   min-height: 28px;
@@ -12492,11 +12260,6 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   background: transparent;
   border-color: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.68);
-}
-.conta-ferramentas .conta-filtro[aria-pressed="true"] {
-  background: rgba(249, 115, 22, 0.22);
-  border-color: rgba(249, 115, 22, 0.75);
-  color: #ffffff;
 }
 
 /* ── Vitrine: mesma régua vertical em todos os cartões (26/11) ───

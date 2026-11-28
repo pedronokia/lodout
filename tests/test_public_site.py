@@ -3019,8 +3019,11 @@ def test_index_banner_scan_desatualizado(client, monkeypatch, tmp_path):
     body = resp.data.decode("utf-8")
     assert "Preços atrasados, provavelmente por limite de acesso da Steam" in body
     assert "status-scan-desatualizado" in body
-    assert "1 item, atualizados" in body
-    assert "atualização atrasada" in body
+    assert "1 item, coleta completa" in body
+    # Atraso dito uma vez (28/11): só a faixa; a linha de status e o
+    # rodapé não repetem.
+    assert "atualização atrasada" not in body
+    assert "Dados atrasados" not in body
 
 
 def test_index_sem_banner_quando_scan_recente(client, monkeypatch, tmp_path):
@@ -6180,7 +6183,7 @@ def test_index_status_conta_itens_ocultos_por_risco_alto(
          "pump_risk": {"level": "high"}, "breakdown": []},
     ])
     body = client.get("/").data.decode("utf-8")
-    assert "2 itens, atualizados" in body
+    assert "2 itens, coleta completa" in body
     assert "(1 oculto por <a" in body
     assert "#termo-risco" in body
 

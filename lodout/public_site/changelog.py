@@ -18,6 +18,7 @@ ENTRADAS = [
             "Ranking no celular: o anel do canto de cada cartão agora diz “hoje”, para não confundir com a nota média; sem nota na última coleta, aparece “sem nota hoje” em vez de um traço.",
             "Página inicial: na primeira visita, o texto não pula mais de lugar quando as letras do site terminam de carregar, e as páginas carregam um arquivo de fonte a menos.",
             "Página inicial: com a coleta atrasada, o ponto de status para de piscar (piscar dava a ideia de dado ao vivo), e o texto “desde a última coleta” ficou mais legível.",
+            "Página inicial: o aviso de atraso aparece uma vez só (na faixa amarela), em vez de três. A linha de cima agora diz “coleta completa há X h” e o rodapé, “última atualização”: o rodapé conta também a atualização rápida do Top 20, por isso pode mostrar um horário mais recente.",
         ],
     },
     {

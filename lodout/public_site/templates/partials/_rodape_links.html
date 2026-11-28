@@ -5,9 +5,13 @@
   {% if coleta_quando %}
   {# Frescor dos dados em toda página (era só na home). Cor + texto: o
      atraso também muda a frase, não só a bolinha. #}
-  <p class="rodape-frescor{{ ' rodape-frescor-atrasada' if coleta_atrasada else '' }}">
+  {# "Última atualização" conta também a rodada rápida do Top 20, que
+     roda entre as coletas completas -- por isso pode ser mais recente
+     que a "coleta completa" da página inicial (auditoria 28/11). Onde a
+     página já avisa o atraso (faixa da home), o rodapé não repete. #}
+  <p class="rodape-frescor{{ ' rodape-frescor-atrasada' if coleta_atrasada else '' }}" title="Conta também a atualização rápida do Top 20, feita entre as coletas completas.">
     <span class="rodape-frescor-ponto" aria-hidden="true"></span>
-    {% if coleta_atrasada %}Dados atrasados: última atualização {{ coleta_quando }}{% else %}Dados atualizados {{ coleta_quando }}{% endif %}
+    {% if coleta_atrasada and not aviso_atraso_na_pagina %}Dados atrasados: última atualização {{ coleta_quando }}{% elif coleta_atrasada %}Última atualização {{ coleta_quando }}{% else %}Dados atualizados {{ coleta_quando }}{% endif %}
     · <a href="{{ url_for('status') }}">Status</a>
   </p>
   {% endif %}

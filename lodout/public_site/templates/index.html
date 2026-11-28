@@ -354,13 +354,17 @@
        duas barras laranja pra duas frases curtas. #}
     <p class="status-coleta {{ 'status-scan-desatualizado' if scan_desatualizado else 'status-scan-recente' }}">
       <span class="status-coleta-ponto" aria-hidden="true"></span>
-      {% if scan %}<span>{{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, atualizados {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com risco alto de alta artificial ficam fora da lista">risco alto</a>){% endif %}{% if scan_desatualizado %} — <strong class="status-scan-alerta">atualização atrasada</strong>{% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="A coleta é automática e não depende de visitas, para não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
+      {% if scan %}<span>{{ scan.results|length }} {{ "item" if scan.results|length == 1 else "itens" }}, coleta completa {{ idade }}{% if ocultos_risco %} ({{ ocultos_risco }} {{ "oculto" if ocultos_risco == 1 else "ocultos" }} por <a href="{{ url_for('glossario') }}#termo-risco" title="Itens com risco alto de alta artificial ficam fora da lista">risco alto</a>){% endif %}</span>{% if proximo_scan %}<span class="badge-cooldown" title="A coleta é automática e não depende de visitas, para não sobrecarregar a Steam">Próxima atualização: {{ proximo_scan }}</span>{% endif %}{% endif %}
       {% if resumo_do_dia %}<span class="resumo-do-dia">{% if resumo_do_dia.novos_no_top == 0 %}Nenhum item novo entrou no Top 20{% elif resumo_do_dia.novos_no_top == 1 %}1 item entrou no Top 20{% else %}{{ resumo_do_dia.novos_no_top }} itens entraram no Top 20{% endif %} {{ resumo_do_dia.desde }}</span>{% endif %}
     </p>
     {% endif %}
+    {# Atraso dito uma vez só (auditoria 28/11): antes, a linha acima
+       dizia "atualização atrasada", esta faixa repetia e o rodapé
+       repetia de novo. A linha fica com a idade e o ponto amarelo; a
+       faixa explica; o rodapé, nesta página, só dá o horário. #}
     {% if scan and scan_desatualizado %}
     <p class="banner-aviso">{{ icone("aviso") }} Preços atrasados, provavelmente por limite de acesso da Steam
-    (<a href="{{ url_for('status') }}">status</a>). Valores da última coleta.</p>
+    (<a href="{{ url_for('status') }}">status</a>). Valores da última coleta completa.</p>
     {% endif %}
 
     {% macro url_sem_filtro(remover) -%}
