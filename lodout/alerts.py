@@ -112,24 +112,6 @@ def evaluate_item(
     return alerts
 
 
-def diff_new_alerts(item: dict, fresh: list[dict]) -> list[dict]:
-    """Retorna apenas alertas que ainda nao foram disparados no estado atual.
-
-    Usa item['triggered_rules'] como conjunto de regras ja notificadas.
-    Mutates item['triggered_rules'].
-    """
-    triggered = set(item.get("triggered_rules") or [])
-    new_alerts = []
-    rules_now = set()
-    for a in fresh:
-        rules_now.add(a["rule"])
-        if a["rule"] not in triggered:
-            new_alerts.append(a)
-    # Reseta triggers que nao estao mais ativos (auto-rearm)
-    item["triggered_rules"] = sorted(rules_now)
-    return new_alerts
-
-
 def record_alert(name: str, alert: dict,
                  path: Path | str = _ALERTS_LOG_PATH) -> None:
     """Persiste um alerta no log. Cap em _LOG_CAP entradas."""
@@ -162,15 +144,6 @@ def load_alerts_log(path: Path | str = _ALERTS_LOG_PATH) -> list[dict]:
     p = Path(path)
     data = load_json_record(p, [])
     return data if isinstance(data, list) else []
-
-
-def clear_alerts_log(path: Path | str = _ALERTS_LOG_PATH) -> None:
-    """Limpa o log de alertas."""
-    try:
-        atomic_write_text(path, "[]")
-    except OSError as e:
-        print(f"WARNING: failed to clear alerts log: {e}",
-              file=__import__('sys').stderr)
 
 
 def format_rules_summary(rules: dict | None) -> str:

@@ -442,19 +442,6 @@ def test_http_get_timeout_de_verdade_nao_trava_pra_sempre(monkeypatch):
     liberar.set()  # libera a thread presa pro teste não vazar um warning
 
 
-# ── _get_json ──────────────────────────────────────────────────────
-
-
-def test_get_json_non_200_returns_none(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get", lambda url: (404, b"{}"))
-    assert steam_api._get_json("http://x") is None
-
-
-def test_get_json_invalid_json_returns_none(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get", lambda url: (200, "not json"))
-    assert steam_api._get_json("http://x") is None
-
-
 # ── _parse_volume ──────────────────────────────────────────────────
 
 
@@ -474,95 +461,22 @@ def test_parse_volume_with_commas():
     assert steam_api._parse_volume("1,234") == 1234
 
 
-# ── get_market_price / get_market_overview ─────────────────────────
+# ── get_market_overview ────────────────────────────────────────────
 
 
-# get_market_price virou wrapper de get_market_price_status, que precisa do
-# STATUS HTTP pra distinguir 429 de "item sem preco" -- entao ele le' o
-# _http_get direto, que e' o ponto de mock canonico (AGENTS.md).
 def _fake_http(code, body):
     return lambda url, timeout=15.0: (code, body)
 
 
-def test_get_market_price_no_data(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get", _fake_http(500, None))
-    assert steam_api.get_market_price("AK") is None
-
-
-def test_get_market_price_not_successful(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        _fake_http(200, '{"success": false}'))
-    assert steam_api.get_market_price("AK") is None
-
-
-def test_get_market_price_falls_back_to_median(monkeypatch):
-    """Sem lowest_price, usa median_price."""
-    monkeypatch.setattr(
-        "lodout.steam_api._http_get",
-        _fake_http(200, '{"success": true, "median_price": "R$ 200,00"}'))
-    assert steam_api.get_market_price("AK") == 200.0
-
-
-# ── status do priceoverview ────────────────────────────────────────
-
-def test_price_status_ok(monkeypatch):
-    monkeypatch.setattr(
-        "lodout.steam_api._http_get",
-        _fake_http(200, '{"success": true, "lowest_price": "R$ 150,00"}'))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_OK, 150.0)
-
-
-def test_price_status_429_e_rate_limited(monkeypatch):
-    """O caso que antes virava 'sem preco' e envenenava o cache por 1h."""
-    monkeypatch.setattr("lodout.steam_api._http_get", _fake_http(429, None))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_RATE_LIMITED, None)
-
-
-def test_price_status_sem_mercado(monkeypatch):
-    """Steam respondeu: o item nao tem preco. Isso e' fato sobre o item."""
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        _fake_http(200, '{"success": false}'))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_NO_PRICE, None)
-
-
-def test_price_status_erro_de_rede(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get", _fake_http(0, None))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_ERROR, None)
-
-
-def test_price_status_json_quebrado(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        _fake_http(200, "{nao e json"))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_ERROR, None)
-
-
-def test_price_status_sucesso_sem_preco_parseavel(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        _fake_http(200, '{"success": true}'))
-    assert steam_api.get_market_price_status("AK") == (
-        steam_api.PRICE_NO_PRICE, None)
-
-
-def test_apenas_ok_e_no_price_sao_cacheaveis():
-    """A lista que separa fato sobre o ITEM de estado da REDE."""
-    assert steam_api.PRICE_OK in steam_api.PRICE_CACHEABLE
-    assert steam_api.PRICE_NO_PRICE in steam_api.PRICE_CACHEABLE
-    assert steam_api.PRICE_RATE_LIMITED not in steam_api.PRICE_CACHEABLE
-    assert steam_api.PRICE_ERROR not in steam_api.PRICE_CACHEABLE
-
-
 def test_get_market_overview_no_data(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._get_json", lambda url: None)
+    monkeypatch.setattr("lodout.steam_api._http_get", _fake_http(500, None))
     assert steam_api.get_market_overview("AK") is None
 
 
 def test_get_market_overview_not_successful(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._get_json", lambda url: {"success": False})
+    monkeypatch.setattr(
+        "lodout.steam_api._http_get",
+        _fake_http(200, '{"success": false}'))
     assert steam_api.get_market_overview("AK") is None
 
 
@@ -697,16 +611,6 @@ def test_fetch_inventory_respeita_cooldown_sem_bater_na_rede(monkeypatch):
     assert chamadas == []  # nao fez NENHUMA requisicao
 
 
-def test_resolve_steam_id_respeita_cooldown_sem_bater_na_rede(monkeypatch):
-    chamadas = []
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        lambda url: (chamadas.append(1), (200, ""))[1])
-    steam_api._registrar_rate_limit("resolve")
-    status, sid = steam_api.resolve_steam_id("https://steamcommunity.com/id/teste")
-    assert status == steam_api.RESOLVE_RATE_LIMITED
-    assert chamadas == []
-
-
 def test_fetch_inventory_429_registra_cooldown_pra_proxima_chamada(monkeypatch):
     monkeypatch.setattr("lodout.steam_api._http_get", lambda url: (429, None))
     status, items = steam_api.fetch_inventory("123")
@@ -811,17 +715,6 @@ def test_fetch_inventory_paginacao_dorme_entre_paginas_nao_antes_da_1a(monkeypat
     assert status == "ok"
     assert len(chamadas) == 2
     assert sonos == [steam_api.RATE_LIMIT_DELAY_S]
-
-
-# ── fetch_public_inventory wrapper ─────────────────────────────────
-
-
-def test_fetch_public_inventory_returns_items_list(monkeypatch):
-    monkeypatch.setattr(
-        "lodout.steam_api.fetch_inventory",
-        lambda sid: ("ok", [{"name": "AK", "quantity": 1}]),
-    )
-    assert steam_api.fetch_public_inventory("123") == [{"name": "AK", "quantity": 1}]
 
 
 # ── _js_unescape adicional ─────────────────────────────────────────
@@ -1340,24 +1233,6 @@ def test_collect_facets_acha_no_ssr():
 
 def test_collect_facets_ausente_devolve_vazio():
     assert steam_api._collect_facets([]) == {}
-
-
-def test_fetch_market_facets_ok(monkeypatch):
-    body = json.dumps({"success": True, "facets": _FACETS_RAW})
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        lambda url: (200, body))
-    f = steam_api.fetch_market_facets()
-    assert f["Rarity"]["tags"]["Rarity_Ancient_Weapon"] == "Covert"
-
-
-def test_fetch_market_facets_falha_devolve_vazio(monkeypatch):
-    monkeypatch.setattr("lodout.steam_api._http_get",
-                        lambda url: (500, None))
-    assert steam_api.fetch_market_facets() == {}
-    monkeypatch.setattr(
-        "lodout.steam_api._http_get",
-        lambda url: (200, json.dumps({"success": False})))
-    assert steam_api.fetch_market_facets() == {}
 
 
 def test_market_facets_bate_com_as_chaves_do_catalogo():

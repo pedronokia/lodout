@@ -119,14 +119,6 @@ def test_latest_before_none_when_too_old(tmp_path):
     assert ranking.latest_before(0, path=p) is None
 
 
-def test_clear_rankings(tmp_path):
-    p = tmp_path / "r.json"
-    ranking.save_snapshot([{"name": "A", "score": 50}], path=p)
-    assert len(ranking.load_snapshots(path=p)) == 1
-    ranking.clear_rankings(path=p)
-    assert ranking.load_snapshots(path=p) == []
-
-
 def test_save_snapshot_corrupted_file(tmp_path):
     """Arquivo existente com dado corrompido e' ignorado."""
     p = tmp_path / "r.json"
@@ -160,43 +152,6 @@ def test_load_snapshots_corrupted_json(tmp_path):
     assert ranking.load_snapshots(path=p) == []
 
 
-def test_clear_rankings_oserror_ignored(tmp_path):
-    p = tmp_path / "r.json"
-    p.write_text("[]", encoding="utf-8")
-    p.unlink()
-    p.mkdir()
-    ranking.clear_rankings(path=p)  # nao crashou
-
-
-def test_historico_do_item_por_dia():
-    dia = 86400.0
-    agora = 100 * dia + 12 * 3600  # meio-dia UTC
-    snaps = [
-        {"ts": agora - 40 * dia, "items": [{"name": "A", "position": 1}]},
-        {"ts": agora - 2 * dia, "items": [{"name": "A", "position": 5}]},
-        {"ts": agora - 2 * dia + 3600, "items": [{"name": "A", "position": 2}]},
-        {"ts": agora - 1 * dia, "items": [{"name": "B", "position": 1}]},
-        {"ts": agora, "items": [{"name": "A", "position": 3}]},
-    ]
-    h = ranking.historico_do_item("A", dias=30, now=agora, snapshots=snaps,
-                                  tz=__import__("datetime").timezone.utc)
-    assert len(h["dias"]) == 30
-    # O snapshot de 40 dias atrás fica fora da janela.
-    assert h["dias_com_ranking"] == 3
-    assert h["dias_no_top"] == 2
-    assert h["melhor_posicao"] == 2
-    assert h["posicao_atual"] == 3
-    estados = [d["estado"] for d in h["dias"][-3:]]
-    assert estados == ["top", "fora", "top"]
-    assert h["dias"][0]["estado"] == "sem_dado"
-
-
-def test_historico_do_item_sem_snapshots():
-    h = ranking.historico_do_item("A", snapshots=[], now=time.time())
-    assert h["dias_com_ranking"] == 0
-    assert h["posicao_atual"] is None
-
-
 def test_load_snapshots_cacheia_invalida_e_protege_mutacao(tmp_path, monkeypatch):
     p = tmp_path / "r.json"
     ranking.save_snapshot([{"name": "A", "score": 80}], path=p)
@@ -220,8 +175,6 @@ def test_load_snapshots_cacheia_invalida_e_protege_mutacao(tmp_path, monkeypatch
     # Gravar novo snapshot invalida o cache imediatamente.
     ranking.save_snapshot([{"name": "B", "score": 90}], path=p)
     assert len(ranking.load_snapshots(path=p)) == 2
-    ranking.clear_rankings(path=p)
-    assert ranking.load_snapshots(path=p) == []
 
 
 def test_scan_store_load_last_scan_cacheia_e_devolve_copias(tmp_path, monkeypatch):

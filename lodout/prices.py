@@ -1,10 +1,8 @@
-"""Cache de precos + backoff -- pra avaliar o inventario INTEIRO sem morrer no
-rate-limit do Steam (~20 req/min).
+"""Cache de preços em JSON (`data/prices.json`).
 
-Ideia central: preco de portfolio nao precisa ser real-time. Um TTL de 6h corta
-drasticamente as chamadas, e o cache **persiste entre execucoes** -- entao a 2a
-rodada e' quase instantanea e o inventario inteiro vai sendo preenchido. So'
-dormimos (throttle) em cache MISS; hit e' de graca.
+Mantém um cache simples nome -> {price, ts} com TTL configurável (6h para
+preços válidos, 1h para entradas sem preço) e cache em memória pela identidade
+do arquivo para evitar reler o JSON a cada requisição.
 """
 from __future__ import annotations
 
@@ -12,7 +10,7 @@ import json
 import time
 from pathlib import Path
 
-from lodout import _paths, steam_api
+from lodout import _paths
 from lodout._paths import atomic_write_text
 
 _TTL_SECONDS = 6 * 3600
@@ -142,105 +140,3 @@ class PriceCache:
             return None
         now = time.time() if now is None else now
         return now - entry.get("ts", now)
-
-
-def fetch_price_status(name: str,
-                       retries: int = 3) -> "tuple[str, float | None]":
-    """(status, preco) com recuo exponencial. status em {ok, rate_limited, error}.
-
-    A v1 nao distinguia 429 de 'item sem preco' e dormia 2+4+8s em qualquer
-    falha. Medido em 2026-07-29 com o priceoverview bloqueado: 24 itens sem
-    cache = 336s (5,6 min) antes de a tela mostrar qualquer coisa.
-
-    Agora o recuo e' so' pro 429, que e' o unico caso em que esperar ajuda.
-    Item sem mercado desiste na primeira tentativa -- insistir nele nunca
-    fez sentido, so' herdou o mesmo laco.
-    """
-    delay = 2.0
-    for tentativa in range(retries):
-        status, price = steam_api.get_market_price_status(name)
-        if status != steam_api.PRICE_RATE_LIMITED:
-            return status, price  # ok / sem mercado / erro: repetir nao muda
-        if tentativa < retries - 1:
-            time.sleep(delay)
-            delay *= 2
-    return steam_api.PRICE_RATE_LIMITED, None
-
-
-def _fetch_with_backoff(name: str, retries: int = 3) -> float | None:
-    """Wrapper retrocompativel de `fetch_price_status`."""
-    return fetch_price_status(name, retries=retries)[1]
-
-
-def cached_price_status(name: str,
-                        cache: "PriceCache | None" = None,
-                        ) -> "tuple[str, float | None]":
-    """(status, preco) com cache. Hit devolve status `ok`/`no_price`.
-
-    Só grava no cache o que é fato sobre o ITEM. Antes, qualquer falha
-    virava entry negativa com TTL de 1h -- então um episódio de rate limit
-    marcava o portfolio inteiro como "sem preço" e ele continuava sumido
-    por uma hora depois de a Steam liberar.
-    """
-    cache = cache or PriceCache()
-    if cache.has(name):
-        preco = cache.get(name)
-        return (steam_api.PRICE_OK if preco is not None
-                else steam_api.PRICE_NO_PRICE), preco
-    status, preco = fetch_price_status(name)
-    if status in steam_api.PRICE_CACHEABLE:
-        cache.put(name, preco)
-    return status, preco
-
-
-def cached_price(name: str, cache: "PriceCache | None" = None) -> float | None:
-    """Preco de UM item usando cache (so' bate na rede em miss). Reuso pro
-    portfolio, que tem poucos itens. Itens sem preco no Steam tambem sao
-    cacheados (TTL curto) para evitar re-fetch a cada startup."""
-    return cached_price_status(name, cache)[1]
-
-
-def value_inventory(
-    steam_id: str,
-    cache: PriceCache | None = None,
-    throttle: float | None = None,
-    progress=None,
-) -> tuple[str, list[dict], float]:
-    """Avalia o inventario INTEIRO usando cache. Retorna (status, rows, total).
-
-    rows: [{name, qty, price, total}] ordenado por total desc.
-    progress(i, n, name): callback opcional de progresso.
-
-    throttle=None usa steam_api.RATE_LIMIT_DELAY_S resolvido EM TEMPO DE
-    CHAMADA -- default de parametro travaria o valor na importacao do
-    modulo, e um monkeypatch de RATE_LIMIT_DELAY_S (testes, ou ajuste
-    futuro) nunca alcancaria quem usa o default.
-    """
-    if throttle is None:
-        throttle = steam_api.RATE_LIMIT_DELAY_S
-    cache = cache or PriceCache()
-    status, items = steam_api.fetch_inventory(steam_id)
-    if status != steam_api.INV_OK:
-        return status, [], 0.0
-
-    rows: list[dict] = []
-    total = 0.0
-    n = len(items)
-    for i, it in enumerate(items, start=1):
-        name = it["name"]
-        price = cache.get(name)
-        if price is None:                       # MISS -> rede + throttle
-            price = _fetch_with_backoff(name)
-            if price is not None:
-                cache.put(name, price)
-            time.sleep(throttle)
-        if progress:
-            progress(i, n, name)
-        if price is not None:
-            line = price * it["quantity"]
-            total += line
-            rows.append({"name": name, "qty": it["quantity"],
-                         "price": price, "total": line})
-
-    rows.sort(key=lambda r: -r["total"])
-    return status, rows, total

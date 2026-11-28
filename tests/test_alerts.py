@@ -91,33 +91,6 @@ def test_evaluate_multiple_rules():
     assert "volume_spike" in rules
 
 
-def test_diff_new_alerts_first_call():
-    item = {"name": "Test"}
-    fired = [
-        {"rule": "price_below", "label": "x", "value": 0, "severity": "info"},
-    ]
-    new = alerts.diff_new_alerts(item, fired)
-    assert len(new) == 1
-    assert item["triggered_rules"] == ["price_below"]
-
-
-def test_diff_new_alerts_suppresses_repeat():
-    item = {"name": "Test", "triggered_rules": ["price_below"]}
-    fired = [
-        {"rule": "price_below", "label": "x", "value": 0, "severity": "info"},
-    ]
-    new = alerts.diff_new_alerts(item, fired)
-    assert new == []
-
-
-def test_diff_new_alerts_auto_rearm():
-    """Se a regra deixa de disparar, sai do triggered_rules (pode rearmar)."""
-    item = {"name": "Test", "triggered_rules": ["price_below"]}
-    new = alerts.diff_new_alerts(item, [])
-    assert new == []
-    assert item["triggered_rules"] == []
-
-
 def test_record_and_load_alerts_log(tmp_path):
     p = tmp_path / "log.json"
     alerts.record_alert("AK-47 | Redline", {
@@ -197,40 +170,6 @@ def test_evaluate_score_above_sem_rule_nao_dispara():
     assert all(a["rule"] != "score_above" for a in out)
 
 
-def test_evaluate_score_above_auto_rearm():
-    """Score sobe acima do threshold dispara; cai e sobe denovo redispara."""
-    item = {"name": "X", "rules": {"score_above": 85},
-            "triggered_rules": []}
-    # 1a vez: score 87, dispara
-    fresh = alerts.evaluate_item(item, current_price=100.0,
-                                  current_score=87)
-    new = alerts.diff_new_alerts(item, fresh)
-    assert any(a["rule"] == "score_above" for a in new)
-    # 2a vez: score 87 ainda, nao dispara denovo
-    fresh = alerts.evaluate_item(item, current_price=100.0,
-                                  current_score=87)
-    new = alerts.diff_new_alerts(item, fresh)
-    assert all(a["rule"] != "score_above" for a in new)
-    # Score cai pra 50 (regra nao mais ativa)
-    fresh = alerts.evaluate_item(item, current_price=100.0,
-                                  current_score=50)
-    new = alerts.diff_new_alerts(item, fresh)
-    # 3a vez: score sobe denovo, redispara
-    fresh = alerts.evaluate_item(item, current_price=100.0,
-                                  current_score=90)
-    new = alerts.diff_new_alerts(item, fresh)
-    assert any(a["rule"] == "score_above" for a in new)
-
-
-def test_clear_alerts_log(tmp_path):
-    p = tmp_path / "log.json"
-    alerts.record_alert("X", {"rule": "r", "label": "l",
-                              "value": 0, "severity": "info"}, path=p)
-    assert len(alerts.load_alerts_log(path=p)) == 1
-    alerts.clear_alerts_log(path=p)
-    assert alerts.load_alerts_log(path=p) == []
-
-
 def test_record_alert_corrupted_json(tmp_path):
     """Log corrompido e' tratado como lista vazia."""
     p = tmp_path / "log.json"
@@ -269,12 +208,3 @@ def test_load_alerts_log_corrupted_json(tmp_path):
     p = tmp_path / "log.json"
     p.write_text("corrupt", encoding="utf-8")
     assert alerts.load_alerts_log(path=p) == []
-
-
-def test_clear_alerts_log_oserror_ignored(tmp_path):
-    """Erro ao limpar log e' silencioso."""
-    file_path = tmp_path / "afile"
-    file_path.write_text("", encoding="utf-8")
-    bad = file_path / "log.json"
-    alerts.clear_alerts_log(path=bad)
-    # nao crashou
