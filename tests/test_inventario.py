@@ -613,3 +613,58 @@ def test_preco_do_anuncio(client):
     client.post("/conta/posicoes/Caixa A/anunciado", data={"csrf_token": token})
     pos = user_portfolio.load_positions(sid)[0]
     assert "anunciado" not in pos and "anuncio_preco" not in pos
+
+
+def test_mesclar_manual_antes_de_steam_nao_apaga_lotes_steam():
+    antes = [
+        {"name": "AK-47", "cost": 100.0, "quantity": 1, "source": "manual", "lote": "m1"},
+        {"name": "AK-47", "cost": 80.0, "quantity": 2, "source": "steam", "lote": "s1"},
+    ]
+    pos, resumo = inventario.mesclar(antes, _inv("AK-47", qtd=2), agora=50.0)
+    assert [(p["source"], p["cost"], p["quantity"]) for p in pos] == [
+        ("manual", 100.0, 1),
+        ("steam", 80.0, 2),
+    ]
+    assert resumo["atualizados"] == 1 and resumo["novos"] == 0
+
+    # Mesmo com duas linhas manuais antes do lote steam
+    antes2 = [
+        {"name": "AK-47", "cost": 90.0, "quantity": 1, "source": "manual", "lote": "m1"},
+        {"name": "AK-47", "cost": 100.0, "quantity": 1, "source": "manual", "lote": "m2"},
+        {"name": "AK-47", "cost": 80.0, "quantity": 2, "source": "steam", "lote": "s1"},
+    ]
+    pos2, _ = inventario.mesclar(antes2, _inv("AK-47", qtd=2), agora=60.0)
+    assert len(pos2) == 3 and [p["source"] for p in pos2] == ["manual", "manual", "steam"]
+
+
+def test_acertar_lotes_unico_preserva_fora_desde_em_saida_e_retorno_parcial():
+    # Lote único com 5 caixas pagas: anunciou 2 (sobraram 3 no inventário)
+    antes = [{"name": "Caixa U", "cost": 10.0, "quantity": 5, "source": "steam", "lote": "u1"}]
+    pos, _ = inventario.mesclar(antes, _inv("Caixa U", qtd=3), agora=100.0)
+    assert [(p["quantity"], p["cost"], p.get("fora_desde")) for p in pos] == [
+        (3, 10.0, None),
+        (2, 10.0, 100.0),
+    ]
+    assert pos[0]["lote"] != pos[1]["lote"]
+
+    # Lote único sem valor pago: diminui normalmente sem criar fora_desde
+    sem_custo = [{"name": "Caixa S", "cost": None, "quantity": 5, "source": "steam"}]
+    pos_sc, _ = inventario.mesclar(sem_custo, _inv("Caixa S", qtd=2), agora=100.0)
+    assert len(pos_sc) == 1 and pos_sc[0]["quantity"] == 2 and not pos_sc[0].get("fora_desde")
+
+    # Lote único fora_desde (5 anunciadas): cancelou só 2 -> 2 voltam, 3 ficam anunciadas
+    fora_unico = [{"name": "Caixa F", "cost": 12.0, "quantity": 5, "source": "steam",
+                   "lote": "f1", "fora_desde": 50.0, "anunciado": True, "anuncio_preco": 18.0}]
+    pos_parcial, _ = inventario.mesclar(fora_unico, _inv("Caixa F", qtd=2), agora=200.0)
+    assert [(p["quantity"], p["cost"], p.get("fora_desde"), p.get("anunciado")) for p in pos_parcial] == [
+        (2, 12.0, None, None),
+        (3, 12.0, 50.0, True),
+    ]
+
+    # Lote único fora_desde (5 anunciadas): todas voltaram + 2 novas compradas -> 5 com custo + 2 sem custo
+    pos_mais, _ = inventario.mesclar(fora_unico, _inv("Caixa F", qtd=7), agora=300.0)
+    assert [(p["quantity"], p["cost"], p.get("fora_desde")) for p in pos_mais] == [
+        (5, 12.0, None),
+        (2, None, None),
+    ]
+
