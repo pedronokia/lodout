@@ -79,16 +79,18 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
             lotes_steam.setdefault(p.get("name"), []).append(p)
 
     saida: list[dict] = []
+    steam_tratados: set = set()
     vistos: set = set()
     novos = atualizados = removidos = fora = 0
     for p in posicoes:
         nome = p.get("name")
         if p.get("source") == SOURCE_STEAM:
-            if nome in vistos:
+            if nome in steam_tratados:
                 continue  # lote já tratado junto com o primeiro do nome
+            steam_tratados.add(nome)
+            vistos.add(nome)
             if nome in inv:
                 saida.extend(_acertar_lotes(lotes_steam[nome], inv[nome], agora))
-                vistos.add(nome)
                 atualizados += 1
             else:
                 for lote in lotes_steam[nome]:
@@ -97,9 +99,9 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
                     else:
                         saida.append({**lote, "fora_desde": lote.get("fora_desde") or agora})
                         fora += 1
-                vistos.add(nome)
             continue
-        if nome in inv and manuais_por_nome.get(nome) == 1 and nome not in vistos:
+        if (nome in inv and nome not in lotes_steam
+                and manuais_por_nome.get(nome) == 1 and nome not in vistos):
             it = inv[nome]
             saida.append({**p, "source": SOURCE_STEAM,
                           "quantity": int(it.get("quantity") or 1),
@@ -107,7 +109,7 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
             vistos.add(nome)
             atualizados += 1
             continue
-        if nome in inv:
+        if nome in inv and nome not in lotes_steam:
             vistos.add(nome)  # várias linhas à mão: a pessoa controla
         saida.append(p)
     for nome, it in inv.items():
@@ -125,9 +127,12 @@ def mesclar(posicoes: "list[dict]", itens: "list[dict]",
 def _acertar_lotes(lotes: "list[dict]", it: dict, agora: float) -> "list[dict]":
     """Ajusta os lotes de um item à quantidade que o inventário tem hoje.
 
-    - Um lote só: a quantidade acompanha o inventário e o valor pago
-      fica (como sempre foi); se estava marcado fora do inventário, a
-      marca some (o anúncio foi cancelado).
+    - Um lote só no inventário: se a quantidade cresce (ou não há valor pago),
+      acompanha o inventário; se parte das unidades com valor pago saiu
+      (anunciou/vendeu), as que saíram viram um lote marcado `fora_desde`.
+    - Um lote só fora do inventário: se voltou tudo, some a marca; se voltou
+      só parte, o restante continua marcado `fora_desde`; se voltou tudo e
+      entraram extras, os novos entram sem valor pago.
     - Vários lotes (a pessoa separou por valor pago):
       * chegaram unidades: primeiro voltam as que estavam fora do
         inventário (anúncio cancelado), com o valor pago; o resto entra no
@@ -152,7 +157,37 @@ def _acertar_lotes(lotes: "list[dict]", it: dict, agora: float) -> "list[dict]":
         return l
 
     if len(lotes) == 1:
-        return [{**sem_marca(lotes[0]), "quantity": qtd_inv}]
+        l0 = lotes[0]
+        q0 = qtd(l0)
+        if not l0.get("fora_desde"):
+            if qtd_inv >= q0 or l0.get("cost") is None:
+                return [{**sem_marca(l0), "quantity": qtd_inv}]
+            base = dict(l0)
+            base.setdefault("lote", user_portfolio.novo_lote())
+            return [
+                {**base, "quantity": qtd_inv},
+                {**base, "quantity": q0 - qtd_inv, "fora_desde": agora,
+                 "lote": user_portfolio.novo_lote()},
+            ]
+        if qtd_inv == q0:
+            return [{**sem_marca(l0), "quantity": q0}]
+        if qtd_inv < q0:
+            return [
+                {**sem_marca(l0), "quantity": qtd_inv,
+                 "lote": user_portfolio.novo_lote()},
+                {**l0, "quantity": q0 - qtd_inv},
+            ]
+        if l0.get("cost") is None:
+            return [{**sem_marca(l0), "quantity": qtd_inv}]
+        volta = sem_marca(l0)
+        volta.setdefault("lote", user_portfolio.novo_lote())
+        return [
+            {**volta, "quantity": q0},
+            {"name": l0.get("name"), "cost": None,
+             "quantity": qtd_inv - q0, "added_ts": agora,
+             "source": SOURCE_STEAM, "icon": icone,
+             "lote": user_portfolio.novo_lote()},
+        ]
     dentro = [l for l in lotes if not l.get("fora_desde")]
     fora = [l for l in lotes if l.get("fora_desde")]
     total = sum(qtd(l) for l in dentro)
