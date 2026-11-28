@@ -313,7 +313,6 @@ h3, .card-valor {
    desgaste e notas. `tnum` alinha as colunas; sem zero cortado nem
    fonte monoespaçada. Regra única para não espalhar
    font-feature-settings pela folha. */
-.tabular-num,
 [data-price],
 [data-score],
 .cartao-item-preco,
@@ -374,10 +373,6 @@ input[type="checkbox"] { accent-color: var(--accent); }
 /* Foco visível de verdade -- cobre teclado em qualquer elemento
    interativo sem depender do padrão do navegador, que some em
    componentes com outline herdado. */
-:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
 
 a:focus-visible,
 button:focus-visible,
@@ -607,16 +602,9 @@ header.topo h1 {
    Apple na barra dela: o desenho é a própria marca e acende ao passar
    o mouse (cinza-claro -> branco). A marca escrita ocupava 208px e
    empurrava o menu para o meio da barra. */
-.logo-icone {
-  display: block;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
 
 /* As aspas herdam a cor do link: assim o mesmo token
    (--chrome-texto -> --chrome-texto-forte) acende o desenho inteiro. */
-.logo-aspas { fill: currentColor; }
 
 /* Navegação principal -- grupo compacto no centro da barra, com o
    mesmo respiro entre itens da barra da Apple (12px de texto, ~24px
@@ -813,7 +801,7 @@ footer.rodape a:hover {  text-decoration: underline; }
 
 .rodape-marca { grid-area: marca; }
 
-.rodape-marca p { margin: 0; max-width: 46ch; }
+.rodape-marca p { margin: 0; }
 
 footer.rodape .rodape-marca-nome {
   display: inline-flex;
@@ -1107,12 +1095,7 @@ footer.rodape .rodape-base a:hover {
    era a caixa .painel-info com duas barras laranja). Partes separadas
    por "·". Atrasada: bolinha âmbar e "atualização atrasada" no texto. */
 .status-coleta {
-  position: relative;
-  margin: 0 0 var(--sp-4);
   padding-left: 14px;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  line-height: 1.5;
   letter-spacing: 0.01em;
 }
 
@@ -1273,8 +1256,6 @@ footer.rodape .rodape-base a:hover {
   width: 104px;
   height: 104px;
   place-items: center;
-  border-radius: 50%;
-  background: rgba(14, 14, 14, 0.42);
   -webkit-backdrop-filter: blur(10px) saturate(1.3);
   backdrop-filter: blur(10px) saturate(1.3);
   
@@ -1291,23 +1272,6 @@ footer.rodape .rodape-base a:hover {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
   line-height: 1;
-}
-
-@media (max-width: 640px) {
-  .hero-destaque {
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: var(--sp-3);
-    padding: var(--sp-5);
-  }
-
-  .hero-destaque-nota {
-    width: 76px;
-    height: 76px;
-    margin-left: auto;
-  }
-
-  .hero-destaque-nota-num { font-size: 1.5rem; }
 }
 
 /* ── Filtros ─────────────────────────────────────────── */
@@ -1619,24 +1583,12 @@ footer.rodape .rodape-base a:hover {
 
 /* Chips de categoria: pílula fantasma (fundo transparente + fio), como
    os filtros da loja da Apple. A aba escolhida vira pílula laranja. */
-.aba-categoria {
-
-  flex-shrink: 0;
-
-  border: 1px solid var(--border);
-  
-  background: transparent;
-
-  white-space: nowrap;
-
-}
 
 /* Selecionado com o MESMO peso do resto (500): já se distingue pelo
    fundo laranja, e trocar o peso alargava o texto e empurrava os vizinhos
    a cada troca de aba/período (layout que pula). */
 .aba-categoria[aria-current="page"] {
   border-color: var(--accent);
-  background: var(--accent-acao);
 
 }
 
@@ -1906,8 +1858,6 @@ table.tabela-itens th.celula-sparkline { white-space: nowrap; }
   height: 40px;
   border-radius: var(--radius-xs);
 }
-
-.icone-item-quadro-compacto .icone-item-placeholder::before { font-size: 1.3rem; }
 
 .icone-item-placeholder {
   position: absolute;
@@ -2485,15 +2435,6 @@ table.tabela-candidatos td.celula-preco {
 
 .liquidez-fino { color: var(--warn); }
 .liquidez-iliquido { color: var(--danger); }
-
-.link-secundario {
-  margin-left: 4px;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  text-decoration: none;
-}
-
-.link-secundario:hover { color: var(--accent-bright); }
 
 /* Campo de nota pessoal: escondido por padrão, revelado pelo app.js. */
 .input-tag-local {
@@ -4407,23 +4348,12 @@ table.tabela-conta th { white-space: normal; }
 /* SteamDB, Copiar nome e Favoritar com o mesmo tamanho, cor e altura
    (2026-11-14): eram 3 estilos diferentes (12px, 17px e um botão
    quadrado de 44px com o texto vazando pra linha de baixo). */
-.hero-item-acoes .link-secundario,
 .hero-item-acoes .botao-copiar,
 .hero-item-acoes .botao-compartilhar,
 .hero-item-acoes .botao-favorito {
-  display: inline-flex;
   width: auto;
-  min-height: 40px;
   height: auto;
-  align-items: center;
-  gap: 6px;
   margin: 0;
-  padding: 0 12px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -4432,7 +4362,6 @@ table.tabela-conta th { white-space: normal; }
 
 .hero-item-acoes > .botao-acao:first-child { margin-right: var(--sp-2); }
 
-.hero-item-acoes .link-secundario:hover,
 .hero-item-acoes .botao-copiar:hover,
 .hero-item-acoes .botao-compartilhar:hover,
 .hero-item-acoes .botao-favorito:hover {
@@ -5037,7 +4966,6 @@ table.tabela-conta th { white-space: normal; }
 .status-vazio[hidden],
 .status-vazio-icone[hidden],
 .saude-ciclos[hidden],
-.logo-icone[hidden],
 .input-tag-local[hidden],
 .lista-favoritos-fora[hidden],
 .contagem-favoritos[hidden],
@@ -5296,7 +5224,6 @@ a.paginacao-passo:active {
   .botao-recolher-motivo,
   .hero-item-acoes .botao-favorito,
   .cartao-item-steam,
-  .link-secundario,
   .logo { position: relative; }
 
   .aba-categoria::after,
@@ -5306,7 +5233,6 @@ a.paginacao-passo:active {
   .botao-recolher-motivo::after,
   .hero-item-acoes .botao-favorito::after,
   .cartao-item-steam::after,
-  .link-secundario::after,
   .logo::after {
     content: "";
     position: absolute;
@@ -5323,7 +5249,6 @@ a.paginacao-passo:active {
   /* A estrela do card fica ~6px acima: cresce pouco pra cima e mais
      pra baixo, onde só há o fim do card. */
   .cartao-item-steam::after { inset: -3px 0 -15px; }
-  .link-secundario::after { inset: -10px 0; }
   .logo::after { inset: 0 -6px; }
 
   /* "Comparar" (23px): cresce pra dentro do card, longe da nota. */
@@ -6031,7 +5956,6 @@ input, textarea { caret-color: var(--accent); }
    a classe .linha-sem-custo ao salvar, e as duas células voltam. Rótulos
    sem caixa-alta e o preço alinhado à direita, junto do campo. */
 @media (max-width: 640px) {
-  table.tabela-conta tbody { gap: var(--sp-2); }
   table.tabela-conta tbody td::before {
     margin-bottom: 2px;
     font-weight: 500;
@@ -6436,7 +6360,6 @@ table.tabela-conta .item-fora .botao-link { min-height: 24px; padding: 0; }
   .home-tese-texto .link-com-seta { white-space: normal; }
   /* Rodapé do cartão: o "Steam Market" desce de linha se não couber,
      e quebra a própria linha com letra muito grande. */
-  .cartao-item-rodape { flex-wrap: wrap; }
   .cartao-item-steam { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
   /* Colunas de links do rodapé: palavra longa quebra em vez de vazar. */
   .rodape a { overflow-wrap: anywhere; }
@@ -7633,12 +7556,6 @@ circle.grafico-ponto-interativo:hover {
 }
 
 /* 20. Hero Destaque Luxury Treatment */
-.hero-destaque {
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  
-}
 
 .hero-destaque-rotulo {
   height: 24px;
@@ -9554,12 +9471,9 @@ h3,
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   margin-bottom: var(--sp-4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .conta-busca {
@@ -10274,15 +10188,8 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 16px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: rgba(255, 255, 255, 0.75);
-  font-size: var(--fs-xs);
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.18s ease;
 }
 
 .adicionar-manual > summary::before {
@@ -10759,7 +10666,6 @@ table.tabela-conta tbody tr:hover .icone-item-quadro.icone-item-quadro-compacto 
 @media (max-width: 640px) {
   .hero-destaque {
     flex-wrap: wrap;
-    align-items: flex-end;
     gap: var(--sp-3);
     padding: var(--sp-4);
   }
@@ -12211,11 +12117,6 @@ footer.rodape .rodape-marca-nome { gap: 0; }
   white-space: normal;
   overflow-wrap: break-word;
 }
-.tabela-conta .celula-item-conta-extra {
-  gap: 3px 6px;
-  margin-top: 2px;
-  line-height: 1.2;
-}
 .tabela-conta .celula-item-conta-extra > * {
   flex: 0 0 auto;
   max-width: 100%;
@@ -12254,12 +12155,7 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 /* Filtros: pílulas mais baixas e grupos enxutos; só a aba escolhida
    ganha fundo e contorno em laranja. */
 .conta-ferramentas .conta-filtro {
-  height: 28px;
-  min-height: 28px;
-  padding: 0 10px;
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.68);
 }
 
 /* ── Vitrine: mesma régua vertical em todos os cartões (26/11) ───
@@ -12559,7 +12455,6 @@ footer.rodape .rodape-marca-nome { gap: 0; }
 /* 3. Régua Geist Mono/tabular para todo montante em R$ e percentual que
    aparece como dado: a casa decimal e o sinal ficam na mesma coluna. */
 .card-valor,
-.tabular-num,
 .cartao-item-preco,
 .valor-unidade,
 .valor-total,

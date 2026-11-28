@@ -41,6 +41,42 @@ def _bloco_final(css: str, seletor: str) -> str:
     return css[início:fim]
 
 
+def _efetivo(css: str, seletor: str) -> "dict[str, str]":
+    """O que de fato vale para `seletor` fora de @media: junta, na ordem
+    da folha, as declarações de toda regra de nível 0 cuja lista de
+    seletores contém `seletor`; a última de cada propriedade vence (como
+    no cascade, com a mesma especificidade). Criado em 28/11: vários
+    testes liam a PRIMEIRA regra de um seletor (`_bloco`) e passavam com
+    uma declaração que uma regra mais abaixo já tinha substituído."""
+    limpo = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+    alvo = re.sub(r"\s+", " ", seletor.strip())
+    valores: "dict[str, str]" = {}
+    profundidade, inicio = 0, 0
+    for i, ch in enumerate(limpo):
+        if ch == "{":
+            if profundidade == 0:
+                prelude, abertura = limpo[inicio:i], i
+            profundidade += 1
+        elif ch == "}":
+            profundidade -= 1
+            if profundidade == 0:
+                inicio = i + 1
+                if prelude.strip().startswith("@"):
+                    continue
+                seletores = [re.sub(r"\s+", " ", x.strip())
+                             for x in prelude.split(",")]
+                if alvo not in seletores:
+                    continue
+                for decl in limpo[abertura + 1:i].split(";"):
+                    if ":" in decl:
+                        prop, valor = decl.split(":", 1)
+                        valores[prop.strip()] = valor.strip()
+        elif ch == ";" and profundidade == 0:
+            inicio = i + 1
+    assert valores, f"regra não encontrada: {seletor}"
+    return valores
+
+
 def _bloco_apos(css: str, trecho: str) -> str:
     """Primeiro bloco `{ ... }` depois da última ocorrência de `trecho`
     (útil para seletores agrupados por vírgula)."""
@@ -219,14 +255,14 @@ def test_dados_em_geist_tabular():
     "cara de IA genérica"): preços, variações, desgastes e notas usam a
     mesma regra, Geist com algarismos tabulares, sem zero cortado."""
     css = _css()
-    inicio = css.index(".tabular-num,")
-    regra = css[inicio:css.index("\n}", inicio)]
-    assert "font-family: var(--font-num);" in regra
-    assert "font-variant-numeric: tabular-nums;" in regra
-    assert 'font-feature-settings: "tnum" 1;' in regra
+    # O que vale de fato em cada seletor (28/11: antes lia o grupo que
+    # começava em `.tabular-num`, classe que nenhuma página usa).
     for seletor in (".cartao-item-preco", ".icone-tendencia",
                     ".item-exterior", ".nota-numero", ".nota-margem"):
-        assert seletor in regra
+        regra = _efetivo(css, seletor)
+        assert regra.get("font-family") == "var(--font-num)", seletor
+        assert regra.get("font-variant-numeric") == "tabular-nums", seletor
+        assert '"tnum" 1' in regra.get("font-feature-settings", ""), seletor
 
 
 def test_vitrine_tem_regua_vertical_unica():
@@ -352,32 +388,41 @@ def test_polimento_da_maquete_v4():
     css = _css()
     # Vitrine/Lista ativo ficou neutro em 2026-11-14 (o laranja fica só
     # na aba de categoria; dois controles laranja lado a lado disputavam).
-    visao = _bloco(css, '.seletor-visao a[aria-current="page"]')
-    assert "background: var(--surface-hover);" in visao
-    assert "rgba(249, 115, 22" not in visao
-    # Abas de categoria: fantasma (transparente + fio) quando inativas,
-    # laranja na ativa.
-    aba = _bloco(css, ".aba-categoria")
-    assert "background: transparent;" in aba
-    assert "border: 1px solid var(--border);" in aba
-    aba_ativa = _bloco(css, '.aba-categoria[aria-current="page"]')
+    # 28/11: as conferências leem o valor que VALE (`_efetivo`, a última
+    # regra do seletor), não a primeira -- várias passavam com declarações
+    # que uma regra mais abaixo já tinha trocado.
+    visao = _efetivo(css, '.seletor-visao a[aria-current="page"]')
+    assert visao["background"] == "var(--surface-hover)"
+    assert "rgba(249, 115, 22" not in visao["background"]
+    # Abas de categoria: fantasma quando inativas (fundo branco quase
+    # transparente + fio fino), laranja na ativa. O que vale hoje é
+    # branco a 4% com fio a 8% (a regra "transparent" do começo da folha
+    # já era substituída mais abaixo).
+    aba = _efetivo(css, ".aba-categoria")
+    fundo = re.fullmatch(r"rgba\(255, 255, 255, (0?\.\d+)\)", aba["background"])
+    assert fundo and float(fundo.group(1)) <= 0.06, aba["background"]
+    assert aba["border"].startswith("1px solid ")
+    aba_ativa = _efetivo(css, '.aba-categoria[aria-current="page"]')
+    assert "rgba(249, 115, 22" in aba_ativa["background"]
     # O laranja de ação virou token (auditoria 17/11), com o mesmo valor.
-    assert "background: var(--accent-acao);" in aba_ativa
     assert "--accent-acao: rgba(249, 115, 22, 0.7);" in css
     # Estado da coleta na home: linha leve com bolinha de status (revisão 20/11:
     # polimento compacto com fs-xs).
-    linha = _bloco(css, ".status-coleta")
-    assert "padding-left: 14px;" in linha and "font-size: var(--fs-xs);" in linha
-    assert "background: var(--positive);" in _bloco(css, ".status-coleta-ponto")
+    linha = _efetivo(css, ".status-coleta")
+    assert linha["padding-left"] == "14px" and linha["font-size"] == "var(--fs-xs)"
+    assert _efetivo(css, ".status-coleta-ponto")["background"] == "var(--positive)"
     # CTA laranja da página do item, em pílula com texto branco (70% opacidade).
-    acao = _bloco(css, ".botao-acao")
-    assert "background: var(--accent-acao);" in acao
-    assert "border-radius: var(--radius-pill);" in acao
+    acao = _efetivo(css, ".botao-acao")
+    assert acao["background"] == "var(--accent-acao)"
+    assert acao["border-radius"] == "var(--radius-pill)"
     # Linha de coleta fechando a ficha do item (régua de baixo).
-    coleta = _bloco(css, ".resumo-cards-item .card-coleta")
-    assert "border-top: 1px solid var(--border);" in coleta
-    # Aviso do rodapé em linha curta (não atravessa a largura toda).
-    assert "max-width: 46ch;" in _bloco(css, ".rodape-marca p")
+    coleta = _efetivo(css, ".resumo-cards-item .card-coleta")
+    assert coleta["border-top"] == "1px solid var(--border)"
+    # Aviso do rodapé em linha curta (não atravessa a largura toda): a
+    # medida de leitura do site é ~75 letras; o que vale hoje é 62ch (o
+    # 46ch do começo da folha já era substituído mais abaixo).
+    medida = _efetivo(css, ".rodape-marca p")["max-width"]
+    assert medida.endswith("ch") and int(medida[:-2]) <= 65, medida
 
 
 def test_respeita_reduced_motion():
