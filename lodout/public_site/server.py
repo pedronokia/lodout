@@ -446,7 +446,7 @@ def create_app() -> Flask:
         sessão se o cookie existe, para não marcar toda visita anônima."""
         if ("Cache-Control" not in resp.headers and resp.mimetype == "text/html"
                 and request.cookies.get(app.config["SESSION_COOKIE_NAME"])
-                and session.get("steamid")):
+                and (session.get("steamid") or _admin_ativo())):
             resp.headers["Cache-Control"] = "private, no-store"
         return resp
 
@@ -468,7 +468,7 @@ def create_app() -> Flask:
         categoria = request.args.get("categoria") or None
         nota_min = _parse_float_arg("nota_min")
         preco_max = _parse_float_arg("preco_max")
-        busca = (request.args.get("q") or "").strip() or None
+        busca = (request.args.get("q") or "").strip()[:120] or None
         liquidez_min = request.args.get("liquidez_min") or None
         if liquidez_min not in (None, *_LIQUIDEZ_ORDEM):
             liquidez_min = None
@@ -588,7 +588,8 @@ def create_app() -> Flask:
         # abaixo, confuso. Reaproveita o MESMO snapshot do Top 20 que o
         # Ranking já usa (_resumo_do_dia) -- sem inventar uma segunda
         # fonte de comparação histórica.
-        sem_filtro_ativo = not (categoria or nota_min or preco_max or busca
+        sem_filtro_ativo = not (categoria or nota_min is not None
+                                or preco_max is not None or busca
                                 or liquidez_min or exterior or raridade_sel
                                 or versao)
         resumo_do_dia = None
@@ -624,8 +625,8 @@ def create_app() -> Flask:
             contagem_categorias=_contagem_por_categoria(scan),
             contagem_abas=contagem_abas,
             filtro_alem_da_categoria=bool(
-                nota_min or preco_max or busca or liquidez_min or exterior
-                or raridade_sel or versao),
+                nota_min is not None or preco_max is not None or busca
+                or liquidez_min or exterior or raridade_sel or versao),
             exterior_sel=exterior,
             raridade_filtro_sel=raridade_sel,
             versao_sel=versao,
@@ -970,10 +971,13 @@ def create_app() -> Flask:
         tamanho = _parse_int_arg("tam", icon_cache.TAMANHO_PADRAO)
         if tamanho not in icon_cache.TAMANHOS_PERMITIDOS:
             tamanho = icon_cache.TAMANHO_PADRAO
-        dados = icon_cache.obter(hash_icone, tamanho)
+        hash_limpo = icon_cache._sanitizar(hash_icone)
+        if not hash_limpo:
+            return "", 404
+        dados = icon_cache.obter(hash_limpo, tamanho)
         if dados is None:
             return redirect(
-                _ICON_CDN_URL_2X.format(hash=hash_icone, tamanho=tamanho))
+                _ICON_CDN_URL_2X.format(hash=hash_limpo, tamanho=tamanho))
         resp = Response(dados, mimetype="image/webp")
         resp.headers["Cache-Control"] = "public, max-age=2592000, immutable"
         return resp
@@ -985,7 +989,8 @@ def create_app() -> Flask:
         servidor mande `Service-Worker-Allowed` -- rota própria na raiz
         é mais simples que configurar esse header por cima do
         `/static/` do Flask."""
-        resp = send_from_directory(_STATIC_DIR, "sw.js")
+        resp = send_from_directory(_STATIC_DIR, "sw.js", max_age=0)
+        resp.headers["Cache-Control"] = "no-cache"
         resp.headers["Service-Worker-Allowed"] = "/"
         return resp
 
@@ -1168,7 +1173,9 @@ def create_app() -> Flask:
             f"{urls_xml}\n"
             "</urlset>\n"
         )
-        return Response(xml, mimetype="application/xml")
+        resp = Response(xml, mimetype="application/xml")
+        resp.headers["Cache-Control"] = "public, max-age=300"
+        return resp
 
     @app.route("/opensearch.xml")
     def opensearch():
@@ -1552,9 +1559,11 @@ def create_app() -> Flask:
         caminho = db_backup._BACKUP_DIR / nome
         if not caminho.is_file():
             return render_template("404.html"), 404
-        return send_from_directory(
+        resp = send_from_directory(
             db_backup._BACKUP_DIR, nome,
-            as_attachment=True, mimetype="application/octet-stream")
+            as_attachment=True, mimetype="application/octet-stream", max_age=0)
+        resp.headers["Cache-Control"] = "private, no-store"
+        return resp
 
     @app.route("/admin/log-bruto")
     @_admin_required
@@ -1565,9 +1574,11 @@ def create_app() -> Flask:
         arquivo inteiro."""
         if not _ERROR_LOG_PATH.exists():
             return render_template("404.html"), 404
-        return send_from_directory(
+        resp = send_from_directory(
             _ERROR_LOG_PATH.parent, _ERROR_LOG_PATH.name,
-            as_attachment=True, mimetype="text/plain")
+            as_attachment=True, mimetype="text/plain", max_age=0)
+        resp.headers["Cache-Control"] = "private, no-store"
+        return resp
 
     @app.route("/api")
     def api_docs():
@@ -1636,7 +1647,6 @@ def create_app() -> Flask:
             top20_total_recentes=resumo_top["total"],
             grafico_visitas=grafico_visitas,
             grafico_visitas_legenda=grafico_visitas_legenda,
-            catalogo_estado=_estado_do_catalogo(),
         )
 
     @app.route("/feed.xml")
@@ -2419,40 +2429,6 @@ _LIQUIDEZ_ORDEM = ["iliquido", "fino", "moderado", "liquido", "muito_liquido"]
 _EXTERIORES = catalogo.EXTERIORES
 _VERSOES = catalogo.VERSOES
 _versao_do_item = catalogo.versao_do_item
-
-
-def _estado_do_catalogo() -> "dict | None":
-    """Resumo do catálogo amplo para a página Status (transparência da
-    coleta): tamanho, última volta completa, andamento e bloqueios."""
-    est = catalogo.resumo()
-    if not est:
-        return None
-    totais = est.get("totais") or {}
-    nomes = [n for n, _tag in catalogo.FATIAS]
-    fatia = est.get("fatia")
-    andamento = None
-    if isinstance(fatia, int) and 0 <= fatia < len(nomes) and totais:
-        feito = sum(totais.get(n, 0) for n in nomes[:fatia]) + int(est.get("start") or 0)
-        total = sum(totais.values())
-        if total:
-            andamento = {"pct": min(99, round(100 * feito / total)),
-                         "fatia": nomes[fatia]}
-    ultima = est.get("ultima_completa_ts")
-    ultimo_bloqueio = est.get("ultimo_bloqueio_ts")
-    return {
-        "itens": est.get("itens_no_banco"),
-        "itens_fmt": f"{int(est.get('itens_no_banco') or 0):,}".replace(",", "."),
-        "ultima_completa_txt": scan_store.idade_txt(ultima) if ultima else None,
-        "duracao_h": (round(est["duracao_ultima_min"] / 60, 1)
-                      if est.get("duracao_ultima_min") else None),
-        "andamento": andamento,
-        "bloqueios": int(est.get("bloqueios") or 0),
-        "ultimo_bloqueio_txt": (scan_store.idade_txt(ultimo_bloqueio)
-                                if ultimo_bloqueio else None),
-        "cotacao_fmt": (f"{est['cotacao_brl_por_usd']:.2f}".replace(".", ",")
-                        if est.get("cotacao_brl_por_usd") else None),
-        "cotacao_pares": est.get("cotacao_pares"),
-    }
 
 
 def _cartao_do_catalogo(r: dict) -> dict:

@@ -9,23 +9,26 @@ rota lenta no `/admin` sem trazer infraestrutura de métrica nova
 from __future__ import annotations
 
 from collections import defaultdict, deque
+import threading
 
 _JANELA = 200  # últimas N amostras por rota
 _amostras: "dict[str, deque]" = defaultdict(lambda: deque(maxlen=_JANELA))
+_trava = threading.Lock()
 
 
 def registrar(endpoint: str, duracao_ms: float) -> None:
     if not endpoint:
         return
-    _amostras[endpoint].append(duracao_ms)
+    with _trava:
+        _amostras[endpoint].append(duracao_ms)
 
 
 def resumo() -> list[dict]:
     """[{endpoint, media_ms, contagem}], ordenado por média desc."""
+    with _trava:
+        copia = [(ep, list(vals)) for ep, vals in _amostras.items() if vals]
     out = []
-    for endpoint, valores in _amostras.items():
-        if not valores:
-            continue
+    for endpoint, valores in copia:
         out.append({
             "endpoint": endpoint,
             "media_ms": round(sum(valores) / len(valores), 1),
@@ -38,4 +41,5 @@ def resumo() -> list[dict]:
 def reset() -> None:
     """Limpa o estado -- o dict é de módulo e sobrevive entre testes na
     mesma sessão do pytest (mesmo padrão do disjuntor de rate limit)."""
-    _amostras.clear()
+    with _trava:
+        _amostras.clear()

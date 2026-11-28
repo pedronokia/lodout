@@ -32,6 +32,8 @@ _RULE_FIELDS = (
     "price_below", "price_drop_pct", "volume_spike", "supply_drop",
     "score_above",
 )
+_MAX_NOME = 200
+_MAX_PRECO = 10_000_000.0
 
 
 def _regras_com_alvo(item: dict) -> dict:
@@ -129,6 +131,8 @@ def _rules_do_form() -> dict:
             raise ValueError(campo)
         if not math.isfinite(valor) or valor <= 0:
             raise ValueError(campo)
+        if campo == "price_below" and valor > _MAX_PRECO:
+            raise ValueError(campo)
         if campo in ("price_drop_pct", "score_above") and valor > 100:
             raise ValueError(campo)
         if campo == "score_above" and not valor.is_integer():
@@ -200,8 +204,8 @@ def salvar_webhook():
 def adicionar():
     steamid = session["steamid"]
     name = (request.form.get("name") or "").strip()
-    if not name:
-        flash("Informe o nome do item.", "error")
+    if not name or len(name) > _MAX_NOME:
+        flash("Informe um nome válido para o item.", "error")
         return redirect(url_for("watchlist.listar"))
 
     target_raw = (request.form.get("target") or "").strip()
@@ -213,7 +217,7 @@ def adicionar():
             "error",
         )
         return redirect(url_for("watchlist.listar"))
-    if not math.isfinite(target) or target < 0:
+    if not math.isfinite(target) or target < 0 or target > _MAX_PRECO:
         flash(
             "O preço-alvo precisa ser um número válido e igual ou maior que zero.",
             "error",
@@ -224,7 +228,7 @@ def adicionar():
     return redirect(url_for("watchlist.listar"))
 
 
-@bp.route("/conta/watchlist/<name>/regras", methods=["POST"])
+@bp.route("/conta/watchlist/<path:name>/regras", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -251,7 +255,7 @@ def editar_regras(name: str):
                 "error",
             )
             return redirect(url_for("watchlist.listar"))
-        if not math.isfinite(baseline) or baseline <= 0:
+        if not math.isfinite(baseline) or baseline <= 0 or baseline > _MAX_PRECO:
             flash(
                 "O preço-base precisa ser um número válido maior que zero.",
                 "error",
@@ -266,7 +270,7 @@ def editar_regras(name: str):
     return redirect(url_for("watchlist.listar"))
 
 
-@bp.route("/conta/watchlist/<name>/remover", methods=["POST"])
+@bp.route("/conta/watchlist/<path:name>/remover", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect

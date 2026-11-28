@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import sys
+import threading
 import time
 from datetime import date
 from pathlib import Path
@@ -253,8 +254,18 @@ def load_item_history(name: str,
     return _historico_todo(path).get(name, [])
 
 
+_CACHE_METRICAS: "dict[str, tuple[tuple | None, dict]]" = {}
+_CACHE_METRICAS_LOCK = threading.Lock()
+
+
+def limpar_cache_metricas() -> None:
+    """Limpa o cache em memória de volume/oferta (usado em gravações/testes)."""
+    with _CACHE_METRICAS_LOCK:
+        _CACHE_METRICAS.clear()
+
+
 def _record_metric(name: str, value: float, path: Path) -> None:
-    """Registra um snapshot de metrica (volume/supply). Cap em 100 entradas."""
+    """Registra um snapshot de metrica (volume/supply). Cap em 200 entradas."""
     data = load_json_record(path, {})
     if not isinstance(data, dict):
         data = {}
@@ -266,14 +277,29 @@ def _record_metric(name: str, value: float, path: Path) -> None:
         atomic_write_text(path, json.dumps(data))
     except OSError as e:
         print(f"WARNING: failed to save metric: {e}", file=sys.stderr)
+    else:
+        limpar_cache_metricas()
 
 
 def _load_metric_history(name: str, path: Path) -> list[dict]:
     """Retorna a serie [{ts, value}] de uma metrica."""
-    data = load_json_record(path, {})
-    if not isinstance(data, dict):
-        data = {}
-    return data.get(name, [])
+    p = Path(path)
+    try:
+        st = p.stat()
+    except OSError:
+        return []
+    chave_arquivo = str(p)
+    sig = (st.st_dev, st.st_ino, st.st_mtime_ns, st.st_size)
+    with _CACHE_METRICAS_LOCK:
+        atual = _CACHE_METRICAS.get(chave_arquivo)
+        if atual is not None and atual[0] == sig:
+            dados = atual[1]
+            return list(dados.get(name, []))
+    data = load_json_record(p, {})
+    dados = data if isinstance(data, dict) else {}
+    with _CACHE_METRICAS_LOCK:
+        _CACHE_METRICAS[chave_arquivo] = (sig, dados)
+    return list(dados.get(name, []))
 
 
 def record_item_volume(name: str, volume: int) -> None:

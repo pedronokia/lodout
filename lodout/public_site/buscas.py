@@ -47,7 +47,7 @@ def _lock_arquivo(alvo: Path):
 def registrar(termo: str, path: "Path | str | None" = None) -> None:
     """Soma 1 pro termo (normalizado: minúsculo, sem espaço nas pontas).
     Termo vazio é ignorado."""
-    termo = (termo or "").strip().lower()
+    termo = (termo or "").strip().lower()[:80]
     if not termo:
         return
     p = Path(path) if path is not None else _caminho_padrao()

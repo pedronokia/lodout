@@ -207,16 +207,33 @@ def _gravar_estado(steamid: str, est: dict) -> None:
 
 
 def sincronizar(steamid: str) -> dict:
-    """Busca o inventário público e mescla na conta. Devolve o estado."""
+    """Busca o inventário público e mescla na conta. Devolve o estado.
+
+    A mesclagem acontece sob `BEGIN IMMEDIATE` (evita perder custos
+    digitados enquanto a Steam respondia) e aborta sem gravar se a conta
+    existia ao iniciar e foi excluída (`/conta/excluir`) no meio da busca."""
+    existia_antes = user_store.get_user(steamid) is not None
     status, itens = steam_api.fetch_inventory(steamid)
     est = estado(steamid)
     est.update({"status": status, "ts": time.time(), "em_andamento": False})
     if status == steam_api.INV_OK or status == steam_api.INV_EMPTY:
-        posicoes = user_portfolio.load_positions(steamid)
-        novas, resumo = mesclar(posicoes, itens if status == steam_api.INV_OK else [])
-        user_store.save_user_json(steamid, "portfolio", novas)
+        lista_itens = itens if status == steam_api.INV_OK else []
+
+        def _mesclar_atomico(posicoes):
+            atual = list(posicoes) if isinstance(posicoes, list) else []
+            novas, resumo = mesclar(atual, lista_itens)
+            return True, novas, resumo
+
+        gravou, resumo = user_store.update_user_json(
+            steamid, "portfolio", list, _mesclar_atomico,
+            require_user=existia_antes,
+        )
+        if existia_antes and not gravou:
+            return est
         est["ultimo_ok_ts"] = est["ts"]
         est["resumo"] = resumo
+    elif existia_antes and user_store.get_user(steamid) is None:
+        return est
     _gravar_estado(steamid, est)
     return est
 
@@ -232,26 +249,34 @@ def sincronizar_em_segundo_plano(steamid: str) -> bool:
         if steamid in _em_andamento:
             return False
         _em_andamento.add(steamid)
-    est = estado(steamid)
-    est["em_andamento"] = True
-    est["iniciado_ts"] = time.time()
-    _gravar_estado(steamid, est)
 
     def _rodar():
         try:
             sincronizar(steamid)
         except Exception:
             _logger.error("sincronização do inventário falhou", exc_info=True)
-            est2 = estado(steamid)
-            est2.update({"em_andamento": False, "status": steam_api.INV_ERROR,
-                         "ts": time.time()})
-            _gravar_estado(steamid, est2)
+            try:
+                est2 = estado(steamid)
+                est2.update({"em_andamento": False, "status": steam_api.INV_ERROR,
+                             "ts": time.time()})
+                _gravar_estado(steamid, est2)
+            except Exception:
+                pass
         finally:
             with _trava:
                 _em_andamento.discard(steamid)
 
-    threading.Thread(target=_rodar, name=f"inventario-{steamid}",
-                     daemon=True).start()
+    try:
+        est = estado(steamid)
+        est["em_andamento"] = True
+        est["iniciado_ts"] = time.time()
+        _gravar_estado(steamid, est)
+        threading.Thread(target=_rodar, name=f"inventario-{steamid}",
+                         daemon=True).start()
+    except Exception:
+        with _trava:
+            _em_andamento.discard(steamid)
+        raise
     return True
 
 

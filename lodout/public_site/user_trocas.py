@@ -65,16 +65,66 @@ def remover(steamid: str, index: int, path: "Path | str | None" = None) -> "dict
 def migrar_trades_antigos(steamid: str, path: "Path | str | None" = None) -> int:
     """Leva os registros antigos de compra e venda ("Meus trades" até
     17/11) para "Itens vendidos". Devolve quantos foram movidos (0 se não
-    havia nada). Idempotente: depois de mover, o kind antigo fica vazio."""
-    antigos = user_store.load_user_json(steamid, _KIND_ANTIGO, [], path=path)
-    if not isinstance(antigos, list) or not antigos:
-        return 0
-    vendidos = user_vendidos.load(steamid, path=path)
-    movidos = 0
-    for t in antigos:
-        if isinstance(t, dict) and t.get("name") and t.get("sell_price") is not None:
-            vendidos.append({**t, "source": "trades"})
-            movidos += 1
-    user_store.save_user_json(steamid, user_vendidos._KIND, vendidos, path=path)
-    user_store.save_user_json(steamid, _KIND_ANTIGO, [], path=path)
-    return movidos
+    havia nada). Executa numa única transação `BEGIN IMMEDIATE` para que
+    duas abas concorrentes nunca dupliquem as vendas migradas."""
+    import json
+    from lodout.public_site import db
+
+    conn = db.connect(path)
+    conn.isolation_level = None
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row_ant = conn.execute(
+            "SELECT payload FROM user_data WHERE steamid = ? AND kind = ?",
+            (steamid, _KIND_ANTIGO),
+        ).fetchone()
+        if row_ant is None:
+            conn.execute("ROLLBACK")
+            return 0
+        try:
+            antigos = json.loads(row_ant[0])
+        except ValueError:
+            antigos = []
+        if not isinstance(antigos, list) or not antigos:
+            conn.execute("ROLLBACK")
+            return 0
+
+        row_vend = conn.execute(
+            "SELECT payload FROM user_data WHERE steamid = ? AND kind = ?",
+            (steamid, user_vendidos._KIND),
+        ).fetchone()
+        try:
+            vendidos = json.loads(row_vend[0]) if row_vend else []
+        except ValueError:
+            vendidos = []
+        if not isinstance(vendidos, list):
+            vendidos = []
+
+        movidos = 0
+        for t in antigos:
+            if isinstance(t, dict) and t.get("name") and t.get("sell_price") is not None:
+                vendidos.append({**t, "source": "trades"})
+                movidos += 1
+        agora = time.time()
+        conn.execute(
+            "INSERT INTO user_data (steamid, kind, payload, updated_ts) "
+            "VALUES (?, ?, ?, ?) "
+            "ON CONFLICT(steamid, kind) DO UPDATE SET "
+            "payload=excluded.payload, updated_ts=excluded.updated_ts",
+            (steamid, user_vendidos._KIND, json.dumps(vendidos), agora),
+        )
+        conn.execute(
+            "INSERT INTO user_data (steamid, kind, payload, updated_ts) "
+            "VALUES (?, ?, ?, ?) "
+            "ON CONFLICT(steamid, kind) DO UPDATE SET "
+            "payload=excluded.payload, updated_ts=excluded.updated_ts",
+            (steamid, _KIND_ANTIGO, "[]", agora),
+        )
+        conn.execute("COMMIT")
+        return movidos
+    except BaseException:
+        if conn.in_transaction:
+            conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()

@@ -116,11 +116,12 @@ def _sem_historico_de_notas_nem_online_de_outro_teste():
     compartilhado: sem isto vazavam de um teste para o outro."""
     yield
     import lodout._paths as paths
-    from lodout import prices
+    from lodout import prices, signals
     from lodout.public_site import notas_historico, visits
     notas_historico.limpar_cache()
     visits.limpar_cache()
     prices.limpar_cache()
+    signals.limpar_cache_metricas()
     for base in ("notas_historico.sqlite3", "online.sqlite3"):
         for extra in ("", "-wal", "-shm"):
             p = paths.DATA_DIR / (base + extra)

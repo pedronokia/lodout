@@ -70,7 +70,8 @@ def _podar_expirados(ts: float) -> None:
     for k in expiradas:
         _hits.pop(k, None)
     if len(_hits) > _MAX_CHAVES:
-        excesso = len(_hits) - _MAX_CHAVES
+        alvo = max(0, int(_MAX_CHAVES * 0.9))
+        excesso = len(_hits) - alvo
         mais_antigas = sorted(
             _hits.items(), key=lambda par: par[1][-1] if par[1] else 0.0
         )[:excesso]

@@ -65,22 +65,27 @@ def connect(path: "Path | str | None" = None) -> sqlite3.Connection:
     # pode reutilizar o mesmo inode; aqui ele ainda não existe (ou tem 0 B).
     chave = _chave_arquivo(p)
     conn = sqlite3.connect(str(p), timeout=_CONNECT_TIMEOUT_S)
-    conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
-    conn.execute("PRAGMA foreign_keys=ON")
-    # synchronous=NORMAL e' por conexao e par padrao de WAL (skill
-    # sqlite-database-expert, 2026-11-04): com WAL o SO ja' garante
-    # consistencia apos crash do processo; FULL so' importa pra
-    # sobreviver crash do SO/queda de energia, que este site nao promete.
-    conn.execute("PRAGMA synchronous=NORMAL")
+    try:
+        conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
+        conn.execute("PRAGMA foreign_keys=ON")
+        # synchronous=NORMAL e' por conexao e par padrao de WAL (skill
+        # sqlite-database-expert, 2026-11-04): com WAL o SO ja' garante
+        # consistencia apos crash do processo; FULL so' importa pra
+        # sobreviver crash do SO/queda de energia, que este site nao promete.
+        conn.execute("PRAGMA synchronous=NORMAL")
 
-    # WAL e DDL so' precisam rodar uma vez por arquivo -- evita lock de
-    # escrita a cada request HTTP com varias threads do gunicorn + worker.
-    if chave is None or chave not in _INICIALIZADOS:
-        with _INIT_LOCK:
-            if chave is None or chave not in _INICIALIZADOS:
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.executescript(_SCHEMA)
-                nova_chave = _chave_arquivo(p)
-                if nova_chave is not None:
-                    _INICIALIZADOS.add(nova_chave)
+        # WAL e DDL so' precisam rodar uma vez por arquivo -- evita lock de
+        # escrita a cada request HTTP com varias threads do gunicorn + worker.
+        if chave is None or chave not in _INICIALIZADOS:
+            with _INIT_LOCK:
+                chave_atual = _chave_arquivo(p)
+                if chave_atual is None or chave_atual not in _INICIALIZADOS:
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.executescript(_SCHEMA)
+                    nova_chave = _chave_arquivo(p)
+                    if nova_chave is not None:
+                        _INICIALIZADOS.add(nova_chave)
+    except BaseException:
+        conn.close()
+        raise
     return conn

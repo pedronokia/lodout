@@ -300,33 +300,30 @@ class TestSaveCacheErrors:
 
     def test_download_avatar_mkdir_fails(self, monkeypatch, tmp_path: Path):
         """_download_avatar retorna None se mkdir falha."""
-        import os
         avdir = tmp_path / "avatars"
-        # Forca fallha de mkdir: cria um arquivo no lugar do diretorio
+        # Forca falha de mkdir: cria um arquivo no lugar do diretorio
         avdir.write_text("not-a-dir")
         monkeypatch.setattr(pf, "_AVATARS_DIR", avdir)
         monkeypatch.setattr(pf, "_http_get", lambda url, timeout=15.0: b"data")
-        assert pf._download_avatar("7656", "https://example.com/a.jpg") is None
+        assert pf._download_avatar("7656", "https://avatars.steamstatic.com/a.jpg") is None
 
     def test_download_avatar_http_fails(self, monkeypatch, tmp_path: Path):
         """_download_avatar retorna None se http_get retorna None."""
-        import os
         avdir = tmp_path / "avatars"
         avdir.mkdir()
         monkeypatch.setattr(pf, "_AVATARS_DIR", avdir)
         monkeypatch.setattr(pf, "_http_get", lambda url, timeout=15.0: None)
-        assert pf._download_avatar("7656", "https://example.com/a.jpg") is None
+        assert pf._download_avatar("7656", "https://avatars.steamstatic.com/a.jpg") is None
 
     def test_download_avatar_write_fails(self, monkeypatch, tmp_path: Path):
-        """_download_avatar retorna None se write_bytes falha."""
+        """_download_avatar retorna None se atomic_write_bytes falha."""
         avdir = tmp_path / "avatars"
         avdir.mkdir()
         monkeypatch.setattr(pf, "_AVATARS_DIR", avdir)
         monkeypatch.setattr(pf, "_http_get", lambda url, timeout=15.0: b"data")
-        from pathlib import Path as _Path
-        monkeypatch.setattr(_Path, "write_bytes",
-                            lambda self_, data: (_ for _ in ()).throw(OSError()))
-        assert pf._download_avatar("7656", "https://example.com/a.jpg") is None
+        monkeypatch.setattr(pf, "atomic_write_bytes",
+                            lambda path, data: (_ for _ in ()).throw(OSError()))
+        assert pf._download_avatar("7656", "https://avatars.steamstatic.com/a.jpg") is None
 
 
 class TestFetchPublicProfileErrors:

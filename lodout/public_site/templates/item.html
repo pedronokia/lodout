@@ -24,7 +24,7 @@
   {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": "{{ item.name_fmt }}",
+    "name": {{ item.name_fmt|tojson }},
     "image": "{{ request.url_root.rstrip('/') ~ (item.icon_url_2x if item.icon_url_2x else url_for('static', filename='og-image.png')) }}",
     "description": {{ (item.reasons|join('; ') if item.reasons else 'Sem fator em destaque')|tojson }}
     {%- if item.price is not none %},
@@ -44,7 +44,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Lodout", "item": "{{ request.url_root }}"},
-      {"@type": "ListItem", "position": 2, "name": "{{ item.name_fmt }}", "item": "{{ request.base_url }}"}
+      {"@type": "ListItem", "position": 2, "name": {{ item.name_fmt|tojson }}, "item": "{{ request.base_url }}"}
     ]
   }
   </script>

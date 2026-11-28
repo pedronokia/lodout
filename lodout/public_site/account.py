@@ -135,6 +135,9 @@ def _scan_lookup() -> dict:
 _META_LUCRO_PADRAO = 20
 _META_LUCRO_OPCOES = (10, 20, 30, 50, 100)
 _META_LUCRO_MAX = 500
+_MAX_NOME = 200
+_MAX_QUANTIDADE = 10_000
+_MAX_PRECO = 10_000_000.0
 
 
 def _meta_lucro(steamid: str) -> int:
@@ -366,8 +369,8 @@ def avatar():
     path = caminho_avatar(session["steamid"])
     if path is None:
         return "", 404
-    resp = send_file(path, mimetype="image/jpeg")
-    resp.headers["Cache-Control"] = "private, max-age=86400"
+    resp = send_file(path, mimetype="image/jpeg", max_age=0)
+    resp.headers["Cache-Control"] = "private, no-cache"
     return resp
 
 
@@ -618,7 +621,7 @@ def _marcar_lotes(rows: "list[dict]", positions: "list[dict]") -> None:
             juntar_mostrado.add(pos.get("name"))
 
 
-@bp.route("/conta/posicoes/<name>/separar", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/separar", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -639,7 +642,7 @@ def separar_lote(name: str):
     return redirect(url_for("account.conta"))
 
 
-@bp.route("/conta/posicoes/<name>/juntar", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/juntar", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -672,9 +675,13 @@ def definir_meta():
         flash(f"A meta de lucro precisa ser um número entre 1 e {_META_LUCRO_MAX}.",
               "error")
         return redirect(url_for("account.conta"))
-    prefs = user_store.load_user_json(steamid, "preferencias", {}) or {}
-    prefs["meta_lucro_pct"] = meta
-    user_store.save_user_json(steamid, "preferencias", prefs)
+
+    def _salvar_meta(prefs):
+        dados = dict(prefs) if isinstance(prefs, dict) else {}
+        dados["meta_lucro_pct"] = meta
+        return True, dados, None
+
+    user_store.update_user_json(steamid, "preferencias", dict, _salvar_meta)
     if quer_json:
         # conta.js recalcula os preços na própria página (sem recarregar).
         return jsonify({"ok": True, "meta": meta})
@@ -695,7 +702,11 @@ def atualizar_inventario():
     from lodout import steam_api
     steamid = session["steamid"]
     est = inventario.estado(steamid)
-    if est.get("em_andamento"):
+    em_andamento = bool(
+        est.get("em_andamento")
+        and time.time() - float(est.get("iniciado_ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S
+    )
+    if em_andamento:
         pass
     elif time.time() - float(est.get("ts") or 0) < _ATUALIZAR_INVENTARIO_INTERVALO_S:
         flash("Seu inventário acabou de ser atualizado. Tente de novo em alguns minutos.", "info")
@@ -713,8 +724,10 @@ def atualizar_inventario():
 def adicionar_posicao():
     steamid = session["steamid"]
     name = (request.form.get("name") or "").strip()
-    if not name:
-        flash("Informe o nome do item.", "error")
+    if not name or len(name) > _MAX_NOME:
+        flash("Informe o nome do item." if not name
+              else f"O nome do item pode ter no máximo {_MAX_NOME} caracteres.",
+              "error")
         return redirect(url_for("account.conta"))
 
     cost_raw = (request.form.get("cost") or "").strip()
@@ -724,7 +737,7 @@ def adicionar_posicao():
             cost = fmt.ler_reais(cost_raw)
         except ValueError:
             cost = None
-        if cost is None or not math.isfinite(cost) or cost < 0:
+        if cost is None or not math.isfinite(cost) or cost < 0 or cost > _MAX_PRECO:
             flash(
                 "O custo precisa ser um número válido e igual ou maior que zero.",
                 "error",
@@ -736,9 +749,11 @@ def adicionar_posicao():
         quantity = int(quantity_raw) if quantity_raw else 1
     except ValueError:
         quantity = 0
-    if quantity < 1:
+    if quantity < 1 or quantity > _MAX_QUANTIDADE:
         flash(
-            "A quantidade precisa ser um número inteiro maior que zero.",
+            "A quantidade precisa ser um número inteiro maior que zero."
+            if quantity < 1
+            else f"A quantidade pode ser no máximo {_MAX_QUANTIDADE}.",
             "error",
         )
         return redirect(url_for("account.conta"))
@@ -749,7 +764,7 @@ def adicionar_posicao():
     return redirect(url_for("account.conta"))
 
 
-@bp.route("/conta/posicoes/<name>/custo", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/custo", methods=["POST"])
 @rate_limited(CUSTO_MAX_HITS, CUSTO_WINDOW_S)
 @login_required
 @csrf_protect
@@ -773,7 +788,7 @@ def editar_custo(name: str):
             cost = fmt.ler_reais(cost_raw)
         except ValueError:
             cost = None
-        if cost is None or not math.isfinite(cost) or cost < 0:
+        if cost is None or not math.isfinite(cost) or cost < 0 or cost > _MAX_PRECO:
             erro = "O valor pago precisa ser um número igual ou maior que zero (ex.: 35,10)."
         else:
             user_portfolio.update_position_cost(steamid, name, cost, lote=lote)
@@ -820,7 +835,7 @@ def editar_custo(name: str):
     return redirect(url_for("account.conta"))
 
 
-@bp.route("/conta/posicoes/<name>/remover", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/remover", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -846,7 +861,7 @@ def remover_posicao(name: str):
     return redirect(url_for("account.conta"))
 
 
-@bp.route("/conta/posicoes/<name>/anunciado", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/anunciado", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -866,7 +881,7 @@ def marcar_anunciado(name: str):
             preco = fmt.ler_reais(bruto)
         except ValueError:
             preco = None
-        if preco is None or not math.isfinite(preco) or preco <= 0:
+        if preco is None or not math.isfinite(preco) or preco <= 0 or preco > _MAX_PRECO:
             flash("Confira o preço do anúncio (o que o comprador paga, ex.: 35,10).", "error")
             return redirect(url_for("account.conta"))
     if user_portfolio.marcar_anunciado(steamid, name, anunciado, lote=lote, preco=preco):
@@ -879,7 +894,7 @@ def marcar_anunciado(name: str):
     return redirect(url_for("account.conta"))
 
 
-@bp.route("/conta/posicoes/<name>/vendido", methods=["POST"])
+@bp.route("/conta/posicoes/<path:name>/vendido", methods=["POST"])
 @rate_limited(MUTATION_MAX_HITS, MUTATION_WINDOW_S)
 @login_required
 @csrf_protect
@@ -897,8 +912,12 @@ def marcar_vendido(name: str):
         quantidade = int((request.form.get("quantidade") or "1").strip())
     except ValueError:
         quantidade = 0
-    if preco is None or not math.isfinite(preco) or preco <= 0:
+    if preco is None or not math.isfinite(preco) or preco <= 0 or preco > _MAX_PRECO:
         flash("Informe o valor que o comprador pagou (ex.: 35,10).", "error")
+        return redirect(url_for("account.conta"))
+    if quantidade < 1 or quantidade > _MAX_QUANTIDADE:
+        flash("Não foi possível registrar a venda: confira a quantidade e o valor pago.",
+              "error")
         return redirect(url_for("account.conta"))
     # Segunda confirmação (pedido do usuário, 16/11): a janela só envia
     # depois do "Sim, vendi"; sem JavaScript, a caixa "Confirmo que vendi".
@@ -1004,6 +1023,7 @@ def exportar_dados():
     })
     resp.headers["Content-Disposition"] = (
         f'attachment; filename="lodout-dados-{steamid}.json"')
+    resp.headers["Cache-Control"] = "private, no-store"
     return resp
 
 

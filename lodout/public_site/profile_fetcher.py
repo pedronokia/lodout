@@ -15,10 +15,11 @@ import re
 import threading
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 
-from lodout._paths import DATA_DIR, atomic_write_text
+from lodout._paths import DATA_DIR, atomic_write_bytes, atomic_write_text
 
 try:
     import fcntl
@@ -100,12 +101,14 @@ def _http_get(url: str, timeout: float = 10.0) -> bytes | None:
     try:
         return futuro.result(timeout=timeout)
     except Exception:
+        futuro.cancel()
         return None
 
 
 def _load_cache() -> dict:
     try:
-        return json.loads(_PROFILES_PATH.read_text(encoding="utf-8"))
+        data = json.loads(_PROFILES_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
     except Exception:
         return {}
 
@@ -195,17 +198,36 @@ def fetch_public_profile(steamid: str,
     return record
 
 
+_AVATAR_MAX_BYTES = 2 * 1024 * 1024
+_AVATAR_HOSTS_PERMITIDOS = ("steamstatic.com", "akamaihd.net")
+
+
+def _avatar_url_permitida(url: str) -> bool:
+    """Aceita apenas HTTPS nos CDNs oficiais de avatar da Steam."""
+    if not url or not isinstance(url, str):
+        return False
+    parsed = urlsplit(url.strip())
+    if parsed.scheme != "https" or not parsed.hostname:
+        return False
+    host = parsed.hostname.lower().rstrip(".")
+    return any(host == d or host.endswith("." + d) for d in _AVATAR_HOSTS_PERMITIDOS)
+
+
 def _download_avatar(steamid: str, url: str) -> str | None:
+    if not steamid or "/" in steamid or "\\" in steamid or ".." in steamid:
+        return None
+    if not _avatar_url_permitida(url):
+        return None
     try:
         _AVATARS_DIR.mkdir(parents=True, exist_ok=True)
     except OSError:
         return None
     data = _http_get(url, timeout=15.0)
-    if data is None:
+    if not data or len(data) > _AVATAR_MAX_BYTES:
         return None
     path = _AVATARS_DIR / f"{steamid}.jpg"
     try:
-        path.write_bytes(data)
+        atomic_write_bytes(path, data)
         return str(path)
     except OSError:
         return None

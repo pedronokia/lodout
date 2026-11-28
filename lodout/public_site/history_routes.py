@@ -30,8 +30,9 @@ def listar():
     from lodout.public_site import user_trocas
     user_trocas.migrar_trades_antigos(steamid)
 
+    brutos = user_vendidos.load(steamid)
     vendidos = []
-    for i, v in enumerate(user_vendidos.load(steamid)):
+    for i, v in enumerate(brutos):
         pnl = v.get("pnl") or 0
         vendidos.append({
             "index": i,
@@ -50,7 +51,7 @@ def listar():
             "da_conta": v.get("source") == "conta",
         })
     vendidos.sort(key=lambda v: -v["ts"])
-    total_vendidos = sum(v.get("pnl") or 0 for v in user_vendidos.load(steamid))
+    total_vendidos = sum(v.get("pnl") or 0 for v in brutos)
 
     return render_template(
         "conta_historico.html",

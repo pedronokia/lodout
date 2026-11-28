@@ -12,6 +12,8 @@ ENTRADAS = [
         "titulo": "Imagens dos itens na Minha conta",
         "itens": [
             "Minha conta e Favoritos: a imagem das armas não aparece mais com um losango (◇) por cima; ele só aparece quando o item está sem imagem.",
+            "Ranking: a nota média em períodos longos (90 dias e 1 ano) agora dá o mesmo peso para cada dia do calendário, evitando que dias mais recentes com mais coletas puxem o resultado.",
+            "Minha conta e Favoritos: itens cujo nome tem barra (“/”) agora podem ser editados, separados, juntados e removidos normalmente; salvar vários valores pagos em sequência ou durante a atualização do inventário não perde mais edições, e o botão “Atualizar agora” não fica travado se uma atualização anterior for interrompida.",
         ],
     },
     {

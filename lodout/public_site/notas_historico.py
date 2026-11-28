@@ -58,21 +58,29 @@ def _conectar() -> sqlite3.Connection:
     p.parent.mkdir(parents=True, exist_ok=True)
     chave = _chave_arquivo(p)
     conn = sqlite3.connect(str(p), timeout=5)
-    conn.execute("PRAGMA busy_timeout=5000")
-    conn.execute("PRAGMA synchronous=NORMAL")
-    if chave is None or chave not in _INICIALIZADOS:
-        with _INIT_LOCK:
-            if chave is None or chave not in _INICIALIZADOS:
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("""CREATE TABLE IF NOT EXISTS pontos (
-                    name TEXT NOT NULL, ts REAL NOT NULL, score INTEGER NOT NULL,
-                    position INTEGER, completo INTEGER NOT NULL DEFAULT 1,
-                    PRIMARY KEY (name, ts))""")
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_pontos_ts ON pontos (ts)")
-                conn.commit()
-                nova_chave = _chave_arquivo(p)
-                if nova_chave is not None:
-                    _INICIALIZADOS.add(nova_chave)
+    try:
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        if chave is None or chave not in _INICIALIZADOS:
+            with _INIT_LOCK:
+                chave = _chave_arquivo(p)
+                if chave is None or chave not in _INICIALIZADOS:
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.execute("""CREATE TABLE IF NOT EXISTS pontos (
+                        name TEXT NOT NULL, ts REAL NOT NULL, score INTEGER NOT NULL,
+                        position INTEGER, completo INTEGER NOT NULL DEFAULT 1,
+                        PRIMARY KEY (name, ts))""")
+                    conn.execute("CREATE INDEX IF NOT EXISTS idx_pontos_ts ON pontos (ts)")
+                    conn.execute(
+                        "CREATE INDEX IF NOT EXISTS idx_pontos_completo_ts "
+                        "ON pontos (completo, ts)")
+                    conn.commit()
+                    nova_chave = _chave_arquivo(p)
+                    if nova_chave is not None:
+                        _INICIALIZADOS.add(nova_chave)
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 
@@ -108,11 +116,13 @@ def compactar(conn: sqlite3.Connection, agora: float) -> None:
 
 _CACHE_RANKING: dict = {}
 _CACHE_RANKING_MAX = 16
+_CACHE_LOCK = threading.Lock()
 
 
 def limpar_cache() -> None:
     """Limpa o cache em memória do ranking consistente (usado em gravações/testes)."""
-    _CACHE_RANKING.clear()
+    with _CACHE_LOCK:
+        _CACHE_RANKING.clear()
 
 
 def _identidade_banco() -> "tuple | None":
@@ -227,7 +237,7 @@ def fotos_diarias(ate_ts: float) -> "list[tuple[str, float, int]]":
 # 100 numa coleta (parte da nota vem de retratos do livro de ofertas, que
 # oscilam muito). O /ranking ordena pela nota média no período.
 MIN_DIAS_COMPLETOS = 7     # com menos histórico completo que isso, usa a presença no Top 20
-MIN_PRESENCA = 0.5         # item precisa aparecer em metade das coletas do período
+MIN_PRESENCA = 0.5         # item precisa aparecer em metade dos dias do período
 
 
 def _copiar_ranking(res: dict) -> dict:
@@ -240,11 +250,12 @@ def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20
     Top 20), media, presenca_pct, dias_no_top.
 
     "media": quando há pelo menos `MIN_DIAS_COMPLETOS` dias de fotos com
-    todos os itens; média das notas no período, só para quem aparece em
-    pelo menos `MIN_PRESENCA` das coletas (item recém-chegado não entra
-    com 2 pontos). "presenca": antes disso, % das coletas do período em
-    que o item esteve no Top 20 (dado que existe desde o lançamento),
-    desempate pela média da nota nessas vezes."""
+    todos os itens; média diária das notas no período (cada dia de
+    Brasília tem o mesmo peso, mesmo com 4 coletas nos últimos 35 dias e
+    1 foto/dia nos dias compactados), só para quem aparece em pelo menos
+    `MIN_PRESENCA` dos dias com coleta. "presenca": antes disso, % das
+    coletas do período em que o item esteve no Top 20 (dado que existe
+    desde o lançamento), desempate pela média da nota nessas vezes."""
     usar_cache = agora is None
     agora_ts = time.time() if agora is None else agora
     _garantir_importado()
@@ -253,7 +264,8 @@ def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20
         ident = _identidade_banco()
         if ident is not None:
             chave_cache = (ident, float(dias), int(top), int(agora_ts // 60))
-            cached = _CACHE_RANKING.get(chave_cache)
+            with _CACHE_LOCK:
+                cached = _CACHE_RANKING.get(chave_cache)
             if cached is not None:
                 return _copiar_ranking(cached)
 
@@ -271,25 +283,42 @@ def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20
                 "SELECT MIN(ts) FROM pontos WHERE completo = 1").fetchone()
             inicio_completo = row_inicio[0] if row_inicio and row_inicio[0] else None
             dias_completos = (agora_ts - inicio_completo) / 86400 if inicio_completo else 0
-            dias_top = {n: d for n, d in conn.execute(
-                "SELECT name, COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
-                "WHERE ts >= ? AND position <= 20 GROUP BY name", (fuso, desde)).fetchall()}
             if dias_completos >= MIN_DIAS_COMPLETOS:
                 desde_media = max(desde, inicio_completo)
+                dias_top = {n: d for n, d in conn.execute(
+                    "SELECT name, COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
+                    "WHERE ts >= ? AND position <= 20 GROUP BY name",
+                    (fuso, desde_media)).fetchall()}
                 coletas = (conn.execute(
                     "SELECT COUNT(DISTINCT ts) FROM pontos WHERE completo = 1 AND ts >= ?",
                     (desde_media,)).fetchone() or (0,))[0]
-                linhas = conn.execute(
-                    "SELECT name, AVG(score), COUNT(*) FROM pontos WHERE completo = 1 AND ts >= ? "
-                    "GROUP BY name", (desde_media,)).fetchall()
+                dias_com_coleta = (conn.execute(
+                    "SELECT COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
+                    "WHERE completo = 1 AND ts >= ?",
+                    (fuso, desde_media)).fetchone() or (0,))[0]
+                linhas = conn.execute("""
+                    SELECT name, AVG(media_dia), COUNT(*) FROM (
+                        SELECT name,
+                               CAST((ts + ?) / 86400 AS INTEGER) AS dia,
+                               AVG(score) AS media_dia
+                        FROM pontos
+                        WHERE completo = 1 AND ts >= ?
+                        GROUP BY name, dia
+                    )
+                    GROUP BY name""", (fuso, desde_media)).fetchall()
                 itens = [{"name": n, "valor": round(m, 1), "media": round(m, 1),
-                          "presenca_pct": round(100 * c / coletas) if coletas else 0,
+                          "presenca_pct": round(100 * d / dias_com_coleta) if dias_com_coleta else 0,
                           "dias_no_top": dias_top.get(n, 0)}
-                         for n, m, c in linhas if coletas and c >= MIN_PRESENCA * coletas]
+                         for n, m, d in linhas
+                         if dias_com_coleta and d >= MIN_PRESENCA * dias_com_coleta]
                 itens.sort(key=lambda i: (-i["media"], -i["dias_no_top"], i["name"]))
                 resultado = {"modo": "media", "itens": itens[:top],
                              "coletas": coletas, "desde": desde_media}
             else:
+                dias_top = {n: d for n, d in conn.execute(
+                    "SELECT name, COUNT(DISTINCT CAST((ts + ?) / 86400 AS INTEGER)) FROM pontos "
+                    "WHERE ts >= ? AND position <= 20 GROUP BY name",
+                    (fuso, desde)).fetchall()}
                 coletas = (conn.execute(
                     "SELECT COUNT(DISTINCT ts) FROM pontos WHERE ts >= ?",
                     (desde,)).fetchone() or (0,))[0]
@@ -317,7 +346,8 @@ def ranking_consistente(dias: float, agora: "float | None" = None, top: int = 20
         return {"modo": None, "itens": [], "coletas": 0, "desde": desde}
 
     if chave_cache is not None:
-        if len(_CACHE_RANKING) >= _CACHE_RANKING_MAX:
-            _CACHE_RANKING.clear()
-        _CACHE_RANKING[chave_cache] = _copiar_ranking(resultado)
+        with _CACHE_LOCK:
+            if len(_CACHE_RANKING) >= _CACHE_RANKING_MAX:
+                _CACHE_RANKING.clear()
+            _CACHE_RANKING[chave_cache] = _copiar_ranking(resultado)
     return resultado

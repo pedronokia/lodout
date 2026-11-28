@@ -1068,8 +1068,9 @@ def test_atualizar_custo_json_avalia_carteira_em_uma_passada_e_usa_meta_da_conta
     assert dados["atingiu_meta"] is True
     assert dados["totais"]["com_valor"] == 2
     assert dados["totais"]["pago"] == "R$ 30,00"
-    # 1 leitura em update_position_cost + 1 leitura para responder (não 2 na resposta).
-    assert leituras_posicoes == 2
+    # update_position_cost usa transação atômica em user_store.update_user_json;
+    # load_positions é chamado uma única vez para montar a resposta.
+    assert leituras_posicoes == 1
     assert chamadas_preco == 1
 
 

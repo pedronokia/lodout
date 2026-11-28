@@ -28,7 +28,7 @@ _INICIALIZADOS: set[tuple[str, int, int]] = set()
 
 JANELA_S = 180.0   # "agora" = deu sinal nos últimos 3 min (aviso a cada 1 min)
 GUARDA_S = 600.0   # nada fica guardado mais que 10 min
-_ID_OK = re.compile(r"^[0-9a-f]{16,64}$")
+_ID_OK = re.compile(r"\A[0-9a-f]{16,64}\Z")
 
 
 def _caminho() -> Path:
@@ -50,17 +50,23 @@ def _conectar() -> sqlite3.Connection:
     p.parent.mkdir(parents=True, exist_ok=True)
     chave = _chave_arquivo(p)
     conn = sqlite3.connect(str(p), timeout=2)
-    conn.execute("PRAGMA busy_timeout=2000")
-    conn.execute("PRAGMA synchronous=NORMAL")
-    if chave is None or chave not in _INICIALIZADOS:
-        with _INIT_LOCK:
-            if chave is None or chave not in _INICIALIZADOS:
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("CREATE TABLE IF NOT EXISTS presenca (id TEXT PRIMARY KEY, ts REAL NOT NULL)")
-                conn.commit()
-                nova_chave = _chave_arquivo(p)
-                if nova_chave is not None:
-                    _INICIALIZADOS.add(nova_chave)
+    try:
+        conn.execute("PRAGMA busy_timeout=2000")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        if chave is None or chave not in _INICIALIZADOS:
+            with _INIT_LOCK:
+                chave = _chave_arquivo(p)
+                if chave is None or chave not in _INICIALIZADOS:
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.execute("CREATE TABLE IF NOT EXISTS presenca (id TEXT PRIMARY KEY, ts REAL NOT NULL)")
+                    conn.execute("CREATE INDEX IF NOT EXISTS idx_presenca_ts ON presenca (ts)")
+                    conn.commit()
+                    nova_chave = _chave_arquivo(p)
+                    if nova_chave is not None:
+                        _INICIALIZADOS.add(nova_chave)
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 
